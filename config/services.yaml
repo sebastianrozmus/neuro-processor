@@ -1,0 +1,18 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            $asciiArtPath: '%kernel.project_dir%/src/Resource/ascii/'
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Command\:
+        resource: '../src/Command/*Command.php'
+        tags: ['console.command']
