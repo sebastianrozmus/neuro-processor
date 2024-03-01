@@ -23,3 +23,5 @@ Technologia i Rozwój
 ====================
 
 Rozpoczynam z *Symfony CLI*, ale z zamiarem przejścia na ncurses w przyszłości, co pozwoli na lepsze odwzorowanie zamierzeń projektu i zaoferowanie bogatszej interakcji. Projekt traktuję jako hobbystyczny eksperyment i formę zabawy, a nie przedsięwzięcie komercyjne.
+
+Opis projektu wygenerowany przez AI.
