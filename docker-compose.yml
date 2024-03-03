@@ -1,8 +1,7 @@
 version: '3.8'
 services:
   neuro:
+    container_name: neuro_processor
     build: .
-    ports:
-      - 9000:9000
     volumes:
       - .:/app
