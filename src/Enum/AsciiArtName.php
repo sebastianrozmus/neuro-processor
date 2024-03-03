@@ -4,7 +4,7 @@ namespace App\Enum;
 
 enum AsciiArtName: string
 {
-	// forest
+    // forest
     case FOREST_1 = 'forest1';
     case FOREST_2 = 'forest2';
     case FOREST_3 = 'forest3';

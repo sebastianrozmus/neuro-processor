@@ -14,7 +14,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class DisplayAsciiArtCommand extends Command
 {
-    protected static $name = 'ascii';
+    protected static string $name = 'ascii';
 
     public function __construct(private AsciiArtLoader $asciiArtLoader)
     {
