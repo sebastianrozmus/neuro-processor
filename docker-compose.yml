@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  neuro:
+    build: .
+    ports:
+      - 9000:9000
+    volumes:
+      - .:/app
