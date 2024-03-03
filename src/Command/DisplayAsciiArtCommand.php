@@ -72,6 +72,6 @@ class DisplayAsciiArtCommand extends Command
             usleep(10000);
         }
 
-        $output->writeln(''); 
+        $output->writeln('');
     }
 }
