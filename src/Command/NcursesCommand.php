@@ -28,7 +28,10 @@ class NcursesCommand extends Command
     {
         ncurses_init();
         ncurses_border(0, 0, 0, 0, 0, 0, 0, 0);
+        ncurses_move(10, 100);
+        ncurses_addstr("Witaj w ncurses z Symfony Console!");
         ncurses_refresh();
+
         sleep(5);
         ncurses_end();
 
