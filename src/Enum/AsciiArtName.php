@@ -13,4 +13,8 @@ enum AsciiArtName: string
     case DRAGON_1 = 'dragon1';
     case DRAGON_2 = 'dragon2';
     case DRAGON_3 = 'dragon3';
+
+    // NPC
+    case NPC_1 = 'npc1';
+
 }

@@ -7,6 +7,9 @@ services:
         bind:
             $asciiArtPath: '%kernel.project_dir%/src/Resource/ascii/'
 
+    Symfony\Component\Console\Terminal:
+        public: true
+
     App\:
         resource: '../src/'
         exclude:

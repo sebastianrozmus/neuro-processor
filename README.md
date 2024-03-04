@@ -24,4 +24,11 @@ Technologia i Rozwój
 
 Rozpoczynam z *Symfony CLI*, ale z zamiarem przejścia na ncurses w przyszłości, co pozwoli na lepsze odwzorowanie zamierzeń projektu i zaoferowanie bogatszej interakcji. Projekt traktuję jako hobbystyczny eksperyment i formę zabawy, a nie przedsięwzięcie komercyjne.
 
+Screenshots
+===========
+
+![forest](./images/screen1.png)
+![dragon](./images/screen2.png)
+![npc](./images/screen3.png)
+
 Opis projektu wygenerowany przez AI.
