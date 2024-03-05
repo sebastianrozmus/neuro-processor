@@ -33,7 +33,7 @@ class TestConsoleCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->consoleManager->loop();
+        $this->consoleManager->loop($input, $output);
 
         return Command::SUCCESS;
     }
