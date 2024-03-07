@@ -13,7 +13,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Cursor;
 
-
 class TestConsoleCommand extends Command
 {
     protected static string $name = 'console';
@@ -33,7 +32,10 @@ class TestConsoleCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->consoleManager->loop($input, $output);
+        $this->consoleManager->setInput($input);
+        $this->consoleManager->setOutput($output);
+        $this->consoleManager->setCursor(new Cursor($output));
+        $this->consoleManager->loop();
 
         return Command::SUCCESS;
     }

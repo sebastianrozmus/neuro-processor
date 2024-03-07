@@ -5,6 +5,8 @@ namespace App\CLI\Console;
 use App\Service\AsciiArtLoader;
 use Symfony\Component\Console\Cursor;
 use Symfony\Component\Console\Terminal;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -14,11 +16,30 @@ class ConsoleManager
     private int $screenHeight = 0;
     private array $buffer;
 
+    private Cursor $cursor;
+    private OutputInterface $output;
+    private InputInterface $input;
+
     public function __construct(
         private Terminal $terminal,
         private AsciiArtLoader $asciiArtLoader,
     ) {
         $this->initScreen();
+    }
+
+    public function setInput(InputInterface $input)
+    {
+        $this->input = $input;
+    }
+
+    public function setOutput(OutputInterface $output)
+    {
+        $this->output = $output;
+    }
+
+    public function setCursor(Cursor $cursor)
+    {
+        $this->cursor = $cursor;
     }
 
     public function initScreen(): bool
@@ -42,6 +63,14 @@ class ConsoleManager
         }
 
         return $hasChanged;
+    }
+
+    public function refreshScreen()
+    {
+        foreach ($this->buffer as $lineNumber => $line) {
+            $this->cursor->moveToPosition(0, $lineNumber);
+            $this->output->write($line);
+        }
     }
 
     public function getChar(): string
@@ -71,24 +100,23 @@ class ConsoleManager
         $process->run();
     }
 
-    public function loop($input, $output)
+    public function loop()
     {
-        $cursor = new Cursor($output);
         // TODO: asset manager
         $forest = $this->asciiArtLoader->loadArt('forest1');
         $npc    = $this->asciiArtLoader->loadArt('npc1');
 
-        $io = new SymfonyStyle($input, $output);
+        $io = new SymfonyStyle($this->input, $this->output);
         $lastChar = "Moria to tajemnicza handlarka artefaktami, której towar często pochodzi z\nniebezpiecznych wykopalisk. Jest bardzo przebiegła i doskonale\nwie, jak wykorzystać wiedzę o przedmiotach, by maksymalizować zysk. Targowanie się z\nnią wymaga ostrożności i znajomości historii przedmiotów."."\n\n";
         do {
-            $output->write(sprintf("\033\143"));
+            $this->output->write(sprintf("\033\143"));
 
             $io->writeln($forest);
 
             //$this->terminal->clear();
             $this->initScreen();
 
-            $cursor->moveToPosition($this->screenWidth / 2 + 20, 25);
+            $this->cursor->moveToPosition($this->screenWidth / 2 + 20, 25);
             $lines = explode("\n", $lastChar);
             if (count($lines) + 25 >= $this->screenHeight) {
                 //array_shift($lines);
@@ -96,12 +124,12 @@ class ConsoleManager
                 $lastChar = join("\n", $lines);
             }
             foreach ($lines as $k => $line) {
-                $cursor->moveToPosition($this->screenWidth / 2 + 20, 25 + $k);
-                $output->write($line);
+                $this->cursor->moveToPosition($this->screenWidth / 2 + 20, 25 + $k);
+                $this->output->write($line);
             }
 
-            $cursor->moveToPosition($this->screenWidth / 2 + 60, 50);
-            $this->offsetWrite($output, $cursor, $npc, $this->screenWidth / 2 + 40, 2);
+            $this->cursor->moveToPosition($this->screenWidth / 2 + 60, 50);
+            $this->offsetWrite($this->output, $this->cursor, $npc, $this->screenWidth / 2 + 40, 2);
 
             // TODO: $this->drawWidgets();
             $char = $this->getChar();
@@ -131,29 +159,29 @@ class ConsoleManager
         return ord($key) === 27;
     }
 
-    public function offsetWrite($output, $cursor, string $text, int $offsetX = 0, $offsetY = 0): void
+    public function offsetWrite(string $text, int $offsetX = 0, $offsetY = 0): void
     {
         $lines = explode("\n", $text);
 
         foreach ($lines as $k => $line) {
-            $cursor->moveToPosition($offsetX, $offsetY + $k);
-            $output->write($line);
+            $this->cursor->moveToPosition($offsetX, $offsetY + $k);
+            $this->output->write($line);
         }
     }
 
     private function simulateTyping(string $text, int $xOffset, int $yOffset, OutputInterface $output): void
     {
         for ($i = 0; $i < $yOffset; $i++) {
-            $output->writeln('');
+            $this->output->writeln('');
         }
 
         $spaces = str_repeat(' ', $xOffset);
         foreach (str_split($text) as $char) {
-            $output->write($spaces . $char);
+            $this->output->write($spaces . $char);
             $spaces = '';
             usleep(10000);
         }
 
-        $output->writeln('');
+        $this->output->writeln('');
     }
 }
