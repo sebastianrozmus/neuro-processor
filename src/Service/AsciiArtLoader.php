@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use RuntimeException;
+use Symfony\Component\Process\Process;
 
 class AsciiArtLoader
 {
@@ -20,10 +21,12 @@ class AsciiArtLoader
             self::ASCII_ART_FILE_EXTENSION
         ]);
 
+        $file = new SplFileInfo($filename, '', '');
+
         if (!file_exists($path)) {
             throw new RuntimeException(sprintf("File not found: %s", $path));
         }
 
-        return (string) file_get_contents($path);
+        return $file->getContents();
     }
 }

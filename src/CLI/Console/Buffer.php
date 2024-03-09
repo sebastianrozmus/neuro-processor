@@ -10,6 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+// TODO: interfejs Buffer, klasy ImageBuffer, ScrollableBuffer, TextBuffer, WindowBuffer
 class Buffer
 {
     private array $buffer;
@@ -34,13 +35,11 @@ class Buffer
 
     }
 
-    public function write($text, $xOffset = 0, $yOffset = 0)
+    public function write($text, $xOffset = 0, $yOffset = 0, $isAsciiSequence = true)
     {
         $lines = explode("\n", $text);
         foreach ($lines as $lineNumber => $line) {
-            $characters = explode('m', $line);
-            $characters = explode("\033", $line);
-            $characters = $this->splitAnsiSequence($line);
+            $characters = $isAsciiSequence ? $this->splitAnsiSequence($line) : str_split($line);
 
             for ($x = 0; $x < count($characters); $x++) {
                 if (isset($this->buffer[$yOffset + $lineNumber][$xOffset + $x])) {
@@ -50,6 +49,7 @@ class Buffer
         }
     }
 
+    // TODO: AsciiHelperService
     public function splitAnsiSequence($text) {
         $length           = mb_strlen($text, 'UTF-8');
         $resultArray      = [];

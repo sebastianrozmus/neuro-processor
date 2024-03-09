@@ -2,4 +2,6 @@
 
 ## Wprowadzenie buffora ekranu
 
-Dzisiaj wprowadzę obsługę buffora ekranu, aby upłynnić odświeżanie ekranu.
+Dzisiaj dodaję schematyczny kod do obsługi buffora ekranu.
+
+Wprowadzenie buffora ma za zadanie upłynnić odświeżanie ekranu i wyeliminowanie glitchy podczas jego odświeżania.
