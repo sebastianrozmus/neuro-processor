@@ -15,7 +15,8 @@ class Buffer
 {
     private array $buffer;
 
-    public function __construct(private int $width, private int $height, string $text) {
+    public function __construct(private int $width, private int $height, string $text)
+    {
         $this->initBuffer();
 
         if ($text) {
@@ -27,8 +28,8 @@ class Buffer
     {
         $this->buffer = [];
 
-        for ($y=0; $y <= $this->width; $y++) { 
-            for ($x=0; $x <= $this->height; $x++) { 
+        for ($y = 0; $y <= $this->width; $y++) {
+            for ($x = 0; $x <= $this->height; $x++) {
                 $this->buffer[$x][$y] = ' ';
             }
         }
@@ -50,7 +51,8 @@ class Buffer
     }
 
     // TODO: AsciiHelperService
-    public function splitAnsiSequence($text) {
+    public function splitAnsiSequence($text)
+    {
         $length           = mb_strlen($text, 'UTF-8');
         $resultArray      = [];
         $i                = 0;
@@ -65,15 +67,12 @@ class Buffer
                 $resultArray[]    = $actualCharacter;
                 $fetchedSequences = 0;
                 $actualCharacter  = $escapeCharacter;
-            }
-            elseif ($char === $escapeCharacter) {
+            } elseif ($char === $escapeCharacter) {
                 $actualCharacter .= $escapeCharacter;
-            }
-            elseif ($char === 'm') {
+            } elseif ($char === 'm') {
                 $fetchedSequences++;
                 $actualCharacter .= 'm';
-            }
-            else {
+            } else {
                 $actualCharacter .= $char;
             }
 

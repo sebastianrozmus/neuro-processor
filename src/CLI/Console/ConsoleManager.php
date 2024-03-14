@@ -54,40 +54,75 @@ class ConsoleManager
 
         $this->screenWidth  = $this->terminal->getWidth();
         $this->screenHeight = $this->terminal->getHeight();
-        $this->buffer       = [];
-
-        for ($x=0; $x < $this->screenWidth; $x++) { 
-            for ($y=0; $y < $this->screenHeight; $y++) { 
-                $this->buffer[$x][$y] = ' ';
-            }
-        }
+        $this->initBuffer();
 
         return $hasChanged;
     }
 
+    public function initBuffer()
+    {
+        $this->buffer = [];
+
+        for ($y = 0; $y <= $this->screenWidth; $y++) {
+            for ($x = 0; $x <= $this->screenHeight; $x++) {
+                $this->buffer[$x][$y] = ' ';
+            }
+        }
+    }
+
+    public function write($text, $xOffset = null, $yOffset = null)
+    {
+        if (null === $xOffset || null === $yOffset) {
+            $position = $this->cursor->getCurrentPosition();
+            $xOffset  = $xOffset ? $xOffset : $position[0];
+            $yOffset  = $yOffset ? $yOffset : $position[1];
+        }
+
+        $lines = explode("\n", $text);
+        foreach ($lines as $lineNumber => $line) {
+            $characters = explode('m', $line);
+
+            $characters = explode("\033", $line);
+
+            for ($x = 0; $x < count($characters); $x++) {
+                if (isset($this->buffer[$yOffset + $lineNumber][$xOffset + $x])) {
+                    $this->buffer[$yOffset + $lineNumber][$xOffset + $x] = $characters[$x];
+                }
+            }
+        }
+
+    }
+
     public function refreshScreen()
     {
+        $position = $this->cursor->getCurrentPosition();
+
         foreach ($this->buffer as $lineNumber => $line) {
             $this->cursor->moveToPosition(0, $lineNumber);
             $this->output->write($line);
         }
+
+        $this->cursor->moveToPosition($position[0], $position[1]);
     }
 
-    public function getChar(): string
+    public function nonBlockingRead($fd, &$data)
     {
-        // disable blocking: https://www.hashbangcode.com/article/creating-game-php-part-1-detecting-key-inputs
-        // TODO: stream_set_blocking($stdin, 0);
+        $read = array($fd);
+        $write = array();
+        $except = array();
 
-        // switch terminal mode to raw and turn off echo
-        system('stty cbreak -echo');
+        $result = stream_select($read, $write, $except, 0);
+        if($result === false) {
+            throw new RuntimeException('stream_select failed');
+        }
 
-        // read character
-        $key = fgetc(STDIN);
+        if(0 === $result) {
+            return false;
+        }
 
-        // revert terminal mode
-        system('stty cooked echo');
+        $data = stream_get_line($fd, 1);
 
-        return $key;
+        return true;
     }
 
     public function setRawTerminalMode(bool $state): void
@@ -105,13 +140,25 @@ class ConsoleManager
         // TODO: asset manager
         $forest = $this->asciiArtLoader->loadArt('forest1');
         $npc    = $this->asciiArtLoader->loadArt('npc1');
+        $this->cursor->clearScreen();
+        // $this->write($npc, 145, 4);
+        // $this->write($forest, 0, 0);
+
+        // $this->refreshScreen();
+        // die();
 
         $io = new SymfonyStyle($this->input, $this->output);
         $lastChar = "Moria to tajemnicza handlarka artefaktami, której towar często pochodzi z\nniebezpiecznych wykopalisk. Jest bardzo przebiegła i doskonale\nwie, jak wykorzystać wiedzę o przedmiotach, by maksymalizować zysk. Targowanie się z\nnią wymaga ostrożności i znajomości historii przedmiotów."."\n\n";
-        do {
-            $this->output->write(sprintf("\033\143"));
 
-            $io->writeln($forest);
+        $stdin = fopen('php://stdin', 'r');
+        stream_set_blocking($stdin, false);
+
+        // switch terminal mode to raw and turn off echo
+        system('stty cbreak -echo');
+
+        do {
+            $this->cursor->clearScreen();
+            $this->write($forest, 1, 1);
 
             //$this->terminal->clear();
             $this->initScreen();
@@ -125,14 +172,15 @@ class ConsoleManager
             }
             foreach ($lines as $k => $line) {
                 $this->cursor->moveToPosition($this->screenWidth / 2 + 20, 25 + $k);
-                $this->output->write($line);
+                $this->write($line);
             }
 
             $this->cursor->moveToPosition($this->screenWidth / 2 + 60, 50);
-            $this->offsetWrite($this->output, $this->cursor, $npc, $this->screenWidth / 2 + 40, 2);
+            $this->offsetWrite($npc, $this->screenWidth / 2 + 40, 2);
 
             // TODO: $this->drawWidgets();
-            $char = $this->getChar();
+            $char = false;
+            $this->nonBlockingRead($stdin, $char);
 
             if (ord($char) === 10) {
                 $lastChar .= "\n\nLustrzany Medalion Czasu\n\nPozwala użytkownikowi na krótkie podróże w czasie, nie dłuższe niż kilka minut wstecz.\nUżytkowanie jest ograniczone i wymaga dużej ilości energii magicznej.";
@@ -142,8 +190,12 @@ class ConsoleManager
             $lastChar .= $char;
             //$output->write('|asdasdasd');
             $this->onKeyPressed($char);
+            $this->refreshScreen();
             //$this->widgets->emit(ConsoleEvents::KEY_PRESSED, new KeyPressedEvent($char));
         } while (!$this->shoudExit($char));
+
+        // revert terminal mode
+        system('stty cooked echo');
     }
 
     public function onKeyPressed(string $key)
@@ -164,24 +216,17 @@ class ConsoleManager
         $lines = explode("\n", $text);
 
         foreach ($lines as $k => $line) {
-            $this->cursor->moveToPosition($offsetX, $offsetY + $k);
-            $this->output->write($line);
+            $this->write($line, $offsetX, $offsetY + $k);
         }
     }
 
     private function simulateTyping(string $text, int $xOffset, int $yOffset, OutputInterface $output): void
     {
-        for ($i = 0; $i < $yOffset; $i++) {
-            $this->output->writeln('');
-        }
-
-        $spaces = str_repeat(' ', $xOffset);
+        $x = 0;
         foreach (str_split($text) as $char) {
-            $this->output->write($spaces . $char);
+            $this->write($char, $xOffset, $yOffset + $x++);
             $spaces = '';
             usleep(10000);
         }
-
-        $this->output->writeln('');
     }
 }

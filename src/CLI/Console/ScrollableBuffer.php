@@ -21,7 +21,8 @@ class ScrollabledBuffer extends Buffer
 
     private int $cursorPosition = 0;
 
-    public function __construct(private int $width, private int $height, string $text, private bool $hasAutoScroll = true) {
+    public function __construct(private int $width, private int $height, string $text, private bool $hasAutoScroll = true)
+    {
         parent::initBuffer();
 
         if ($text) {
@@ -43,8 +44,7 @@ class ScrollabledBuffer extends Buffer
             for ($x = 0; $x < count($characters); $x++) {
                 if ($x >= $this->width) {
                     $this->contents->addNewLine();
-                }
-                else {
+                } else {
                     $this->contents .= $characters[$x];
                     ++$this->cursorPosition;
                 }
@@ -56,9 +56,9 @@ class ScrollabledBuffer extends Buffer
     {
         $iterationCounter = 0;
 
-        $startLine = $this->cursorLine > $height ? $this->cursorLine - $height;
+        $startLine = $this->cursorLine > $height ? $this->cursorLine - $height : $height;
 
-        for ($iterationCounter=0; $iterationCounter < $height; $iterationCounter++) {
+        for ($iterationCounter = 0; $iterationCounter < $height; $iterationCounter++) {
             $actualLine = $startLine + $iterationCounter;
             $buffer->write($this->contents[$actualLine], $x, $y + $iterationCounter);
         }

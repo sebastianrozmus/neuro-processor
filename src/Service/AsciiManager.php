@@ -12,7 +12,7 @@ class AsciiManager
 
     public function convertToAscii(string $filename): string
     {
-        $filesystem = new Filesystem(); 
+        $filesystem = new Filesystem();
 
         if (!$filesystem->exists($filebane)) {
             throw new RuntimeException(sprintf('File %s doesn\'t exist', $filename));
