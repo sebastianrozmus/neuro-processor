@@ -3,10 +3,13 @@
 namespace App\Service;
 
 use RuntimeException;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class AsciiManager
 {
-    public function __construct(private AsciiArtLoader $asciiArtLoader)
+    public function __construct()
     {
     }
 
@@ -14,7 +17,7 @@ class AsciiManager
     {
         $filesystem = new Filesystem();
 
-        if (!$filesystem->exists($filebane)) {
+        if (!$filesystem->exists($filename)) {
             throw new RuntimeException(sprintf('File %s doesn\'t exist', $filename));
         }
 

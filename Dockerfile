@@ -15,6 +15,9 @@ RUN apt-get update && \
 
 RUN docker-php-ext-install zip 
 
+RUN pecl install mongodb \
+    &&  echo "extension=mongodb.so" > $PHP_INI_DIR/conf.d/mongo.ini
+
 RUN apt-get update && apt-get install -y wget tar
 
 WORKDIR /usr/src/app

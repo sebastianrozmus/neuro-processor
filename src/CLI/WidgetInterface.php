@@ -4,5 +4,5 @@ namespace App\CLI;
 
 interface WidgetInterface
 {
-    public function draw();
+    public function draw(): void;
 }

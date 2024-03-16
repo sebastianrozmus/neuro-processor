@@ -13,6 +13,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 // TODO: interfejs Buffer, klasy ImageBuffer, ScrollableBuffer, TextBuffer, WindowBuffer
 class Buffer
 {
+    /**
+     * @var array<array<int, string>|string>
+     */
     private array $buffer;
 
     public function __construct(private int $width, private int $height, string $text)
@@ -24,7 +27,7 @@ class Buffer
         }
     }
 
-    public function initBuffer()
+    public function initBuffer(): void
     {
         $this->buffer = [];
 
@@ -36,7 +39,7 @@ class Buffer
 
     }
 
-    public function write($text, $xOffset = 0, $yOffset = 0, $isAsciiSequence = true)
+    public function write(string $text, int $xOffset = 0, int $yOffset = 0, bool $isAsciiSequence = true): void
     {
         $lines = explode("\n", $text);
         foreach ($lines as $lineNumber => $line) {
@@ -51,7 +54,10 @@ class Buffer
     }
 
     // TODO: AsciiHelperService
-    public function splitAnsiSequence($text)
+    /**
+     * @return array<int, string>
+     */
+    public function splitAnsiSequence(string $text): array
     {
         $length           = mb_strlen($text, 'UTF-8');
         $resultArray      = [];

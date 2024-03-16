@@ -4,6 +4,7 @@ namespace App\Service;
 
 use RuntimeException;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Finder\SplFileInfo;
 
 class AsciiArtLoader
 {
