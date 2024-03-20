@@ -1,4 +1,6 @@
 parameters:
+    env(MONGODB_URL): ''
+    env(MONGODB_DB): ''
 
 services:
     _defaults:
@@ -6,6 +8,7 @@ services:
         autoconfigure: true
         bind:
             $asciiArtPath: '%kernel.project_dir%/src/Resource/ascii/'
+            $openAiToken: '%env(OPEN_AI_TOKEN)%'
 
     Symfony\Component\Console\Terminal:
         public: true
