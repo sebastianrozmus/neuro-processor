@@ -5,7 +5,7 @@ namespace App\Service;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use DateTime;
 
-class Dalee2Service implements ImageGenerationClientInterface
+class DaleeService implements ImageGenerationClientInterface
 {
     public function __construct(
         private HttpClientInterface $client,
