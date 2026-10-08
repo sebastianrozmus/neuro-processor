@@ -16,7 +16,8 @@ Przy tworzeniu świata wybiera się rodzaj gry:
 |---|---|---|
 | **Gra wyobraźni** | mapa, osady, kupcy, drużyna, walka rozstrzygana prostymi liczbami, narrator i rysowane sceny | Zatopione Krypty, Popiół i Rdza, Stacja Erebus |
 | **D&D** | ten sam rodzaj świata, ale zasady stołowego RPG: rzut k20 przeciw klasie pancerza (KP), kości broni, trafienia krytyczne, rzuty obronne, inicjatywa i walka na siatce z ruchem, zasięgiem i atakami okazyjnymi | Smocza Góra |
-| **Przygodowa** | tekstowa przygodówka jak Mózgoprocesor: pomieszczenia, przedmioty, zagadki, ludzie do pogadania i cel do osiągnięcia; bez walki i statystyk | Hipokamp |
+| **Przygodowa** | tekstowa przygodówka jak Mózgoprocesor: pomieszczenia, przedmioty, zagadki, ludzie do pogadania i cel do osiągnięcia; bez walki i statystyk; z terminem robi się z niej escape room | Hipokamp, Pracownia Zegarmistrza |
+| **Śledztwo** | miasteczko z ukrytą prawdą: ludzie wiedzą po kawałku i mają plan dnia, rzeczy kryją poszlaki, a sprawę kończy oskarżenie poparte dowodami; rozmowy z mieszkańcami prowadzi model, ale tylko z tego, co dana osoba wie | Jeziorna, Kanał 7 |
 
 Generator umie tworzyć każdy z tych rodzajów (przygodówkę opisuje innym schematem: pokoje, rzeczy, osoby i kroki zagadek).
 
@@ -101,6 +102,7 @@ Polecenia
 | `dziennik` | co wiesz i od kogo, oraz twoje zlecenia |
 | `zlecenia`, `przyjmij` | zlecenia kupców: lista i przyjęcie tego, które proponuje gospodarz, u którego jesteś |
 | `handluj z karawaną` | targ z wędrownym kupcem, gdy jego karawana stoi na twoim polu (`$` na mapie) |
+| `czekaj`, `śledź Y`, `oskarżam Y`, `wpisz 1234` | śledztwo i escape room: mija godzina; pójdziesz za osobą, gdy wyjdzie; oskarżenie z dowodami; kod do zamka |
 | `zapisz` | zapisuje grę (tylko gospodarz świata) |
 | `pomoc`, `wyjdź` | lista poleceń, wyjście z gry |
 
@@ -161,6 +163,21 @@ Tryb przygodowy
 ===============
 
 Przygodówka nie ma walki, drużyny ani sklepów; ma pomieszczenia ułożone na mapie (widać tylko odwiedzone), rzeczy, osoby i scenariusz zapisany jako „kroki”: co się dzieje, gdy użyjesz X na Y, dasz coś komuś, pogadasz, otworzysz albo wejdziesz dokądś, pod jakimi warunkami (flagi) i co to zmienia (otwarte drzwi, nowa rzecz, zmieniony opis albo wygląd pomieszczenia, zwycięstwo). Polecenia: `rozejrzyj się`, `zbadaj X`, `podnieś X`, `upuść X`, `użyj X`, `użyj X na Y`, `otwórz X`, `daj X Y`, `rozmawiaj z Y`; Tab pokazuje rzeczy, Enter na rzeczy ją opisuje. Rzeczy przytwierdzone (łóżko, terminal) bada się, ale nie zabiera. Zapis gry pamięta flagi i zmienione pomieszczenia.
+
+Tryb śledztwa
+=============
+
+Śledztwo to przygodówka z ukrytą prawdą (`"mode": "investigation"`), zbudowana na grafie wiedzy:
+
+- **Ludzie wiedzą po kawałku.** Każda osoba (`people`) ma `clues`: fakty z warunkami — `heard` (gracz musi już znać inny fakt), `hour` (pora dnia: ranek, popołudnie, wieczór, noc), `needs` (flaga). Rozmowę (`rozmawiaj z Y`) prowadzi model tak jak w sklepie, ale bez towaru: dostaje tylko to, co dana osoba wie i o czym powie teraz, listę, kogo odesłać w sprawie reszty, i zakaz wymyślania nazwisk, adresów i numerów. Sprawca i fałszywy podejrzany kłamią; ktoś inny zna fakt, który kłamstwo obala.
+- **Rzeczy kryją poszlaki.** `zbadaj X` odkrywa `clues` rzeczy (kartka w szafce dostępna wieczorem, książka telefoniczna, która zamienia numer na nazwisko i adres, ale dopiero gdy numer znasz). Kroki (`steps`) mają nowe warunki: `with` (osoby, które muszą być w pomieszczeniu), `hour`, `heard`, nowe czasowniki `wait` (mija godzina w pomieszczeniu) i `code` (wpisany kod) oraz skutek `fact` — tak powstaje dowód naoczny: czekasz nocą w parku, gdy są tam oboje, i masz zdjęcie.
+- **Plan dnia.** Każda osoba ma `schedule`: gdzie jest o każdej porze. `czekaj` przesuwa czas o godzinę; widzisz, kto wychodzi (i dokąd) i kto przychodzi. `śledź Y` sprawia, że pójdziesz za osobą, gdy wyjdzie. Zegar jest w karcie postaci i w `rozejrzyj się`.
+- **Oskarżenie.** `case` presetu to prawda: `client`, `answer` (kogo wskazać), `proof` (nazwy faktów, bez których nikt nie uwierzy), `verdict`, `hint`. `oskarżam Y` kończy sprawę, gdy nazwisko i dowody się zgadzają; trafne nazwisko bez dowodów daje podpowiedź, a pomyłka obraża oskarżonego (nie odezwie się więcej) i po trzech zleceniodawca rezygnuje. `deadline` (w godzinach, dzień ma 12) z `loss` kończy grę przegraną, gdy czas minie; działa też w zwykłej przygodzie.
+- **Dziwność.** `events` działają w pomieszczeniach tak jak na mapie (`when.day`, `when.enter`, `transform`, `fact`): miasteczko robi się dziwniejsze z każdym dniem.
+
+Wbudowana sprawa **Jeziorna, Kanał 7** (rok 2004, miasteczko nad jeziorem i lokalna telewizja, która nocami nadaje rzeczy, których nikt nie zaplanował): Halina Sowa chce wiedzieć, z kim spotyka się jej mąż, i żąda nazwiska, adresu i zdjęcia. Łańcuch wiedzie przez kelnerów, szafkę na zapleczu, książkę telefoniczną na poczcie i noc na pomoście; sześć osób z planem dnia, dwa kłamstwa, 36 godzin. **Pracownia Zegarmistrza** to escape room na silniku przygodówki: cztery pomieszczenia, dziesięć godzin do zalania piwnicy, łańcuch rzeczy i zamek szyfrowy (`wpisz 1879`).
+
+Generator światów umie wymyślić własne śledztwo (rodzaj „Śledztwo” w menu): dostaje te same wymagania co preset, łącznie z łańcuchem poszlak, planem dnia, `case` i terminem.
 
 Gra w kilka osób
 ================

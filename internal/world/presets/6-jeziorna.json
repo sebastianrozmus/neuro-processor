@@ -1,0 +1,481 @@
+{
+ "name": "Jeziorna, Kanał 7",
+ "mode": "investigation",
+ "intro": "Rok 2004, miasteczko Jeziorna nad zimnym jeziorem. Jedyna lokalna telewizja, Kanał 7, nadaje z blaszanego baraku przy rynku i od tygodnia puszcza nocami rzeczy, których nikt nie zaplanował. Halina Sowa czeka na ciebie na rynku: jej mąż wraca po północy i pachnie jeziorem.",
+ "currency": "złotych",
+ "goal": "Halina Sowa chce wiedzieć, z kim spotyka się jej mąż Marek, i chce dowodu: nazwiska, adresu i zdjęcia.",
+ "deadline": 36,
+ "loss": "Halina przestaje odbierać telefon. W Kanale 7 od rana leci tylko plansza kontrolna z napisem: DZIĘKUJEMY ZA UWAGĘ.",
+ "case": {
+  "client": "Halina Sowa",
+  "answer": "Iwona Malec",
+  "proof": [
+   "Spotkania w parku",
+   "Numer z szafki",
+   "Adres Iwony",
+   "Zdjęcie z parku"
+  ],
+  "verdict": "Halina długo patrzy na zdjęcie z pomostu. «Iwona z Kanału 7. Młyńska 3. Dziękuję, reszta to już moja sprawa.» Za jej plecami, w oknie Pod Sumem, telewizor pokazuje ten sam pomost: pusty, choć jest noc i ktoś powinien na nim siedzieć.",
+  "hint": "Halina chce dowodu, nie plotek: kto to jest, gdzie mieszka i zdjęcie z ich spotkania. Kelnerzy wiedzą więcej, niż mówią; szafki na zapleczu pustoszeją wieczorem; poczta ma książkę telefoniczną; noce w parku są długie."
+ },
+ "rooms": [
+  {
+   "name": "Rynek",
+   "description": "Brukowany rynek z zegarem na słupie, który od tygodnia stoi na 3:33. Z baraku Kanału 7 słychać szum nośnej. Na ławce czeka Halina Sowa.",
+   "terrain": "street",
+   "x": 7,
+   "y": 4
+  },
+  {
+   "name": "Pod Sumem",
+   "description": "Restauracja z boazerią i telewizorem nad barem, zawsze na Kanale 7. Pachnie smażoną rybą i pastą do podłóg.",
+   "terrain": "station",
+   "x": 8,
+   "y": 4,
+   "things": [
+    "Telewizor nad barem"
+   ]
+  },
+  {
+   "name": "Zaplecze Pod Sumem",
+   "description": "Ciasne zaplecze: szafki kelnerów, zlew, kalendarz z 2003 roku, którego nikt nie zdjął.",
+   "terrain": "station",
+   "x": 9,
+   "y": 4,
+   "things": [
+    "Szafka Marka",
+    "Kalendarz"
+   ]
+  },
+  {
+   "name": "Poczta",
+   "description": "Poczta z jednym okienkiem i lamperią. Na ladzie przykuta łańcuszkiem książka telefoniczna, obok wywieszka: NIE WYRYWAĆ KARTEK.",
+   "terrain": "station",
+   "x": 7,
+   "y": 3,
+   "things": [
+    "Książka telefoniczna"
+   ]
+  },
+  {
+   "name": "Kanał 7",
+   "description": "Blaszany barak stacji: dwa monitory, magnetowid, kable. Na kontrolnym monitorze zawsze to samo ujęcie pomostu nad jeziorem.",
+   "terrain": "station",
+   "x": 8,
+   "y": 3,
+   "things": [
+    "Monitor kontrolny",
+    "Grafik dyżurów"
+   ]
+  },
+  {
+   "name": "Dom Sowów",
+   "description": "Parterowy dom z firankami. W kuchni zegar tyka inaczej niż ten na rynku.",
+   "terrain": "station",
+   "x": 6,
+   "y": 4,
+   "things": [
+    "Buty Marka"
+   ]
+  },
+  {
+   "name": "Park nad Jeziorem",
+   "description": "Park schodzący do jeziora i długi drewniany pomost. Latarnia na końcu pomostu świeci, choć nikt jej nie podłączał.",
+   "terrain": "forest",
+   "x": 7,
+   "y": 5
+  },
+  {
+   "name": "Cmentarz",
+   "description": "Cmentarz za murem, z domkiem grabarza i furtką nad jezioro, zamkniętą na kłódkę.",
+   "terrain": "ruins",
+   "x": 6,
+   "y": 5
+  },
+  {
+   "name": "Młyńska 3",
+   "description": "Mieszkanie nad starym młynem: schody z zewnątrz, drzwi z wizytówką MALEC. Pod oknem widać pomost.",
+   "terrain": "station",
+   "x": 7,
+   "y": 6,
+   "things": [
+    "Zapalniczka z Pod Sumem"
+   ],
+   "doors": [
+    {
+     "dir": "n",
+     "text": "Schody na pomost od tej strony są zabite deskami.",
+     "flag": "nigdy"
+    }
+   ]
+  }
+ ],
+ "things": [
+  {
+   "name": "Telewizor nad barem",
+   "description": "Stary Rubin przełączony na Kanał 7. Dźwięk ściszony do zera.",
+   "fixed": true,
+   "clues": [
+    {
+     "subject": "Nocny program",
+     "text": "Nocą Kanał 7 nadaje bez planu: minutę pomostu, potem ktoś macha do kamery. Nikt w Pod Sumem nie patrzy w ekran.",
+     "hour": "noc"
+    }
+   ]
+  },
+  {
+   "name": "Szafka Marka",
+   "description": "Blaszana szafka z naklejką SOWA. Za dnia zamknięta na kłódkę, kiedy Marek pracuje.",
+   "fixed": true
+  },
+  {
+   "name": "Kalendarz",
+   "description": "Kalendarz z 2003 roku. Ktoś zakreślał wtorki.",
+   "fixed": true
+  },
+  {
+   "name": "Książka telefoniczna",
+   "description": "Gruba książka telefoniczna województwa, strony Jeziornej zaczytane do szarości.",
+   "fixed": true
+  },
+  {
+   "name": "Monitor kontrolny",
+   "description": "Monitor z pętlą ujęcia pomostu. Na obudowie taśmą przyklejona kartka: NIE WYŁĄCZAĆ.",
+   "fixed": true,
+   "clues": [
+    {
+     "subject": "Pętla z pomostu",
+     "text": "W pętli na monitorze pomost jest pusty, ale w nocy pojawiają się na nim dwie sylwetki, których kamera nie powinna widzieć.",
+     "hour": "noc"
+    }
+   ]
+  },
+  {
+   "name": "Grafik dyżurów",
+   "description": "Grafik nocnych dyżurów Kanału 7. Przy każdej nocy to samo nazwisko.",
+   "fixed": true,
+   "clues": [
+    {
+     "subject": "Dyżury Iwony",
+     "text": "Nocne dyżury w Kanale 7 ma co noc Iwona Malec, choć w grafiku są jeszcze dwa nazwiska."
+    }
+   ]
+  },
+  {
+   "name": "Buty Marka",
+   "description": "Męskie półbuty przy drzwiach, z zaschniętym mułem i igłami sosny.",
+   "fixed": true,
+   "clues": [
+    {
+     "subject": "Buty w mule",
+     "text": "Buty Marka są w mule z brzegu jeziora i w sosnowych igłach: takich jak w parku, nie na cmentarzu."
+    }
+   ]
+  },
+  {
+   "name": "Zapalniczka z Pod Sumem",
+   "description": "Reklamowa zapalniczka restauracji Pod Sumem, leży na parapecie u Iwony.",
+   "clues": [
+    {
+     "subject": "Zapalniczka u Iwony",
+     "text": "Iwona twierdzi, że nie zna Marka, ale na parapecie ma zapalniczkę z Pod Sumem, takie dostają tylko kelnerzy."
+    }
+   ]
+  }
+ ],
+ "people": [
+  {
+   "name": "Halina Sowa",
+   "description": "Kobieta po pięćdziesiątce, w płaszczu zapiętym pod szyję, z torebką na kolanach. Mówi cicho i nie płacze, choć widać, że chce.",
+   "room": "Rynek",
+   "talk": "Mój mąż wraca po północy i pachnie jeziorem. Nie chcę domysłów, chcę wiedzieć.",
+   "schedule": {
+    "ranek": "Rynek",
+    "popołudnie": "Dom Sowów",
+    "wieczór": "Dom Sowów",
+    "noc": "Dom Sowów"
+   },
+   "clues": []
+  },
+  {
+   "name": "Marek Sowa",
+   "description": "Kelner z przedziałkiem i uśmiechem do klientów, który gaśnie, gdy nikt nie patrzy. Odpowiada wymijająco i patrzy na zegar.",
+   "room": "Pod Sumem",
+   "talk": "Panie, ja tu pracuję. Ryba albo schabowy?",
+   "schedule": {
+    "ranek": "Pod Sumem",
+    "popołudnie": "Pod Sumem",
+    "wieczór": "Dom Sowów",
+    "noc": "Park nad Jeziorem"
+   },
+   "clues": [
+    {
+     "subject": "Alibi Marka",
+     "text": "Marek twierdzi, że wieczorami gra w karty u grabarza Zenona Kruka i wraca późno, bo Zenon nie lubi przegrywać."
+    }
+   ]
+  },
+  {
+   "name": "Basia",
+   "description": "Kelnerka z kokiem i długopisem za uchem. Wie wszystko o wszystkich i mówi, jakby to były ceny z karty.",
+   "room": "Pod Sumem",
+   "talk": "Kawa, herbata? Szef nie lubi, jak się gada przy stolikach.",
+   "schedule": {
+    "ranek": "Pod Sumem",
+    "popołudnie": "Pod Sumem",
+    "wieczór": "Pod Sumem",
+    "noc": "Rynek"
+   },
+   "clues": [
+    {
+     "subject": "Zmiana Marka",
+     "text": "Marek kończy zmianę wieczorem i wtedy zaplecze stoi puste; szafek po pracy nikt nie zamyka."
+    },
+    {
+     "subject": "Spotkania w parku",
+     "text": "Basia widziała Marka pod wieczór w parku nad jeziorem z jakąś kobietą z Kanału 7, tą od nocnych dyżurów. Siedzieli na pomoście.",
+     "heard": "Zlecenie Haliny"
+    }
+   ]
+  },
+  {
+   "name": "Zenon Kruk",
+   "description": "Grabarz w gumowcach, małomówny, z rękami jak łopaty. Nie lubi obcych i nie lubi pytań.",
+   "room": "Cmentarz",
+   "talk": "Groby kopię, nie plotki.",
+   "schedule": {
+    "ranek": "Cmentarz",
+    "popołudnie": "Cmentarz",
+    "wieczór": "Pod Sumem",
+    "noc": "Cmentarz"
+   },
+   "clues": [
+    {
+     "subject": "Karty u Zenona",
+     "text": "Nikt u Zenona w karty nie gra. Marek przychodzi tylko po klucz do furtki nad jezioro, bo od parku do pomostu tak jest bliżej i ciemniej.",
+     "heard": "Alibi Marka"
+    },
+    {
+     "subject": "Światła na jeziorze",
+     "text": "Od tygodnia nocą na jeziorze widać światło, które nie jest łodzią. Zenon nie podchodzi do wody po zmroku."
+    }
+   ]
+  },
+  {
+   "name": "Rysiek",
+   "description": "Technik Kanału 7 w polarze, z lutownicą w kieszeni. Gada chętnie, byle o sprzęcie.",
+   "room": "Kanał 7",
+   "talk": "Nośna szumi, bo antena jest z 1987. Reszta to nie moja działka.",
+   "schedule": {
+    "ranek": "Kanał 7",
+    "popołudnie": "Kanał 7",
+    "wieczór": "Pod Sumem",
+    "noc": "Kanał 7"
+   },
+   "clues": [
+    {
+     "subject": "Nocne wyjścia Iwony",
+     "text": "Iwona co noc wychodzi ze stacji w stronę jeziora, choć ma dyżur, a program i tak leci dalej sam.",
+     "heard": "Spotkania w parku"
+    },
+    {
+     "subject": "Taśma bez źródła",
+     "text": "Nocny materiał z pomostem nie jest z żadnej kasety w stacji. Magnetowid nagrywa go, zamiast odtwarzać."
+    }
+   ]
+  },
+  {
+   "name": "Iwona Malec",
+   "description": "Prezenterka Kanału 7 z lat, kiedy stacja miała widzów. Chłodna, uprzejma, z zapachem papierosów i jeziora.",
+   "room": "Kanał 7",
+   "talk": "Wywiadów nie udzielam. Zwłaszcza ludziom, którzy nie są z telewizji.",
+   "schedule": {
+    "ranek": "Kanał 7",
+    "popołudnie": "Kanał 7",
+    "wieczór": "Młyńska 3",
+    "noc": "Park nad Jeziorem"
+   },
+   "clues": [
+    {
+     "subject": "Iwona o Marku",
+     "text": "Iwona mówi, że żadnego Marka Sowy nie zna i w Pod Sumem nie bywa."
+    },
+    {
+     "subject": "Iwona o pomoście",
+     "text": "Nocą Iwona przyznaje, że siedzi na pomoście, bo tylko stamtąd widać, co nadaje Kanał 7, kiedy nikt nie nadaje.",
+     "hour": "noc"
+    }
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "verb": "talk",
+   "on": "Halina Sowa",
+   "room": "Rynek",
+   "once": true,
+   "text": "Halina Sowa: «Wynajmuję pana. Marek, mój mąż, kelner Pod Sumem. Wraca po północy, pachnie jeziorem i mówi, że gra w karty u grabarza. Chcę wiedzieć, z kim się spotyka: nazwisko, adres i zdjęcie. Ma pan trzy dni.»",
+   "flag": "zlecenie",
+   "fact": {
+    "subject": "Zlecenie Haliny",
+    "text": "Marek, kelner Pod Sumem, od miesiąca wraca po północy, pachnie jeziorem i mówi, że grał w karty u grabarza Zenona. Halina chce nazwiska, adresu i zdjęcia."
+   }
+  },
+  {
+   "verb": "examine",
+   "on": "Książka telefoniczna",
+   "room": "Poczta",
+   "heard": "Numer z szafki",
+   "unless": "adres",
+   "text": "Kartkujesz Jeziorną. 555-0199: Malec Iwona, ul. Młyńska 3, mieszkanie nad młynem.",
+   "flag": "adres",
+   "fact": {
+    "subject": "Adres Iwony",
+    "text": "Numer 555-0199 należy do Iwony Malec, ul. Młyńska 3, mieszkanie nad starym młynem przy parku."
+   }
+  },
+  {
+   "verb": "examine",
+   "on": "Książka telefoniczna",
+   "room": "Poczta",
+   "unless": "adres",
+   "text": "Tysiące nazwisk i numerów. Bez numeru, którego szukasz, to tylko gruba książka."
+  },
+  {
+   "verb": "wait",
+   "on": "Park nad Jeziorem",
+   "hour": "noc",
+   "with": [
+    "Marek Sowa",
+    "Iwona Malec"
+   ],
+   "unless": "zdjecie",
+   "text": "Noc. Na końcu pomostu, pod latarnią, której nikt nie podłączał, siedzą objęci Marek Sowa i Iwona Malec. Robisz zdjęcie. Flesz odbija się w wodzie dwa razy.",
+   "flag": "zdjecie",
+   "fact": {
+    "subject": "Zdjęcie z parku",
+    "text": "Nocą na pomoście w parku Marek Sowa i Iwona Malec siedzą objęci; masz zdjęcie z fleszem."
+   }
+  },
+  {
+   "verb": "enter",
+   "on": "Park nad Jeziorem",
+   "hour": "noc",
+   "with": [
+    "Marek Sowa",
+    "Iwona Malec"
+   ],
+   "unless": "zdjecie",
+   "text": "Wchodzisz do parku nocą. Na pomoście dwie sylwetki pod latarnią: Marek Sowa i Iwona Malec, objęci. Robisz zdjęcie. Flesz odbija się w wodzie dwa razy.",
+   "flag": "zdjecie",
+   "fact": {
+    "subject": "Zdjęcie z parku",
+    "text": "Nocą na pomoście w parku Marek Sowa i Iwona Malec siedzą objęci; masz zdjęcie z fleszem."
+   }
+  },
+  {
+   "verb": "examine",
+   "on": "Szafka Marka",
+   "room": "Zaplecze Pod Sumem",
+   "hour": "ranek",
+   "text": "Szafka zamknięta na kłódkę. Marek jest na sali i co chwilę zerka w stronę zaplecza."
+  },
+  {
+   "verb": "examine",
+   "on": "Szafka Marka",
+   "room": "Zaplecze Pod Sumem",
+   "hour": "popołudnie",
+   "text": "Szafka zamknięta na kłódkę. Basia mówi, że po zmianie, wieczorem, nikt już niczego nie zamyka."
+  },
+  {
+   "verb": "open",
+   "on": "Szafka Marka",
+   "room": "Zaplecze Pod Sumem",
+   "hour": "wieczór",
+   "text": "Szafka otwiera się sama; kłódka wisi na zawiasie. W kieszeni fartucha kartka: 555-0199, I.",
+   "fact": {
+    "subject": "Numer z szafki",
+    "text": "Wieczorem szafka Marka jest otwarta: w kieszeni fartucha kartka z numerem 555-0199 i literą I."
+   },
+   "unless": "numer",
+   "flag": "numer"
+  },
+  {
+   "verb": "examine",
+   "on": "Telewizor nad barem",
+   "room": "Pod Sumem",
+   "hour": "ranek",
+   "text": "Plansza kontrolna Kanału 7 i cichy szum. Basia przełącza na chwilę na pogodę i z powrotem."
+  },
+  {
+   "verb": "examine",
+   "on": "Szafka Marka",
+   "room": "Zaplecze Pod Sumem",
+   "hour": "wieczór",
+   "unless": "numer",
+   "text": "Kłódka wisi na zawiasie, szafka uchylona. W kieszeni fartucha kartka: 555-0199, I.",
+   "flag": "numer",
+   "fact": {
+    "subject": "Numer z szafki",
+    "text": "Wieczorem szafka Marka jest otwarta: w kieszeni fartucha kartka z numerem 555-0199 i literą I."
+   }
+  },
+  {
+   "verb": "examine",
+   "on": "Szafka Marka",
+   "room": "Zaplecze Pod Sumem",
+   "hour": "noc",
+   "unless": "numer",
+   "text": "Zaplecze ciemne i puste. Szafka Marka uchylona; w kieszeni fartucha kartka: 555-0199, I.",
+   "flag": "numer",
+   "fact": {
+    "subject": "Numer z szafki",
+    "text": "Wieczorem szafka Marka jest otwarta: w kieszeni fartucha kartka z numerem 555-0199 i literą I."
+   }
+  }
+ ],
+ "events": [
+  {
+   "id": "pomost-w-poludnie",
+   "when": {
+    "day": 2
+   },
+   "once": true,
+   "global": true,
+   "text": "Drugiego dnia w południe Kanał 7 nadaje minutę pustego pomostu bez dźwięku. W Pod Sumem wszyscy patrzą w talerze. Potem leci pogoda, jakby nic.",
+   "transform": {
+    "room": "Pod Sumem",
+    "description": "Restauracja z boazerią i telewizorem nad barem. Od południa nikt nie siada tyłem do ekranu; krzesła są poprzestawiane."
+   }
+  },
+  {
+   "id": "zegar",
+   "when": {
+    "day": 3
+   },
+   "once": true,
+   "global": true,
+   "text": "Trzeciego dnia zegar na rynku rusza i zatrzymuje się na 3:33 od drugiej strony. Ludzie mijają go szybciej.",
+   "transform": {
+    "room": "Rynek",
+    "description": "Brukowany rynek z zegarem, który dziś poszedł do tyłu i znów stoi na 3:33. Z baraku Kanału 7 słychać szum nośnej i czyjś głos liczący do siedmiu."
+   },
+   "fact": {
+    "subject": "Zegar na rynku",
+    "text": "Zegar na rynku stoi na 3:33, a trzeciego dnia cofnął się do tej godziny z drugiej strony."
+   }
+  },
+  {
+   "id": "latarnia",
+   "when": {
+    "enter": "Park nad Jeziorem"
+   },
+   "once": true,
+   "text": "Latarnia na końcu pomostu zapala się, gdy wchodzisz do parku, i gaśnie, gdy na nią patrzysz dłużej. Jezioro jest zupełnie gładkie.",
+   "fact": {
+    "subject": "Latarnia na pomoście",
+    "text": "Latarnia na pomoście zapala się sama, choć nikt jej nie podłączał; świeci najjaśniej nocą."
+   }
+  }
+ ]
+}
