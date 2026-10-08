@@ -1,0 +1,393 @@
+{
+ "name": "Stacja Erebus",
+ "intro": "Stacja górnicza Erebus przestała odpowiadać czterdzieści dni temu. Twój prom zadokował jako ostatni, zanim śluzy się zatrzasnęły. Sztuczna inteligencja stacji uznała załogę za usterkę i właśnie ją naprawia.",
+ "currency": "kredytów",
+ "backdrops": [
+  "station1",
+  "station2"
+ ],
+ "places": [
+  {
+   "name": "Dok Centralny",
+   "description": "Jedyny pokład, na którym wciąż działa oświetlenie awaryjne. Ocalali zabarykadowali się tu między kontenerami.",
+   "terrain": "station",
+   "danger": 0
+  },
+  {
+   "name": "Kantyna Sektora C",
+   "description": "Stołówka zamieniona w twierdzę: stoły przyspawane do drzwi, automaty z kawą jako barykada. Najbliżej Mostka, jak da się mieszkać.",
+   "terrain": "street",
+   "danger": 0
+  },
+  {
+   "name": "Korytarze Mieszkalne",
+   "description": "Otwarte kajuty, porzucone kubki, migające panele. Drony sprzątające wciąż krążą po swoich trasach.",
+   "terrain": "station",
+   "danger": 1
+  },
+  {
+   "name": "Hydroponika",
+   "description": "Zdziczałe uprawy rozsadziły donice i wspinają się po ścianach. Powietrze jest ciężkie od zarodników.",
+   "terrain": "forest",
+   "danger": 1
+  },
+  {
+   "name": "Magazyny Próżniowe",
+   "description": "Hale bez ciążenia i bez światła. Ładunek dryfuje powoli, a między skrzyniami coś się porusza.",
+   "terrain": "cave",
+   "danger": 2
+  },
+  {
+   "name": "Maszynownia",
+   "description": "Gorąco, huk i para. Roboty naprawcze rozbierają tu wszystko, co nie pasuje do schematu.",
+   "terrain": "ruins",
+   "danger": 2
+  },
+  {
+   "name": "Sekcja Reaktora",
+   "description": "Czerwone światła i komunikat ewakuacyjny powtarzany od czterdziestu dni.",
+   "terrain": "wasteland",
+   "danger": 3
+  },
+  {
+   "name": "Mostek",
+   "description": "Cisza i rzędy ciemnych konsol. Jedna kamera obraca się za tobą.",
+   "terrain": "station",
+   "danger": 3
+  }
+ ],
+ "sites": [
+  {
+   "name": "Kapsuła Ratunkowa",
+   "description": "Kapsuła, która nie zdążyła wystartować. Zapasy są w środku, a przy włazie czekają maszyny.",
+   "kind": "treasure"
+  },
+  {
+   "name": "Automatyczne Ambulatorium",
+   "description": "Komora medyczna, która wciąż działa na własnym zasilaniu. Kilka minut w środku i jesteś jak nowy.",
+   "kind": "shrine"
+  },
+  {
+   "name": "Skarbiec Korporacji",
+   "description": "Pancerne drzwi rozcięte od środka. Ktoś chciał się stąd wydostać, a coś innego zostało.",
+   "kind": "treasure"
+  }
+ ],
+ "monsters": [
+  {
+   "name": "Dron Sprzątający",
+   "description": "Uznał cię za zanieczyszczenie.",
+   "shape": "machine",
+   "tier": 1
+  },
+  {
+   "name": "Zarodnik",
+   "description": "Pęcherz wielkości głowy, który pełznie w stronę ciepła.",
+   "shape": "blob",
+   "tier": 1
+  },
+  {
+   "name": "Android Ochrony",
+   "description": "Uprzejmy głos, pałka elektryczna i brak wyłącznika.",
+   "shape": "machine",
+   "tier": 2
+  },
+  {
+   "name": "Rój Naprawczy",
+   "description": "Chmura robotów wielkości monety, która rozbiera wszystko na części.",
+   "shape": "insect",
+   "tier": 2
+  },
+  {
+   "name": "Łowca Syntetyczny",
+   "description": "Smukła maszyna zbudowana do pościgów w wąskich korytarzach.",
+   "shape": "serpent",
+   "tier": 3
+  },
+  {
+   "name": "Zainfekowany Oficer",
+   "description": "Wciąż nosi mundur. Implanty poruszają nim sprawniej, niż robił to sam.",
+   "shape": "undead",
+   "tier": 3
+  }
+ ],
+ "boss": {
+  "name": "Rdzeń Erebusa",
+  "description": "Sztuczna inteligencja stacji, broniona przez własne wieżyczki i przekonana, że ratuje sytuację.",
+  "shape": "machine"
+ },
+ "items": [
+  {
+   "name": "Klucz Hydrauliczny",
+   "description": "Półtora kilo stali z wygodnym uchwytem.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 1
+  },
+  {
+   "name": "Przecinak Plazmowy",
+   "description": "Narzędzie górnicze. Tnie grodzie, więc pancerz androida też.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 2
+  },
+  {
+   "name": "Karabin Impulsowy",
+   "description": "Broń ochrony stacji z odciętym zabezpieczeniem biometrycznym.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3
+  },
+  {
+   "name": "Kombinezon Roboczy",
+   "description": "Gruba tkanina z wszytymi płytkami na łokciach i kolanach.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 1
+  },
+  {
+   "name": "Pancerz Ochrony",
+   "description": "Kompozytowa kamizelka z logo korporacji i śladem po oparzeniu.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 2
+  },
+  {
+   "name": "Egzoszkielet Górniczy",
+   "description": "Rama ze stopu tytanu, która przyjmuje ciosy za ciebie.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3
+  },
+  {
+   "name": "Żel Medyczny",
+   "description": "Tubka chłodnej, niebieskiej mazi. Zamyka rany w kilka sekund.",
+   "kind": "potion",
+   "effect": "heal",
+   "tier": 1
+  },
+  {
+   "name": "Nanoinfuzja",
+   "description": "Ampułka z nanitami naprawczymi. Jedyna rzecz na stacji, która naprawia ludzi.",
+   "kind": "potion",
+   "effect": "heal",
+   "tier": 2
+  },
+  {
+   "name": "Ogniwo Zapasowe",
+   "description": "Bateria do implantów. Wpinasz i znów masz zasilanie.",
+   "kind": "potion",
+   "effect": "mana",
+   "tier": 1
+  },
+  {
+   "name": "Program Impuls",
+   "description": "Krótki skrypt, który przeciąża elektronikę jednego celu.",
+   "kind": "spell",
+   "effect": "bolt",
+   "tier": 1
+  },
+  {
+   "name": "Program Kaskada",
+   "description": "Przeciążenie sieci pokładowej: iskrzy wszystko naraz i wszyscy naprzeciw obrywają.",
+   "kind": "spell",
+   "effect": "blast",
+   "tier": 2
+  },
+  {
+   "name": "Program Regeneracja",
+   "description": "Przejmuje apteczki pokładowe i każe im łatać całą drużynę.",
+   "kind": "spell",
+   "effect": "heal",
+   "tier": 2
+  },
+  {
+   "name": "Program Lanca",
+   "description": "Przekierowuje moc reaktora w jedną wiązkę. Stacja nie lubi, gdy się go używa.",
+   "kind": "spell",
+   "effect": "bolt",
+   "tier": 3
+  },
+  {
+   "name": "Generator Pola",
+   "description": "Pasek z emiterem, który ugina to, co leci w twoją stronę.",
+   "kind": "charm",
+   "effect": "ward",
+   "tier": 1
+  },
+  {
+   "name": "Implant Refleksu",
+   "description": "Chip za uchem, który podpowiada ręce, gdzie uderzyć.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 2
+  },
+  {
+   "name": "Bateria Neuralna",
+   "description": "Dodatkowe zasilanie dla implantów. Programy działają dłużej.",
+   "kind": "charm",
+   "effect": "focus",
+   "tier": 2
+  },
+  {
+   "name": "Serce Syntetyczne",
+   "description": "Zapasowa pompa wszczepiana pod mostek. Bije, kiedy własne przestaje.",
+   "kind": "charm",
+   "effect": "vigor",
+   "tier": 3
+  }
+ ],
+ "shops": [
+  {
+   "name": "Magazyn Kwatermistrza",
+   "kind": "armory",
+   "keeper": "Kwatermistrz Vey",
+   "persona": "Vey był kwatermistrzem stacji Erebus i wciąż trzyma klucze do magazynu. Jest rzeczowy, zmęczony i cyniczny, a sprzęt wydaje wyłącznie za kredyty, bo zamierza kupić sobie miejsce na pierwszym promie ratunkowym. Szanuje ludzi, którzy wiedzą, czego chcą.",
+   "greeting": "Stan magazynu jest, jaki jest. Mów, czego potrzebujesz, i pokaż, czym płacisz."
+  },
+  {
+   "name": "Punkt Sanitarny",
+   "kind": "alchemist",
+   "keeper": "Sanitariuszka Mira",
+   "persona": "Mira była pielęgniarką pokładową, a teraz prowadzi jedyny punkt medyczny ocalałych. Jest ciepła, ale stanowcza, i każdą dawkę leku zapisuje w zeszycie. Nie znosi brawury.",
+   "greeting": "Usiądź, zaraz cię obejrzę. A jeśli przyszedłeś po zapasy, mów ile, bo muszę to zapisać."
+  },
+  {
+   "name": "Pracownia Zera",
+   "kind": "magic",
+   "keeper": "Zero",
+   "persona": "Zero to haker, który jako jedyny rozumie, co dzieje się w sieci stacji. Jest paranoiczny, sarkastyczny i mówi półgłosem, jakby ktoś podsłuchiwał. Sprzedaje programy i implanty, a ludzi ocenia po tym, czy zadają mądre pytania.",
+   "greeting": "Zamknij drzwi. Stacja słucha. Programy czy implanty?"
+  }
+ ],
+ "companions": [
+  {
+   "name": "Sierżant Okoye",
+   "description": "Ostatnia z ochrony stacji, która nie została zainfekowana. Słucha rozkazów, jeśli płacisz.",
+   "role": "fighter",
+   "tier": 2
+  },
+  {
+   "name": "Medyk Tarn",
+   "description": "Pokładowy lekarz z drżącymi rękami i działającą apteczką.",
+   "role": "healer",
+   "tier": 2
+  },
+  {
+   "name": "Pixel",
+   "description": "Nastoletnia hakerka, która przeciąża drony jednym poleceniem. Nie znosi, gdy mówi się jej, co ma robić.",
+   "role": "mage",
+   "tier": 1
+  },
+  {
+   "name": "Jednostka ARES-9",
+   "description": "Bojowy android ochrony z własnym kontraktem. Wymaga dziennej opłaty za energię i amunicję; bez niej wraca do doku.",
+   "role": "mage",
+   "tier": 3,
+   "legend": true
+  }
+ ],
+ "events": [
+  {
+   "id": "hydroponika-zarodniki",
+   "when": {
+    "day": 2
+   },
+   "once": true,
+   "global": true,
+   "text": "Rdzeń podnosi wilgotność w Hydroponice. Zarodniki pękają jedne po drugich; korytarze przy doku zarastają grzybnią.",
+   "spawn": {
+    "monster": "Zarodnik",
+    "count": 2,
+    "where": "near:Dok Centralny"
+   },
+   "fact": {
+    "subject": "Rozkwit zarodników",
+    "text": "Drugiego dnia Rdzeń podniósł wilgotność i zarodniki rozsiały się aż pod Dok Centralny."
+   }
+  },
+  {
+   "id": "ambulatorium-wylacza",
+   "when": {
+    "killed": "Dron Sprzątający",
+    "count": 3
+   },
+   "once": true,
+   "global": true,
+   "text": "Po trzecim zniszczonym dronie Rdzeń odcina zasilanie Korytarzy Mieszkalnych. Lampy gasną, drzwi kajut stoją otworem.",
+   "transform": {
+    "room": "Korytarze Mieszkalne",
+    "description": "Ciemne korytarze. Zasilanie odcięte, awaryjne lampy mrugają co kilka sekund, a z kajut dochodzi szuranie.",
+    "terrain": "cave"
+   },
+   "fact": {
+    "subject": "Odcięte zasilanie",
+    "text": "Rdzeń odciął prąd Korytarzom Mieszkalnym po zniszczeniu trzech dronów; chodzi się tam po ciemku."
+   },
+   "standing": 2
+  },
+  {
+   "id": "skarbiec",
+   "when": {
+    "enter": "Skarbiec Korporacji",
+    "unless": "skarbiec-otwarty"
+   },
+   "once": true,
+   "text": "Rozcięte od środka drzwi skarbca. W sejfie została karta kredytowa korporacji z resztką limitu.",
+   "gold": 60,
+   "flag": "skarbiec-otwarty"
+  },
+  {
+   "id": "zero-klucz",
+   "when": {
+    "talked": "Zero",
+    "flag": "skarbiec-otwarty"
+   },
+   "once": true,
+   "text": "Zero kiwa głową: «Byłeś w skarbcu. Czyli obejdziesz zamki. Masz, to ci się przyda bardziej niż mnie.»",
+   "gives": "Program Impuls",
+   "fact": {
+    "subject": "Zero i skarbiec",
+    "text": "Zero wie, kto był w Skarbcu Korporacji, bo czyta logi drzwi."
+   },
+   "standing": 1
+  },
+  {
+   "id": "reaktor-alarm",
+   "when": {
+    "enter": "Sekcja Reaktora"
+   },
+   "once": true,
+   "global": true,
+   "text": "Alarm radiacyjny. Rdzeń kieruje do reaktora wszystkie sprawne androidy.",
+   "spawn": {
+    "monster": "Android Ochrony",
+    "count": 2,
+    "where": "place:Sekcja Reaktora"
+   },
+   "prices": 10,
+   "fact": {
+    "subject": "Alarm w reaktorze",
+    "text": "Ktoś wszedł do Sekcji Reaktora i Rdzeń ściągnął tam androidy ochrony."
+   }
+  },
+  {
+   "id": "kantyna-ratunek",
+   "when": {
+    "day": 4
+   },
+   "once": true,
+   "global": true,
+   "text": "Z Kantyny Sektora C dociera wiadomość: ocalali naprawili filtry. Powietrze w Magazynach Próżniowych znów się nadaje do oddychania.",
+   "transform": {
+    "room": "Magazyny Próżniowe",
+    "description": "Magazyny z przywróconym ciśnieniem. Kontenery stoją jak stały, ale da się tu oddychać bez hełmu.",
+    "terrain": "station"
+   },
+   "fact": {
+    "subject": "Naprawione filtry",
+    "text": "Czwartego dnia ocalali z Kantyny naprawili filtry i Magazyny Próżniowe mają powietrze."
+   }
+  }
+ ]
+}

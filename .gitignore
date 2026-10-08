@@ -1,23 +1,6 @@
-
-###> symfony/framework-bundle ###
 /.env.local
-/.env.local.php
-/.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
-/vendor/
-###< symfony/framework-bundle ###
+/neuro
 
-###> phpstan/phpstan ###
-phpstan.neon
-###< phpstan/phpstan ###
-
-###> phpunit/phpunit ###
-/phpunit.xml
-.phpunit.result.cache
-###< phpunit/phpunit ###
-
-###> php-cs-fixer/php-cs-fixer ###
-tools/php-cs-fixer/vendor
-###< php-cs-fixer/php-cs-fixer ###
+# Ręcznie wygenerowane dane treningowe trzymane lokalnie
+tools/model/manual*.jsonl
+/synth

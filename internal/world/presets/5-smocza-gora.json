@@ -1,0 +1,401 @@
+{
+ "name": "Smocza Góra",
+ "mode": "dnd",
+ "intro": "Nad doliną Karw wisi cień Smoczej Góry. Od wiosny z jej czeluści schodzą goblińskie bandy, a kupcy mówią o czerwonym świetle w dawnej krasnoludzkiej kopalni. Pan doliny płaci złotem każdemu, kto wejdzie na górę i wróci.",
+ "currency": "szt. złota",
+ "backdrops": [
+  "dragon1",
+  "dragon2",
+  "dragon3",
+  "forest1"
+ ],
+ "places": [
+  {
+   "name": "Karwin",
+   "description": "Kupiecka osada u stóp góry, z palisadą, karczmą i tablicą pełną listów gończych.",
+   "terrain": "plains",
+   "danger": 0
+  },
+  {
+   "name": "Krasnoludzka Przystań",
+   "description": "Wykuta w skale osada krasnoludów, ostatnie bezpieczne miejsce przed szczytem. Kuźnie nie gasną tu nigdy.",
+   "terrain": "mountain",
+   "danger": 0
+  },
+  {
+   "name": "Pola Karw",
+   "description": "Łąki i zagrody, z których chłopi uciekli przed goblinami. W zbożu coś szeleści.",
+   "terrain": "plains",
+   "danger": 1
+  },
+  {
+   "name": "Stary Bór",
+   "description": "Las sosnowy pełen pułapek na zwierzynę, zastawionych teraz na ludzi.",
+   "terrain": "forest",
+   "danger": 1
+  },
+  {
+   "name": "Kurhany Królów",
+   "description": "Omszałe kopce dawnych władców doliny. Nocą płoną nad nimi błędne ognie.",
+   "terrain": "ruins",
+   "danger": 2
+  },
+  {
+   "name": "Mokradła Czarnej Wody",
+   "description": "Bagna, w których tonie światło. Kładki zapadają się pod stopami.",
+   "terrain": "swamp",
+   "danger": 2
+  },
+  {
+   "name": "Przełęcz Wichrów",
+   "description": "Oblodzona przełęcz, gdzie wiatr zrywa z nóg, a każdy kamień może być trollem.",
+   "terrain": "snow",
+   "danger": 3
+  },
+  {
+   "name": "Kopalnia Durgara",
+   "description": "Opuszczone krasnoludzkie sztolnie, z których bije czerwona łuna i zapach siarki.",
+   "terrain": "cave",
+   "danger": 3
+  }
+ ],
+ "sites": [
+  {
+   "name": "Kapliczka Pielgrzyma",
+   "description": "Kamienna kapliczka ze źródłem. Woda leczy rany i zmywa truciznę.",
+   "kind": "shrine"
+  },
+  {
+   "name": "Skarbiec Króla Berana",
+   "description": "Zapadnięty grobowiec, w którym wciąż leży królewskie wiano. Strzegą go ci, co je ukradli.",
+   "kind": "treasure"
+  },
+  {
+   "name": "Obóz Goblińskiego Wodza",
+   "description": "Ogrodzony palami obóz z łupami z całej doliny.",
+   "kind": "treasure"
+  },
+  {
+   "name": "Krąg Druidów",
+   "description": "Krąg menhirów, w którym zieleń rośnie nawet zimą. Przywraca siły.",
+   "kind": "shrine"
+  }
+ ],
+ "monsters": [
+  {
+   "name": "Goblin Łupieżca",
+   "description": "Mały, krzywy i szybki. Kradnie, zanim zdążysz go dojrzeć.",
+   "shape": "humanoid",
+   "tier": 1
+  },
+  {
+   "name": "Olbrzymi Szczur",
+   "description": "Szczur wielkości psa, z zębami pożółkłymi od padliny.",
+   "shape": "beast",
+   "tier": 1
+  },
+  {
+   "name": "Szkielet Wojownika",
+   "description": "Pochowany z mieczem, wstał z mieczem. Zbroja trzyma się na rdzy.",
+   "shape": "undead",
+   "tier": 2
+  },
+  {
+   "name": "Żmija Bagienna",
+   "description": "Gruba jak ramię, ciemna jak woda, w której czeka.",
+   "shape": "serpent",
+   "tier": 2
+  },
+  {
+   "name": "Troll Skalny",
+   "description": "Góra mięśni i kamienia. Powolny, dopóki nie zacznie bić.",
+   "shape": "humanoid",
+   "tier": 3
+  },
+  {
+   "name": "Ogniste Widmo",
+   "description": "Duch spalonego górnika, który wciąż szuka wyjścia z kopalni.",
+   "shape": "spirit",
+   "tier": 3
+  }
+ ],
+ "boss": {
+  "name": "Czerwony Smok Vexarax",
+  "description": "Młody czerwony smok, który obrał kopalnię za leże i goblinów za służbę. Pożera złoto razem z właścicielami.",
+  "shape": "serpent"
+ },
+ "items": [
+  {
+   "name": "Krótki Miecz",
+   "description": "Prosty miecz straży z Karwina, naostrzony dziś rano.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 1
+  },
+  {
+   "name": "Krasnoludzki Topór",
+   "description": "Topór bojowy z Przystani, wyważony tak, że sam szuka karku.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 2
+  },
+  {
+   "name": "Smokobójca",
+   "description": "Dwuręczny miecz z runą ognia, wykuty przeciw łuskom. Legenda doliny.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3
+  },
+  {
+   "name": "Skórzany Kaftan",
+   "description": "Utwardzana skóra, dobra na gobliński nóż.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 1
+  },
+  {
+   "name": "Kolczuga",
+   "description": "Krasnoludzka kolczuga z drobnych kółek, ciężka i wierna.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 2
+  },
+  {
+   "name": "Zbroja Płytowa",
+   "description": "Pełna zbroja z herbem Karw. Smocze zęby ślizgają się po niej.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3
+  },
+  {
+   "name": "Mikstura Leczenia",
+   "description": "Czerwony płyn w szklanej fiolce, słodki jak miód.",
+   "kind": "potion",
+   "effect": "heal",
+   "tier": 1
+  },
+  {
+   "name": "Wielka Mikstura Leczenia",
+   "description": "Gęsty eliksir klasztorny, zamyka rany na oczach.",
+   "kind": "potion",
+   "effect": "heal",
+   "tier": 2
+  },
+  {
+   "name": "Eliksir Jasności",
+   "description": "Błękitny napój, po którym zaklęcia same układają się w głowie.",
+   "kind": "potion",
+   "effect": "mana",
+   "tier": 1
+  },
+  {
+   "name": "Zwój Magicznego Pocisku",
+   "description": "Pergamin z formułą pocisku, który nigdy nie chybia celu.",
+   "kind": "spell",
+   "effect": "bolt",
+   "tier": 1
+  },
+  {
+   "name": "Zwój Kuli Ognia",
+   "description": "Zwój z pieczęcią Akademii. Ogień, który nie pyta o imię.",
+   "kind": "spell",
+   "effect": "blast",
+   "tier": 2
+  },
+  {
+   "name": "Modlitewnik Leczących Dłoni",
+   "description": "Oprawiona w skórę księga błogosławieństw.",
+   "kind": "spell",
+   "effect": "heal",
+   "tier": 2
+  },
+  {
+   "name": "Zwój Błyskawicy",
+   "description": "Zwój, który pachnie burzą. Jedno słowo i niebo spada na wroga.",
+   "kind": "spell",
+   "effect": "bolt",
+   "tier": 3
+  },
+  {
+   "name": "Pierścień Ochrony",
+   "description": "Srebrny pierścień z runą tarczy.",
+   "kind": "charm",
+   "effect": "ward",
+   "tier": 1
+  },
+  {
+   "name": "Rękawice Siły Ogra",
+   "description": "Skórzane rękawice, w których każdy cios jest cięższy.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 2
+  },
+  {
+   "name": "Diadem Intelektu",
+   "description": "Cienka obręcz z opalami, która wyostrza myśl.",
+   "kind": "charm",
+   "effect": "focus",
+   "tier": 2
+  },
+  {
+   "name": "Amulet Zdrowia",
+   "description": "Amulet z krwawnika, noszony przez pokolenia krasnoludzkich królów.",
+   "kind": "charm",
+   "effect": "vigor",
+   "tier": 3
+  }
+ ],
+ "shops": [
+  {
+   "name": "Kuźnia Pod Kowadłem",
+   "kind": "armory",
+   "keeper": "Thorin Żelazna Broda",
+   "persona": "Krasnoludzki kowal, dumny i małomówny. Każdą broń nazywa po imieniu i nie znosi targowania, choć sam się targuje. Mówi krótko, z pogardą dla elfich mieczy.",
+   "greeting": "Stal mówi sama za siebie. Czego trzeba?"
+  },
+  {
+   "name": "Apteka Siostry Agnes",
+   "kind": "alchemist",
+   "keeper": "Siostra Agnes",
+   "persona": "Zakonnica-zielarka o surowym spojrzeniu i dobrym sercu. Każdemu rannemu robi wykład o nieostrożności, a potem daje rabat. Mówi jak nauczycielka.",
+   "greeting": "Znowu ranny? Siadaj, pokaż. Co ci sprzedać, żebyś tu nie wracał?"
+  },
+  {
+   "name": "Wieża Maga Ozryka",
+   "kind": "magic",
+   "keeper": "Ozryk z Akademii",
+   "persona": "Wygnany z Akademii mag o rozbieganych oczach i teoriach na każdy temat. Zaklęcia sprzedaje jak sekrety, szeptem. Lubi łacińskie wtręty.",
+   "greeting": "Ach, klient! Powiedz mi, czy wierzysz, że ogień ma pamięć?"
+  }
+ ],
+ "companions": [
+  {
+   "name": "Borin Kamienna Pięść",
+   "description": "Krasnoludzki wojownik z Przystani, który przysiągł zemstę za kopalnię. Mówi mało, bije dużo.",
+   "role": "fighter",
+   "tier": 1
+  },
+  {
+   "name": "Siostra Mira",
+   "description": "Młoda kapłanka Światła, uparta i wesoła. Leczy wszystkich, nawet goblinów.",
+   "role": "healer",
+   "tier": 2
+  },
+  {
+   "name": "Elira Cieniokrąg",
+   "description": "Elfia czarodziejka, która przyszła do doliny badać smoka, a została, bo nikt inny nie umie rzucać ognia.",
+   "role": "mage",
+   "tier": 2
+  },
+  {
+   "name": "Sir Aldric Smokobójca",
+   "description": "Rycerz, który zabił już jednego smoka i nie da nikomu o tym zapomnieć. Żąda żołdu, wina i pierwszego ciosu.",
+   "role": "fighter",
+   "tier": 3,
+   "legend": true
+  }
+ ],
+ "events": [
+  {
+   "id": "najazd-goblinow",
+   "when": {
+    "day": 3
+   },
+   "once": true,
+   "global": true,
+   "text": "O świcie z góry schodzi goblińska banda i staje pod palisadą Karwina. Kupcy zamykają kramy i podnoszą ceny.",
+   "spawn": {
+    "monster": "Goblin Łupieżca",
+    "count": 3,
+    "where": "near:Karwin"
+   },
+   "prices": 20,
+   "fact": {
+    "subject": "Najazd goblinów",
+    "text": "Trzeciego dnia gobliny stanęły pod Karwinem; ceny w osadzie skoczyły."
+   }
+  },
+  {
+   "id": "spalone-pola",
+   "when": {
+    "killed": "Goblin Łupieżca",
+    "count": 4
+   },
+   "once": true,
+   "global": true,
+   "text": "Gobliny, uciekając, podpalają zboże. Pola Karw płoną do rana i zostaje z nich czarna, dymiąca równina.",
+   "transform": {
+    "room": "Pola Karw",
+    "description": "Spalone pola. Czarna ściernisko po horyzont, dym jeszcze snuje się nad ziemią, a w nim coś się rusza.",
+    "terrain": "wasteland"
+   },
+   "fact": {
+    "subject": "Pożar Pól Karw",
+    "text": "Uciekające gobliny spaliły Pola Karw; zboża w tym roku nie będzie."
+   },
+   "standing": 2
+  },
+  {
+   "id": "skarbiec-berana",
+   "when": {
+    "enter": "Skarbiec Króla Berana",
+    "unless": "beran-otwarty"
+   },
+   "once": true,
+   "text": "Pod rozbitą płytą grobowca leży królewska sakiewka. Złoto nie zardzewiało.",
+   "gold": 80,
+   "flag": "beran-otwarty"
+  },
+  {
+   "id": "thorin-beran",
+   "when": {
+    "talked": "Thorin Żelazna Broda",
+    "flag": "beran-otwarty"
+   },
+   "once": true,
+   "text": "Thorin wącha powietrze. «Grobowa ziemia. Byłeś u Berana. Jeśli masz jego złoto, miej i jego stal.» Kładzie na ladzie topór.",
+   "gives": "Krasnoludzki Topór",
+   "fact": {
+    "subject": "Topór Berana",
+    "text": "Thorin oddał topór temu, kto odważył się wejść do grobowca Berana."
+   },
+   "standing": 1
+  },
+  {
+   "id": "smok-czuwa",
+   "when": {
+    "enter": "Kopalnia Durgara"
+   },
+   "once": true,
+   "global": true,
+   "text": "Zapach siarki gęstnieje. Z głębi kopalni dobiega ryk: Vexarax wie, że ktoś wszedł, i budzi widma spalonych górników.",
+   "spawn": {
+    "monster": "Ogniste Widmo",
+    "count": 2,
+    "where": "place:Kopalnia Durgara"
+   },
+   "fact": {
+    "subject": "Przebudzenie Vexaraxa",
+    "text": "Ktoś wszedł do Kopalni Durgara; smok obudził ogniste widma górników."
+   }
+  },
+  {
+   "id": "odwilz",
+   "when": {
+    "day": 7
+   },
+   "once": true,
+   "global": true,
+   "text": "Przychodzi odwilż. Przełęcz Wichrów puszcza, a z pod lodu wychodzą kości i ścieżka na szczyt.",
+   "transform": {
+    "room": "Przełęcz Wichrów",
+    "description": "Przełęcz po odwilży. Strumienie z topniejącego śniegu, kamienie śliskie od wody, ścieżka na szczyt wreszcie widoczna.",
+    "terrain": "mountain"
+   },
+   "fact": {
+    "subject": "Odwilż na przełęczy",
+    "text": "Siódmego dnia przyszła odwilż i Przełęcz Wichrów stała się przejezdna."
+   }
+  }
+ ]
+}

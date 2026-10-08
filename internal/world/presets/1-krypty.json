@@ -1,0 +1,403 @@
+{
+ "name": "Zatopione Krypty",
+ "intro": "Kraina wokół osady Szary Bród powoli zapada się w bagna. Pod wodą budzą się krypty dawnych królów, a ich strażnik rośnie w siłę. Ktoś musi zejść na dół, zanim woda dojdzie do bram.",
+ "currency": "szt. złota",
+ "backdrops": [
+  "forest1",
+  "dragon1",
+  "forest2",
+  "dragon2",
+  "forest3",
+  "dragon3"
+ ],
+ "places": [
+  {
+   "name": "Szary Bród",
+   "description": "Osada na palach, pełna dymu z torfowych ognisk. Jedno z ostatnich suchych miejsc w okolicy.",
+   "terrain": "plains",
+   "danger": 0
+  },
+  {
+   "name": "Kamienny Jaz",
+   "description": "Warownia wzniesiona na resztkach starej tamy. Stąd wyruszają ci, którzy idą w stronę krypt, i nie wszyscy wracają.",
+   "terrain": "mountain",
+   "danger": 0
+  },
+  {
+   "name": "Mgliste Łąki",
+   "description": "Podmokłe pastwiska, nad którymi mgła nie opada nawet w południe. Coś szeleści w trawie.",
+   "terrain": "plains",
+   "danger": 1
+  },
+  {
+   "name": "Stary Bór",
+   "description": "Las tak gęsty, że ścieżki zarastają w ciągu jednej nocy. Między pniami migoczą blade światła.",
+   "terrain": "forest",
+   "danger": 1
+  },
+  {
+   "name": "Trzęsawiska",
+   "description": "Czarna woda po kolana i grunt, który ugina się pod stopami. Topielcy lubią to miejsce.",
+   "terrain": "swamp",
+   "danger": 2
+  },
+  {
+   "name": "Kurhany",
+   "description": "Porośnięte wrzosem kopce dawnych wodzów. Kamienne wejścia stoją otworem, choć nikt ich nie otwierał.",
+   "terrain": "ruins",
+   "danger": 2
+  },
+  {
+   "name": "Zatopione Krypty",
+   "description": "Korytarze z zielonego kamienia, do połowy zalane wodą. Echo niesie tu kroki, które nie są twoje.",
+   "terrain": "cave",
+   "danger": 3
+  },
+  {
+   "name": "Czarne Turnie",
+   "description": "Poszarpane skały nad bagnami. Wiatr wyje w szczelinach jak żywy.",
+   "terrain": "mountain",
+   "danger": 3
+  }
+ ],
+ "sites": [
+  {
+   "name": "Krąg Menhirów",
+   "description": "Dziewięć głazów ustawionych w krąg. W środku trawa jest zielona nawet zimą, a zmęczenie znika.",
+   "kind": "shrine"
+  },
+  {
+   "name": "Wrak Barki Kupieckiej",
+   "description": "Przechylony kadłub wbity w muł. Ładownia wciąż jest zamknięta, ale ktoś jej pilnuje.",
+   "kind": "treasure"
+  },
+  {
+   "name": "Kaplica Topielców",
+   "description": "Zalana do połowy kaplica, w której świece palą się pod wodą. Na ołtarzu coś leży.",
+   "kind": "treasure"
+  },
+  {
+   "name": "Źródło Białej Pani",
+   "description": "Czysta woda bijąca spod korzeni starej wierzby. Mówią, że leczy każdą ranę.",
+   "kind": "shrine"
+  }
+ ],
+ "monsters": [
+  {
+   "name": "Bagienny Szczur",
+   "description": "Mokry, wychudzony i wielkości psa.",
+   "shape": "beast",
+   "tier": 1
+  },
+  {
+   "name": "Błędny Ognik",
+   "description": "Blade światło, które parzy chłodem.",
+   "shape": "spirit",
+   "tier": 1
+  },
+  {
+   "name": "Topielec",
+   "description": "Napuchnięte ciało wleczone przez wodę, która nie chce go puścić.",
+   "shape": "undead",
+   "tier": 2
+  },
+  {
+   "name": "Pająk Kurhanowy",
+   "description": "Blady pająk wielkości cielaka, który plecie sieci w grobowcach.",
+   "shape": "insect",
+   "tier": 2
+  },
+  {
+   "name": "Upiorny Rycerz",
+   "description": "Pusta zbroja, w której płonie zielony ogień.",
+   "shape": "humanoid",
+   "tier": 3
+  },
+  {
+   "name": "Żmij Bagienny",
+   "description": "Wąż gruby jak pień, z łuską twardą jak żelazo.",
+   "shape": "serpent",
+   "tier": 3
+  }
+ ],
+ "boss": {
+  "name": "Król Topielców",
+  "description": "Dawny władca tych ziem, który zabrał koronę ze sobą pod wodę i nie zamierza jej oddać.",
+  "shape": "undead"
+ },
+ "items": [
+  {
+   "name": "Zardzewiały Kord",
+   "description": "Krótki miecz, który pamięta lepsze czasy. Wciąż tnie.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 1
+  },
+  {
+   "name": "Sztylet z Obsydianu",
+   "description": "Ostrze wyłupane z czarnego szkła wulkanicznego. Nie tępi się i przecina magiczne pieczęcie.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 2
+  },
+  {
+   "name": "Miecz Runiczny",
+   "description": "Runy na klindze rozjarzają się, gdy w pobliżu jest coś martwego.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3
+  },
+  {
+   "name": "Skórzany Kaftan",
+   "description": "Gruba, natłuszczona skóra. Chroni przed zębami i wilgocią.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 1
+  },
+  {
+   "name": "Kolczuga Strażnika",
+   "description": "Zdjęta z kurhanu, ale oczka trzymają.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 2
+  },
+  {
+   "name": "Zbroja z Łusek Żmija",
+   "description": "Lekka i twarda. Poprzedni właściciel żmija nie przeżył, zbroja tak.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3
+  },
+  {
+   "name": "Napar z Tataraku",
+   "description": "Gorzki wywar, który zasklepia płytkie rany.",
+   "kind": "potion",
+   "effect": "heal",
+   "tier": 1
+  },
+  {
+   "name": "Eliksir Krwawnika",
+   "description": "Gęsty, czerwony płyn. Stawia na nogi nawet po spotkaniu z topielcem.",
+   "kind": "potion",
+   "effect": "heal",
+   "tier": 2
+  },
+  {
+   "name": "Wywar z Szaleju",
+   "description": "Mętny napój, po którym myśli stają się ostre jak szkło.",
+   "kind": "potion",
+   "effect": "mana",
+   "tier": 1
+  },
+  {
+   "name": "Zwój Błędnej Iskry",
+   "description": "Zaklęcie, którego uczą się bagienni znachorzy: garść zimnego ognia ciśnięta we wroga.",
+   "kind": "spell",
+   "effect": "bolt",
+   "tier": 1
+  },
+  {
+   "name": "Księga Wielkiej Fali",
+   "description": "Mokre stronice, z których wciąż kapie. Przywołana woda uderza we wszystko, co stoi naprzeciw.",
+   "kind": "spell",
+   "effect": "blast",
+   "tier": 2
+  },
+  {
+   "name": "Modlitwa Białej Pani",
+   "description": "Słowa wyryte na korze wierzby. Wypowiedziane na głos zamykają rany całej drużyny.",
+   "kind": "spell",
+   "effect": "heal",
+   "tier": 2
+  },
+  {
+   "name": "Runa Gromu",
+   "description": "Kamień z jedną runą. Kto ją zapamięta, potrafi ściągnąć piorun.",
+   "kind": "spell",
+   "effect": "bolt",
+   "tier": 3
+  },
+  {
+   "name": "Pierścień Strażnika",
+   "description": "Żelazna obrączka, która drętwieje, zanim spadnie cios.",
+   "kind": "charm",
+   "effect": "ward",
+   "tier": 1
+  },
+  {
+   "name": "Amulet z Kła Żmija",
+   "description": "Kieł na rzemieniu. Dodaje ręce pewności.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 2
+  },
+  {
+   "name": "Lustrzany Medalion Czasu",
+   "description": "Medalion, w którym widać własne odbicie sprzed chwili. Wyostrza umysł.",
+   "kind": "charm",
+   "effect": "focus",
+   "tier": 2
+  },
+  {
+   "name": "Serce Kurhanu",
+   "description": "Ciepły kamień wyjęty z piersi dawnego wodza. Bije powoli.",
+   "kind": "charm",
+   "effect": "vigor",
+   "tier": 3
+  }
+ ],
+ "shops": [
+  {
+   "name": "Zbrojownia",
+   "kind": "armory",
+   "keeper": "Borzywoj",
+   "persona": "Borzywoj to kowal z Szarego Brodu, potężny, małomówny i dumny ze swojej roboty. Mówi krótkimi zdaniami, nie znosi targowania się o grosze i gardzi tymi, którzy nie dbają o broń.",
+   "greeting": "Stal sama się nie sprzeda. Mów, czego ci trzeba."
+  },
+  {
+   "name": "Chata Zielarki",
+   "kind": "alchemist",
+   "keeper": "Stara Jagna",
+   "persona": "Stara Jagna to zielarka, która wie o bagnach więcej, niż powinna. Jest zrzędliwa, przesądna i zwraca się do wszystkich per dziecko. Lubi straszyć klientów opowieściami o topielcach.",
+   "greeting": "Wejdź, dziecko, tylko nie nadepnij kota. Co cię boli?"
+  },
+  {
+   "name": "Kram Morii",
+   "kind": "magic",
+   "keeper": "Moria",
+   "persona": "Moria to tajemnicza handlarka artefaktami, której towar często pochodzi z niebezpiecznych wykopalisk. Jest bardzo przebiegła i doskonale wie, jak wykorzystać wiedzę o przedmiotach, by maksymalizować zysk. Mówi oszczędnie, z lekką kpiną, i nie lubi, gdy ktoś marnuje jej czas.",
+   "greeting": "Podejdź bliżej, wędrowcze. Mam rzeczy, których nie znajdziesz na żadnym targu. Pytaj albo kładź złoto na stół."
+  }
+ ],
+ "companions": [
+  {
+   "name": "Bogna Topór",
+   "description": "Była strażniczka z Kamiennego Jazu. Mówi mało, bije mocno i nie lubi wody po kostki.",
+   "role": "fighter",
+   "tier": 1
+  },
+  {
+   "name": "Brat Jaromir",
+   "description": "Wędrowny mnich Białej Pani. Modli się nad rannymi i narzeka na bagienną kuchnię.",
+   "role": "healer",
+   "tier": 2
+  },
+  {
+   "name": "Wiesza z Kurhanów",
+   "description": "Młoda czarownica, która za dużo czytała w grobowcach. Rzuca iskry na wszystko, co się rusza.",
+   "role": "mage",
+   "tier": 2
+  },
+  {
+   "name": "Sir Gniewomir Nieugięty",
+   "description": "Rycerz, który wrócił z krypt jako jedyny ze swojej kompanii i od tamtej pory bierze złoto za każdy dzień, bo jutra nie obiecuje nikomu.",
+   "role": "fighter",
+   "tier": 3,
+   "legend": true
+  }
+ ],
+ "events": [
+  {
+   "id": "topielce-u-brodu",
+   "when": {
+    "day": 3
+   },
+   "once": true,
+   "global": true,
+   "text": "Nocą woda podeszła pod palisadę Szarego Brodu. Rano na łąkach przy osadzie znaleziono mokre ślady: topielce wyszły z bagien.",
+   "spawn": {
+    "monster": "Topielec",
+    "count": 2,
+    "where": "near:Szary Bród"
+   },
+   "fact": {
+    "subject": "Noc topielców",
+    "text": "Trzeciej nocy topielce podeszły pod sam Szary Bród; od tej pory nikt nie wychodzi po zmroku."
+   }
+  },
+  {
+   "id": "splonal-bor",
+   "when": {
+    "killed": "Błędny Ognik",
+    "count": 3
+   },
+   "once": true,
+   "global": true,
+   "text": "Ostatni ognik, gasnąc, podpala wyschnięte igliwie. Stary Bór płonie przez całą noc; rano zostają z niego czarne kikuty.",
+   "transform": {
+    "room": "Stary Bór",
+    "description": "Spalony bór. Czarne pnie bez gałęzi, popiół po kostki i cisza, w której słychać własny oddech.",
+    "terrain": "wasteland"
+   },
+   "fact": {
+    "subject": "Pożar Starego Boru",
+    "text": "Stary Bór spłonął od błędnych ogników; przez spaleniska widać teraz Kurhany z daleka."
+   },
+   "prices": 10,
+   "standing": 2
+  },
+  {
+   "id": "barka",
+   "when": {
+    "enter": "Wrak Barki Kupieckiej",
+    "unless": "barka-oczyszczona"
+   },
+   "once": true,
+   "text": "Między deskami wraku tkwi skórzana sakwa kupca. Ktoś tu był przed tobą, ale nie zdążył jej wziąć.",
+   "gold": 40,
+   "flag": "barka-oczyszczona"
+  },
+  {
+   "id": "moria-sekret",
+   "when": {
+    "talked": "Moria",
+    "flag": "barka-oczyszczona"
+   },
+   "once": true,
+   "text": "Moria zniża głos: «Byłeś na barce? To była moja barka. Weź to na przeprosiny i nie pytaj więcej.»",
+   "gives": "Pierścień Strażnika",
+   "fact": {
+    "subject": "Barka Morii",
+    "text": "Wrak barki kupieckiej na bagnach należał kiedyś do Morii; nie lubi o tym mówić."
+   },
+   "standing": 1
+  },
+  {
+   "id": "krypty-budza",
+   "when": {
+    "enter": "Zatopione Krypty"
+   },
+   "once": true,
+   "global": true,
+   "text": "Wejście w krypty budzi coś pod wodą. Z każdej strony dochodzi bulgot: Król Topielców zwołuje swoich.",
+   "spawn": {
+    "monster": "Topielec",
+    "count": 3,
+    "where": "place:Zatopione Krypty"
+   },
+   "fact": {
+    "subject": "Przebudzenie krypt",
+    "text": "Ktoś wszedł do Zatopionych Krypt i Król Topielców zwołał swoich; na kryptach roi się od topielców."
+   }
+  },
+  {
+   "id": "jaz-powodz",
+   "when": {
+    "day": 6
+   },
+   "once": true,
+   "global": true,
+   "text": "Kamienny Jaz nie wytrzymuje naporu wody. Dolne łąki idą pod wodę, a ceny w Szarym Brodzie skaczą.",
+   "transform": {
+    "room": "Mgliste Łąki",
+    "description": "Zalane łąki. Woda po kolana, w niej unoszą się snopki i martwe ryby. Mgła jeszcze gęstsza niż przedtem.",
+    "terrain": "swamp"
+   },
+   "prices": 25,
+   "fact": {
+    "subject": "Powódź",
+    "text": "Szóstego dnia pękł Kamienny Jaz i Mgliste Łąki poszły pod wodę; żywność podrożała."
+   }
+  }
+ ]
+}

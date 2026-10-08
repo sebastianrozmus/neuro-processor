@@ -1,0 +1,390 @@
+{
+ "name": "Popiół i Rdza",
+ "intro": "Trzydzieści lat po Wielkim Błysku ludzie ze Schronu 7 wciąż żyją z tego, co wygrzebią z ruin. Woda się kończy, a jedyne działające pompy stoją w Starej Rafinerii. Ten, kto ją trzyma, nie dzieli się z nikim.",
+ "currency": "kapsli",
+ "backdrops": [
+  "wasteland1",
+  "wasteland2"
+ ],
+ "places": [
+  {
+   "name": "Schron 7",
+   "description": "Betonowy bunkier z targowiskiem przy włazie. Pachnie smarem, dymem i gotowaną rzepą.",
+   "terrain": "station",
+   "danger": 0
+  },
+  {
+   "name": "Osada Wrak",
+   "description": "Obóz zbudowany w kadłubie tankowca, który osiadł na dnie wyschniętego kanału. Ostatni przystanek przed Rafinerią.",
+   "terrain": "wasteland",
+   "danger": 0
+  },
+  {
+   "name": "Wypalone Pola",
+   "description": "Popękana ziemia i kikuty słupów energetycznych. Widać stąd daleko, ale ciebie też widać.",
+   "terrain": "wasteland",
+   "danger": 1
+  },
+  {
+   "name": "Martwy Las",
+   "description": "Szare pnie bez liści stoją równo jak na cmentarzu. W norach pod korzeniami coś piszczy.",
+   "terrain": "forest",
+   "danger": 1
+  },
+  {
+   "name": "Ruiny Przedmieść",
+   "description": "Zawalone bloki i wraki samochodów. Dobre miejsce na szaber i na zasadzkę.",
+   "terrain": "street",
+   "danger": 2
+  },
+  {
+   "name": "Słone Bagna",
+   "description": "Rozlewisko o tęczowej, oleistej powierzchni. Licznik trzeszczy tu bez przerwy.",
+   "terrain": "swamp",
+   "danger": 2
+  },
+  {
+   "name": "Krater",
+   "description": "Zeszklony piasek i cisza. Nawet muchy tu nie latają.",
+   "terrain": "desert",
+   "danger": 3
+  },
+  {
+   "name": "Stara Rafineria",
+   "description": "Las rur, zbiorników i kominów. W nocy widać w nim światła i słychać pracujące pompy.",
+   "terrain": "ruins",
+   "danger": 3
+  }
+ ],
+ "sites": [
+  {
+   "name": "Rozbity Konwój",
+   "description": "Trzy ciężarówki wbite jedna w drugą. Plandeki są całe, a wokół kręcą się ci, którzy też je zauważyli.",
+   "kind": "treasure"
+  },
+  {
+   "name": "Stacja Uzdatniania",
+   "description": "Mała pompa na baterie słoneczne wciąż daje czystą wodę. Łyk stawia na nogi.",
+   "kind": "shrine"
+  },
+  {
+   "name": "Bunkier Dowodzenia",
+   "description": "Wojskowy schron z uchylonymi drzwiami pancernymi. W środku pali się światło.",
+   "kind": "treasure"
+  }
+ ],
+ "monsters": [
+  {
+   "name": "Zdziczały Pies",
+   "description": "Wyleniały kundel, który dawno przestał się bać ludzi.",
+   "shape": "beast",
+   "tier": 1
+  },
+  {
+   "name": "Rój Much Trupich",
+   "description": "Brzęcząca chmura, która wie, że niedługo będzie miała co jeść.",
+   "shape": "insect",
+   "tier": 1
+  },
+  {
+   "name": "Szabrownik",
+   "description": "Człowiek w łachmanach z łomem w ręku. Nie lubi konkurencji.",
+   "shape": "humanoid",
+   "tier": 2
+  },
+  {
+   "name": "Zmutowany Dzik",
+   "description": "Dwie pary kłów i skóra pokryta naroślami.",
+   "shape": "beast",
+   "tier": 2
+  },
+  {
+   "name": "Łowca w Masce",
+   "description": "Najemnik w masce przeciwgazowej. Poluje dla Rafinerii.",
+   "shape": "humanoid",
+   "tier": 3
+  },
+  {
+   "name": "Promienny Ghul",
+   "description": "Świeci w ciemności bladą zielenią i nie czuje bólu.",
+   "shape": "undead",
+   "tier": 3
+  }
+ ],
+ "boss": {
+  "name": "Nadzorca Rafinerii",
+  "description": "Olbrzym w pancerzu ze stalowych płyt, który ogłosił się właścicielem całej wody w okolicy.",
+  "shape": "machine"
+ },
+ "items": [
+  {
+   "name": "Rura z Gwoździami",
+   "description": "Kawał rury wodociągowej nabity gwoździami. Prosta robota.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 1
+  },
+  {
+   "name": "Maczeta z Resora",
+   "description": "Wyklepana z resora ciężarówki, ostrzona na betonie.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 2
+  },
+  {
+   "name": "Piła Łańcuchowa",
+   "description": "Odpala za trzecim razem, ale kiedy już odpali, nikt nie podchodzi.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3
+  },
+  {
+   "name": "Kurtka z Opon",
+   "description": "Paski bieżnika naszyte na brezent. Ciężka, ale pies jej nie przegryzie.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 1
+  },
+  {
+   "name": "Pancerz z Blachy",
+   "description": "Znaki drogowe powyginane w napierśnik. Na plecach wciąż widać zakaz wjazdu.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 2
+  },
+  {
+   "name": "Kombinezon Ołowiany",
+   "description": "Wojskowy skafander z ołowianą wkładką. Jedyna rzecz, w której można wejść do Krateru.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3
+  },
+  {
+   "name": "Bandaże i Spirytus",
+   "description": "Czyste szmaty i butelka czegoś, co odkaża wszystko.",
+   "kind": "potion",
+   "effect": "heal",
+   "tier": 1
+  },
+  {
+   "name": "Stymulant Wojskowy",
+   "description": "Strzykawka z przedwojennego magazynu. Termin ważności dawno się zatarł.",
+   "kind": "potion",
+   "effect": "heal",
+   "tier": 2
+  },
+  {
+   "name": "Tabletki Kofeinowe",
+   "description": "Blister z wojskowej racji. Stawia umysł na baczność.",
+   "kind": "potion",
+   "effect": "mana",
+   "tier": 1
+  },
+  {
+   "name": "Schemat Paralizatora",
+   "description": "Kartka z rysunkiem: dwa druty, akumulator i dużo taśmy. Działa na jednego przeciwnika.",
+   "kind": "spell",
+   "effect": "bolt",
+   "tier": 1
+  },
+  {
+   "name": "Przepis na Koktajl Mołotowa",
+   "description": "Butelka, szmata, benzyna. Płonie wszystko, co stoi naprzeciw.",
+   "kind": "spell",
+   "effect": "blast",
+   "tier": 2
+  },
+  {
+   "name": "Podręcznik Sanitariusza",
+   "description": "Zatłuszczona książeczka polowa. Kto ją przeczyta, połata całą drużynę.",
+   "kind": "spell",
+   "effect": "heal",
+   "tier": 2
+  },
+  {
+   "name": "Schemat Działka Gaussa",
+   "description": "Przedwojenny projekt broni na elektromagnesach. Wymaga skupienia i dużo prądu.",
+   "kind": "spell",
+   "effect": "bolt",
+   "tier": 3
+  },
+  {
+   "name": "Licznik Geigera",
+   "description": "Trzeszczy, zanim zrobi się naprawdę źle. Pozwala zejść z linii ciosu.",
+   "kind": "charm",
+   "effect": "ward",
+   "tier": 1
+  },
+  {
+   "name": "Celownik Optyczny",
+   "description": "Luneta z wojskowego karabinu, przykręcana do czegokolwiek.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 2
+  },
+  {
+   "name": "Nieśmiertelnik Weterana",
+   "description": "Blaszka kogoś, kto przeżył wszystko. Może tobie też przyniesie szczęście.",
+   "kind": "charm",
+   "effect": "vigor",
+   "tier": 2
+  },
+  {
+   "name": "Ogniwo Fuzyjne",
+   "description": "Ciepły cylinder, który nigdy się nie wyczerpuje. Zasila każdy schemat.",
+   "kind": "charm",
+   "effect": "focus",
+   "tier": 3
+  }
+ ],
+ "shops": [
+  {
+   "name": "Warsztat Zawiasa",
+   "kind": "armory",
+   "keeper": "Stary Zawias",
+   "persona": "Stary Zawias to handlarz złomem, który przeżył wszystkich swoich wspólników. Jest gadatliwy, podejrzliwy i liczy każdy kapsel dwa razy. Lubi narzekać na dawne czasy i nie znosi, gdy ktoś mówi, że jego towar to śmieci.",
+   "greeting": "No proszę, klient. Rozglądaj się, ale łapy przy sobie. U mnie wszystko działa, a jak nie działa, to znaczy, że źle trzymasz."
+  },
+  {
+   "name": "Punkt Medyczny",
+   "kind": "alchemist",
+   "keeper": "Doktor Lena",
+   "persona": "Doktor Lena jest jedyną lekarką w promieniu wielu dni drogi i wie o tym. Jest zmęczona, rzeczowa i ironiczna, a leków nie rozdaje, bo sama ma ich za mało. Mięknie, gdy ktoś mówi, że ratuje innych.",
+   "greeting": "Siadaj. Jeśli nie krwawisz, to mów szybko, czego potrzebujesz."
+  },
+  {
+   "name": "Graciarnia Techników",
+   "kind": "magic",
+   "keeper": "Iskra",
+   "persona": "Iskra to młoda techniczka, która rozbiera przedwojenne urządzenia i sprzedaje schematy oraz gadżety. Mówi szybko, entuzjastycznie i z dużą ilością żargonu. Ceni ciekawość i nie cierpi ludzi, którzy boją się prądu.",
+   "greeting": "O, ktoś żywy! Niczego nie dotykaj, połowa tych rzeczy jest pod napięciem. Czego szukasz?"
+  }
+ ],
+ "companions": [
+  {
+   "name": "Gruby Bolo",
+   "description": "Były ochroniarz karawan. Ma kij bejsbolowy, blizny i dług u Zawiasa.",
+   "role": "fighter",
+   "tier": 1
+  },
+  {
+   "name": "Sanitariusz Kuba",
+   "description": "Uczeń doktor Leny z torbą bandaży i nerwowym śmiechem.",
+   "role": "healer",
+   "tier": 1
+  },
+  {
+   "name": "Iskra z Krateru",
+   "description": "Pirotechniczka, która przeżyła Krater. Rzuca butelkami z benzyną celniej, niż mówi.",
+   "role": "mage",
+   "tier": 3
+  },
+  {
+   "name": "Pani Kaliber",
+   "description": "Najlepsza strzelczyni po tej stronie Krateru. Najemniczka z zasadami: płatne z góry, codziennie, bez targów.",
+   "role": "fighter",
+   "tier": 3,
+   "legend": true
+  }
+ ],
+ "events": [
+  {
+   "id": "burza-pylowa",
+   "when": {
+    "day": 2
+   },
+   "once": true,
+   "global": true,
+   "text": "Nad Krater nadciąga burza pyłowa. Przez trzy dni nikt nie zobaczy słońca, a psy schodzą bliżej osad.",
+   "spawn": {
+    "monster": "Zdziczały Pies",
+    "count": 2,
+    "where": "near:Schron 7"
+   },
+   "fact": {
+    "subject": "Burza pyłowa",
+    "text": "Drugiego dnia przyszła burza pyłowa; dzikie psy podeszły pod Schron 7."
+   }
+  },
+  {
+   "id": "konwoj",
+   "when": {
+    "enter": "Rozbity Konwój",
+    "unless": "konwoj-zbadany"
+   },
+   "once": true,
+   "text": "W przewróconej ciężarówce leży skrzynka z napisem MEDYCZNE. Ktoś już ją otwierał, ale jedno opakowanie zostało.",
+   "gives": "Bandaże i Spirytus",
+   "flag": "konwoj-zbadany"
+  },
+  {
+   "id": "szabrownicy-palcie",
+   "when": {
+    "killed": "Szabrownik",
+    "count": 2
+   },
+   "once": true,
+   "global": true,
+   "text": "Szabrownicy mszczą się za swoich: nocą podpalają Martwy Las, żeby wykurzyć każdego, kto się tam chowa.",
+   "transform": {
+    "room": "Martwy Las",
+    "description": "Pogorzelisko. Z martwych drzew zostały węgle, a popiół miesza się z radioaktywnym pyłem. Widać stąd aż po ruiny.",
+    "terrain": "wasteland"
+   },
+   "fact": {
+    "subject": "Pożar Martwego Lasu",
+    "text": "Szabrownicy podpalili Martwy Las w odwecie za swoich; został po nim popiół."
+   },
+   "standing": 2
+  },
+  {
+   "id": "iskra-prad",
+   "when": {
+    "talked": "Iskra",
+    "has": "Licznik Geigera"
+   },
+   "once": true,
+   "text": "Iskra na widok licznika aż podskakuje. «Daj mi go, a dostaniesz coś, co strzela dalej niż paralizator.» Oddaje ci schemat.",
+   "gives": "Schemat Działka Gaussa",
+   "takes": "Licznik Geigera",
+   "standing": 1
+  },
+  {
+   "id": "rafineria-syrena",
+   "when": {
+    "enter": "Stara Rafineria"
+   },
+   "once": true,
+   "global": true,
+   "text": "Gdy tylko wchodzisz na teren rafinerii, włącza się syrena. Nadzorca wie, że ktoś przyszedł, i wysyła ghule.",
+   "spawn": {
+    "monster": "Promienny Ghul",
+    "count": 2,
+    "where": "place:Stara Rafineria"
+   },
+   "fact": {
+    "subject": "Syrena rafinerii",
+    "text": "Wejście na teren Starej Rafinerii uruchamia syrenę, a Nadzorca wysyła wtedy ghule."
+   }
+  },
+  {
+   "id": "deszcz",
+   "when": {
+    "day": 5
+   },
+   "once": true,
+   "global": true,
+   "text": "Pierwszy od lat prawdziwy deszcz. Na Wypalonych Polach coś kiełkuje, a Doktor Lena obniża ceny, bo woda jest za darmo.",
+   "transform": {
+    "room": "Wypalone Pola",
+    "description": "Pola po deszczu. Spomiędzy spalonych ścierni wychodzą zielone kiełki; nikt nie pamięta, kiedy ostatnio widział zieleń.",
+    "terrain": "plains"
+   },
+   "prices": -15,
+   "fact": {
+    "subject": "Deszcz piątego dnia",
+    "text": "Piątego dnia spadł deszcz; na Wypalonych Polach zazieleniło się, a ceny spadły."
+   }
+  }
+ ]
+}

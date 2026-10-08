@@ -1,0 +1,442 @@
+{
+ "name": "Hipokamp",
+ "mode": "adventure",
+ "intro": "Budzisz się na stole w klinice Neurotech z opatrunkiem za uchem i obcym szumem w głowie. Ktoś wszczepił ci procesor, którego nie zamawiałeś, a drzwi sali są zamknięte od zewnątrz. Na dachu kliniki co godzinę ląduje transporter.",
+ "goal": "Wydostać się z kliniki Neurotech na dach i odlecieć transporterem, zanim dr Wernicke wróci dokończyć operację.",
+ "backdrops": [
+  "station1",
+  "station2"
+ ],
+ "rooms": [
+  {
+   "name": "Sala Pooperacyjna",
+   "description": "Biała sala z jednym łóżkiem, kroplówką i szafką. Na drzwiach po wschodniej stronie świeci czerwona dioda czytnika kart. Na zachód widać drzwi łazienki.",
+   "terrain": "station",
+   "x": 7,
+   "y": 4,
+   "things": [
+    "Łóżko",
+    "Szafka",
+    "Karta Pacjenta"
+   ],
+   "doors": [
+    {
+     "dir": "e",
+     "text": "Drzwi na korytarz są zamknięte. Czytnik mruga czerwono i czeka na kartę, której nie masz.",
+     "flag": "drzwi-sali"
+    },
+    {
+     "dir": "n",
+     "text": "Ściana. Zza niej dobiega czyjeś chrapanie.",
+     "flag": "nigdy"
+    }
+   ]
+  },
+  {
+   "name": "Łazienka",
+   "description": "Ciasna łazienka z lustrem i prysznicem. Pod sufitem kratka wentylacyjna trzyma się na jednej śrubie, a zza niej ciągnie zimnym powietrzem.",
+   "terrain": "station",
+   "x": 6,
+   "y": 4,
+   "things": [
+    "Lustro",
+    "Kratka Wentylacyjna"
+   ],
+   "doors": [
+    {
+     "dir": "n",
+     "text": "Kratka wentylacyjna zasłania otwór. Trzeba by ją najpierw otworzyć.",
+     "flag": "kratka"
+    }
+   ]
+  },
+  {
+   "name": "Szyb Wentylacyjny",
+   "description": "Blaszany kanał, w którym da się czołgać. Pył, pajęczyny i daleki szum wentylatorów. Na wschód jest kolejna kratka, od tej strony otwarta.",
+   "terrain": "cave",
+   "x": 6,
+   "y": 3,
+   "things": []
+  },
+  {
+   "name": "Dyżurka",
+   "description": "Dyżurka pielęgniarzy: biurko, zepsuty telewizor i fotel, w którym ktoś chrapie. Drzwi na wschód prowadzą na korytarz północny.",
+   "terrain": "station",
+   "x": 7,
+   "y": 3,
+   "things": [
+    "Biurko"
+   ],
+   "doors": [
+    {
+     "dir": "s",
+     "text": "Drzwi do sal są zamknięte od tej strony na klucz, którego Grabski nie ma.",
+     "flag": "nigdy"
+    }
+   ]
+  },
+  {
+   "name": "Korytarz Północny",
+   "description": "Długi korytarz z zielonymi lampami awaryjnymi. Pod ścianą stoi automat z kawą. Na północy są drzwi windy serwisowej, na południu korytarz skręca do sal.",
+   "terrain": "station",
+   "x": 8,
+   "y": 3,
+   "things": [
+    "Automat z Kawą"
+   ],
+   "doors": [
+    {
+     "dir": "n",
+     "text": "Winda serwisowa nie ma zasilania. Przyciski są martwe, a w szybie panuje cisza.",
+     "flag": "winda"
+    },
+    {
+     "dir": "e",
+     "text": "Ściana z gaśnicą i planem ewakuacji.",
+     "flag": "nigdy"
+    }
+   ]
+  },
+  {
+   "name": "Korytarz",
+   "description": "Korytarz przy salach pooperacyjnych. Na ścianie wisi tablica z planem kliniki. Na zachód są drzwi twojej sali, na wschód drzwi z napisem ROZDZIELNIA.",
+   "terrain": "station",
+   "x": 8,
+   "y": 4,
+   "things": [
+    "Tablica",
+    "Drzwi Rozdzielni"
+   ],
+   "doors": [
+    {
+     "dir": "e",
+     "text": "Drzwi rozdzielni są zamknięte na czytnik. Potrzebna jest karta personelu.",
+     "flag": "rozdzielnia"
+    }
+   ]
+  },
+  {
+   "name": "Rozdzielnia",
+   "description": "Ciasne pomieszczenie pełne kabli. Na ścianie wisi skrzynka bezpieczników z przykręconą pokrywą. Na północ jest przejście do magazynu.",
+   "terrain": "station",
+   "x": 9,
+   "y": 4,
+   "things": [
+    "Skrzynka Bezpieczników"
+   ]
+  },
+  {
+   "name": "Magazyn",
+   "description": "Magazyn części: regały po sufit, kartony, zapach smaru. Większość półek jest pusta.",
+   "terrain": "station",
+   "x": 9,
+   "y": 3,
+   "things": [
+    "Półki"
+   ],
+   "doors": [
+    {
+     "dir": "w",
+     "text": "Ściana zastawiona regałami.",
+     "flag": "nigdy"
+    }
+   ]
+  },
+  {
+   "name": "Winda Serwisowa",
+   "description": "Stalowa kabina windy. Na panelu jest tylko jeden przycisk bez opisu i klawiatura numeryczna z zatartymi cyframi.",
+   "terrain": "station",
+   "x": 8,
+   "y": 2,
+   "things": [
+    "Panel Windy"
+   ],
+   "doors": [
+    {
+     "dir": "n",
+     "text": "Winda stoi. Panel czeka na kod.",
+     "flag": "dach"
+    }
+   ]
+  },
+  {
+   "name": "Lądowisko",
+   "description": "Dach kliniki nocą. Wiatr, światła miasta w dole i transporter z włączonymi silnikami. Przy rampie stoi kobieta w białym fartuchu.",
+   "terrain": "street",
+   "x": 8,
+   "y": 1,
+   "things": [
+    "Transporter"
+   ]
+  }
+ ],
+ "things": [
+  {
+   "name": "Łóżko",
+   "description": "Szpitalne łóżko z pogniecionym materacem. Coś pod nim lekko stuka, gdy je poruszysz.",
+   "fixed": true
+  },
+  {
+   "name": "Szafka",
+   "description": "Metalowa szafka przy łóżku. Drzwiczki się zacinają, ale dają się otworzyć.",
+   "fixed": true
+  },
+  {
+   "name": "Karta Pacjenta",
+   "description": "Plastikowa teczka z kartą pacjenta numer 2187. Twój numer."
+  },
+  {
+   "name": "Lustro",
+   "description": "W lustrze widzisz siebie: blada twarz, a za lewym uchem opatrunek, pod którym coś wystaje.",
+   "fixed": true
+  },
+  {
+   "name": "Kratka Wentylacyjna",
+   "description": "Aluminiowa kratka na jednej śrubie. Druga śruba leży na podłodze.",
+   "fixed": true
+  },
+  {
+   "name": "Żeton",
+   "description": "Mosiężny żeton do automatu. Ktoś zgubił go pod łóżkiem."
+  },
+  {
+   "name": "Szlafrok",
+   "description": "Szpitalny szlafrok w kolorze, który kiedyś był niebieski. W kieszeni jest dziura."
+  },
+  {
+   "name": "Biurko",
+   "description": "Biurko pielęgniarza zawalone papierami. W szufladzie coś grzechocze.",
+   "fixed": true
+  },
+  {
+   "name": "Śrubokręt",
+   "description": "Krzyżakowy śrubokręt z naklejką NEUROTECH. Odkręci pokrywę niejednej skrzynki."
+  },
+  {
+   "name": "Automat z Kawą",
+   "description": "Automat z kawą, który przyjmuje tylko żetony. Na szybce ktoś napisał markerem: NIE KOPAĆ.",
+   "fixed": true
+  },
+  {
+   "name": "Kawa",
+   "description": "Papierowy kubek gorącej, podłej kawy. Pachnie tak, że obudziłaby umarłego."
+  },
+  {
+   "name": "Tablica",
+   "description": "Plan ewakuacji kliniki. Dach z lądowiskiem dostępny jest tylko windą serwisową, zasilaną z rozdzielni na tym piętrze.",
+   "fixed": true
+  },
+  {
+   "name": "Drzwi Rozdzielni",
+   "description": "Stalowe drzwi z czytnikiem kart personelu.",
+   "fixed": true
+  },
+  {
+   "name": "Karta Dostępu",
+   "description": "Karta personelu na nazwisko B. Grabski, pielęgniarz. Otwiera drzwi z czytnikami."
+  },
+  {
+   "name": "Skrzynka Bezpieczników",
+   "description": "Skrzynka z pokrywą na cztery śruby. Ktoś przykleił kartkę: WINDA SERWISOWA, BEZPIECZNIK 3.",
+   "fixed": true
+  },
+  {
+   "name": "Półki",
+   "description": "Regały z kartonami części. Na jednym z nich jest napis: BEZPIECZNIKI 16A.",
+   "fixed": true
+  },
+  {
+   "name": "Bezpiecznik",
+   "description": "Nowy bezpiecznik 16A w folii."
+  },
+  {
+   "name": "Panel Windy",
+   "description": "Klawiatura numeryczna i jeden przycisk. Na cyfrach 1, 3 i 7 farba jest starta najbardziej.",
+   "fixed": true
+  },
+  {
+   "name": "Transporter",
+   "description": "Transporter medyczny z otwartą rampą i pilotem przy sterach. Silniki już pracują.",
+   "fixed": true
+  }
+ ],
+ "people": [
+  {
+   "name": "Pielęgniarz Grabski",
+   "description": "Gruby pielęgniarz w pogniecionym fartuchu, z workami pod oczami. Śpi na siedząco, jakby to był jego zawód.",
+   "room": "Dyżurka",
+   "talk": "Jeszcze pięć minut. I nie dotykaj mojej kawy."
+  },
+  {
+   "name": "Dr Wernicke",
+   "description": "Wysoka kobieta o siwych włosach i oczach, które niczego nie zdradzają. Patrzy na twój opatrunek jak na swoją własność.",
+   "room": "Lądowisko",
+   "talk": "Nie powinno cię tu być, pacjencie 2187. Wracaj na dół, zanim procesor się zsynchronizuje."
+  }
+ ],
+ "steps": [
+  {
+   "verb": "examine",
+   "on": "Łóżko",
+   "room": "Sala Pooperacyjna",
+   "once": true,
+   "text": "Unosisz materac. Pod nim leży mosiężny żeton do automatu i karteczka: «Dla tego, kto obudzi się pierwszy. Kawa dla Grabskiego otwiera więcej niż klucz».",
+   "reveals": "Żeton"
+  },
+  {
+   "verb": "open",
+   "on": "Szafka",
+   "room": "Sala Pooperacyjna",
+   "once": true,
+   "text": "Szarpiesz drzwiczki. W szafce wisi szpitalny szlafrok, nic więcej.",
+   "reveals": "Szlafrok"
+  },
+  {
+   "verb": "examine",
+   "on": "Karta Pacjenta",
+   "once": true,
+   "text": "Pacjent 2187. Zabieg: wszczepienie procesora HIPOKAMP-3, bez zgody pacjenta, na zlecenie dr Wernicke. Na marginesie ołówkiem: «serwis windy 7-3-1». Zapamiętujesz te cyfry.",
+   "flag": "kod"
+  },
+  {
+   "verb": "examine",
+   "on": "Lustro",
+   "room": "Łazienka",
+   "once": true,
+   "text": "Odchylasz opatrunek. Za uchem masz metalowy port z migającą diodą. Szum w głowie na moment układa się w słowa: WYJŚCIE. DACH. SZYBKO."
+  },
+  {
+   "verb": "open",
+   "on": "Kratka Wentylacyjna",
+   "room": "Łazienka",
+   "text": "Kratka trzyma się na jednej śrubie. Odkręcasz ją palcami, blacha z brzękiem spada do prysznica. Otwór jest wąski, ale przejdziesz. Droga na północ stoi otworem.",
+   "flag": "kratka"
+  },
+  {
+   "verb": "talk",
+   "on": "Pielęgniarz Grabski",
+   "unless": "grabski-obudzony",
+   "text": "Grabski uchyla jedno oko. «Pacjent? Z sali? A niech to… Słuchaj, ja nic nie widziałem, ty nic nie widziałeś. Przynieś mi kawę z automatu, to pogadamy. Bez kawy nie pogadamy.»"
+  },
+  {
+   "verb": "examine",
+   "on": "Biurko",
+   "room": "Dyżurka",
+   "once": true,
+   "text": "W szufladzie między paragonami leży śrubokręt z naklejką NEUROTECH.",
+   "reveals": "Śrubokręt"
+  },
+  {
+   "verb": "use",
+   "thing": "Żeton",
+   "on": "Automat z Kawą",
+   "room": "Korytarz Północny",
+   "text": "Żeton wpada z brzękiem. Automat myśli długo, charczy i wreszcie napełnia kubek czymś czarnym i gorącym.",
+   "takes": true,
+   "gives": "Kawa"
+  },
+  {
+   "verb": "give",
+   "thing": "Kawa",
+   "on": "Pielęgniarz Grabski",
+   "text": "Grabski wypija pół kubka jednym haustem i wzdycha. «Dobra. Masz moją kartę, otwiera wszystko na piętrze. Winda na dach nie ma prądu: bezpiecznik w rozdzielni padł, nowy powinien być w magazynie. A mnie tu nie było.» Zasypia z kubkiem w ręce.",
+   "takes": true,
+   "gives": "Karta Dostępu",
+   "flag": "grabski-obudzony"
+  },
+  {
+   "verb": "talk",
+   "on": "Pielęgniarz Grabski",
+   "needs": "grabski-obudzony",
+   "text": "Grabski mamrocze przez sen: «Siedem… trzy… jeden… i nie dotykaj mojej kawy»."
+  },
+  {
+   "verb": "use",
+   "thing": "Karta Dostępu",
+   "on": "Drzwi Rozdzielni",
+   "room": "Korytarz",
+   "text": "Czytnik mruga na zielono i zamek odskakuje. Drzwi rozdzielni są otwarte.",
+   "flag": "rozdzielnia"
+  },
+  {
+   "verb": "use",
+   "thing": "Karta Dostępu",
+   "on": "Tablica",
+   "text": "Przykładasz kartę do tablicy. Tablica, jak to tablica, nie reaguje."
+  },
+  {
+   "verb": "use",
+   "thing": "Śrubokręt",
+   "on": "Skrzynka Bezpieczników",
+   "room": "Rozdzielnia",
+   "unless": "skrzynka",
+   "text": "Odkręcasz cztery śruby. W środku rząd bezpieczników; trzeci jest czarny i pęknięty. Trzeba go wymienić.",
+   "flag": "skrzynka"
+  },
+  {
+   "verb": "open",
+   "on": "Skrzynka Bezpieczników",
+   "room": "Rozdzielnia",
+   "unless": "skrzynka",
+   "text": "Pokrywa jest przykręcona na cztery śruby. Palcami jej nie odkręcisz."
+  },
+  {
+   "verb": "examine",
+   "on": "Półki",
+   "room": "Magazyn",
+   "once": true,
+   "text": "Na półce z napisem BEZPIECZNIKI 16A został dokładnie jeden, w folii.",
+   "reveals": "Bezpiecznik"
+  },
+  {
+   "verb": "use",
+   "thing": "Bezpiecznik",
+   "on": "Skrzynka Bezpieczników",
+   "room": "Rozdzielnia",
+   "needs": "skrzynka",
+   "text": "Wyjmujesz spalony bezpiecznik i wciskasz nowy. Gdzieś za ścianą coś rusza z pomrukiem: winda serwisowa ma zasilanie.",
+   "takes": true,
+   "flag": "winda",
+   "changes": {
+    "room": "Korytarz Północny",
+    "description": "Długi korytarz, teraz jasno oświetlony. Automat z kawą brzęczy, a drzwi windy serwisowej na północy stoją otworem."
+   }
+  },
+  {
+   "verb": "use",
+   "thing": "Bezpiecznik",
+   "on": "Skrzynka Bezpieczników",
+   "room": "Rozdzielnia",
+   "unless": "skrzynka",
+   "text": "Pokrywa skrzynki jest przykręcona. Najpierw trzeba ją odkręcić."
+  },
+  {
+   "verb": "use",
+   "on": "Panel Windy",
+   "room": "Winda Serwisowa",
+   "needs": "kod",
+   "unless": "dach",
+   "text": "Wstukujesz 7-3-1. Panel piszczy, kabina drga i rusza w górę. Drzwi otwierają się na wiatr i noc: dach jest na północ.",
+   "flag": "dach"
+  },
+  {
+   "verb": "use",
+   "on": "Panel Windy",
+   "room": "Winda Serwisowa",
+   "unless": "kod",
+   "text": "Wstukujesz przypadkowe cyfry. Panel piszczy przecząco. Gdzieś musi być zapisany kod."
+  },
+  {
+   "verb": "talk",
+   "on": "Dr Wernicke",
+   "text": "«Pacjencie 2187, procesor w twojej głowie wart jest więcej niż ta klinika. Zejdź na dół, a nie poczujesz nawet, kiedy go wyjmiemy.» Uśmiecha się, jakby proponowała herbatę. Szum w głowie krzyczy: TRANSPORTER."
+  },
+  {
+   "verb": "use",
+   "on": "Transporter",
+   "room": "Lądowisko",
+   "text": "Wbiegasz po rampie i zatrzaskujesz właz. Pilot ogląda się na ciebie, wzrusza ramionami i startuje. Klinika Neurotech maleje w dole, dr Wernicke stoi na dachu bez ruchu. Szum w głowie cichnie. Na razie.",
+   "win": true
+  }
+ ]
+}
