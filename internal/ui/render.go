@@ -258,8 +258,16 @@ func (g Game) fullCard(index int, member card, selected bool) string {
 		experience = labelStyle.Render("EXP ") + goldStyle.Render("maks.")
 	}
 
-	if g.view.Adventure() {
-		stats := []string{name, titleStyle.Render(g.view.World.Name), "", labelStyle.Render(fmt.Sprintf("Rzeczy: %d", member.bag)), labelStyle.Render("Tab: plecak")}
+	if g.view.Rooms() {
+		clock := labelStyle.Render("Tab: plecak")
+		if g.view.Investigation() || g.view.HoursLeft >= 0 {
+			clock = labelStyle.Render(fmt.Sprintf("Dzień %d, %s", g.view.Me.Day, g.view.Hour))
+			if g.view.HoursLeft >= 0 {
+				clock = warnStyle.Render(fmt.Sprintf("Zostało %d h", g.view.HoursLeft))
+			}
+		}
+
+		stats := []string{name, titleStyle.Render(g.view.World.Name), "", labelStyle.Render(fmt.Sprintf("Rzeczy: %d", member.bag)), clock}
 		if avatar := g.library.Art(member.avatar); avatar != "" {
 			return lipgloss.JoinHorizontal(lipgloss.Top, avatar, " ", strings.Join(stats, "\n"))
 		}
@@ -378,7 +386,7 @@ func (g Game) sheetOf(index int) sheet {
 // bagView draws the character sheet of the selected member: scores,
 // combat figures, gear, bag and powers, as on a sheet of paper.
 func (g Game) bagView() string {
-	if g.view.Adventure() {
+	if g.view.Rooms() {
 		return g.thingsView()
 	}
 
@@ -500,7 +508,9 @@ func (g Game) helpView() string {
 		help = "Karta postaci   ↑↓ wybór w plecaku · Enter użyj, załóż albo naucz się · F1-F3 czyja karta · Esc wróć"
 	case g.view.Fight != nil:
 		help = g.fightHelp()
-	case g.view.Adventure():
+	case g.view.Investigation():
+		help = "rozmawiaj z Y · zbadaj X · czekaj · śledź Y · dziennik · oskarżam Y · pomoc   Strzałki ruch · Tab plecak · Esc kończy rozmowę"
+	case g.view.Rooms():
 		help = "idź na północ / n · rozejrzyj się · zbadaj X · podnieś X · użyj X na Y · otwórz X · daj X Y · rozmawiaj z Y · pomoc   Strzałki ruch · Tab plecak"
 	case g.view.Tile.Town >= 0:
 		help = "idź do X (budynek) · najmij X · zlecenia · przyjmij · odpocznij · zapisz · pomoc   Strzałki ruch · Tab plecak · F4 bestiariusz · F1-F3 karty"
@@ -514,9 +524,14 @@ func (g Game) helpView() string {
 		help += " · F5 mów"
 	}
 
-	if g.view.Won && g.view.Adventure() {
+	switch {
+	case g.view.Lost:
+		help = badStyle.Render("✖ Przegrana ✖ ") + help
+	case g.view.Won && g.view.Investigation():
+		help = goldStyle.Render("★ Sprawa rozwiązana ★ ") + help
+	case g.view.Won && g.view.Rooms():
 		help = goldStyle.Render("★ Przygoda ukończona ★ ") + help
-	} else if g.view.Won {
+	case g.view.Won:
 		help = goldStyle.Render("★ Świat ocalony ★ ") + help
 	}
 

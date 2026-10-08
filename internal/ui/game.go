@@ -459,9 +459,12 @@ func (g Game) enter() (tea.Model, tea.Cmd) {
 			}
 		}
 	case game.VerbHelp:
-		if g.view.Adventure() {
+		switch {
+		case g.view.Investigation():
+			g.realm.Tell(g.name, game.InvestigationHelp)
+		case g.view.Rooms():
 			g.realm.Tell(g.name, game.AdventureHelp)
-		} else {
+		default:
 			g.realm.Tell(g.name, game.Help)
 		}
 	case game.VerbSave:
@@ -544,7 +547,7 @@ func (g *Game) bagKey(msg tea.KeyMsg) {
 			return
 		}
 
-		if g.view.Adventure() {
+		if g.view.Rooms() {
 			if g.cursor < len(g.view.Me.Bag) {
 				g.realm.Execute(g.name, game.Parse("zbadaj "+g.view.Me.Bag[g.cursor].Name))
 			}

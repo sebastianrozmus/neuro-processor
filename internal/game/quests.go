@@ -61,7 +61,7 @@ type QuestView struct {
 // keeper at a time.
 func (r *Realm) postQuests() {
 	for _, keeper := range r.everyone() {
-		if keeper == r.caravanShop() || r.openQuest(keeper) != nil || r.rng.Intn(100) >= questPercent {
+		if (r.caravan != nil && keeper == r.caravanShop()) || r.openQuest(keeper) != nil || r.rng.Intn(100) >= questPercent {
 			continue
 		}
 

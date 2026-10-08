@@ -216,6 +216,12 @@ type Spec struct {
 	Things []ThingSpec  `json:"things,omitempty"`
 	People []PersonSpec `json:"people,omitempty"`
 	Steps  []StepSpec   `json:"steps,omitempty"`
+	// Case is the truth of an investigation; Deadline, in hours, is how
+	// long the player has before Loss is told and the game is lost (0
+	// means no limit).
+	Case     *CaseSpec `json:"case,omitempty"`
+	Deadline int       `json:"deadline,omitempty"`
+	Loss     string    `json:"loss,omitempty"`
 }
 
 // Sells reports whether a shop of this kind trades in items of the given kind.
@@ -250,8 +256,9 @@ func (s *Spec) Normalize() error {
 
 	s.Mode = knownOr(Modes, s.Mode)
 
-	if s.Mode == ModeAdventure {
+	if s.Mode.Rooms() {
 		s.normalizeAdventure()
+		s.normalizeEvents()
 
 		return s.checkAdventure()
 	}

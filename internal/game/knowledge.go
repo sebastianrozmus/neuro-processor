@@ -25,10 +25,17 @@ type Fact struct {
 	// event, or empty for what the world began with.
 	Source string
 	Day    int
-	// known holds the keepers (by shop index) who know the fact; heard
-	// the players who have come across it.
+	// known holds the keepers (by shop index, or by person in a town)
+	// who know the fact; heard the players who have come across it.
 	known map[int]bool
 	heard map[string]bool
+	// A clue of an investigation may be held by a thing rather than
+	// known by anyone, and may wait for a flag, for another fact to have
+	// been heard, or for a time of day.
+	thing      string
+	needs      string
+	heardFirst string
+	hour       string
 }
 
 // FactSpec is a fact as a model or an event states it.
@@ -76,8 +83,18 @@ func (r *Realm) add(subject, text, source string, keepers ...int) *Fact {
 	return fact
 }
 
-// everyone lists every keeper.
+// everyone lists every keeper: the shopkeepers and the caravan, or the
+// people of a town.
 func (r *Realm) everyone() []int {
+	if r.investigation() {
+		all := make([]int, 0, len(r.world.People))
+		for index := range r.world.People {
+			all = append(all, index)
+		}
+
+		return all
+	}
+
 	all := make([]int, 0, len(r.world.Shops)+1)
 	for index := range r.world.Shops {
 		all = append(all, index)
@@ -102,6 +119,24 @@ func (r *Realm) some(count int) []int {
 	return all[:min(max(count, 1), len(all))]
 }
 
+// keeperName names a keeper, or returns "" for an index that is none.
+func (r *Realm) keeperName(index int) string {
+	switch {
+	case index < 0:
+		return ""
+	case r.investigation():
+		if index < len(r.world.People) {
+			return r.world.People[index].Name
+		}
+	case r.caravan != nil && index == r.caravanShop():
+		return caravanKeeper
+	case index < len(r.world.Shops):
+		return r.world.Shops[index].Keeper
+	}
+
+	return ""
+}
+
 // shopOfKind returns the keeper of a kind of shop, or -1.
 func (r *Realm) shopOfKind(kind world.ShopKind) int {
 	for index, shop := range r.world.Shops {
@@ -119,7 +154,13 @@ func (r *Realm) shopOfKind(kind world.ShopKind) int {
 // settlement they wait in.
 func (r *Realm) seedKnowledge() {
 	built := r.world
-	if built.Mode == world.ModeAdventure || len(built.Shops) == 0 {
+	if r.investigation() {
+		r.seedClues()
+
+		return
+	}
+
+	if built.Mode.Rooms() || len(built.Shops) == 0 {
 		return
 	}
 
@@ -189,8 +230,8 @@ func (r *Realm) unknownTo(keeper int) []string {
 		}
 
 		for other := range fact.known {
-			if other != keeper && other >= 0 && other <= r.caravanShop() {
-				gaps = append(gaps, fmt.Sprintf("%s (wie o tym %s)", fact.Subject, r.shopSpec(other).Keeper))
+			if other != keeper && r.keeperName(other) != "" {
+				gaps = append(gaps, fmt.Sprintf("%s (wie o tym %s)", fact.Subject, r.keeperName(other)))
 
 				break
 			}
@@ -242,7 +283,7 @@ func (r *Realm) Learn(name string, spec FactSpec) bool {
 		}
 	}
 
-	fact := r.add(spec.Subject, spec.Text, r.shopSpec(customer.shop).Keeper, customer.shop)
+	fact := r.add(spec.Subject, spec.Text, r.keeperName(customer.shop), customer.shop)
 	if fact == nil {
 		return false
 	}

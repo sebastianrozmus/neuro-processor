@@ -21,10 +21,24 @@ const (
 	// rooms, things to find and use, people to talk to and a goal, with
 	// no fights at all.
 	ModeAdventure Mode = "adventure"
+	// ModeInvestigation is an adventure with a hidden truth: the people
+	// of a town know pieces of it, things hold clues, everybody keeps a
+	// day's schedule, and the case ends with an accusation backed by
+	// what the player found out.
+	ModeInvestigation Mode = "investigation"
 )
 
 // Modes lists every mode.
-var Modes = []Mode{ModeImagination, ModeDnD, ModeAdventure}
+var Modes = []Mode{ModeImagination, ModeDnD, ModeAdventure, ModeInvestigation}
+
+// Rooms reports whether a mode is played in rooms rather than on a map
+// of lands: no fights, no shops, things and people instead.
+func (m Mode) Rooms() bool {
+	return m == ModeAdventure || m == ModeInvestigation
+}
+
+// Hours names the times of a day, in order.
+var Hours = []string{"ranek", "popołudnie", "wieczór", "noc"}
 
 // Title names the mode for players.
 func (m Mode) Title() string {
@@ -33,6 +47,8 @@ func (m Mode) Title() string {
 		return "D&D"
 	case ModeAdventure:
 		return "Przygodowa"
+	case ModeInvestigation:
+		return "Śledztwo"
 	}
 
 	return "Gra wyobraźni"
@@ -45,6 +61,8 @@ func (m Mode) Blurb() string {
 		return "Zasady stołowego RPG: rzut k20 przeciw klasie pancerza, rzuty obronne, walka na siatce z ruchem i atakami okazyjnymi."
 	case ModeAdventure:
 		return "Tekstowa przygodówka jak Mózgoprocesor: pomieszczenia, przedmioty, zagadki i ludzie, z którymi trzeba pogadać. Bez walki."
+	case ModeInvestigation:
+		return "Miasteczko z ukrytą prawdą: ludzie wiedzą po kawałku i mają plan dnia, rzeczy kryją poszlaki, a sprawę kończy oskarżenie poparte dowodami."
 	}
 
 	return "Mapa, osady, kupcy i walka rozstrzygana prostymi liczbami, z narratorem i rysowanymi scenami."
@@ -84,19 +102,50 @@ type DoorSpec struct {
 }
 
 // ThingSpec is an object of an adventure. Fixed things stay where they are.
+// In an investigation a thing may hold clues found by examining it.
 type ThingSpec struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Fixed       bool   `json:"fixed,omitempty"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Fixed       bool       `json:"fixed,omitempty"`
+	Clues       []ClueSpec `json:"clues,omitempty"`
 }
 
 // PersonSpec is somebody to talk to, standing in a room. Talk is what
-// they say when no step of the story applies.
+// they say when no step of the story applies. In an investigation they
+// know Clues, told only when their conditions hold, and may keep a
+// Schedule: the room they are in at each time of day (keys from Hours),
+// Room being where they are otherwise.
 type PersonSpec struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Room        string `json:"room"`
-	Talk        string `json:"talk"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Room        string            `json:"room"`
+	Talk        string            `json:"talk"`
+	Clues       []ClueSpec        `json:"clues,omitempty"`
+	Schedule    map[string]string `json:"schedule,omitempty"`
+}
+
+// ClueSpec is a piece of the truth: a fact with the conditions under which
+// a person tells it or a thing shows it. Needs is a flag, Heard the
+// subject of another fact the player must know first, Hour a time of day.
+type ClueSpec struct {
+	Subject string `json:"subject"`
+	Text    string `json:"text"`
+	Needs   string `json:"needs,omitempty"`
+	Heard   string `json:"heard,omitempty"`
+	Hour    string `json:"hour,omitempty"`
+}
+
+// CaseSpec is what an investigation is about: who hired the player,
+// whom (or what) the accusation must name, which facts prove it, and
+// what is said when it is proven.
+type CaseSpec struct {
+	Client  string   `json:"client"`
+	Answer  string   `json:"answer"`
+	Proof   []string `json:"proof"`
+	Verdict string   `json:"verdict"`
+	// Hint is what the player hears when the name is right but the
+	// proof is short.
+	Hint string `json:"hint,omitempty"`
 }
 
 // StepSpec is one scripted response of an adventure: what happens when
@@ -115,7 +164,12 @@ type StepSpec struct {
 	Needs  string `json:"needs,omitempty"`
 	Unless string `json:"unless,omitempty"`
 	Once   bool   `json:"once,omitempty"`
-	Text   string `json:"text"`
+	// With names people who must be in the room; Hour a time of day;
+	// Heard the subject of a fact the player must know.
+	With  []string `json:"with,omitempty"`
+	Hour  string   `json:"hour,omitempty"`
+	Heard string   `json:"heard,omitempty"`
+	Text  string   `json:"text"`
 	// Flag is set when the step happens; Gives puts a thing in the bag,
 	// Takes removes the thing used, Reveals makes a thing appear in the
 	// room and Changes turns a room into something else.
@@ -124,7 +178,11 @@ type StepSpec struct {
 	Takes   bool        `json:"takes,omitempty"`
 	Reveals string      `json:"reveals,omitempty"`
 	Changes *RoomChange `json:"changes,omitempty"`
-	Win     bool        `json:"win,omitempty"`
+	// Fact is what the player learns from the step; Lose ends the game
+	// in failure.
+	Fact *FactSpec `json:"fact,omitempty"`
+	Win  bool      `json:"win,omitempty"`
+	Lose bool      `json:"lose,omitempty"`
 }
 
 // RoomChange is a room's new look after a step.
@@ -142,10 +200,14 @@ const (
 	StepOpen    = "open"
 	StepExamine = "examine"
 	StepEnter   = "enter"
+	// StepWait fires when an hour passes in the room; StepCode when the
+	// player types the code On.
+	StepWait = "wait"
+	StepCode = "code"
 )
 
 // StepVerbs lists every verb a step may have.
-var StepVerbs = []string{StepUse, StepGive, StepTalk, StepOpen, StepExamine, StepEnter}
+var StepVerbs = []string{StepUse, StepGive, StepTalk, StepOpen, StepExamine, StepEnter, StepWait, StepCode}
 
 // Directions of doors.
 var Directions = []string{"n", "e", "s", "w"}
@@ -186,6 +248,7 @@ func (s *Spec) normalizeAdventure() {
 	for _, thing := range s.Things {
 		thing.Name = clip(thing.Name, maxName)
 		thing.Description = clip(thing.Description, maxText)
+		thing.Clues = cleanClues(thing.Clues)
 
 		taken := slices.ContainsFunc(things, func(other ThingSpec) bool { return other.Name == thing.Name })
 		if thing.Name != "" && !taken && len(things) < maxThings {
@@ -198,6 +261,19 @@ func (s *Spec) normalizeAdventure() {
 		person.Name = clip(person.Name, maxName)
 		person.Description = clip(person.Description, maxText)
 		person.Talk = clip(person.Talk, maxText)
+		person.Clues = cleanClues(person.Clues)
+
+		schedule := map[string]string{}
+		for hour, where := range person.Schedule {
+			if slices.Contains(Hours, hour) && slices.ContainsFunc(rooms, func(room RoomSpec) bool { return room.Name == where }) {
+				schedule[hour] = where
+			}
+		}
+
+		person.Schedule = schedule
+		if len(schedule) == 0 {
+			person.Schedule = nil
+		}
 
 		taken := slices.ContainsFunc(people, func(other PersonSpec) bool { return other.Name == person.Name })
 		known := slices.ContainsFunc(rooms, func(room RoomSpec) bool { return room.Name == person.Room })
@@ -212,6 +288,14 @@ func (s *Spec) normalizeAdventure() {
 		step.Text = clip(step.Text, maxText)
 
 		if slices.Contains(StepVerbs, step.Verb) && step.On != "" && len(steps) < maxSteps {
+			if !slices.Contains(Hours, step.Hour) {
+				step.Hour = ""
+			}
+
+			if step.Fact != nil {
+				step.Fact.Subject, step.Fact.Text = clip(step.Fact.Subject, maxName), clip(step.Fact.Text, maxText)
+			}
+
 			if step.Changes != nil {
 				step.Changes.Description = clip(step.Changes.Description, maxText)
 				if step.Changes.Terrain != "" {
@@ -224,6 +308,27 @@ func (s *Spec) normalizeAdventure() {
 	}
 
 	s.Rooms, s.Things, s.People, s.Steps = rooms, things, people, steps
+	s.Loss = clip(s.Loss, maxText)
+	s.Deadline = max(s.Deadline, 0)
+
+	if s.Case != nil {
+		s.Case.Client = clip(s.Case.Client, maxName)
+		s.Case.Answer = clip(s.Case.Answer, maxName)
+		s.Case.Verdict = clip(s.Case.Verdict, maxText)
+		s.Case.Hint = clip(s.Case.Hint, maxText)
+
+		proof := make([]string, 0, len(s.Case.Proof))
+		for _, subject := range s.Case.Proof {
+			if subject = clip(subject, maxName); subject != "" {
+				proof = append(proof, subject)
+			}
+		}
+
+		s.Case.Proof = proof
+		if s.Case.Answer == "" {
+			s.Case = nil
+		}
+	}
 
 	// Rooms become places and things become items, so that the map, the
 	// bag and the ground work as in any world.
@@ -249,11 +354,31 @@ func (s *Spec) checkAdventure() error {
 		return errors.New("world has no name")
 	case len(s.Rooms) < 2:
 		return errors.New("adventure needs at least two rooms")
-	case !slices.ContainsFunc(s.Steps, func(step StepSpec) bool { return step.Win }):
+	case s.Mode == ModeInvestigation && s.Case == nil:
+		return errors.New("investigation has no case")
+	case s.Case == nil && !slices.ContainsFunc(s.Steps, func(step StepSpec) bool { return step.Win }):
 		return errors.New("adventure has no step that wins it")
 	}
 
 	return nil
+}
+
+// cleanClues tidies clues, dropping those without a subject or text.
+func cleanClues(clues []ClueSpec) []ClueSpec {
+	var clean []ClueSpec
+
+	for _, clue := range clues {
+		clue.Subject, clue.Text = clip(clue.Subject, maxName), clip(clue.Text, maxText)
+		if !slices.Contains(Hours, clue.Hour) {
+			clue.Hour = ""
+		}
+
+		if clue.Subject != "" && clue.Text != "" {
+			clean = append(clean, clue)
+		}
+	}
+
+	return clean
 }
 
 // Room returns the room of the given name.
@@ -301,7 +426,7 @@ func buildAdventure(spec Spec) (*World, error) {
 
 // RoomAt returns the room on a tile of an adventure.
 func (w *World) RoomAt(p Point) (RoomSpec, bool) {
-	if place := w.At(p).Place; w.Mode == ModeAdventure && place >= 0 && place < len(w.Rooms) {
+	if place := w.At(p).Place; w.Mode.Rooms() && place >= 0 && place < len(w.Rooms) {
 		return w.Rooms[place], true
 	}
 

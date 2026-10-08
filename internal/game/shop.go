@@ -198,6 +198,10 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	request.Lore = r.lore(customer, session.Wares())
 	request.Hint = r.hint(customer, text, decision)
 
+	if r.investigation() {
+		request.Role = "Odgrywasz mieszkańca miasteczka w grze detektywistycznej: rozmawiasz z detektywem, który cię zagadnął. Niczym nie handlujesz."
+	}
+
 	if afterHours {
 		request.Hint = "Gracz chce handlować, ale jest wieczór i kram zamknięty: odmów grzecznie, zaproś rano, nic nie sprzedawaj. " + request.Hint
 	}

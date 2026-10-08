@@ -43,7 +43,10 @@ var caravanSpec = world.ShopSpec{
 
 // shopSpec returns a shop of the world or the caravan.
 func (r *Realm) shopSpec(index int) world.ShopSpec {
-	if index == r.caravanShop() {
+	switch {
+	case r.investigation():
+		return r.personSpec(index)
+	case r.caravan != nil && index == r.caravanShop():
 		return caravanSpec
 	}
 

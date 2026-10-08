@@ -33,6 +33,10 @@ const (
 	VerbJournal
 	VerbQuest
 	VerbAccept
+	VerbWait
+	VerbFollow
+	VerbAccuse
+	VerbCode
 	VerbBag
 	VerbBestiary
 	VerbSave
@@ -88,6 +92,10 @@ var verbWords = []verbWord{
 	{"ekwipunek", VerbBag}, {"plecak", VerbBag}, {"inwentarz", VerbBag}, {"ekw", VerbBag}, {"i", VerbBag},
 	{"dziennik", VerbJournal}, {"notatki", VerbJournal}, {"wiem", VerbJournal}, {"plotki", VerbJournal},
 	{"zlecen", VerbQuest}, {"zadani", VerbQuest}, {"misje", VerbQuest}, {"questy", VerbQuest},
+	{"czekaj", VerbWait}, {"poczekaj", VerbWait}, {"odczekaj", VerbWait}, {"zaczekaj", VerbWait}, {"przeczekaj", VerbWait},
+	{"sledz", VerbFollow}, {"obserwuj", VerbFollow}, {"podazaj", VerbFollow}, {"tropie", VerbFollow},
+	{"oskarz", VerbAccuse}, {"aresztuj", VerbAccuse}, {"winny", VerbAccuse}, {"winna", VerbAccuse}, {"sprawca", VerbAccuse},
+	{"wpisz", VerbCode}, {"kod", VerbCode}, {"szyfr", VerbCode}, {"haslo", VerbCode},
 	{"przyjm", VerbAccept}, {"podejm", VerbAccept}, {"biore", VerbAccept}, {"zgadzam", VerbAccept},
 	{"otworz", VerbOpen}, {"otwieraj", VerbOpen}, {"odkrec", VerbOpen}, {"wylam", VerbOpen}, {"odsun", VerbOpen}, {"podwaz", VerbOpen},
 	{"bestiariusz", VerbBestiary}, {"bestiarz", VerbBestiary}, {"bestie", VerbBestiary}, {"potwory", VerbBestiary},

@@ -178,6 +178,12 @@ type View struct {
 	Weather Weather
 	// Quests are the viewer's jobs and the ones on offer where they stand.
 	Quests []QuestView
+	// Lost is set when a game with a time limit or a case is over in
+	// failure; Hour names the viewer's time of day; HoursLeft is what
+	// remains before the deadline, -1 without one.
+	Lost      bool
+	Hour      string
+	HoursLeft int
 }
 
 // PlaceAt returns the place at a point as the story has left it.
@@ -192,6 +198,17 @@ func (v View) PlaceAt(pos world.Point) world.PlaceSpec {
 // Adventure reports whether the world is a text adventure.
 func (v View) Adventure() bool {
 	return v.World.Mode == world.ModeAdventure
+}
+
+// Investigation reports whether the world is a case to solve.
+func (v View) Investigation() bool {
+	return v.World.Mode == world.ModeInvestigation
+}
+
+// Rooms reports whether the world is played in rooms: an adventure or an
+// investigation.
+func (v View) Rooms() bool {
+	return v.World.Mode.Rooms()
 }
 
 // DnD reports whether the world is played by the tabletop rules.
@@ -210,6 +227,7 @@ func (r *Realm) View(name string) View {
 		Revealed: append([]bool(nil), r.revealed...),
 		Marks:    make([]Mark, len(r.revealed)),
 		Won:      r.won,
+		Lost:     r.lost,
 		Season:   r.season(),
 		Weather:  r.weather,
 	}
@@ -241,7 +259,8 @@ func (r *Realm) View(name string) View {
 	view.Tile = r.world.At(viewer.pos)
 	view.Place = view.PlaceAt(viewer.pos)
 	view.Quests = r.questViews(viewer)
-	view.People = personNames(r.peopleAt(viewer.pos))
+	view.People = personNames(r.peopleAt(viewer.pos, viewer))
+	view.Hour, view.HoursLeft = r.hourName(viewer), r.hoursLeft(viewer)
 	view.Ground = append([]world.ItemSpec(nil), r.ground[r.world.Index(viewer.pos)]...)
 	view.Log = append([]string(nil), viewer.log...)
 

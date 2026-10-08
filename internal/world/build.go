@@ -64,7 +64,7 @@ func Build(spec Spec) (*World, error) {
 		return nil, err
 	}
 
-	if spec.Mode == ModeAdventure {
+	if spec.Mode.Rooms() {
 		return buildAdventure(spec)
 	}
 

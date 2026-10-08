@@ -70,6 +70,7 @@ type Realm struct {
 	hired map[int]string
 	talks int
 	won   bool
+	lost  bool
 	// blows are the latest things that happened to anyone's health, for
 	// the screens to show; serial numbers them. minted counts monsters.
 	blows  []BlowView
@@ -129,7 +130,9 @@ type player struct {
 	standing map[int]int
 	inn      bool
 	sky      Weather
-	updates  chan struct{}
+	// following names the person of a town the hero shadows.
+	following string
+	updates   chan struct{}
 }
 
 // talk is a hero's conversation with one shopkeeper.
@@ -382,9 +385,17 @@ func (r *Realm) walk(mover *player, step world.Point) {
 // hour passes a step's worth of time for a hero; a full day of steps ends
 // the day.
 func (r *Realm) hour(hero *player) {
+	before := r.hourName(hero)
+
 	hero.steps++
 	if hero.steps >= stepsPerDay {
 		r.newDay(hero)
+	}
+
+	if r.investigation() {
+		r.passHour(hero, before)
+	} else {
+		r.deadline(hero)
 	}
 }
 

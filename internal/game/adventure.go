@@ -14,12 +14,16 @@ import (
 // adventure is the realm's state of an adventure.
 type adventure struct {
 	flags map[string]bool
-	// done marks the once-only steps that have happened.
-	done map[int]bool
+	// done marks the once-only steps that have happened; mistakes counts
+	// the wrong accusations of an investigation.
+	done     map[int]bool
+	mistakes int
 }
 
+// adventure reports whether the world is played in rooms: an adventure
+// or an investigation.
 func (r *Realm) adventure() bool {
-	return r.world.Mode == world.ModeAdventure
+	return r.world.Mode.Rooms()
 }
 
 // roomOf returns the room a player stands in.
@@ -63,8 +67,8 @@ func dirCode(step world.Point) string {
 	return "w"
 }
 
-// peopleAt lists who stands in a room.
-func (r *Realm) peopleAt(pos world.Point) []world.PersonSpec {
+// peopleAt lists who stands in a room at a hero's time of day.
+func (r *Realm) peopleAt(pos world.Point, hero *player) []world.PersonSpec {
 	room, ok := r.world.RoomAt(pos)
 	if !ok {
 		return nil
@@ -72,7 +76,7 @@ func (r *Realm) peopleAt(pos world.Point) []world.PersonSpec {
 
 	var here []world.PersonSpec
 	for _, person := range r.world.People {
-		if person.Room == room.Name {
+		if r.personRoom(person, hero) == room.Name {
 			here = append(here, person)
 		}
 	}
@@ -82,7 +86,7 @@ func (r *Realm) peopleAt(pos world.Point) []world.PersonSpec {
 
 // personAt finds somebody in the player's room by name.
 func (r *Realm) personAt(who *player, name string) (world.PersonSpec, bool) {
-	for _, person := range r.peopleAt(who.pos) {
+	for _, person := range r.peopleAt(who.pos, who) {
 		if Matches(person.Name, name) {
 			return person, true
 		}
@@ -94,7 +98,7 @@ func (r *Realm) personAt(who *player, name string) (world.PersonSpec, bool) {
 // arriveRoom tells a player what they find in a room and runs the steps
 // of entering it.
 func (r *Realm) arriveRoom(visitor *player) {
-	if people := r.peopleAt(visitor.pos); len(people) > 0 {
+	if people := r.peopleAt(visitor.pos, visitor); len(people) > 0 {
 		names := make([]string, 0, len(people))
 		for _, person := range people {
 			names = append(names, person.Name)
@@ -108,6 +112,7 @@ func (r *Realm) arriveRoom(visitor *player) {
 	}
 
 	r.act(visitor, world.StepEnter, "", r.roomOf(visitor).Name)
+	r.fire(visitor, onEnter, r.roomOf(visitor).Name)
 }
 
 // exits lists where a room's open exits lead.
@@ -151,6 +156,7 @@ func (r *Realm) examine(viewer *player, what string) {
 
 	if index := find(viewer.bag, what); index >= 0 {
 		r.tell(viewer, viewer.bag[index].Name+". "+viewer.bag[index].Description)
+		r.inspect(viewer, viewer.bag[index].Name)
 
 		return
 	}
@@ -158,6 +164,7 @@ func (r *Realm) examine(viewer *player, what string) {
 	if lying := r.ground[r.world.Index(viewer.pos)]; find(lying, what) >= 0 {
 		item := lying[find(lying, what)]
 		r.tell(viewer, item.Name+". "+item.Description)
+		r.inspect(viewer, item.Name)
 
 		return
 	}
@@ -207,7 +214,7 @@ func (r *Realm) handle(user *player, verb, what string) {
 
 // hand is "daj X Y" to a person of an adventure.
 func (r *Realm) hand(giver *player, what string) {
-	for _, person := range r.peopleAt(giver.pos) {
+	for _, person := range r.peopleAt(giver.pos, giver) {
 		for _, word := range strings.Fields(Fold(person.Name)) {
 			if before, _, found := strings.Cut(" "+Fold(what)+" ", " "+Stem(word)); found && strings.TrimSpace(before) != "" {
 				thing := strings.TrimSpace(before)
@@ -230,7 +237,7 @@ func (r *Realm) hand(giver *player, what string) {
 }
 
 func firstPersonHere(r *Realm, who *player) string {
-	if people := r.peopleAt(who.pos); len(people) > 0 {
+	if people := r.peopleAt(who.pos, who); len(people) > 0 {
 		return strings.Fields(people[0].Name)[0]
 	}
 
@@ -242,7 +249,7 @@ func firstPersonHere(r *Realm, who *player) string {
 func (r *Realm) chat(speaker *player, who string) {
 	person, ok := r.personAt(speaker, who)
 	if !ok {
-		if people := r.peopleAt(speaker.pos); len(people) == 0 {
+		if people := r.peopleAt(speaker.pos, speaker); len(people) == 0 {
 			r.tell(speaker, "Nie ma tu nikogo, z kim dałoby się porozmawiać.")
 		} else {
 			r.tell(speaker, "Z kim? Jest tu: "+join(personNames(people))+".")
@@ -251,9 +258,18 @@ func (r *Realm) chat(speaker *player, who string) {
 		return
 	}
 
-	if !r.act(speaker, world.StepTalk, "", person.Name) {
-		r.tell(speaker, person.Name+": «"+person.Talk+"»")
+	if r.act(speaker, world.StepTalk, "", person.Name) {
+		return
 	}
+
+	// In a town the talk is free, run by the model from what the person knows.
+	if index := r.personIndex(person.Name); r.investigation() && index >= 0 {
+		r.talkTo(speaker, index)
+
+		return
+	}
+
+	r.tell(speaker, person.Name+": «"+person.Talk+"»")
 }
 
 func personNames(people []world.PersonSpec) []string {
@@ -272,7 +288,11 @@ func (r *Realm) act(actor *player, verb, thing, on string) bool {
 
 	for index, step := range r.world.Steps {
 		switch {
-		case step.Verb != verb, on == "" || !Matches(step.On, on):
+		case step.Verb != verb, on == "":
+			continue
+		case verb == world.StepCode && !strings.EqualFold(strings.Join(strings.Fields(step.On), " "), strings.Join(strings.Fields(on), " ")):
+			continue
+		case verb != world.StepCode && !Matches(step.On, on):
 			continue
 		case step.Thing != "" && (thing == "" || !Matches(step.Thing, thing)):
 			continue
@@ -283,6 +303,12 @@ func (r *Realm) act(actor *player, verb, thing, on string) bool {
 		case step.Needs != "" && !r.story.flags[step.Needs]:
 			continue
 		case step.Unless != "" && r.story.flags[step.Unless]:
+			continue
+		case step.Hour != "" && r.hourName(actor) != step.Hour:
+			continue
+		case step.Heard != "" && !r.heardOf(actor, step.Heard):
+			continue
+		case !r.together(actor, step.With):
 			continue
 		case step.Once && r.story.done[index]:
 			continue
@@ -328,6 +354,17 @@ func (r *Realm) follow(actor *player, step world.StepSpec) {
 		r.change(*step.Changes)
 	}
 
+	if step.Fact != nil {
+		if fact := r.add(step.Fact.Subject, step.Fact.Text, "obserwacja"); fact != nil {
+			r.learn(actor, fact)
+			r.tell(actor, "Zapisujesz w dzienniku: "+fact.Subject+".")
+		}
+	}
+
+	if step.Lose {
+		r.lose(actor, "")
+	}
+
 	if step.Win {
 		r.won = true
 
@@ -335,6 +372,17 @@ func (r *Realm) follow(actor *player, step world.StepSpec) {
 			r.tell(r.players[name], fmt.Sprintf("Przygoda «%s» ukończona!", r.world.Name))
 		}
 	}
+}
+
+// together reports whether everybody named is in the hero's room.
+func (r *Realm) together(hero *player, names []string) bool {
+	for _, name := range names {
+		if _, ok := r.personAt(hero, name); !ok {
+			return false
+		}
+	}
+
+	return true
 }
 
 // thing finds an item of the world by its exact name.

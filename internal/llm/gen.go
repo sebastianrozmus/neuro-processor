@@ -44,6 +44,10 @@ func (c *Client) GenerateWorld(ctx context.Context, mode world.Mode, theme strin
 		instructions, schema = adventureInstructions, adventureSchema()
 	}
 
+	if mode == world.ModeInvestigation {
+		instructions, schema = investigationInstructions, investigationSchema()
+	}
+
 	content, err := c.chat(ctx, chatRequest{
 		Model: c.Model,
 		Messages: []message{
@@ -205,4 +209,49 @@ func adventureSchema() map[string]any {
 			"win":     flag,
 		})),
 	})
+}
+
+const investigationInstructions = adventureInstructions + `
+
+To jest ŚLEDZTWO, nie zwykła przygoda. Dodatkowe wymagania:
+- Miasteczko: 8 do 12 miejsc (rynek, lokal, poczta, domy, stacja, park, cmentarz...), terrain street albo station dla wnętrz i ulic.
+- case: ukryta prawda. client to osoba, która wynajęła detektywa; answer to nazwisko osoby (z people), którą trzeba wskazać; proof to 3-5 nazw faktów (subject poszlak), bez których oskarżenie nie przejdzie; verdict to zakończenie po udanym oskarżeniu (2-3 zdania); hint to podpowiedź, gdy nazwisko jest trafne, ale brakuje dowodów. goal opisuje zlecenie.
+- people: 5 do 8 osób. Każda ma schedule: gdzie jest o każdej porze (klucze: ranek, popołudnie, wieczór, noc; wartości: nazwy pomieszczeń), i clues: 1-3 fakty, które zna (subject: krótka nazwa, text: 1-2 zdania). Warunki poszlaki: heard (subject innego faktu, który gracz musi już znać), hour (pora, o której osoba to powie), needs (flaga). Sprawca i jedna fałszywa osoba podejrzana mają kłamstwo w clues, a ktoś inny ma fakt, który je obala (z heard wskazującym na kłamstwo).
+- things: 8 do 14 rzeczy, część z clues (kartka, szafka, książka telefoniczna, rejestr, zdjęcie) z warunkami jak wyżej: łańcuch poszlak prowadzi od zlecenia przez ludzi do rzeczy i adresów (np. numer na kartce w szafce dostępnej wieczorem, książka telefoniczna zamieniająca numer na nazwisko i adres).
+- steps: oprócz zwykłych także verb "wait" (gracz czeka godzinę w pomieszczeniu on) z with (lista osób, które muszą tam być) i hour: tak powstaje dowód naoczny (fact: subject i text, np. zdjęcie ze spotkania). Co najmniej jeden fakt z proof pochodzi z kroku wait albo enter z with i hour.
+- deadline: liczba godzin na całą sprawę (24-48; dzień ma 12 godzin, pory to ranek 0-5, popołudnie 6-7, wieczór 8-9, noc 10-11). loss: zdanie na koniec, gdy czas minie.
+- events: 2-4 zdarzenia dziwności w stylu analog horror (when.day 2 lub 3, global true, text, opcjonalnie transform pomieszczenia): miasteczko robi się dziwniejsze, im więcej gracz wie. Nie wymagają win.
+- Krok win nie jest potrzebny: sprawę kończy oskarżenie. Nazwy w proof muszą być dokładnie takimi subject, jakie mają clues albo fact kroków.`
+
+func investigationSchema() map[string]any {
+	text := map[string]any{"type": "string"}
+	flag := map[string]any{"type": "boolean"}
+	schema := adventureSchema()
+	properties := schema["properties"].(map[string]any)
+
+	clue := object(map[string]any{"subject": text, "text": text, "heard": text, "hour": map[string]any{"type": "string", "enum": append([]string{""}, world.Hours...)}, "needs": text})
+	schedule := object(map[string]any{"ranek": text, "popołudnie": text, "wieczór": text, "noc": text})
+
+	properties["things"] = list(object(map[string]any{"name": text, "description": text, "fixed": flag, "clues": list(clue)}))
+	properties["people"] = list(object(map[string]any{"name": text, "description": text, "room": text, "talk": text, "schedule": schedule, "clues": list(clue)}))
+
+	steps := properties["steps"].(map[string]any)["items"].(map[string]any)["properties"].(map[string]any)
+	steps["with"] = list(text)
+	steps["hour"] = map[string]any{"type": "string", "enum": append([]string{""}, world.Hours...)}
+	steps["heard"] = text
+	steps["fact"] = object(map[string]any{"subject": text, "text": text})
+
+	properties["case"] = object(map[string]any{"client": text, "answer": text, "proof": list(text), "verdict": text, "hint": text})
+	properties["deadline"] = map[string]any{"type": "integer"}
+	properties["loss"] = text
+	properties["events"] = list(object(map[string]any{
+		"id":        text,
+		"when":      object(map[string]any{"day": map[string]any{"type": "integer"}, "enter": text}),
+		"once":      flag,
+		"global":    flag,
+		"text":      text,
+		"transform": object(map[string]any{"room": text, "description": text}),
+	}))
+
+	return schema
 }

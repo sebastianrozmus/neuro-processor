@@ -13,8 +13,8 @@ func presets(t *testing.T) []Spec {
 		t.Fatal(err)
 	}
 
-	if len(specs) != 5 {
-		t.Fatalf("got %d presets, want 5", len(specs))
+	if len(specs) != 7 {
+		t.Fatalf("got %d presets, want 7", len(specs))
 	}
 
 	return specs
@@ -26,7 +26,7 @@ func worlds(t *testing.T) []Spec {
 
 	var fighting []Spec
 	for _, spec := range presets(t) {
-		if spec.Mode != ModeAdventure {
+		if !spec.Mode.Rooms() {
 			fighting = append(fighting, spec)
 		}
 	}
@@ -237,7 +237,7 @@ func TestStats(t *testing.T) {
 func TestAdventurePresetBuildsRooms(t *testing.T) {
 	var spec Spec
 	for _, candidate := range presets(t) {
-		if candidate.Mode == ModeAdventure {
+		if candidate.Mode == ModeAdventure && spec.Name == "" {
 			spec = candidate
 		}
 	}

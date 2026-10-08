@@ -15,7 +15,7 @@ const (
 func (r *Realm) hourName(hero *player) string {
 	switch {
 	case hero.steps >= sleepFrom:
-		return "głęboka noc"
+		return "noc"
 	case hero.steps >= innFrom:
 		return "wieczór"
 	case hero.steps >= stepsPerDay/2:

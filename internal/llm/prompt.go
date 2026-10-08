@@ -117,6 +117,9 @@ JAK OPISUJESZ:
 
 func narrateMessages(request game.NarrateRequest) []message {
 	instructions := narrateInstructions
+	if request.Role != "" {
+		instructions = strings.Replace(instructions, "Odgrywasz mieszkańca osady w grze tekstowej: prowadzisz sklep i rozmawiasz z bohaterem, który do ciebie przyszedł.", request.Role, 1)
+	}
 	if request.Decision.Outcome == game.OutcomeScene {
 		instructions = masterInstructions
 	}

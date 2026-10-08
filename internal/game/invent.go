@@ -89,7 +89,7 @@ func (r *Realm) item(id string) (world.ItemSpec, bool) {
 // merchant builds the keeper of a shop with everything it sells here,
 // including what was talked into existence.
 func (r *Realm) merchant(shop, maxTier int) Merchant {
-	if shop == r.caravanShop() {
+	if r.caravan != nil && shop == r.caravanShop() {
 		merchant := r.caravanMerchant()
 		for _, added := range r.extras {
 			if added.shop == shop {

@@ -90,10 +90,31 @@ func (r *Realm) explore(actor *player, command Command) bool {
 		r.hand(actor, command.Arg)
 	case VerbVisit:
 		r.chat(actor, command.Arg)
+	case VerbWait:
+		r.wait(actor)
+	case VerbFollow:
+		r.shadow(actor, command.Arg)
+	case VerbAccuse:
+		r.accuse(actor, command.Arg)
+	case VerbCode:
+		if !r.act(actor, world.StepCode, "", command.Arg) {
+			r.tell(actor, "Nic się nie dzieje.")
+		}
 	case VerbAttack, VerbCast, VerbHeal, VerbFlee, VerbRest, VerbHire, VerbDismiss, VerbTakeBack, VerbAuto, VerbQuest, VerbAccept:
 		r.tell(actor, "W tej przygodzie nie ma walki ani drużyny. Wpisz «pomoc», żeby zobaczyć polecenia.")
 	case VerbUnknown:
 		if command.Arg != "" && r.act(actor, world.StepUse, "", command.Arg) {
+			return true
+		}
+
+		// A bare name is somebody to talk to.
+		if _, ok := r.personAt(actor, command.Arg); ok && command.Arg != "" {
+			r.chat(actor, command.Arg)
+
+			return true
+		}
+
+		if r.act(actor, world.StepCode, "", command.Arg) {
 			return true
 		}
 
@@ -185,8 +206,14 @@ func (r *Realm) look(viewer *player) {
 	r.tell(viewer, place.Name+". "+place.Description)
 
 	if r.adventure() {
-		if people := r.peopleAt(viewer.pos); len(people) > 0 {
+		if people := r.peopleAt(viewer.pos, viewer); len(people) > 0 {
 			r.tell(viewer, "Jest tu: "+join(personNames(people))+".")
+		}
+
+		if left := r.hoursLeft(viewer); left >= 0 {
+			r.tell(viewer, fmt.Sprintf("Dzień %d, %s. Zostało %d godzin.", viewer.day, r.hourName(viewer), left))
+		} else if r.investigation() {
+			r.tell(viewer, fmt.Sprintf("Dzień %d, %s.", viewer.day, r.hourName(viewer)))
 		}
 
 		r.tell(viewer, "Wyjścia: "+join(r.exits(viewer))+".")

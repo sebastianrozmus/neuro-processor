@@ -45,6 +45,9 @@ type State struct {
 	Caravan *CaravanState `json:"caravan,omitempty"`
 	Heir    *HeirState    `json:"heir,omitempty"`
 	Quests  []QuestState  `json:"quests,omitempty"`
+	// Lost and Mistakes are the state of a case or a timed game.
+	Lost     bool `json:"lost,omitempty"`
+	Mistakes int  `json:"mistakes,omitempty"`
 }
 
 // CaravanState is the saved caravan.
@@ -83,6 +86,11 @@ type FactState struct {
 	Day     int      `json:"day"`
 	Known   []int    `json:"known"`
 	Heard   []string `json:"heard,omitempty"`
+	// A clue's conditions and the thing that holds it.
+	Thing      string `json:"thing,omitempty"`
+	Needs      string `json:"needs,omitempty"`
+	HeardFirst string `json:"heard_first,omitempty"`
+	Hour       string `json:"hour,omitempty"`
 }
 
 // PlayerState is a saved hero. Items are stored by ID.
@@ -112,6 +120,8 @@ type PlayerState struct {
 	Charm    string       `json:"charm"`
 	// Standing is what each settlement thinks of the hero.
 	Standing map[int]int `json:"standing,omitempty"`
+	// Following names the person the hero shadows in a town.
+	Following string `json:"following,omitempty"`
 }
 
 // CompanionState is a saved companion with everything they carry.
@@ -179,6 +189,7 @@ func (r *Realm) State(host string) State {
 	sort.Strings(state.Flags)
 	state.Done = sortedKeys(r.story.done)
 	state.Day, state.Markup, state.Slain, state.Weather = r.day, r.markup, r.slain, r.weather
+	state.Lost, state.Mistakes = r.lost, r.story.mistakes
 
 	if r.caravan != nil {
 		state.Caravan = &CaravanState{Pos: r.caravan.pos, Goal: r.caravan.goal}
@@ -196,7 +207,8 @@ func (r *Realm) State(host string) State {
 	}
 
 	for _, fact := range r.wisdom.facts {
-		saved := FactState{Subject: fact.Subject, Text: fact.Text, Source: fact.Source, Day: fact.Day, Known: sortedKeys(fact.known)}
+		saved := FactState{Subject: fact.Subject, Text: fact.Text, Source: fact.Source, Day: fact.Day, Known: sortedKeys(fact.known),
+			Thing: fact.thing, Needs: fact.needs, HeardFirst: fact.heardFirst, Hour: fact.hour}
 		for name := range fact.heard {
 			saved.Heard = append(saved.Heard, name)
 		}
@@ -250,7 +262,7 @@ func (r *Realm) State(host string) State {
 			Level: saved.level, XP: saved.xp, HP: saved.hp, Mana: saved.mana, Gold: saved.gold,
 			Bag: ids(saved.bag), Spells: ids(saved.spells),
 			Weapon: id(saved.weapon), Armor: id(saved.armor), Charm: id(saved.charm),
-			Standing: saved.standing,
+			Standing: saved.standing, Following: saved.following,
 		})
 	}
 
@@ -272,7 +284,7 @@ func Restore(state State, seed int64) (*Realm, error) {
 
 	realm := NewRealm(built, seed)
 	realm.revealed = append([]bool(nil), state.Revealed...)
-	realm.won = state.Won
+	realm.won, realm.lost, realm.story.mistakes = state.Won, state.Lost, max(state.Mistakes, 0)
 
 	for _, flag := range state.Flags {
 		realm.story.flags[flag] = true
@@ -326,6 +338,7 @@ func Restore(state State, seed int64) (*Realm, error) {
 			}
 
 			fact.Day = saved.Day
+			fact.thing, fact.needs, fact.heardFirst, fact.hour = saved.Thing, saved.Needs, saved.HeardFirst, saved.Hour
 			for _, name := range saved.Heard {
 				fact.heard[name] = true
 			}
@@ -383,7 +396,7 @@ func Restore(state State, seed int64) (*Realm, error) {
 			level: min(max(saved.Level, 1), MaxLevel), xp: max(saved.XP, 0),
 			gold: max(saved.Gold, 0), bag: realm.items(saved.Bag), spells: realm.items(saved.Spells),
 			weapon: realm.slot(saved.Weapon), armor: realm.slot(saved.Armor), charm: realm.slot(saved.Charm),
-			shop: -1, updates: make(chan struct{}, 1),
+			shop: -1, following: saved.Following, updates: make(chan struct{}, 1),
 		}
 
 		for town, score := range saved.Standing {

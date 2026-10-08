@@ -61,6 +61,9 @@ type NarrateRequest struct {
 	Hint string
 	// Correction tells the narrator what was wrong with its last try.
 	Correction string
+	// Role, when set, replaces the opening line of the narrator's
+	// instructions: who the speaker is instead of a shopkeeper.
+	Role string
 }
 
 // Interpreter turns free player text into a structured Intent.
