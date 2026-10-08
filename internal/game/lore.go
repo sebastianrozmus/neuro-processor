@@ -17,6 +17,10 @@ const (
 // trades in the settlement and what the customer looks like. It gives
 // conversations something true to be about.
 func (r *Realm) lore(customer *player, wares []Ware) string {
+	if r.investigation() {
+		return r.caseLore(customer, customer.shop)
+	}
+
 	built := r.world
 	here := customer.pos
 
@@ -31,7 +35,7 @@ func (r *Realm) lore(customer *player, wares []Ware) string {
 
 	fmt.Fprintf(&lore, "Świat: %s. %s\n", built.Name, built.Intro)
 
-	if customer.shop == r.caravanShop() {
+	if r.caravan != nil && customer.shop == r.caravanShop() {
 		fmt.Fprintf(&lore, "Jesteś wędrownym kupcem; twoja karawana stoi dziś w miejscu: %s. %s\n", r.placeAt(here).Name, r.placeAt(here).Description)
 	} else {
 		fmt.Fprintf(&lore, "Osada, w której mieszkasz: %s. %s\n", built.PlaceAt(here).Name, built.PlaceAt(here).Description)
@@ -155,6 +159,20 @@ func abs(value int) int {
 	return value
 }
 
+// touches counts the player's words (long enough to mean something) that
+// begin a word of a text.
+func touches(words []string, text string) int {
+	count := 0
+
+	for _, word := range words {
+		if len(word) >= minQueryWord+1 && Matches(text, word) {
+			count++
+		}
+	}
+
+	return count
+}
+
 // hint finds the fact the player's words touch among those the keeper
 // knows; when they touch none and only chat, it offers one, so that the
 // talk goes somewhere. Whatever is touched, the player has now heard.
@@ -165,22 +183,31 @@ func (r *Realm) hint(customer *player, text string, decision Decision) string {
 		return ""
 	}
 
-	known := r.knownBy(customer.shop)
+	known := r.openTo(customer, customer.shop)
+	words := strings.Fields(Fold(text))
 
-	for _, word := range strings.Fields(Fold(text)) {
+	// The fact the player's words touch most: subject words count double.
+	var best *Fact
+	bestScore := 0
+
+	for _, fact := range known {
+		if score := touches(words, fact.Subject)*2 + touches(words, fact.Text); score > bestScore {
+			best, bestScore = fact, score
+		}
+	}
+
+	if best != nil {
+		r.learn(customer, best)
+
+		return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s", best.Subject, best.Text)
+	}
+
+	for _, word := range words {
 		if len(word) < minQueryWord+1 {
 			continue
 		}
 
-		for _, fact := range known {
-			if Matches(fact.Subject, word) {
-				r.learn(customer, fact)
-
-				return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s", fact.Subject, fact.Text)
-			}
-		}
-
-		for _, gap := range r.unknownTo(customer.shop) {
+		for _, gap := range r.gapsFor(customer, customer.shop) {
 			if subject, _, _ := strings.Cut(gap, " (wie o tym"); Matches(subject, word) {
 				return "Gracz pyta o coś, o czym nie wiesz: " + gap + ". Powiedz, że nie wiesz, i odeślij go tam."
 			}

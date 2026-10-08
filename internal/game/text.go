@@ -32,6 +32,17 @@ func Fold(text string) string {
 	}, folded)
 }
 
+// fleeting drops the vowel that Polish loses in declension (Marek, Marka;
+// Paweł, Pawła): the e before a final consonant.
+func fleeting(word string) string {
+	runes := []rune(word)
+	if n := len(runes); n >= 4 && runes[n-2] == 'e' && !strings.ContainsRune("aeiouy", runes[n-1]) {
+		return string(runes[:n-2]) + string(runes[n-1])
+	}
+
+	return word
+}
+
 // Matches reports whether every meaningful word of the query begins some
 // word of the name. Short words such as prepositions are ignored.
 func Matches(name, query string) bool {
@@ -45,7 +56,7 @@ func Matches(name, query string) bool {
 
 		stem, found := Stem(word), false
 		for _, candidate := range nameWords {
-			found = found || strings.HasPrefix(candidate, stem)
+			found = found || strings.HasPrefix(candidate, stem) || strings.HasPrefix(fleeting(candidate), stem)
 		}
 
 		if !found {
