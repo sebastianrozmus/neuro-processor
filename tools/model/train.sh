@@ -56,8 +56,34 @@ echo "Wtapiam adapter w wagi..."
 rm -rf "$WORK/fused"
 "$VENV/bin/python3" -m mlx_lm.fuse --model "$BASE" --adapter-path "$WORK/adapters" --save-path "$WORK/fused" --dequantize
 
+# The fused weights come without the tokenizer; it is copied from the base
+# model, which is already in the Hugging Face cache.
+"$VENV/bin/python3" - "$BASE" "$WORK/fused" <<'PY'
+import shutil, sys
+from huggingface_hub import snapshot_download
+base = snapshot_download(sys.argv[1], allow_patterns=["tokenizer*", "special_tokens_map.json"])
+for name in ["tokenizer.json", "tokenizer_config.json", "special_tokens_map.json", "tokenizer.model"]:
+    try:
+        shutil.copy(f"{base}/{name}", sys.argv[2])
+    except FileNotFoundError:
+        pass
+PY
+
+# Ollama's own importer mangles Bielik's tokenizer, so the weights go
+# through llama.cpp's converter to a q8_0 GGUF first.
+LLAMA="${NEURO_LLAMA_CPP:-$WORK/llama.cpp}"
+if [ ! -f "$LLAMA/convert_hf_to_gguf.py" ]; then
+  echo "Pobieram llama.cpp (konwerter do GGUF)..."
+  git clone --depth 1 -q https://github.com/ggml-org/llama.cpp.git "$LLAMA"
+fi
+
+"$VENV/bin/pip" install -q "$LLAMA/gguf-py"
+
+echo "Konwertuję do GGUF (q8_0)..."
+"$VENV/bin/python3" "$LLAMA/convert_hf_to_gguf.py" "$WORK/fused" --outfile "$WORK/neuro-npc-q8_0.gguf" --outtype q8_0
+
 cat > "$WORK/Modelfile" <<MODELFILE
-FROM $WORK/fused
+FROM "$WORK/neuro-npc-q8_0.gguf"
 TEMPLATE """{{- range .Messages }}<|im_start|>{{ .Role }}
 {{ .Content }}<|im_end|>
 {{ end }}<|im_start|>assistant
@@ -68,13 +94,5 @@ PARAMETER num_ctx 4096
 MODELFILE
 
 echo "Rejestruję w Ollamie jako neuro-npc..."
-if ollama create neuro-npc -q q8_0 -f "$WORK/Modelfile"; then
-  echo "Gotowe. W .env.local ustaw: NEURO_LLM_MODEL=neuro-npc"
-else
-  echo "Ollama nie przyjęła wag wprost. Próbuję przez GGUF..."
-  "$VENV/bin/python3" -m mlx_lm.fuse --model "$BASE" --adapter-path "$WORK/adapters" \
-    --save-path "$WORK/fused" --dequantize --export-gguf --gguf-path "$WORK/neuro-npc.gguf"
-  sed -i '' "s|^FROM .*|FROM $WORK/neuro-npc.gguf|" "$WORK/Modelfile"
-  ollama create neuro-npc -q q8_0 -f "$WORK/Modelfile"
-  echo "Gotowe. W .env.local ustaw: NEURO_LLM_MODEL=neuro-npc"
-fi
+ollama create neuro-npc -f "$WORK/Modelfile"
+echo "Gotowe. W .env.local ustaw: NEURO_LLM_MODEL=neuro-npc"
