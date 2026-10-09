@@ -454,7 +454,7 @@ func TestDesignLetsTheModelMendARejectedWorld(t *testing.T) {
 	}
 
 	retry := (*seen)[2]
-	if len(retry) != 4 || retry[2]["role"] != "assistant" || !strings.HasPrefix(lastUser(retry), "Gra odrzuciła ten projekt: ") {
+	if len(retry) != 2 || !strings.Contains(lastUser(retry), "Opis świata od gracza:\npustka") || !strings.Contains(lastUser(retry), "Gra odrzuciła poprzedni projekt: ") {
 		t.Errorf("retry conversation = %v", retry)
 	}
 
@@ -594,5 +594,24 @@ func TestGenerateInvestigationChecksTheCase(t *testing.T) {
 	moved := draft.merge(townDraft{})
 	if moved.People[0].Room != draft.Rooms[0].Name {
 		t.Errorf("person moved to %q", moved.People[0].Room)
+	}
+}
+
+func TestPlayableNeedsASourceForEveryProof(t *testing.T) {
+	preset, _, _ := investigationHalves(t)
+	if err := playable(preset); err != nil {
+		t.Fatalf("the preset should be playable: %v", err)
+	}
+
+	short := preset
+	short.Things = short.Things[:2]
+	if err := playable(short); err == nil || !strings.Contains(err.Error(), "jest tylko 2 rzeczy") {
+		t.Errorf("too few things passed: %v", err)
+	}
+
+	orphan := preset
+	orphan.Case = &world.CaseSpec{Answer: preset.Case.Answer, Proof: append([]string{"Fakt Znikąd"}, preset.Case.Proof...)}
+	if err := playable(orphan); err == nil || !strings.Contains(err.Error(), "Fakt Znikąd") {
+		t.Errorf("an unobtainable proof passed: %v", err)
 	}
 }

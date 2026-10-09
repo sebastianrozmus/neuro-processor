@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
@@ -25,7 +26,7 @@ Wymagania:
 	`terrain (street albo station dla ulic i wnętrz; park, cmentarz i okolice mogą mieć forest, plains, water) oraz x (0-14) i y (0-8): położenie na mapie. ` +
 	`Przejść można tylko między miejscami stojącymi obok siebie (różnica 1 w x albo w y), więc układaj je w spójną sieć. Pierwsze miejsce to start.
 - people: 5 do 8 osób. Każda ma name (imię i nazwisko), description (1-2 zdania), room (nazwa miejsca z rooms, gdzie zwykle jest), talk (co mówi, gdy nie ma nic ważniejszego), ` +
-	`schedule: gdzie jest o każdej porze (klucze ranek, popołudnie, wieczór, noc; wartości to nazwy z rooms) i clues: 1-3 fakty, które zna (subject: krótka nazwa faktu, text: 1-2 zdania). ` +
+	`schedule: gdzie jest o każdej porze (klucze ranek, popołudnie, wieczór, noc; wartości to nazwy z rooms) i clues: 1-3 fakty, które zna (subject: krótka nazwa faktu po polsku, zwykłe słowa ze spacjami, np. "spotkanie na molo", nie identyfikator; text: 1-2 zdania). ` +
 	`Warunki faktu: heard (subject innego faktu, który gracz musi już znać), hour (pora, o której osoba to powie), needs (flaga; zwykle puste).
 - case: ukryta prawda. client to osoba z people, która wynajęła detektywa; answer to name osoby z people, którą trzeba wskazać; proof to 3-5 subject faktów, bez których oskarżenie nie przejdzie; ` +
 	`verdict to zakończenie po udanym oskarżeniu (2-3 zdania); hint to podpowiedź, gdy nazwisko jest trafne, ale brakuje dowodów.
@@ -37,7 +38,7 @@ const townInstructions = `Dokańczasz ŚLEDZTWO do tekstowej gry przygodowej w s
 	`Zwracasz obiekt JSON zgodny ze schematem. Wszystkie teksty po polsku. Nazwy miejsc i osób piszesz dokładnie tak, jak w ustalonej sprawie.
 
 Wymagania:
-- things: 8 do 14 rzeczy. name, description (1-2 zdania), room (nazwa miejsca, w którym leży na początku), fixed true dla tych, których nie da się zabrać (szafka, rejestr, automat). ` +
+- things: 8 do 14 rzeczy. name po polsku, zwykłe słowa ze spacjami (np. "książka telefoniczna", nie identyfikator), description (1-2 zdania), room (nazwa miejsca, w którym leży na początku), fixed true dla tych, których nie da się zabrać (szafka, rejestr, automat). ` +
 	`Część ma clues (kartka, książka telefoniczna, rejestr, zdjęcie): subject, text i warunki heard/hour/needs jak u ludzi; tak powstaje łańcuch poszlak od ludzi do rzeczy i adresów ` +
 	`(np. numer na kartce w szafce dostępnej wieczorem, książka telefoniczna zamieniająca numer na nazwisko i adres). Fakty z proof, których nie zna żaden człowiek, muszą być w clues rzeczy albo w fact kroków.
 - steps: 8 do 16 reguł. verb: "use" (użyj rzeczy; "użyj X na Y": thing X, on Y), "give" (daj thing osobie on), "talk" (rozmowa z osobą on), "open" (otwórz on), "examine" (zbadaj on), ` +
@@ -105,6 +106,8 @@ func (c *Client) generateInvestigation(ctx context.Context, brief string, style 
 	var draft caseDraft
 
 	_, err := c.design(ctx, caseInstructions, caseSchema(), brief, func(content string) error {
+		dump(content, ".case")
+
 		draft = caseDraft{}
 		if err := json.Unmarshal([]byte(extractJSON(content)), &draft); err != nil {
 			return fmt.Errorf("to nie jest poprawny JSON: %w", err)
@@ -118,12 +121,16 @@ func (c *Client) generateInvestigation(ctx context.Context, brief string, style 
 		return world.Spec{}, err
 	}
 
-	settled, _ := json.Marshal(draft)
-	brief += "\n\nUSTALONA SPRAWA (nie zmieniaj jej; używaj dokładnie tych nazw miejsc, osób i faktów):\n" + string(settled)
+	// The second step gets the case as a short list, not the whole JSON:
+	// a local model runs in a window of a few thousand tokens, and the
+	// first answer alone would fill most of it.
+	brief += "\n\nUSTALONA SPRAWA (nie zmieniaj jej; używaj dokładnie tych nazw miejsc, osób i faktów):\n" + draft.summary()
 
 	var spec world.Spec
 
 	_, err = c.design(ctx, townInstructions, townSchema(), brief, func(content string) error {
+		dump(content, "")
+
 		var town townDraft
 		if err := json.Unmarshal([]byte(extractJSON(content)), &town); err != nil {
 			return fmt.Errorf("to nie jest poprawny JSON: %w", err)
@@ -132,13 +139,87 @@ func (c *Client) generateInvestigation(ctx context.Context, brief string, style 
 		spec = draft.merge(town)
 		spec.Mode, spec.Style = world.ModeInvestigation, style
 
-		return spec.Normalize()
+		if err := spec.Normalize(); err != nil {
+			return err
+		}
+
+		return playable(spec)
 	})
 	if err != nil {
 		return world.Spec{}, fmt.Errorf("model returned an unplayable world: %w", err)
 	}
 
 	return spec, nil
+}
+
+// playable tells what the second step left out: a case whose proof nobody
+// and nothing can give cannot be solved.
+func playable(spec world.Spec) error {
+	if len(spec.Things) < 4 {
+		return fmt.Errorf("jest tylko %d rzeczy w things, ma być 8 do 14", len(spec.Things))
+	}
+
+	known := map[string]bool{}
+	for _, person := range spec.People {
+		for _, clue := range person.Clues {
+			known[strings.ToLower(clue.Subject)] = true
+		}
+	}
+
+	for _, thing := range spec.Things {
+		for _, clue := range thing.Clues {
+			known[strings.ToLower(clue.Subject)] = true
+		}
+	}
+
+	for _, step := range spec.Steps {
+		if step.Fact != nil {
+			known[strings.ToLower(step.Fact.Subject)] = true
+		}
+	}
+
+	var missing []string
+	for _, subject := range spec.Case.Proof {
+		if !known[strings.ToLower(subject)] {
+			missing = append(missing, subject)
+		}
+	}
+
+	if len(missing) > 0 {
+		return fmt.Errorf("dowody z case.proof, których nikt i nic nie daje: %s; dodaj je jako clues rzeczy (subject dokładnie taki sam) albo fact kroku wait", strings.Join(missing, ", "))
+	}
+
+	return nil
+}
+
+// summary lists the first step's names for the second: rooms, people with
+// the facts they hold, and the case.
+func (d caseDraft) summary() string {
+	var out strings.Builder
+
+	fmt.Fprintf(&out, "Gra: %s. %s\nMiejsca (rooms): ", d.Name, d.Goal)
+
+	names := make([]string, 0, len(d.Rooms))
+	for _, room := range d.Rooms {
+		names = append(names, room.Name)
+	}
+
+	out.WriteString(strings.Join(names, "; ") + "\nOsoby (people) i fakty (subject), które znają:\n")
+
+	for _, person := range d.People {
+		subjects := make([]string, 0, len(person.Clues))
+		for _, clue := range person.Clues {
+			subjects = append(subjects, clue.Subject)
+		}
+
+		fmt.Fprintf(&out, "- %s, zwykle w: %s; wie: %s\n", person.Name, person.Room, strings.Join(subjects, "; "))
+	}
+
+	if d.Case != nil {
+		fmt.Fprintf(&out, "Sprawa: zleca %s, wskazać trzeba: %s. Dowody (proof), które gracz musi zdobyć: %s.", d.Case.Client, d.Case.Answer, strings.Join(d.Case.Proof, "; "))
+	}
+
+	return out.String()
 }
 
 // check tells what the model got wrong in the first step, in words it can
@@ -274,27 +355,35 @@ func (d caseDraft) merge(town townDraft) world.Spec {
 	}
 }
 
+// dump keeps the model's raw answer in the file NEURO_WORLD_DUMP names
+// (with a suffix for a step of a two-step design), for looking into worlds
+// that come out unplayable.
+func dump(content, suffix string) {
+	if path := os.Getenv("NEURO_WORLD_DUMP"); path != "" {
+		_ = os.WriteFile(path+suffix, []byte(content), 0o644)
+	}
+}
+
 // design asks for an object by schema and, when the game rejects it, shows
 // the model what was wrong and lets it mend the answer once.
 func (c *Client) design(ctx context.Context, instructions string, schema map[string]any, brief string, accept func(content string) error) (string, error) {
-	messages := []message{
-		{Role: "system", Content: instructions},
-		{Role: "user", Content: brief},
-	}
-
 	var rejected error
 
 	for attempt := 0; attempt < 2; attempt++ {
+		// The retry starts over with the complaint in the brief rather
+		// than carrying the rejected answer along: a local model's window
+		// is small, and its own long answer would crowd out the task.
+		asked := brief
 		if rejected != nil {
-			messages = append(messages, message{
-				Role:    "user",
-				Content: "Gra odrzuciła ten projekt: " + rejected.Error() + ". Popraw to i zwróć cały obiekt JSON jeszcze raz, kompletny i zgodny ze schematem.",
-			})
+			asked += "\n\nGra odrzuciła poprzedni projekt: " + rejected.Error() + ". Zrób go od nowa bez tego błędu, kompletny i zgodny ze schematem."
 		}
 
 		content, err := c.chat(ctx, chatRequest{
-			Model:    c.Model,
-			Messages: messages,
+			Model: c.Model,
+			Messages: []message{
+				{Role: "system", Content: instructions},
+				{Role: "user", Content: asked},
+			},
 			ResponseFormat: map[string]any{
 				"type": "json_schema",
 				"json_schema": map[string]any{
@@ -311,8 +400,6 @@ func (c *Client) design(ctx context.Context, instructions string, schema map[str
 		if rejected = accept(content); rejected == nil {
 			return content, nil
 		}
-
-		messages = append(messages, message{Role: "assistant", Content: content})
 	}
 
 	return "", rejected

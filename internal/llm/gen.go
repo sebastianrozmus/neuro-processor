@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
@@ -113,11 +112,7 @@ func (c *Client) GenerateWorld(ctx context.Context, mode world.Mode, theme strin
 	var spec world.Spec
 
 	_, err := c.design(ctx, instructions, schema, brief, func(content string) error {
-		// NEURO_WORLD_DUMP names a file that gets the model's raw answer,
-		// for looking into worlds that come out unplayable.
-		if path := os.Getenv("NEURO_WORLD_DUMP"); path != "" {
-			_ = os.WriteFile(path, []byte(content), 0o644)
-		}
+		dump(content, "")
 
 		spec = world.Spec{}
 		if err := json.Unmarshal([]byte(extractJSON(content)), &spec); err != nil {
