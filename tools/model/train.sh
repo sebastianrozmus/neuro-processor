@@ -39,6 +39,12 @@ for extra in "$DATA_DIR"/fireball*.jsonl "$DATA_DIR"/extra*.jsonl "$DATA_DIR"/ma
 done
 "$VENV/bin/python3" "$(dirname "$0")/prepare.py" "$WORK/data" "${SOURCES[@]}"
 
+# The last adapter is kept aside, so two runs can be compared.
+if [ -d "$WORK/adapters" ]; then
+  rm -rf "$WORK/adapters-prev"
+  mv "$WORK/adapters" "$WORK/adapters-prev"
+fi
+
 echo "Trenuję LoRA na $BASE ($ITERS kroków po $BATCH x $ACCUMULATE)..."
 # --mask-prompt: the loss counts only the reply, not the thousand tokens
 # of rules in front of it, so the model learns to answer, not to recite.
