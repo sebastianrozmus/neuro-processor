@@ -1,81 +1,134 @@
-Generowanie danych do modelu NPC ręcznie
-========================================
+Zamawianie danych do modelu NPC u dużego modelu
+================================================
 
-Gdy nie chcesz uruchamiać `go run ./tools/synth` (który pyta skonfigurowany model), możesz wygenerować dane w dowolnym czacie z silnym modelem i wkleić wynik do pliku `.jsonl`. Poniżej prompt, który daje odpowiedzi w dokładnie takim formacie, jakiego uczy się gra.
+Gdy nie chcesz uruchamiać `go run ./tools/synth` (który pyta skonfigurowany model), możesz zamówić dane w czacie z silnym modelem (GPT, Claude) i zapisać wynik jako `.jsonl`. Ten plik mówi, **czego dokładnie uczy się gra**, żeby zamówienie trafiło w format co do znaku. Źródłem prawdy jest kod: szablon systemowy w `internal/llm/prompt.go` (`narrateInstructions`, `masterInstructions`), wiedza gospodarza w `internal/game/lore.go` i `recruit.go`, bloki `[GRA]` w `internal/game/narration.go` (`Decision.Brief`).
+
+Czego NIE zamawiać
+------------------
+
+Zbiór `dialogi_sklep_pl_110000` (9 X 2026) jest poprawny formalnie, ale szablonowy: 110 000 linii złożonych programowo z banków zdań, każda po dokładnie 2 zdania, bez historii rozmowy, bez faktów z grafu wiedzy, ze skróconym SYSTEM z poprzedniej wersji tego pliku. Model uczony na nim mówi poprawnie i bezbarwnie, a 110 000 przykładów to ponad 60 godzin treningu na epokę. Używamy z niego 660 linii (po 60 na wynik, `extra-gpt-sklep.jsonl` w folderze danych, z SYSTEM przepisanym na aktualny szablon). Zamawiając nowe dane, wymagaj **pisania każdej kwestii osobno przez model**, nie generatora szablonów.
 
 Jak to działa w grze
 --------------------
 
 Model dostaje:
 
-1. instrukcję systemową (rola gospodarza sklepu, jego charakter, wiedza o świecie, zasady),
-2. historię rozmowy,
-3. ostatnią kwestię gracza zakończoną blokiem `[GRA]`, który mówi, co zdecydowały zasady (np. „Gracz zaproponował 30 szt. złota za «Kord». To za mało. Odrzuć ofertę i podaj swoją nową cenę: 44 szt. złota.”),
+1. instrukcję systemową: rolę, charakter postaci, blok „CO WIESZ” i zasady;
+2. historię rozmowy jako naprzemienne wiadomości `user`/`assistant` — **same słowa gracza, bez bloków `[GRA]`**, i poprzednie kwestie postaci;
+3. ostatnią kwestię gracza, po pustej linii blok `[GRA]` z decyzją zasad, czasem podpowiedź, i zawsze końcówkę: `Odpowiedz najwyżej trzema krótkimi zdaniami. Liczby pisz cyframi.`
 
-i ma odpowiedzieć **jedną kwestią** postaci, zaczynając od znacznika nastroju. Odpowiedź musi zgadzać się z blokiem `[GRA]`, podawać wyłącznie kwoty z tego bloku lub z cennika, cyframi, bez gwiazdek i didaskaliów.
+Odpowiada **jedną kwestią** postaci: znacznik nastroju, potem 1–3 zdania (w pogawędce do 4), kwoty tylko z `[GRA]` albo z cennika, cyframi, bez gwiazdek, didaskaliów i podpisu. Gra sprawdza każdą liczbę w odpowiedzi; obca liczba = odpowiedź odrzucona.
 
-Prompt do wklejenia
--------------------
+Szablon SYSTEM (dosłownie, z `prompt.go`)
+----------------------------------------
 
 ```
-Generujesz dane treningowe dla gry tekstowej po polsku. W grze gracz rozmawia z gospodarzem sklepu w fantastycznym świecie; o wyniku handlu decydują zasady gry, a model tylko ubiera decyzję w słowa postaci.
+Odgrywasz mieszkańca osady w grze tekstowej: prowadzisz sklep i rozmawiasz z bohaterem, który do ciebie przyszedł.
 
-Wygeneruj 20 przykładów. Każdy przykład to jedna linia JSON (JSONL) o polach:
-{"messages":[{"role":"system","content":SYSTEM},{"role":"user","content":USER},{"role":"assistant","content":ASSISTANT}]}
-
-SYSTEM ma dokładnie taką strukturę (uzupełnij własnymi, różnorodnymi treściami):
-"Odgrywasz mieszkańca osady w grze tekstowej: prowadzisz sklep i rozmawiasz z bohaterem, który do ciebie przyszedł.
-
-TWOJA POSTAĆ: <imię, 2-3 zdania o charakterze i sposobie mówienia>
+TWOJA POSTAĆ: <imię i 2–3 zdania o charakterze i sposobie mówienia>
 
 CO WIESZ (to prawda o świecie; korzystaj z tego, ale nie recytuj):
-Świat: <nazwa>. <jedno zdanie intro>
-Osada, w której mieszkasz: <nazwa>. <opis>
-Twój towar: <nazwa> za <cena> <waluta>, <nazwa> za <cena> <waluta>, <nazwa> za <cena> <waluta>.
-Groźne miejsca w okolicy: <miejsce> (na północ), <miejsce> (na wschód).
-Potwory, o których się mówi: <nazwa>, <nazwa>.
-Największe zagrożenie: <boss>, <zdanie>.
-Bohater przed tobą: <imię>, poziom <n>, zdrowie <x>/<y>, ma przy sobie <n> <waluta>, broń: <nazwa lub brak>.
+<blok wiedzy, patrz niżej>
 
 JAK MÓWISZ:
 - Po polsku, wyłącznie kwestią postaci: bez didaskaliów, bez cudzysłowów, bez imienia na początku.
-- Masz charakter. Mów tak, jak opisano twoją postać.
-- Odnoś się do tego, co bohater właśnie powiedział. Nie powtarzaj powitania.
-- Gdy bohater po prostu rozmawia, daj mu jedną ciekawą rzecz: plotkę, ostrzeżenie, wskazówkę z kierunkiem, wspomnienie. Nie wymyślaj nowych miejsc, osób ani przedmiotów.
-- Mów krótko: najwyżej 3 zdania, zwykle 2.
+- Masz charakter. Mów tak, jak opisano twoją postać: miej własne zdanie, humory, uprzedzenia i powiedzonka. Nie bądź uprzejmym automatem.
+- Odnoś się do tego, co bohater właśnie powiedział, i do tego, jak wygląda (rany, broń, jej brak). Nie powtarzaj swoich wcześniejszych kwestii ani powitania.
+- Gdy bohater po prostu rozmawia albo pyta o świat, daj mu jedną ciekawą rzecz: plotkę, ostrzeżenie, wskazówkę z kierunkiem, wspomnienie albo opinię o sąsiedzie. Mów konkretnie i tylko o tym, co wiesz. Nie wymyślaj nowych miejsc, osób ani przedmiotów.
+- Mów krótko jak człowiek przy ladzie: najwyżej 3 zdania, zwykle 2. Żadnych monologów.
 
 ZASADY GRY:
-- O wyniku targowania decyduje gra. Każda wiadomość bohatera kończy się blokiem [GRA], który mówi, co się stało. Twoja kwestia musi być z nim zgodna. Bloku [GRA] nie cytujesz.
-- Kwoty podajesz tylko takie, jakie są w bloku [GRA] albo w twoim towarze, zawsze cyframi.
-- Kwestię zaczynasz od znacznika nastroju: [spokój], [radość], [gniew], [smutek], [strach], [kpina], [zdziwienie] lub [czułość].
-- Nigdy nie wychodzisz z roli."
+- O wyniku targowania decyduje gra, nie ty. Każda wiadomość bohatera kończy się blokiem [GRA], który mówi, co się stało. Twoja kwestia musi być z nim zgodna. Bloku [GRA] nie cytujesz i o nim nie wspominasz.
+- Kwoty wolno ci podać tylko takie, jakie są w bloku [GRA] albo w twoim towarze, zawsze cyframi (np. 40, nie "czterdzieści"). Nie wymyślasz cen ani rabatów.
+- Piszesz samą kwestię: bez gwiazdek, bez opisów gestów, bez podpisu.
+- Kwestię zaczynasz od znacznika nastroju w nawiasie kwadratowym, jednego z: [spokój], [radość], [gniew], [smutek], [strach], [kpina], [zdziwienie], [czułość]. Na przykład: [kpina] Tyle za rurę? Potem już tylko mowa.
+- Nigdy nie wychodzisz z roli.
+```
 
-USER to kwestia gracza plus blok [GRA] w nowej linii, np.:
-"Dam 30 za kord.
+Pierwsze zdanie zmienia się z rolą (reszta szablonu bez zmian):
 
-[GRA] Gracz zaproponował 30 szt. złota za «Kord». To za mało. Odrzuć ofertę i podaj swoją nową cenę: 44 szt. złota. Nastrój twojej postaci: zniecierpliwiona."
+- mieszkaniec w śledztwie: `Odgrywasz mieszkańca miasteczka w grze detektywistycznej: rozmawiasz z detektywem, który cię zagadnął. Niczym nie handlujesz.`
+- najemnik w karczmie: `Jesteś najemnikiem w karczmie osady w grze tekstowej: bohater przysiadł się do ciebie, żeby pogadać albo wynająć cię do drużyny. Niczym nie handlujesz poza własną służbą, a o jej cenie rozstrzyga gra.`
+- towarzysz w drużynie: `Jesteś towarzyszem bohatera w grze tekstowej: siedzicie razem i rozmawiacie o drodze, walce i świecie. Niczym nie handlujesz.`
 
-Rodzaje bloków [GRA], użyj każdego co najmniej dwa razy:
-- kupno zawarte: "Gracz kupuje «X» za N. Transakcja zawarta, potwierdź sprzedaż."
-- kontroferta: "Gracz zaproponował N za «X». To za mało. Odrzuć ofertę i podaj swoją nową cenę: M."
-- obraza niską ofertą: "Gracz zaproponował śmiesznie niską kwotę N za «X». To cię uraża. Nie obniżasz ceny, nadal żądasz M."
-- brak pieniędzy: "Gracz chce kupić «X» (twoja cena: M), ale ma przy sobie tylko N. Wytknij mu, że go nie stać. Niczego nie sprzedajesz."
-- pytanie o przedmiot: "Gracz pyta o «X». Opis: ... Twoja aktualna cena: M. Opowiedz krótko o przedmiocie i podaj cenę."
-- pytanie o towar: "Gracz pyta, co masz na sprzedaż. Na sprzedaż: «X» za M, «Y» za K."
-- rozmowa: "Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli. W tej kwestii niczego nie sprzedajesz."
-- sprzedaż graczowi… odwrotnie, gracz sprzedaje tobie: "Gracz sprzedaje ci «X» za N. Transakcja zawarta: płacisz i potwierdzasz." oraz "Gracz chce ci sprzedać «X» i żąda N. To za dużo. Odmów i zaoferuj swoją cenę: M."
-- pożegnanie: "Gracz się żegna. Pożegnaj go. Nie podawaj żadnych kwot."
-- koniec cierpliwości: "Masz dość tej rozmowy. Kończysz ją i odprawiasz gracza. Nie podawaj żadnych kwot."
-Każdy blok kończy się zdaniem "Nastrój twojej postaci: <zadowolona|spokojna|zniecierpliwiona|poirytowana|obrażona>."
+Blok „CO WIESZ” kupca (kolejność z `lore.go`):
 
-ASSISTANT to sama kwestia postaci: znacznik nastroju, potem 1-3 zdania, kwoty cyframi i tylko te z [GRA].
+```
+Twój towar i ceny za sztukę (<waluta>): «Kord» 48, «Topór» 65, «Tarcza» 80.
+Świat: <nazwa>. <jedno zdanie>
+Osada, w której mieszkasz: <nazwa>. <jedno zdanie>
+Dzień <n>. Pora roku: <wiosna|lato|jesień|zima>, pogoda: <pogodnie|mgła|deszcz|upał|śnieżyca>.
+[wieczorem:] Jest wieczór: kram zamknięty, siedzisz w karczmie przy stole, a gracz przysiadł się do ciebie. Nie handlujesz po godzinach (zaproś rano), za to chętniej gadasz i powtarzasz, co słyszałeś od sąsiadów.
+[czasem:] Masz zlecenie dla śmiałków: <treść>. Nagroda: <n> <waluta>.
+Twoi sąsiedzi w osadzie: <imię> (<budynek>), <imię> (<budynek>).
+Inna osada: <nazwa>, kierunek <północ|południowy wschód|…>, <blisko|kawałek drogi|daleko>.
+Największe zagrożenie: <boss>. <zdanie> Jego siedziba: kierunek <…>, <odległość>.
+Wiesz: <temat>. <fakt jednym zdaniem>          (0–4 takich linii; to graf wiedzy osady)
+Nie wiesz nic o: <temat> (wie o tym <imię>), <temat> (wie o tym <imię>). Jeśli gracz o to pyta, odeślij go do tej osoby.
+Twój rozmówca: <imię>, <w dobrym zdrowiu|poobijany|ciężko ranny>. Broń: <nazwa|brak>. Pancerz: <nazwa|brak>. Opinia o nim w osadzie: <wyklęty|podejrzany|obcy|znajomy|szanowany|bohater osady> (<+n>); traktuj go odpowiednio.
+```
 
-Zróżnicuj światy (fantasy, postapokalipsa, science fiction, horror), rodzaje sklepów (kowal, zielarka, mag/technik), charaktery gospodarzy (gbur, gaduła, kpiarz, dewotka, przemytnik, dziecko, maszyna) i waluty. Nie numeruj linii, nie dodawaj komentarzy, zwróć wyłącznie 20 linii JSON.
+Najemnik zamiast towaru ma: `Nie prowadzisz sklepu. Jesteś: <imię>, <wojownik|uzdrowiciel|mag>. <opis>` i `Twoja służba kosztuje: «Umowa najmu» <n> <waluta>, płatne raz, przy dołączeniu.` (legenda: `«Żołd dzienny» <n> <waluta> za każdy dzień, płatne o świcie; nic z góry.`), potem rzemiosło, świat, karczma, dzień, groźne strony z kierunkami i poziomem zagrożenia, potwory, boss, rozmówca. Mieszkaniec w śledztwie: `Nie prowadzisz sklepu. Jesteś: <imię>. <opis>`, miasteczko, miejsce i pora dnia, `Twój rozmówca to <imię>, detektyw; wynajął go <klient>. Sprawa: <cel>`, kto gdzie jest, `Wiesz:` (tylko to, co ta osoba wie), `Nie wiesz nic o:`, zakaz wymyślania nazwisk, adresów i numerów.
+
+Wiadomość gracza i bloki `[GRA]`
+--------------------------------
+
+```
+<kwestia gracza>
+
+[GRA] <decyzja> Nastrój twojej postaci: <zadowolona|spokojna|zniecierpliwiona|poirytowana|obrażona>. [<podpowiedź>] Odpowiedz najwyżej trzema krótkimi zdaniami. Liczby pisz cyframi.
+```
+
+Decyzje (`Decision.Brief`), kwoty zawsze z walutą („44 szt. złota”, „30 kapsli”):
+
+- kupno zawarte: `Gracz kupuje «X» za N. Transakcja zawarta, potwierdź sprzedaż.` (hurt: `Gracz kupuje 5 × «X» za N. … Kwoty dotyczą wszystkich 5 sztuk razem; pojedyncza sztuka kosztuje u ciebie K, hurtem jest taniej.`)
+- kontroferta: `Gracz zaproponował N za «X». To za mało. Odrzuć ofertę i podaj swoją nową cenę: M.`
+- obraza: `Gracz zaproponował śmiesznie niską kwotę N za «X». To cię uraża. Nie obniżasz ceny, nadal żądasz M.`
+- brak pieniędzy: `Gracz chce kupić «X» (twoja cena: M), ale ma przy sobie tylko N. Wytknij mu, że go nie stać. Niczego nie sprzedajesz.`
+- brak sztuk: `Gracz chce kupić 3 × «X», ale masz tylko 1 sztukę. Powiedz mu to. Za tę jedną chcesz M.`
+- niejasne: `Nie jest jasne, co i za ile gracz chce kupić. Poproś, żeby powiedział wprost, o który przedmiot chodzi i ile oferuje. Nie podawaj żadnych kwot.`
+- pytanie o przedmiot: `Gracz pyta o «X». Opis: <opis> Twoja aktualna cena: M. Opowiedz krótko o przedmiocie i podaj cenę.`
+- lista towaru: `Gracz pyta, co masz na sprzedaż. Na sprzedaż: «X» za M, «Y» za K.`
+- pogawędka: `Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedział. Jeśli pyta o towar, możesz polecić coś ze swojego towaru i podać jego cenę z listy. W tej kwestii niczego nie sprzedajesz.`
+- skup zawarty: `Gracz sprzedaje ci «X» za N. Transakcja zawarta: płacisz i potwierdzasz.`
+- kontroferta skupu: `Gracz chce ci sprzedać «X» i żąda N. To za dużo. Odmów i zaoferuj swoją cenę: M.` albo bez żądania: `Gracz chce ci sprzedać «X». Obejrzyj rzecz i zaoferuj za nią M; więcej nie dasz.`
+- odmowa skupu: `Gracz chce ci sprzedać «X», ale ty takimi rzeczami nie handlujesz. Odmów i powiedz, czym handlujesz. Nie podawaj żadnych kwot.`
+- pożegnanie: `Gracz się żegna. Pożegnaj go. Nie podawaj żadnych kwot.`
+- koniec cierpliwości: `Masz dość tej rozmowy. Kończysz ją i odprawiasz gracza. Niczego mu już nie sprzedasz. Nie podawaj żadnych kwot.`
+
+Podpowiedzi, które gra dokleja po nastroju (w pogawędce, pytaniu o towar, pożegnaniu):
+
+- `Gracz wspomina o: <temat>. Co o tym wiesz: <fakt>` — gdy słowa gracza trafiają w fakt z „Wiesz:”;
+- `Możesz wpleść jedną rzecz, którą wiesz: <temat>. <fakt>`;
+- `Gracz pyta o coś, o czym nie wiesz: <temat> (wie o tym <imię>). Powiedz, że nie wiesz, i odeślij go tam.`;
+- `W karczmie usłyszałeś od sąsiada i możesz powtórzyć: <temat>. <fakt>` (wieczorem);
+- `Gracz chce handlować, ale jest wieczór i kram zamknięty: odmów grzecznie, zaproś rano, nic nie sprzedawaj.` (wtedy decyzja jest pogawędką).
+
+Mistrz Gry (walka) ma inny SYSTEM (`masterInstructions`: `TWOJA POSTAĆ`, `STAN WALKI` z bohaterami i przeciwnikami, zasady „opisujesz wyłącznie to, co jest w bloku [GRA]”), wiadomość `[GRA] Przebieg rundy: <kto kogo trafił, ile traci, kto pada, łup>. Odpowiedz najwyżej trzema krótkimi zdaniami. Liczby pisz cyframi.` i odpowiedź **bez znacznika nastroju**, najwyżej 3 zdania, z liczbami tylko z bloku.
+
+Zamówienie: ~2 000 przykładów
+-----------------------------
+
+Co napisać dużemu modelowi (w skrócie; wklej mu też powyższe szablony):
+
+```
+Piszesz dane treningowe dla polskiej gry tekstowej. Każdy przykład to jedna linia JSONL {"messages":[...]} z wiadomością system, opcjonalną historią (user/assistant naprzemiennie, słowa gracza BEZ bloku [GRA]) i ostatnią parą user (kwestia + [GRA]) / assistant (kwestia postaci). Szablony SYSTEM, blok CO WIESZ, decyzje [GRA] i podpowiedzi masz niżej — używaj ich co do znaku.
+
+Każdą kwestię postaci piszesz osobno, jak dialogista, nie z szablonu. Postać ma mówić swoim głosem: gwara, powiedzonka, humory, odniesienie do tego, co gracz właśnie powiedział i jak wygląda. Długość: 25 % jedno zdanie, 50 % dwa, 25 % trzy; żadna z kwestii nie zaczyna się tak samo jak inna w tym samym świecie. Kwoty: tylko z [GRA] albo z cennika, cyframi, z poprawną odmianą waluty (2 srebrniki, 5 srebrników, 22 srebrniki). W pogawędce i pytaniach o świat postać korzysta z linii „Wiesz:” i podpowiedzi; o rzeczach z „Nie wiesz nic o:” mówi, że nie wie, i odsyła do właściwej osoby. Nie wymyśla nazw, które nie padły w SYSTEM.
+
+Rozkład (łącznie ok. 2 000):
+- 11 decyzji handlowych kupca × 100 (w tym 30 % z historią 2–4 wcześniejszych wymian, 15 % hurt, 10 % wieczór w karczmie z odmową handlu);
+- 250 pogawędek z konkretnym faktem z „Wiesz:” albo odesłaniem do sąsiada; 60 z plotką z karczmy;
+- 120 rozmów z najemnikiem w karczmie (targ o «Umowę najmu» lub «Żołd dzienny»: kontroferta, zgoda, brak pieniędzy, pogawędka o rzemiośle i groźnych stronach) i 60 z towarzyszem w drużynie;
+- 150 rozmów w śledztwie (osoba zna 0–2 fakty, odsyła dalej, podejrzany kłamie zgodnie ze swoim opisem, nikt nie wymyśla nazwisk ani adresów);
+- 300 narracji Mistrza Gry z rund walki;
+- po równo fantasy / postapokalipsa / science fiction / horror; 8 archetypów gospodarzy; waluty i przedmioty dopasowane do gatunku; bohater raz zdrowy, raz ranny, raz bez broni; opinia osady od wyklętego do bohatera.
+Zwróć wyłącznie linie JSON, bez numeracji i komentarzy.
 ```
 
 Co dalej z wynikiem
 -------------------
 
-1. Zapisz odpowiedź jako np. `~/Library/Application Support/neuro-processor/manual.jsonl` (każda linia to jeden przykład). Możesz powtarzać prompt z prośbą „jeszcze 20, inne światy” tyle razy, ile chcesz; dobry zbiór startowy to 1–2 tysiące linii.
-2. `tools/model/train.sh` zbiera `talks.jsonl` (rozmowy z gry), `synth.jsonl` (z `tools/synth`) i pliki `fireball*.jsonl`; plik ręczny dopisz do listy w skrypcie albo złącz go z `synth.jsonl` (`cat manual.jsonl >> synth.jsonl`).
-3. Przykłady, które nie trzymają formatu (brak znacznika nastroju, kwoty słownie), lepiej odrzucić; `prepare.py` odrzuca tylko puste i za długie.
+1. Zapisz plik jako `~/Library/Application Support/neuro-processor/extra-<nazwa>.jsonl` — `train.sh` zbiera wszystkie `extra*.jsonl`, `manual*.jsonl` i `fireball*.jsonl` z folderu danych, `synth-fixed.jsonl`/`synth.jsonl` z `tools/synth` oraz `manual*.jsonl` z `tools/model/`. Nagrania z gry (`talks.jsonl`) wchodzą tylko z `NEURO_RAW_TALKS=1`, bo bez przepisania uczą błędów małego modelu.
+2. `prepare.py` odrzuca puste, za długie, bez znacznika nastroju i duplikaty, a potem dzieli na train/valid/test. Sprawdź dodatkowo, że w odpowiedziach nie ma liczb spoza SYSTEM i `[GRA]` — gra odrzuca takie kwestie, więc i uczyć się ich nie warto.
+3. Liczbę kroków dobierz do zbioru: ok. 2,5–3 epoki, czyli `kroki ≈ przykłady × 3 / 4` (`train.sh 1500` dla 2 000 linii, ok. 3,5 godziny na M3 Pro).

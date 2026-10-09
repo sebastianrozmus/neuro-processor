@@ -34,7 +34,7 @@ if [ -f "$DATA_DIR/synth-fixed.jsonl" ]; then
 elif [ -f "$DATA_DIR/synth.jsonl" ]; then
   SOURCES+=("$DATA_DIR/synth.jsonl")
 fi
-for extra in "$DATA_DIR"/fireball*.jsonl "$DATA_DIR"/manual*.jsonl "$(dirname "$0")"/manual*.jsonl; do
+for extra in "$DATA_DIR"/fireball*.jsonl "$DATA_DIR"/extra*.jsonl "$DATA_DIR"/manual*.jsonl "$(dirname "$0")"/manual*.jsonl; do
   [ -f "$extra" ] && SOURCES+=("$extra")
 done
 "$VENV/bin/python3" "$(dirname "$0")/prepare.py" "$WORK/data" "${SOURCES[@]}"
