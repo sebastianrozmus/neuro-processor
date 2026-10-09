@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
@@ -105,36 +106,32 @@ func (c *Client) GenerateWorld(ctx context.Context, mode world.Mode, theme strin
 		brief += "\n\nKARTA STYLU (trzymaj się jej w nazwach, opisach, personach i powitaniach; nie kopiuj imion ani nazw z pierwowzoru):\n" + style.Card()
 	}
 
-	content, err := c.chat(ctx, chatRequest{
-		Model: c.Model,
-		Messages: []message{
-			{Role: "system", Content: instructions},
-			{Role: "user", Content: brief},
-		},
-		ResponseFormat: map[string]any{
-			"type": "json_schema",
-			"json_schema": map[string]any{
-				"name":   "world",
-				"strict": true,
-				"schema": schema,
-			},
-		},
-	})
-	if err != nil {
-		return world.Spec{}, err
+	if mode == world.ModeInvestigation {
+		return c.generateInvestigation(ctx, brief, style)
 	}
 
 	var spec world.Spec
-	if err := json.Unmarshal([]byte(extractJSON(content)), &spec); err != nil {
-		return world.Spec{}, fmt.Errorf("model returned an invalid world: %w", err)
-	}
 
-	// Backdrops are embedded assets, which a generated world cannot have.
-	spec.Backdrops = nil
-	spec.Mode = mode
-	spec.Style = style
+	_, err := c.design(ctx, instructions, schema, brief, func(content string) error {
+		// NEURO_WORLD_DUMP names a file that gets the model's raw answer,
+		// for looking into worlds that come out unplayable.
+		if path := os.Getenv("NEURO_WORLD_DUMP"); path != "" {
+			_ = os.WriteFile(path, []byte(content), 0o644)
+		}
 
-	if err := spec.Normalize(); err != nil {
+		spec = world.Spec{}
+		if err := json.Unmarshal([]byte(extractJSON(content)), &spec); err != nil {
+			return fmt.Errorf("to nie jest poprawny JSON: %w", err)
+		}
+
+		// Backdrops are embedded assets, which a generated world cannot have.
+		spec.Backdrops = nil
+		spec.Mode = mode
+		spec.Style = style
+
+		return spec.Normalize()
+	})
+	if err != nil {
 		return world.Spec{}, fmt.Errorf("model returned an unplayable world: %w", err)
 	}
 

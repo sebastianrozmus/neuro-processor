@@ -1,0 +1,319 @@
+package llm
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/sebastianrozmus/neuro-processor/internal/world"
+)
+
+// An investigation asks for too much at once for a small model: asked for
+// the whole town, its people, the hidden truth, the things and the rules
+// in one answer, a 4B model hands back three rooms and no case. So it is
+// designed in two steps: first the town, the people and the case, then
+// the things, the rules and the events around them.
+
+const caseInstructions = `Projektujesz ŚLEDZTWO do tekstowej gry przygodowej w stylu Mózgoprocesora: miasteczko, jego mieszkańców i ukrytą prawdę, którą detektyw ma odkryć. ` +
+	`Na podstawie opisu gracza zwracasz obiekt JSON zgodny ze schematem. Wszystkie teksty po polsku. Rzeczy, zagadki i zdarzenia powstaną w następnym kroku; teraz tylko miejsce, ludzie i sprawa.
+
+Wymagania:
+- name: nazwa gry, najwyżej 4 słowa. intro: 2-3 zdania, jak zaczyna się sprawa. goal: jedno zdanie, co zlecono detektywowi.
+- rooms: 8 do 12 miejsc miasteczka (rynek, lokal, poczta, domy, stacja, park, cmentarz...). Każde ma name, description (2-3 zdania, co widać), ` +
+	`terrain (street albo station dla ulic i wnętrz; park, cmentarz i okolice mogą mieć forest, plains, water) oraz x (0-14) i y (0-8): położenie na mapie. ` +
+	`Przejść można tylko między miejscami stojącymi obok siebie (różnica 1 w x albo w y), więc układaj je w spójną sieć. Pierwsze miejsce to start.
+- people: 5 do 8 osób. Każda ma name (imię i nazwisko), description (1-2 zdania), room (nazwa miejsca z rooms, gdzie zwykle jest), talk (co mówi, gdy nie ma nic ważniejszego), ` +
+	`schedule: gdzie jest o każdej porze (klucze ranek, popołudnie, wieczór, noc; wartości to nazwy z rooms) i clues: 1-3 fakty, które zna (subject: krótka nazwa faktu, text: 1-2 zdania). ` +
+	`Warunki faktu: heard (subject innego faktu, który gracz musi już znać), hour (pora, o której osoba to powie), needs (flaga; zwykle puste).
+- case: ukryta prawda. client to osoba z people, która wynajęła detektywa; answer to name osoby z people, którą trzeba wskazać; proof to 3-5 subject faktów, bez których oskarżenie nie przejdzie; ` +
+	`verdict to zakończenie po udanym oskarżeniu (2-3 zdania); hint to podpowiedź, gdy nazwisko jest trafne, ale brakuje dowodów.
+- Sprawca i jedna fałszywie podejrzana osoba mają w clues kłamstwo; ktoś inny zna fakt, który je obala (z heard wskazującym na kłamstwo). ` +
+	`Co najmniej 2 fakty z proof ma ktoś w clues; resztę dadzą rzeczy i zdarzenia z następnego kroku.
+- deadline: liczba godzin na całą sprawę (24-48; dzień ma 12 godzin: ranek 0-5, popołudnie 6-7, wieczór 8-9, noc 10-11). loss: zdanie na koniec, gdy czas minie.`
+
+const townInstructions = `Dokańczasz ŚLEDZTWO do tekstowej gry przygodowej w stylu Mózgoprocesora. Miasteczko, ludzie i sprawa są już ustalone (dostajesz je w treści); ty dodajesz rzeczy, zagadki i zdarzenia. ` +
+	`Zwracasz obiekt JSON zgodny ze schematem. Wszystkie teksty po polsku. Nazwy miejsc i osób piszesz dokładnie tak, jak w ustalonej sprawie.
+
+Wymagania:
+- things: 8 do 14 rzeczy. name, description (1-2 zdania), room (nazwa miejsca, w którym leży na początku), fixed true dla tych, których nie da się zabrać (szafka, rejestr, automat). ` +
+	`Część ma clues (kartka, książka telefoniczna, rejestr, zdjęcie): subject, text i warunki heard/hour/needs jak u ludzi; tak powstaje łańcuch poszlak od ludzi do rzeczy i adresów ` +
+	`(np. numer na kartce w szafce dostępnej wieczorem, książka telefoniczna zamieniająca numer na nazwisko i adres). Fakty z proof, których nie zna żaden człowiek, muszą być w clues rzeczy albo w fact kroków.
+- steps: 8 do 16 reguł. verb: "use" (użyj rzeczy; "użyj X na Y": thing X, on Y), "give" (daj thing osobie on), "talk" (rozmowa z osobą on), "open" (otwórz on), "examine" (zbadaj on), ` +
+	`"enter" (wejście do miejsca on), "wait" (gracz czeka godzinę w miejscu on) z with (osoby, które muszą tam być) i hour: tak powstaje dowód naoczny (fact: subject i text, np. zdjęcie ze spotkania). ` +
+	`room ogranicza krok do miejsca; needs i unless to flagi; once true dla jednorazowych; text to odpowiedź gry; flag ustawia flagę, gives daje rzecz, takes true zużywa użytą rzecz, reveals ujawnia rzecz w miejscu. ` +
+	`Co najmniej jeden fakt z proof pochodzi z kroku wait albo enter z with i hour. Krok win nie jest potrzebny: sprawę kończy oskarżenie.
+- events: 2-4 zdarzenia dziwności w stylu analog horror (when.day 2 lub 3, global true, text, opcjonalnie transform miejsca: room i description): miasteczko robi się dziwniejsze, im więcej gracz wie.`
+
+// caseDraft is the first half of an investigation.
+type caseDraft struct {
+	Name     string             `json:"name"`
+	Intro    string             `json:"intro"`
+	Goal     string             `json:"goal"`
+	Rooms    []world.RoomSpec   `json:"rooms"`
+	People   []world.PersonSpec `json:"people"`
+	Case     *world.CaseSpec    `json:"case"`
+	Deadline int                `json:"deadline"`
+	Loss     string             `json:"loss"`
+}
+
+// townDraft is the second half: the things come with the room they lie in.
+type townDraft struct {
+	Things []struct {
+		world.ThingSpec
+		Room string `json:"room"`
+	} `json:"things"`
+	Steps  []world.StepSpec  `json:"steps"`
+	Events []world.EventSpec `json:"events"`
+}
+
+func caseSchema() map[string]any {
+	full := investigationSchema()["properties"].(map[string]any)
+	rooms := full["rooms"].(map[string]any)["items"].(map[string]any)["properties"].(map[string]any)
+
+	return object(map[string]any{
+		"name":  full["name"],
+		"intro": full["intro"],
+		"goal":  full["goal"],
+		"rooms": list(object(map[string]any{
+			"name": rooms["name"], "description": rooms["description"], "terrain": rooms["terrain"], "x": rooms["x"], "y": rooms["y"],
+		})),
+		"people":   full["people"],
+		"case":     full["case"],
+		"deadline": full["deadline"],
+		"loss":     full["loss"],
+	})
+}
+
+func townSchema() map[string]any {
+	full := investigationSchema()["properties"].(map[string]any)
+	thing := full["things"].(map[string]any)["items"].(map[string]any)["properties"].(map[string]any)
+
+	return object(map[string]any{
+		"things": list(object(map[string]any{
+			"name": thing["name"], "description": thing["description"], "room": map[string]any{"type": "string"}, "fixed": thing["fixed"], "clues": thing["clues"],
+		})),
+		"steps":  full["steps"],
+		"events": full["events"],
+	})
+}
+
+// generateInvestigation designs an investigation in two steps and merges
+// them into one playable description.
+func (c *Client) generateInvestigation(ctx context.Context, brief string, style *world.StyleSpec) (world.Spec, error) {
+	var draft caseDraft
+
+	_, err := c.design(ctx, caseInstructions, caseSchema(), brief, func(content string) error {
+		draft = caseDraft{}
+		if err := json.Unmarshal([]byte(extractJSON(content)), &draft); err != nil {
+			return fmt.Errorf("to nie jest poprawny JSON: %w", err)
+		}
+
+		draft.mend()
+
+		return draft.check()
+	})
+	if err != nil {
+		return world.Spec{}, err
+	}
+
+	settled, _ := json.Marshal(draft)
+	brief += "\n\nUSTALONA SPRAWA (nie zmieniaj jej; używaj dokładnie tych nazw miejsc, osób i faktów):\n" + string(settled)
+
+	var spec world.Spec
+
+	_, err = c.design(ctx, townInstructions, townSchema(), brief, func(content string) error {
+		var town townDraft
+		if err := json.Unmarshal([]byte(extractJSON(content)), &town); err != nil {
+			return fmt.Errorf("to nie jest poprawny JSON: %w", err)
+		}
+
+		spec = draft.merge(town)
+		spec.Mode, spec.Style = world.ModeInvestigation, style
+
+		return spec.Normalize()
+	})
+	if err != nil {
+		return world.Spec{}, fmt.Errorf("model returned an unplayable world: %w", err)
+	}
+
+	return spec, nil
+}
+
+// check tells what the model got wrong in the first step, in words it can
+// act on.
+func (d caseDraft) check() error {
+	switch {
+	case strings.TrimSpace(d.Name) == "":
+		return errors.New("brakuje name")
+	case len(d.Rooms) < 4:
+		return fmt.Errorf("jest tylko %d miejsc w rooms, ma być 8 do 12", len(d.Rooms))
+	case len(d.People) < 3:
+		return fmt.Errorf("jest tylko %d osób w people, ma być 5 do 8", len(d.People))
+	case d.Case == nil || strings.TrimSpace(d.Case.Answer) == "":
+		return errors.New("brakuje case z answer: name osoby z people, którą trzeba wskazać")
+	case !d.person(d.Case.Answer):
+		return fmt.Errorf("case.answer %q nie jest name żadnej osoby z people", d.Case.Answer)
+	case len(d.Case.Proof) < 2:
+		return errors.New("case.proof ma mieć 3-5 subject faktów z clues")
+	}
+
+	return nil
+}
+
+// mend fixes what can be fixed without asking again: a culprit or client
+// named a little differently than in people ("Kowalski" for "Jan
+// Kowalski") is matched by the words of the name.
+func (d *caseDraft) mend() {
+	if d.Case == nil {
+		return
+	}
+
+	for _, field := range []*string{&d.Case.Answer, &d.Case.Client} {
+		if *field == "" || d.person(*field) {
+			continue
+		}
+
+		if match, ok := d.closest(*field); ok {
+			*field = match
+		}
+	}
+}
+
+// closest finds the one person who shares a word of at least three
+// letters with the name.
+func (d caseDraft) closest(name string) (string, bool) {
+	var found []string
+
+	for _, person := range d.People {
+		for _, word := range strings.Fields(strings.ToLower(name)) {
+			if len([]rune(word)) >= 3 && strings.Contains(strings.ToLower(person.Name), word) {
+				found = append(found, person.Name)
+
+				break
+			}
+		}
+	}
+
+	if len(found) == 1 {
+		return found[0], true
+	}
+
+	return "", false
+}
+
+func (d caseDraft) person(name string) bool {
+	for _, person := range d.People {
+		if strings.EqualFold(strings.TrimSpace(person.Name), strings.TrimSpace(name)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// merge puts the two halves together. People and things that name a room
+// the town lacks go to the first room rather than being lost.
+func (d caseDraft) merge(town townDraft) world.Spec {
+	rooms := append([]world.RoomSpec(nil), d.Rooms...)
+	people := append([]world.PersonSpec(nil), d.People...)
+
+	roomIndex := func(name string) int {
+		for index, room := range rooms {
+			if strings.EqualFold(strings.TrimSpace(room.Name), strings.TrimSpace(name)) {
+				return index
+			}
+		}
+
+		return -1
+	}
+
+	for index := range people {
+		if at := roomIndex(people[index].Room); at >= 0 {
+			people[index].Room = rooms[at].Name
+		} else if len(rooms) > 0 {
+			people[index].Room = rooms[0].Name
+		}
+
+		for hour, where := range people[index].Schedule {
+			if at := roomIndex(where); at >= 0 {
+				people[index].Schedule[hour] = rooms[at].Name
+			} else {
+				delete(people[index].Schedule, hour)
+			}
+		}
+	}
+
+	things := make([]world.ThingSpec, 0, len(town.Things))
+	for _, thing := range town.Things {
+		things = append(things, thing.ThingSpec)
+
+		at := roomIndex(thing.Room)
+		if at < 0 && len(rooms) > 0 {
+			at = 0
+		}
+
+		if at >= 0 {
+			rooms[at].Things = append(rooms[at].Things, thing.Name)
+		}
+	}
+
+	return world.Spec{
+		Name:     d.Name,
+		Intro:    d.Intro,
+		Goal:     d.Goal,
+		Rooms:    rooms,
+		Things:   things,
+		People:   people,
+		Steps:    town.Steps,
+		Events:   town.Events,
+		Case:     d.Case,
+		Deadline: d.Deadline,
+		Loss:     d.Loss,
+	}
+}
+
+// design asks for an object by schema and, when the game rejects it, shows
+// the model what was wrong and lets it mend the answer once.
+func (c *Client) design(ctx context.Context, instructions string, schema map[string]any, brief string, accept func(content string) error) (string, error) {
+	messages := []message{
+		{Role: "system", Content: instructions},
+		{Role: "user", Content: brief},
+	}
+
+	var rejected error
+
+	for attempt := 0; attempt < 2; attempt++ {
+		if rejected != nil {
+			messages = append(messages, message{
+				Role:    "user",
+				Content: "Gra odrzuciła ten projekt: " + rejected.Error() + ". Popraw to i zwróć cały obiekt JSON jeszcze raz, kompletny i zgodny ze schematem.",
+			})
+		}
+
+		content, err := c.chat(ctx, chatRequest{
+			Model:    c.Model,
+			Messages: messages,
+			ResponseFormat: map[string]any{
+				"type": "json_schema",
+				"json_schema": map[string]any{
+					"name":   "world",
+					"strict": true,
+					"schema": schema,
+				},
+			},
+		})
+		if err != nil {
+			return "", err
+		}
+
+		if rejected = accept(content); rejected == nil {
+			return content, nil
+		}
+
+		messages = append(messages, message{Role: "assistant", Content: content})
+	}
+
+	return "", rejected
+}

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -399,5 +400,199 @@ func TestGenerateWorldFollowsAStyleCard(t *testing.T) {
 	client = serve(t, http.StatusOK, string(preset), nil)
 	if spec, err := client.GenerateWorld(context.Background(), world.ModeImagination, "nic"); err != nil || spec.Style != nil {
 		t.Errorf("without a card: %+v, %v", spec.Style, err)
+	}
+}
+
+// replies serves one scripted answer per request and keeps the requests.
+func replies(t *testing.T, answers ...string) (*Client, *[][]map[string]any) {
+	t.Helper()
+
+	var seen [][]map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request struct {
+			Messages []map[string]any `json:"messages"`
+		}
+		body, _ := io.ReadAll(r.Body)
+		_ = json.Unmarshal(body, &request)
+		seen = append(seen, request.Messages)
+
+		content := answers[len(answers)-1]
+		if len(seen) <= len(answers) {
+			content = answers[len(seen)-1]
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"choices": []any{map[string]any{"message": map[string]any{"role": "assistant", "content": content}}},
+		})
+	}))
+	t.Cleanup(server.Close)
+
+	return &Client{BaseURL: server.URL + "/v1/", APIKey: "secret", Model: "test-model"}, &seen
+}
+
+func lastUser(messages []map[string]any) string {
+	return messages[len(messages)-1]["content"].(string)
+}
+
+func TestDesignLetsTheModelMendARejectedWorld(t *testing.T) {
+	presets, err := world.Presets()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	good, _ := json.Marshal(presets[1])
+	client, seen := replies(t, `{}`, `{"name":"Pustka","places":[],"monsters":[],"items":[]}`, string(good))
+
+	spec, err := client.GenerateWorld(context.Background(), world.ModeImagination, "pustka")
+	if err != nil || spec.Name != presets[1].Name {
+		t.Fatalf("spec %q, err %v", spec.Name, err)
+	}
+
+	// Style, the rejected design, the mended one.
+	if len(*seen) != 3 {
+		t.Fatalf("%d requests", len(*seen))
+	}
+
+	retry := (*seen)[2]
+	if len(retry) != 4 || retry[2]["role"] != "assistant" || !strings.HasPrefix(lastUser(retry), "Gra odrzuciła ten projekt: ") {
+		t.Errorf("retry conversation = %v", retry)
+	}
+
+	client, seen = replies(t, `{}`, `{"name":"Pustka","places":[],"monsters":[],"items":[]}`)
+	if _, err := client.GenerateWorld(context.Background(), world.ModeImagination, "pustka"); err == nil || len(*seen) != 3 {
+		t.Errorf("a world rejected twice should fail after %d requests: %v", len(*seen), err)
+	}
+}
+
+func investigationHalves(t *testing.T) (world.Spec, string, string) {
+	t.Helper()
+
+	presets, err := world.Presets()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	index := slices.IndexFunc(presets, func(spec world.Spec) bool { return spec.Mode == world.ModeInvestigation })
+	if index < 0 {
+		t.Fatal("no investigation preset")
+	}
+
+	preset := presets[index]
+
+	first := caseDraft{Name: preset.Name, Intro: preset.Intro, Goal: preset.Goal, People: preset.People, Case: preset.Case, Deadline: preset.Deadline, Loss: preset.Loss}
+	for _, room := range preset.Rooms {
+		room.Things, room.Doors = nil, nil
+		first.Rooms = append(first.Rooms, room)
+	}
+
+	type placed struct {
+		world.ThingSpec
+		Room string `json:"room"`
+	}
+
+	second := map[string]any{"steps": preset.Steps, "events": preset.Events}
+	things := make([]placed, 0, len(preset.Things))
+	for _, thing := range preset.Things {
+		where := ""
+		for _, room := range preset.Rooms {
+			if slices.Contains(room.Things, thing.Name) {
+				where = room.Name
+			}
+		}
+
+		things = append(things, placed{thing, where})
+	}
+
+	second["things"] = things
+
+	a, _ := json.Marshal(first)
+	b, _ := json.Marshal(second)
+
+	return preset, string(a), string(b)
+}
+
+func TestGenerateInvestigationInTwoSteps(t *testing.T) {
+	preset, first, second := investigationHalves(t)
+	client, seen := replies(t, `{"look":"Mgła.","dialogue":"Cicho.","characters":"Sąsiedzi.","art":"fog"}`, first, second)
+
+	spec, err := client.GenerateWorld(context.Background(), world.ModeInvestigation, "zaginięcie nad jeziorem")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(*seen) != 3 {
+		t.Fatalf("%d requests", len(*seen))
+	}
+
+	if sys := (*seen)[1][0]["content"].(string); !strings.HasPrefix(sys, caseInstructions) {
+		t.Errorf("first step asked with %q", sys[:40])
+	}
+
+	if sys, brief := (*seen)[2][0]["content"].(string), lastUser((*seen)[2]); !strings.HasPrefix(sys, townInstructions) || !strings.Contains(brief, "USTALONA SPRAWA") || !strings.Contains(brief, preset.Case.Answer) || !strings.Contains(brief, "KARTA STYLU") {
+		t.Errorf("second step: %q / %q", sys[:40], brief)
+	}
+
+	if spec.Mode != world.ModeInvestigation || spec.Case == nil || spec.Case.Answer != preset.Case.Answer || spec.Style == nil || spec.Style.Art != "fog" {
+		t.Errorf("spec = %+v", spec)
+	}
+
+	if len(spec.Rooms) != len(preset.Rooms) || len(spec.People) != len(preset.People) || len(spec.Things) != len(preset.Things) || len(spec.Steps) != len(preset.Steps) {
+		t.Errorf("merged %d rooms, %d people, %d things, %d steps; preset has %d, %d, %d, %d",
+			len(spec.Rooms), len(spec.People), len(spec.Things), len(spec.Steps), len(preset.Rooms), len(preset.People), len(preset.Things), len(preset.Steps))
+	}
+
+	for index, room := range preset.Rooms {
+		if !slices.Equal(spec.Rooms[index].Things, room.Things) {
+			t.Errorf("room %s got things %v, want %v", room.Name, spec.Rooms[index].Things, room.Things)
+		}
+	}
+
+	if _, err := world.Build(spec); err != nil {
+		t.Errorf("merged investigation does not build: %v", err)
+	}
+}
+
+func TestGenerateInvestigationChecksTheCase(t *testing.T) {
+	_, first, second := investigationHalves(t)
+
+	var draft caseDraft
+	_ = json.Unmarshal([]byte(first), &draft)
+	draft.Case.Answer = "Nikt Taki"
+	draft.People[0].Room = "Nieistniejący Pokój"
+	broken, _ := json.Marshal(draft)
+
+	client, seen := replies(t, `{}`, string(broken), first, second)
+
+	spec, err := client.GenerateWorld(context.Background(), world.ModeInvestigation, "zaginięcie")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(*seen) != 4 || !strings.Contains(lastUser((*seen)[2]), `case.answer "Nikt Taki" nie jest name żadnej osoby`) {
+		t.Errorf("%d requests; retry asked: %q", len(*seen), lastUser((*seen)[2]))
+	}
+
+	if spec.Case == nil || len(spec.People) == 0 {
+		t.Errorf("spec = %+v", spec)
+	}
+
+	// A culprit named by surname alone is matched to the person.
+	draft = caseDraft{}
+	_ = json.Unmarshal([]byte(first), &draft)
+	full := draft.Case.Answer
+	draft.Case.Answer = strings.Fields(full)[len(strings.Fields(full))-1]
+	draft.mend()
+	if draft.Case.Answer != full {
+		t.Errorf("answer mended to %q, want %q", draft.Case.Answer, full)
+	}
+
+	// A person in a room the town lacks moves to the first room instead
+	// of vanishing.
+	draft = caseDraft{}
+	_ = json.Unmarshal([]byte(first), &draft)
+	draft.People[0].Room = "Nieistniejący Pokój"
+	moved := draft.merge(townDraft{})
+	if moved.People[0].Room != draft.Rooms[0].Name {
+		t.Errorf("person moved to %q", moved.People[0].Room)
 	}
 }
