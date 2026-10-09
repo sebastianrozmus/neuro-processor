@@ -188,6 +188,56 @@ type ShopSpec struct {
 	Greeting string   `json:"greeting"`
 }
 
+// StyleSpec is the style card of a generated world: what the player's
+// inspiration ("w stylu Cowboy Bebop") looks and sounds like, written down
+// once so that every prompt and picture of the world can follow it.
+type StyleSpec struct {
+	// Source is the player's own words.
+	Source string `json:"source,omitempty"`
+	// Look is the era, technology, aesthetics and mood, in Polish.
+	Look string `json:"look,omitempty"`
+	// Dialogue is the tone of speech with a couple of example lines.
+	Dialogue string `json:"dialogue,omitempty"`
+	// Characters names the archetypes that fit.
+	Characters string `json:"characters,omitempty"`
+	// Art is a list of English keywords for drawing pictures in the style.
+	Art string `json:"art,omitempty"`
+}
+
+// Empty reports whether the card says nothing.
+func (s *StyleSpec) Empty() bool {
+	return s == nil || s.Look == "" && s.Dialogue == "" && s.Characters == "" && s.Art == ""
+}
+
+// Card words the style for a language model, in Polish.
+func (s *StyleSpec) Card() string {
+	if s.Empty() {
+		return ""
+	}
+
+	var card strings.Builder
+
+	for _, line := range []struct{ label, text string }{
+		{"Świat i estetyka", s.Look},
+		{"Ton rozmów", s.Dialogue},
+		{"Postacie", s.Characters},
+	} {
+		if line.text != "" {
+			fmt.Fprintf(&card, "%s: %s\n", line.label, line.text)
+		}
+	}
+
+	return strings.TrimRight(card.String(), "\n")
+}
+
+func (s *StyleSpec) normalize() {
+	s.Source = clip(s.Source, maxText)
+	s.Look = clip(s.Look, maxText)
+	s.Dialogue = clip(s.Dialogue, maxText)
+	s.Characters = clip(s.Characters, maxText)
+	s.Art = clip(s.Art, maxText)
+}
+
 // Spec is the full description of a world.
 type Spec struct {
 	Name string `json:"name"`
@@ -196,6 +246,8 @@ type Spec struct {
 	Intro string `json:"intro"`
 	// Currency is the phrase put after an amount, e.g. "kredytów".
 	Currency string `json:"currency"`
+	// Style is the card of the inspiration a generated world follows.
+	Style *StyleSpec `json:"style,omitempty"`
 	// Backdrops name embedded art shown behind the world in the menu.
 	Backdrops  []string        `json:"backdrops,omitempty"`
 	Places     []PlaceSpec     `json:"places"`
@@ -252,6 +304,14 @@ func (s *Spec) Normalize() error {
 
 	if s.Currency == "" {
 		s.Currency = defaultCurrency
+	}
+
+	if s.Style != nil {
+		s.Style.normalize()
+
+		if s.Style.Empty() {
+			s.Style = nil
+		}
 	}
 
 	s.Mode = knownOr(Modes, s.Mode)

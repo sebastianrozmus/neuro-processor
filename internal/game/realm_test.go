@@ -2232,3 +2232,28 @@ func TestCompanionsHaggleAtTheInn(t *testing.T) {
 		t.Errorf("the disliked got a talk: %v", realm.View(hero).Log)
 	}
 }
+
+func TestStyleCardReachesTheKeepersAndTheMaster(t *testing.T) {
+	realm := testRealm(t)
+	realm.world.Style = &world.StyleSpec{Look: "Kosmiczny western lat 90.", Dialogue: "Znużeni, ironiczni. «Jasne, a kto płaci?»"}
+	hero := enlist(realm, "Ala")
+	do(realm, hero, "idź do zbrojowni")
+
+	_, request, ok := realm.Haggle(hero, "co słychać?", Intent{Action: ActionChat})
+	if !ok {
+		t.Fatal("no talk")
+	}
+
+	if !strings.Contains(request.Lore, "Styl świata: Kosmiczny western lat 90. Tak tu mówią: Znużeni, ironiczni. «Jasne, a kto płaci?»") {
+		t.Errorf("keeper lore misses the style card:\n%s", request.Lore)
+	}
+
+	if lore := realm.sceneLore(&fight{pos: realm.players[hero].pos}, []string{hero}); !strings.Contains(lore, "Styl opowieści: Kosmiczny western lat 90.") {
+		t.Errorf("master lore misses the style card:\n%s", lore)
+	}
+
+	realm.world.Style = nil
+	if _, request, _ = realm.Haggle(hero, "co słychać?", Intent{Action: ActionChat}); strings.Contains(request.Lore, "Styl") {
+		t.Errorf("a world without a card got a style line:\n%s", request.Lore)
+	}
+}

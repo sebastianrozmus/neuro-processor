@@ -2,6 +2,7 @@ package world
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -289,4 +290,37 @@ func itemID(spec Spec, name string) string {
 	}
 
 	return ""
+}
+
+func TestStyleCard(t *testing.T) {
+	var none *StyleSpec
+	if !none.Empty() || none.Card() != "" {
+		t.Error("a missing card should be empty")
+	}
+
+	style := &StyleSpec{Look: "Neon i deszcz.", Dialogue: "Krótko, z ironią.", Characters: "Łowcy nagród.", Art: "neon, rain"}
+	want := "Świat i estetyka: Neon i deszcz.\nTon rozmów: Krótko, z ironią.\nPostacie: Łowcy nagród."
+	if got := style.Card(); got != want {
+		t.Errorf("card = %q, want %q", got, want)
+	}
+
+	presets, err := Presets()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	spec := presets[0]
+	spec.Style = &StyleSpec{Look: strings.Repeat("x", 500), Source: "  dużo   spacji  "}
+	if err := spec.Normalize(); err != nil {
+		t.Fatal(err)
+	}
+
+	if len([]rune(spec.Style.Look)) != maxText || spec.Style.Source != "dużo spacji" {
+		t.Errorf("style not clipped: %d runes, source %q", len([]rune(spec.Style.Look)), spec.Style.Source)
+	}
+
+	spec.Style = &StyleSpec{Source: "tylko hasło"}
+	if err := spec.Normalize(); err != nil || spec.Style != nil {
+		t.Errorf("a card without content should be dropped: %v %v", spec.Style, err)
+	}
 }

@@ -88,6 +88,10 @@ func (r *Realm) sceneLore(current *fight, members []string) string {
 
 	place := r.placeAt(current.pos)
 	fmt.Fprintf(&lore, "Świat: %s. Miejsce walki: %s. %s\n", r.world.Name, place.Name, place.Description)
+
+	if style := r.world.Style; !style.Empty() {
+		fmt.Fprintf(&lore, "Styl opowieści: %s\n", style.Look)
+	}
 	lore.WriteString("Bohaterowie:\n")
 
 	for _, name := range members {

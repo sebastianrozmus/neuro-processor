@@ -35,6 +35,55 @@ Wymagania:
 	`name to nazwa budynku, keeper to imię gospodarza, persona to 2-3 zdania o jego charakterze i sposobie mówienia, greeting to jego pierwsza kwestia.
 - Nazwy własne są krótkie (najwyżej 4 słowa) i spójne z klimatem opisu. W świecie bez magii moce i przedmioty magiczne są techniką, wynalazkami albo umiejętnościami.`
 
+const styleInstructions = `Gracz opisał w paru słowach świat do tekstowej gry RPG. Opis może odwoływać się do znanego dzieła, serii, gatunku albo epoki ` +
+	`(film, serial, anime, książka, gra, komiks). Rozpoznaj inspirację i opisz jej styl tak, żeby inny model, który jej nie zna, mógł ją wiernie odtworzyć. ` +
+	`Nie streszczaj fabuły i nie podawaj imion bohaterów, nazw miejsc ani organizacji z pierwowzoru: gra tworzy własny świat w tym stylu. ` +
+	`Gdy opis nie wskazuje żadnej inspiracji, opisz po prostu styl, jaki z niego wynika. Zwracasz obiekt JSON zgodny ze schematem.
+
+- look: 2-3 zdania po polsku: epoka, technika, estetyka, kolory, nastrój.
+- dialogue: po polsku: jak mówią postacie (ton, tempo, słownictwo, humor) i dwa krótkie przykładowe zdania w tym tonie.
+- characters: 1-2 zdania po polsku o tym, jakie typy postaci pasują do tego świata.
+- art: po angielsku, 6-10 haseł do rysowania obrazków w tym stylu, oddzielonych przecinkami (medium, paleta, światło, epoka, klimat).`
+
+// describeStyle asks the model what the player's inspiration looks and
+// sounds like. The card is advice for the other prompts, so when it
+// cannot be had the world is simply made without one.
+func (c *Client) describeStyle(ctx context.Context, theme string) *world.StyleSpec {
+	content, err := c.chat(ctx, chatRequest{
+		Model: c.Model,
+		Messages: []message{
+			{Role: "system", Content: styleInstructions},
+			{Role: "user", Content: "Opis świata od gracza:\n" + theme},
+		},
+		ResponseFormat: map[string]any{
+			"type": "json_schema",
+			"json_schema": map[string]any{
+				"name":   "style",
+				"strict": true,
+				"schema": styleSchema(),
+			},
+		},
+	})
+	if err != nil {
+		return nil
+	}
+
+	var style world.StyleSpec
+	if err := json.Unmarshal([]byte(extractJSON(content)), &style); err != nil || style.Empty() {
+		return nil
+	}
+
+	style.Source = theme
+
+	return &style
+}
+
+func styleSchema() map[string]any {
+	text := map[string]any{"type": "string"}
+
+	return object(map[string]any{"look": text, "dialogue": text, "characters": text, "art": text})
+}
+
 // GenerateWorld asks the model to design a world around the given theme,
 // to be played in the given mode. The model only names and describes
 // things; the result is cleaned and checked before it is returned.
@@ -48,11 +97,19 @@ func (c *Client) GenerateWorld(ctx context.Context, mode world.Mode, theme strin
 		instructions, schema = investigationInstructions, investigationSchema()
 	}
 
+	// The style card comes first, so that the design can follow it.
+	style := c.describeStyle(ctx, theme)
+
+	brief := "Opis świata od gracza:\n" + theme
+	if !style.Empty() {
+		brief += "\n\nKARTA STYLU (trzymaj się jej w nazwach, opisach, personach i powitaniach; nie kopiuj imion ani nazw z pierwowzoru):\n" + style.Card()
+	}
+
 	content, err := c.chat(ctx, chatRequest{
 		Model: c.Model,
 		Messages: []message{
 			{Role: "system", Content: instructions},
-			{Role: "user", Content: "Opis świata od gracza:\n" + theme},
+			{Role: "user", Content: brief},
 		},
 		ResponseFormat: map[string]any{
 			"type": "json_schema",
@@ -75,6 +132,7 @@ func (c *Client) GenerateWorld(ctx context.Context, mode world.Mode, theme strin
 	// Backdrops are embedded assets, which a generated world cannot have.
 	spec.Backdrops = nil
 	spec.Mode = mode
+	spec.Style = style
 
 	if err := spec.Normalize(); err != nil {
 		return world.Spec{}, fmt.Errorf("model returned an unplayable world: %w", err)

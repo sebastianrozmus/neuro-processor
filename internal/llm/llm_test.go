@@ -344,3 +344,60 @@ func TestTranslate(t *testing.T) {
 		t.Errorf("translate = %q, %v", text, err)
 	}
 }
+
+func TestGenerateWorldFollowsAStyleCard(t *testing.T) {
+	presets, err := world.Presets()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	preset, _ := json.Marshal(presets[1])
+	style := `{"look":"Kosmiczny western.","dialogue":"Sucho, z ironią.","characters":"Łowcy nagród.","art":"neon, 90s anime"}`
+
+	var briefs []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request map[string]any
+		body, _ := io.ReadAll(r.Body)
+		_ = json.Unmarshal(body, &request)
+
+		messages := request["messages"].([]any)
+		briefs = append(briefs, messages[len(messages)-1].(map[string]any)["content"].(string))
+
+		content := string(preset)
+		if len(briefs) == 1 {
+			content = style
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"choices": []any{map[string]any{"message": map[string]any{"role": "assistant", "content": content}}},
+		})
+	}))
+	t.Cleanup(server.Close)
+
+	client := &Client{BaseURL: server.URL + "/v1/", APIKey: "secret", Model: "test-model"}
+
+	spec, err := client.GenerateWorld(context.Background(), world.ModeImagination, "detektywi w stylu cowboy bebop")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(briefs) != 2 || !strings.HasSuffix(briefs[0], "Opis świata od gracza:\ndetektywi w stylu cowboy bebop") {
+		t.Fatalf("briefs = %q", briefs)
+	}
+
+	for _, want := range []string{"KARTA STYLU", "Świat i estetyka: Kosmiczny western.", "Ton rozmów: Sucho, z ironią.", "Postacie: Łowcy nagród."} {
+		if !strings.Contains(briefs[1], want) {
+			t.Errorf("world brief misses %q:\n%s", want, briefs[1])
+		}
+	}
+
+	if spec.Style == nil || spec.Style.Art != "neon, 90s anime" || spec.Style.Source != "detektywi w stylu cowboy bebop" {
+		t.Errorf("style = %+v", spec.Style)
+	}
+
+	// A model that cannot describe the style still designs the world.
+	client = serve(t, http.StatusOK, string(preset), nil)
+	if spec, err := client.GenerateWorld(context.Background(), world.ModeImagination, "nic"); err != nil || spec.Style != nil {
+		t.Errorf("without a card: %+v, %v", spec.Style, err)
+	}
+}

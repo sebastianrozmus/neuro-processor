@@ -39,6 +39,10 @@ func (r *Realm) lore(customer *player, wares []Ware) string {
 
 	fmt.Fprintf(&lore, "Świat: %s. %s\n", built.Name, built.Intro)
 
+	if style := built.Style; !style.Empty() {
+		fmt.Fprintf(&lore, "Styl świata: %s Tak tu mówią: %s\n", style.Look, style.Dialogue)
+	}
+
 	if r.caravan != nil && customer.shop == r.caravanShop() {
 		fmt.Fprintf(&lore, "Jesteś wędrownym kupcem; twoja karawana stoi dziś w miejscu: %s. %s\n", r.placeAt(here).Name, r.placeAt(here).Description)
 	} else {
