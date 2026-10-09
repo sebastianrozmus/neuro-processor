@@ -8,10 +8,13 @@ mlx_lm.lora expects: {"messages": [{"role": ..., "content": ...}, ...]}.
 Usage: python3 prepare.py OUT_DIR FILE.jsonl [FILE.jsonl ...]
 """
 import json
+import os
 import random
 import sys
 
 MAX_CHARS = 9000
+# NEURO_RAW_TALKS=1 lets the game's own unreviewed recordings in.
+RAW_TALKS = os.environ.get("NEURO_RAW_TALKS") == "1"
 VALID_SHARE = 0.05
 TEST_SHARE = 0.02
 
@@ -40,6 +43,12 @@ def load(path):
                 continue
             reply = messages[-1]["content"].strip()
             if isinstance(row, dict) and row.get("outcome") != "scene" and not reply.lower().startswith(MOODS):
+                continue
+            # What the game recorded is whatever the small model said at the
+            # time, unreviewed; it teaches that model's mistakes. Only talks
+            # given a source (synthetic, or rewritten through apply.py) count,
+            # unless raw logs are asked for.
+            if isinstance(row, dict) and "outcome" in row and "source" not in row and not RAW_TALKS:
                 continue
             rows.append({"messages": [{"role": m["role"], "content": m["content"]} for m in messages]})
     return rows
