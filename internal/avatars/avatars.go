@@ -90,11 +90,30 @@ func (l *Library) List() []Avatar {
 type Drawing struct {
 	Small string
 	Large string
+	// Picture is the large portrait as a PNG, for terminals that show
+	// real images; built-in portraits have none.
+	Picture []byte
 }
 
 // Art returns the small portrait with the given ID, or an empty string.
 func (l *Library) Art(id string) string {
 	return l.read(id, "")
+}
+
+// Picture returns the PNG of a player-made portrait and the file it is
+// in, or nothing for a built-in one.
+func (l *Library) Picture(id string) ([]byte, string) {
+	if l.dir == "" || id == "" || id != world.Slug(id) {
+		return nil, ""
+	}
+
+	path := filepath.Join(l.dir, id+".png")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, ""
+	}
+
+	return data, path
 }
 
 // Portrait returns the large portrait with the given ID, or the small one
@@ -158,6 +177,12 @@ func (l *Library) Add(name string, drawing Drawing) (Avatar, error) {
 		}
 	}
 
+	if len(drawing.Picture) > 0 {
+		if err := os.WriteFile(filepath.Join(l.dir, id+".png"), drawing.Picture, 0o644); err != nil {
+			return Avatar{}, err
+		}
+	}
+
 	avatar := Avatar{ID: id, Name: name}
 	l.custom = append(l.custom, avatar)
 
@@ -217,8 +242,11 @@ func (p Painter) Generate(ctx context.Context, prompt string) (Drawing, error) {
 	stamp := time.Now().UnixNano()
 	small := filepath.Join(p.Dir, fmt.Sprintf("draft-%d.px", stamp))
 	large := filepath.Join(p.Dir, fmt.Sprintf("draft-%d-big.px", stamp))
+	picture := strings.TrimSuffix(large, ".px") + ".png"
 	defer os.Remove(small)
 	defer os.Remove(large)
+	defer os.Remove(picture)
+	defer os.Remove(strings.TrimSuffix(small, ".px") + ".png")
 
 	ctx, cancel := context.WithTimeout(ctx, generateTimeout)
 	defer cancel()
@@ -250,6 +278,9 @@ func (p Painter) Generate(ctx context.Context, prompt string) (Drawing, error) {
 
 		*target = art.Render()
 	}
+
+	// The PNG is a bonus for terminals that show real images.
+	drawing.Picture, _ = os.ReadFile(picture)
 
 	return drawing, nil
 }

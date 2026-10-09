@@ -8,6 +8,7 @@ import (
 
 	"github.com/sebastianrozmus/neuro-processor/internal/gallery"
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/inline"
 	"github.com/sebastianrozmus/neuro-processor/internal/pix"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
@@ -31,7 +32,20 @@ var scenes sync.Map
 // scene draws what the player sees where they stand: the place, what was
 // built or left there and, in a fight, the monsters they face. While blows
 // are being shown, the given frame of them is painted over it.
-func scene(view game.View, target int, blows []game.BlowView, frame int, moving bool) string {
+func scene(view game.View, target int, blows []game.BlowView, frame int, moving bool, inlined bool) string {
+	variant := (view.Me.Pos.X*7+view.Me.Pos.Y*13)%sceneVariants + 1
+
+	// A terminal that shows images gets the painting itself, as long as
+	// nothing the player must see is drawn over the place: fights, blows,
+	// a shrine or chest and things lying about stay block art.
+	if inlined && view.Fight == nil && len(blows) == 0 && view.Tile.Site < 0 && !portable(view.Ground) {
+		if png, path := painted.ScenePicture(view.World.Spec, view.Tile.Place, variant); len(png) > 0 {
+			if picture := inline.Show(path, png, sceneWidth, sceneRows); picture != "" {
+				return picture
+			}
+		}
+	}
+
 	key := sceneKey(view, target, moving)
 	if painted.Painted(view.World.Spec) {
 		key += "|painted"
@@ -40,8 +54,6 @@ func scene(view game.View, target int, blows []game.BlowView, frame int, moving 
 	if cached, ok := scenes.Load(key); ok && len(blows) == 0 {
 		return cached.(string)
 	}
-
-	variant := (view.Me.Pos.X*7+view.Me.Pos.Y*13)%sceneVariants + 1
 
 	// A world with painted scenes shows its own; until they are painted
 	// (and for the built-in worlds) the terrain's embedded picture serves.

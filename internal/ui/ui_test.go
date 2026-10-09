@@ -1,9 +1,12 @@
 package ui
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -11,7 +14,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/avatars"
+	"github.com/sebastianrozmus/neuro-processor/internal/gallery"
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/inline"
 	"github.com/sebastianrozmus/neuro-processor/internal/llm"
 	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
@@ -414,13 +419,13 @@ func TestScenes(t *testing.T) {
 		model := newGame(t, realm, "Seba", sizes[1], nil)
 		view := model.(Game).view
 
-		town := scene(view, 0, nil, 0, false)
+		town := scene(view, 0, nil, 0, false, false)
 		if got := lipgloss.Height(town); got != sceneRows || lipgloss.Width(town) != sceneWidth {
 			t.Errorf("world %d: scene is %dx%d", index, lipgloss.Width(town), got)
 		}
 
 		model = walkIntoFight(t, model)
-		if fight := scene(model.(Game).view, 0, nil, 0, false); fight == town || lipgloss.Height(fight) != sceneRows {
+		if fight := scene(model.(Game).view, 0, nil, 0, false, false); fight == town || lipgloss.Height(fight) != sceneRows {
 			t.Errorf("world %d: the fight scene shows no monsters", index)
 		}
 
@@ -945,12 +950,12 @@ func TestBlowsAreAnimated(t *testing.T) {
 		t.Fatalf("no animation after an attack: effects %+v, cmd %v", game.effects, cmd != nil)
 	}
 
-	still := scene(game.view, 0, nil, 0, false)
+	still := scene(game.view, 0, nil, 0, false, false)
 	frames := make([]string, 0, effectFrames)
 
 	for frame := range effectFrames {
 		game = model.(Game)
-		frames = append(frames, scene(game.view, 0, game.effects, frame, false))
+		frames = append(frames, scene(game.view, 0, game.effects, frame, false, false))
 		assertFits(t, model, sizes[1], fmt.Sprintf("frame %d", frame))
 
 		var next tea.Cmd
@@ -1068,7 +1073,7 @@ func TestDnDBoardAndMovement(t *testing.T) {
 	assertShows(t, model, "fight", "Ruch", "Atak", "KP ")
 	assertFits(t, model, sizes[1], "board")
 
-	if still := scene(game.view, 0, nil, 0, false); lipgloss.Height(still) != sceneRows {
+	if still := scene(game.view, 0, nil, 0, false, false); lipgloss.Height(still) != sceneRows {
 		t.Errorf("board scene is %d rows", lipgloss.Height(still))
 	}
 
@@ -1133,4 +1138,54 @@ func TestAdventureScreens(t *testing.T) {
 
 	model = enter(model, "pomoc")
 	assertShows(t, model, "help", "użyj X na Y")
+}
+
+func TestInlinePicturesReplaceTheScene(t *testing.T) {
+	realm := newRealm(t, 0)
+	model := newGame(t, realm, "Seba", sizes[1], nil)
+	view := model.(Game).view
+
+	art := gallery.Open(t.TempDir())
+	UseGallery(art)
+	t.Cleanup(func() { UseGallery(nil) })
+
+	var terminal bytes.Buffer
+	inline.Configure("kitty", &terminal)
+	t.Cleanup(func() { inline.Configure("off", nil) })
+
+	// Without a painting the block art stays, pictures or not.
+	if plain := scene(view, 0, nil, 0, false, true); plain != scene(view, 0, nil, 0, false, false) {
+		t.Error("a world without paintings should look the same")
+	}
+
+	dir := art.Dir(view.World.Spec)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	variant := (view.Me.Pos.X*7+view.Me.Pos.Y*13)%sceneVariants + 1
+	name := fmt.Sprintf("place-%d-%d.png", view.Tile.Place+1, variant)
+	if err := os.WriteFile(filepath.Join(dir, name), []byte("PNG"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	picture := scene(view, 0, nil, 0, false, true)
+	if lipgloss.Height(picture) != sceneRows || lipgloss.Width(picture) != sceneWidth || !strings.Contains(picture, "\U0010EEEE") {
+		t.Errorf("the painting was not placed: %dx%d", lipgloss.Width(picture), lipgloss.Height(picture))
+	}
+
+	if !strings.HasPrefix(terminal.String(), "\x1b_G") {
+		t.Error("the painting was not sent to the terminal")
+	}
+
+	// A guest's screen, or one with pictures off, keeps the block art.
+	if blocks := scene(view, 0, nil, 0, false, false); strings.Contains(blocks, "\U0010EEEE") {
+		t.Error("block art screens got placeholders")
+	}
+
+	// In a fight the monsters must be seen, so the block art returns.
+	model = walkIntoFight(t, model)
+	if fight := scene(model.(Game).view, 0, nil, 0, false, true); strings.Contains(fight, "\U0010EEEE") {
+		t.Error("a fight was hidden behind the painting")
+	}
 }

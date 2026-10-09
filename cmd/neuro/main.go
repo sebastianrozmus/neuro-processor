@@ -17,6 +17,7 @@ import (
 	"github.com/sebastianrozmus/neuro-processor/internal/config"
 	"github.com/sebastianrozmus/neuro-processor/internal/gallery"
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/inline"
 	"github.com/sebastianrozmus/neuro-processor/internal/llm"
 	"github.com/sebastianrozmus/neuro-processor/internal/pix"
 	"github.com/sebastianrozmus/neuro-processor/internal/server"
@@ -41,6 +42,8 @@ func main() {
 func run(listen, name string) error {
 	cfg := config.Load()
 	pix.Configure(cfg.Blocks, cfg.TrueColor)
+	// Real pictures go to the local terminal alone; guests over SSH get block art.
+	inline.Configure(cfg.Images, os.Stdout)
 
 	var (
 		brain     game.Brain = llm.Mock{}
@@ -172,7 +175,7 @@ func (h *host) New(spec world.Spec) (tea.Model, tea.Cmd, error) {
 
 	setup := ui.NewSetup(spec.Name, h.name, h.library, h.painter, func(name, avatar string) (tea.Model, tea.Cmd) {
 		return h.play(realm, realm.Join(name, avatar), invite)
-	})
+	}).Inline(inline.Enabled())
 
 	return setup, setup.Init(), nil
 }
@@ -224,7 +227,7 @@ func (h *host) play(realm *game.Realm, hero, invite string) (tea.Model, tea.Cmd)
 		realm.Tell(hero, "Świat jest otwarty dla innych graczy: "+invite)
 	}
 
-	scene := ui.NewGame(realm, hero, h.brain, h.library, save, h.voice, h.ear, h.record)
+	scene := ui.NewGame(realm, hero, h.brain, h.library, save, h.voice, h.ear, h.record).Inline(inline.Enabled())
 
 	return scene, scene.Init()
 }

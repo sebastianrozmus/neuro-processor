@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/avatars"
+	"github.com/sebastianrozmus/neuro-processor/internal/inline"
 )
 
 const setupWidth = 56
@@ -38,6 +39,7 @@ type drawnMsg struct {
 type Setup struct {
 	world     string
 	library   *avatars.Library
+	inline    bool
 	generator avatars.Generator
 	enter     Enter
 
@@ -54,6 +56,13 @@ type Setup struct {
 
 // NewSetup builds the screen for entering the named world. The name is a
 // suggestion the player can change. The generator may be nil.
+// Inline turns showing player-made portraits as real images on or off.
+func (s Setup) Inline(on bool) Setup {
+	s.inline = on
+
+	return s
+}
+
 func NewSetup(world, name string, library *avatars.Library, generator avatars.Generator, enter Enter) Setup {
 	field := func(placeholder string, width, limit int) textinput.Model {
 		input := textinput.New()
@@ -283,7 +292,7 @@ func (s Setup) View() string {
 			lines = append(lines,
 				centre.Render(labelStyle.Render("Kim jesteś w tym świecie?")),
 				"",
-				lipgloss.PlaceHorizontal(setupWidth, lipgloss.Center, s.library.Portrait(avatar.ID)),
+				lipgloss.PlaceHorizontal(setupWidth, lipgloss.Center, s.portrait(avatar.ID)),
 				"",
 				centre.Render(fmt.Sprintf("▲ %s ▼", selfStyle.Render(avatar.Name))),
 				centre.Render(labelStyle.Render(fmt.Sprintf("%d z %d", s.avatar+1, len(known)))),
@@ -312,4 +321,18 @@ func (s Setup) View() string {
 	}
 
 	return lipgloss.Place(s.width, s.height, lipgloss.Center, lipgloss.Center, screen)
+}
+
+// portrait is the large picture of an avatar: the real one when the
+// terminal shows images and the player drew it, else block art.
+func (s Setup) portrait(id string) string {
+	if s.inline {
+		if png, path := s.library.Picture(id); len(png) > 0 {
+			if picture := inline.Show(path, png, portraitWidth, portraitHeight); picture != "" {
+				return picture
+			}
+		}
+	}
+
+	return s.library.Portrait(id)
 }

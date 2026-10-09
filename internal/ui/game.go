@@ -78,6 +78,9 @@ type Game struct {
 	action int
 	choice int
 	shop   shop
+	// inline shows painted pictures as real images; only the local
+	// player's terminal can, guests over SSH keep block art.
+	inline bool
 	width  int
 	height int
 }
@@ -105,6 +108,14 @@ func NewGame(realm *game.Realm, name string, brain game.Brain, library *avatars.
 	}
 
 	return scene
+}
+
+// Inline turns showing painted pictures as real images on or off for
+// this screen.
+func (g Game) Inline(on bool) Game {
+	g.inline = on
+
+	return g
 }
 
 // Init starts listening for changes of the world.
@@ -296,6 +307,14 @@ func (g *Game) refresh() {
 		portrait := keeperPortrait(g.view.World.Spec, g.view.Shop.Kind)
 		if g.view.Shop.Avatar != "" && g.library != nil {
 			portrait = g.library.Art(g.view.Shop.Avatar)
+		}
+
+		if g.inline {
+			if picture := g.picture(g.view.Shop.Avatar, portraitWidth, portraitHeight); picture != "" {
+				portrait = picture
+			} else if picture := keeperPicture(g.view.World.Spec, g.view.Shop.Kind); picture != "" && g.view.Shop.Avatar == "" {
+				portrait = picture
+			}
 		}
 
 		g.shop.open(*g.view.Shop, portrait)

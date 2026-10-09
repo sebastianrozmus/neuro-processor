@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/inline"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -268,7 +269,7 @@ func (g Game) fullCard(index int, member card, selected bool) string {
 		}
 
 		stats := []string{name, titleStyle.Render(g.view.World.Name), "", labelStyle.Render(fmt.Sprintf("Rzeczy: %d", member.bag)), clock}
-		if avatar := g.library.Art(member.avatar); avatar != "" {
+		if avatar := g.portrait(member.avatar); avatar != "" {
 			return lipgloss.JoinHorizontal(lipgloss.Top, avatar, " ", strings.Join(stats, "\n"))
 		}
 
@@ -298,11 +299,35 @@ func (g Game) fullCard(index int, member card, selected bool) string {
 		stats[index] = column.Render(line)
 	}
 
-	if avatar := g.library.Art(member.avatar); avatar != "" {
+	if avatar := g.portrait(member.avatar); avatar != "" {
 		return lipgloss.JoinHorizontal(lipgloss.Top, avatar, " ", strings.Join(stats, "\n"))
 	}
 
 	return strings.Join(stats, "\n")
+}
+
+// portrait is the small picture on a card: the real one when the
+// terminal shows images and the player drew the avatar, else block art.
+func (g Game) portrait(avatar string) string {
+	if g.inline {
+		if picture := g.picture(avatar, avatarColumns, avatarColumns/2); picture != "" {
+			return picture
+		}
+	}
+
+	return g.library.Art(avatar)
+}
+
+// picture places the PNG of a player-made avatar, if the terminal shows
+// images and there is one.
+func (g Game) picture(avatar string, cols, rows int) string {
+	if !g.inline || g.library == nil || avatar == "" {
+		return ""
+	}
+
+	png, path := g.library.Picture(avatar)
+
+	return inline.Show(path, png, cols, rows)
 }
 
 // combatLine is the figures of a card: in the D&D mode the armour class
@@ -336,7 +361,7 @@ func (g Game) sceneView(width int) string {
 		title = g.view.World.Sites[g.view.Tile.Site].Name
 	}
 
-	picture := lipgloss.PlaceHorizontal(width, lipgloss.Center, scene(g.view, g.target, g.effects, g.frame, g.step == stepMove))
+	picture := lipgloss.PlaceHorizontal(width, lipgloss.Center, scene(g.view, g.target, g.effects, g.frame, g.step == stepMove, g.inline))
 
 	return titleStyle.Render(title) + "\n" + picture
 }

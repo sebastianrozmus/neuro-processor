@@ -10,6 +10,7 @@ import (
 
 	"github.com/sebastianrozmus/neuro-processor/assets"
 	"github.com/sebastianrozmus/neuro-processor/internal/gallery"
+	"github.com/sebastianrozmus/neuro-processor/internal/inline"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -126,6 +127,14 @@ func keeperPortrait(spec world.Spec, kind world.ShopKind) string {
 	portrait, _ := assets.Art("keepers/" + lookOf(spec) + "-" + string(kind))
 
 	return portrait
+}
+
+// keeperPicture places the painted portrait of a keeper as a real image,
+// when the terminal shows them and the world has one.
+func keeperPicture(spec world.Spec, kind world.ShopKind) string {
+	png, path := painted.KeeperPicture(spec, kind)
+
+	return inline.Show(path, png, portraitWidth, portraitHeight)
 }
 
 // under fills a screen of the given size with the picture, centred, and

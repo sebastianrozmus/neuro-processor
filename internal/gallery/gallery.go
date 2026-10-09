@@ -57,7 +57,8 @@ type Gallery struct {
 	// image models understand far better; nil paints from the Polish.
 	Translate func(ctx context.Context, text string) (string, error)
 
-	images sync.Map
+	images   sync.Map
+	pictures sync.Map
 }
 
 // Open returns the gallery kept in dir.
@@ -101,6 +102,38 @@ func (g *Gallery) Backdrop(spec world.Spec, index int) string {
 // rendered, or an empty string.
 func (g *Gallery) Keeper(spec world.Spec, kind world.ShopKind) string {
 	return g.rendered(spec, keeperFile(kind))
+}
+
+// ScenePicture returns the PNG the scene of a kind of place was made from
+// and its path, for terminals that show real images.
+func (g *Gallery) ScenePicture(spec world.Spec, place, variant int) ([]byte, string) {
+	return g.picture(spec, sceneFile(place, variant))
+}
+
+// KeeperPicture returns the PNG of a keeper's portrait and its path.
+func (g *Gallery) KeeperPicture(spec world.Spec, kind world.ShopKind) ([]byte, string) {
+	return g.picture(spec, keeperFile(kind))
+}
+
+// picture reads the PNG kept beside a PX2 file, once.
+func (g *Gallery) picture(spec world.Spec, name string) ([]byte, string) {
+	if g == nil {
+		return nil, ""
+	}
+
+	path := filepath.Join(g.Dir(spec), strings.TrimSuffix(name, ".px")+".png")
+	if cached, ok := g.pictures.Load(path); ok {
+		return cached.([]byte), path
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil || len(data) == 0 {
+		return nil, ""
+	}
+
+	g.pictures.Store(path, data)
+
+	return data, path
 }
 
 func (g *Gallery) rendered(spec world.Spec, name string) string {

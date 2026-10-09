@@ -76,13 +76,16 @@ def pixelate(image, cells, cell, colours):
     image = image.crop((left, top, left + band_width, top + band_height)).convert("RGB")
     image = ImageEnhance.Color(image).enhance(1.4)
     image = ImageEnhance.Contrast(image).enhance(1.2)
+    picture = image
     image = image.resize((width, height), Image.LANCZOS)
-    return image.quantize(colors=colours, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+    return image.quantize(colors=colours, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE), picture
 
 
-def write(small, cell, out, png):
-    """Store a quantized picture in the PX2 layout. Index 0 is transparent
-    in the game, so every palette entry moves up by one."""
+def write(drawn, cell, out, png):
+    """Store a quantized picture in the PX2 layout (index 0 is transparent
+    in the game, so every palette entry moves up by one) and the picture it
+    was made from as a PNG beside it, for terminals that show real images."""
+    small, picture = drawn
     width, height = small.size
     flat = small.getpalette()
     entries = min(len(flat) // 3, 255 - 1)
@@ -93,9 +96,21 @@ def write(small, cell, out, png):
     with open(out + ".part", "wb") as handle:
         handle.write(header + palette + pixels)
     os.replace(out + ".part", out)
+    keep(picture, os.path.splitext(out)[0] + ".png")
     if png:
         from PIL import Image
         small.convert("RGB").resize((width * 8, height * 8), Image.NEAREST).save(png)
+
+
+def keep(picture, path):
+    """Save the cropped picture, no side longer than 768 pixels."""
+    from PIL import Image
+
+    longer = max(picture.size)
+    if longer > 768:
+        picture = picture.resize((picture.width * 768 // longer, picture.height * 768 // longer), Image.LANCZOS)
+    picture.save(path + ".part", format="PNG")
+    os.replace(path + ".part", path)
 
 
 def paint_jobs(path, cell):

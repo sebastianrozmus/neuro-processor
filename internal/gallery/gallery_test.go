@@ -3,6 +3,7 @@ package gallery
 import (
 	"context"
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -165,5 +166,39 @@ func TestPaintSkipsWhatHasArt(t *testing.T) {
 	var none *Gallery
 	if none.Painted(spec) || none.Backdrop(spec, 0) != "" || none.Paint(context.Background(), testSpec(), b) != nil {
 		t.Error("a nil gallery should be inert")
+	}
+}
+
+func TestPicturesBesideThePixels(t *testing.T) {
+	spec := testSpec()
+	g := Open(t.TempDir())
+
+	if png, path := g.ScenePicture(spec, 0, 1); png != nil || path != "" {
+		t.Error("an empty gallery should have no picture")
+	}
+
+	dir := g.Dir(spec)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, "place-1-1.png"), []byte("PNG"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, "keeper-armory.png"), []byte("PNG2"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if png, path := g.ScenePicture(spec, 0, 1); string(png) != "PNG" || path != filepath.Join(dir, "place-1-1.png") {
+		t.Errorf("scene picture = %q at %q", png, path)
+	}
+
+	if png, path := g.KeeperPicture(spec, world.ShopArmory); string(png) != "PNG2" || path != filepath.Join(dir, "keeper-armory.png") {
+		t.Errorf("keeper picture = %q at %q", png, path)
+	}
+
+	if png, _ := g.KeeperPicture(spec, world.ShopMagic); png != nil {
+		t.Error("a shop without a picture got one")
 	}
 }

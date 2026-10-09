@@ -49,6 +49,10 @@ type Config struct {
 	// WorldArt turns painting pictures for generated worlds (backdrops,
 	// scenes, keepers) with the image model on; it needs Python.
 	WorldArt bool
+	// Images shows the painted pictures as real images in terminals that
+	// speak the kitty graphics protocol: "off" (the default), "auto" or
+	// "kitty" (forced).
+	Images string
 }
 
 // Offline reports whether no model is configured, in which case the game
@@ -94,10 +98,22 @@ func Load() Config {
 		Blocks:        blocks(get("NEURO_BLOCKS", "")),
 		TrueColor:     !isOff(get("NEURO_TRUECOLOR", "")),
 		WorldArt:      !isOff(get("NEURO_WORLD_ART", "")),
+		Images:        images(get("NEURO_IMAGES", "")),
 	}
 }
 
 // blocks reads the block-character setting; anything unknown means quad.
+func images(value string) string {
+	switch value = strings.ToLower(strings.TrimSpace(value)); value {
+	case "auto", "kitty":
+		return value
+	case "1", "true", "yes", "tak", "on":
+		return "auto"
+	}
+
+	return "off"
+}
+
 func blocks(value string) string {
 	switch value = strings.ToLower(strings.TrimSpace(value)); value {
 	case "half", "sextant":
