@@ -4,3 +4,6 @@
 # Ręcznie wygenerowane dane treningowe trzymane lokalnie
 tools/model/manual*.jsonl
 /synth
+
+# Pliki pośrednie Pythona
+__pycache__/
