@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/sebastianrozmus/neuro-processor/internal/gallery"
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
 	"github.com/sebastianrozmus/neuro-processor/internal/pix"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
@@ -17,7 +18,7 @@ const (
 	// sceneRows is how many terminal rows a scene takes.
 	sceneRows = sceneHeight / 2
 
-	sceneVariants  = 2
+	sceneVariants  = gallery.Variants
 	spriteVariants = 3
 	spriteGap      = 2
 	groundLine     = sceneHeight - 2
@@ -32,11 +33,23 @@ var scenes sync.Map
 // are being shown, the given frame of them is painted over it.
 func scene(view game.View, target int, blows []game.BlowView, frame int, moving bool) string {
 	key := sceneKey(view, target, moving)
+	if painted.Painted(view.World.Spec) {
+		key += "|painted"
+	}
+
 	if cached, ok := scenes.Load(key); ok && len(blows) == 0 {
 		return cached.(string)
 	}
 
-	base, ok := loadScene(view.Place.Terrain, (view.Me.Pos.X*7+view.Me.Pos.Y*13)%sceneVariants+1)
+	variant := (view.Me.Pos.X*7+view.Me.Pos.Y*13)%sceneVariants + 1
+
+	// A world with painted scenes shows its own; until they are painted
+	// (and for the built-in worlds) the terrain's embedded picture serves.
+	base, ok := painted.Scene(view.World.Spec, view.Tile.Place, variant)
+	if !ok {
+		base, ok = loadScene(view.Place.Terrain, variant)
+	}
+
 	if !ok {
 		return ""
 	}

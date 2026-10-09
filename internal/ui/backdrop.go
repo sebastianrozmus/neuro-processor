@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"sync"
@@ -8,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/sebastianrozmus/neuro-processor/assets"
+	"github.com/sebastianrozmus/neuro-processor/internal/gallery"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -15,6 +17,16 @@ import (
 var artCell = regexp.MustCompile(`\x1b\[[0-9;]*m[^\x1b]\x1b\[0m`)
 
 var backdrops sync.Map
+
+// painted is the gallery of pictures painted for generated worlds; nil
+// when the game has none, in which case every world uses the embedded art.
+var painted *gallery.Gallery
+
+// UseGallery points the screens at the pictures painted for generated
+// worlds: menu backdrops, scenes and keepers' portraits.
+func UseGallery(g *gallery.Gallery) {
+	painted = g
+}
 
 // backdrop is a picture cut into character cells, so that something can be
 // drawn over a part of it.
@@ -26,15 +38,40 @@ func loadBackdrop(name string) backdrop {
 	}
 
 	art, _ := assets.Art(name)
+	cells := cutBackdrop(art)
+	backdrops.Store(name, cells)
 
+	return cells
+}
+
+// cutBackdrop splits rendered art into its character cells.
+func cutBackdrop(art string) backdrop {
 	var cells backdrop
 	for _, line := range strings.Split(art, "\n") {
 		cells = append(cells, artCell.FindAllString(line, -1))
 	}
 
-	backdrops.Store(name, cells)
-
 	return cells
+}
+
+// backdropFor picks the picture behind the menu for a world: a painted
+// one when the world has them, else embedded art that fits its look.
+func backdropFor(spec world.Spec, slide int) backdrop {
+	key := fmt.Sprintf("painted/%s/%d", world.Slug(spec.Name), slide%gallery.Backdrops)
+	if cached, ok := backdrops.Load(key); ok {
+		return cached.(backdrop)
+	}
+
+	if art := painted.Backdrop(spec, slide%gallery.Backdrops); art != "" {
+		cells := cutBackdrop(art)
+		backdrops.Store(key, cells)
+
+		return cells
+	}
+
+	pictures := backdropsFor(spec)
+
+	return loadBackdrop(pictures[slide%len(pictures)])
 }
 
 // The embedded art comes in three looks; a world gets the one that fits
@@ -79,8 +116,13 @@ func backdropsFor(spec world.Spec) []string {
 }
 
 // keeperPortrait returns the portrait of the keeper of a kind of shop in a
-// world: every look has one for each kind.
+// world: the painted one when there is one, else the one of the world's
+// look, which every look has for each kind.
 func keeperPortrait(spec world.Spec, kind world.ShopKind) string {
+	if portrait := painted.Keeper(spec, kind); portrait != "" {
+		return portrait
+	}
+
 	portrait, _ := assets.Art("keepers/" + lookOf(spec) + "-" + string(kind))
 
 	return portrait

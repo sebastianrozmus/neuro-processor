@@ -41,6 +41,14 @@ type Config struct {
 	// Python is the interpreter of the environment with the image model
 	// that draws avatars; empty means the one tools/avatar/setup.sh makes.
 	Python string
+	// Blocks picks the characters generated pictures are drawn with: half
+	// (1x2 pixels per cell), quad (2x2) or sextant (2x3); TrueColor sends
+	// their colours as 24-bit values rather than the nearest of 256.
+	Blocks    string
+	TrueColor bool
+	// WorldArt turns painting pictures for generated worlds (backdrops,
+	// scenes, keepers) with the image model on; it needs Python.
+	WorldArt bool
 }
 
 // Offline reports whether no model is configured, in which case the game
@@ -83,7 +91,20 @@ func Load() Config {
 		Hearing:       !isOff(get("NEURO_STT", "")),
 		Talks:         isOn(get("NEURO_LOG_TALKS", "")),
 		Python:        get("NEURO_AVATAR_PYTHON", ""),
+		Blocks:        blocks(get("NEURO_BLOCKS", "")),
+		TrueColor:     !isOff(get("NEURO_TRUECOLOR", "")),
+		WorldArt:      !isOff(get("NEURO_WORLD_ART", "")),
 	}
+}
+
+// blocks reads the block-character setting; anything unknown means quad.
+func blocks(value string) string {
+	switch value = strings.ToLower(strings.TrimSpace(value)); value {
+	case "half", "sextant":
+		return value
+	}
+
+	return "quad"
 }
 
 func readEnvFile(path string) map[string]string {

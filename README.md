@@ -215,6 +215,9 @@ Gra łączy się z dowolnym serwerem zgodnym z API OpenAI (`/chat/completions`),
 | `NEURO_TTS_COMMAND` | zamiast głosu systemowego: polecenie powłoki, które dostaje kwestię na wejściu i samo ją odtwarza (np. Piper) |
 | `NEURO_STT` | `0` wyłącza mikrofon; domyślnie włączony, gdy jest środowisko z `tools/avatar/setup.sh` |
 | `NEURO_AVATAR_PYTHON` | interpreter Pythona ze środowiska, w którym jest model obrazkowy; domyślnie ten, który tworzy `tools/avatar/setup.sh` |
+| `NEURO_BLOCKS` | znaki, którymi rysowane są obrazki z modelu obrazkowego: `quad` (domyślnie; ćwiartki bloku, 2×2 piksele na znak, są w każdej czcionce terminala), `sextant` (szóstki bloku z Unicode 13 „Symbols for Legacy Computing”, 2×3 piksele; wymagają czcionki, która je ma — iTerm2, kitty i WezTerm tak, Terminal.app zwykle nie) albo `half` (połówki, 1×2, dawny wygląd) |
+| `NEURO_TRUECOLOR` | `0` wysyła kolory tych obrazków jako najbliższe z 256 kolorów terminala zamiast pełnych 24-bitowych; domyślnie włączone |
+| `NEURO_WORLD_ART` | `0` wyłącza malowanie w tle grafiki wygenerowanych światów (tła, sceny, portrety gospodarzy) modelem obrazkowym; domyślnie włączone, gdy jest środowisko z `tools/avatar/setup.sh` |
 | `NEURO_LOG_TALKS` | `1` zapisuje udane rozmowy z modelem do `talks.jsonl` w katalogu danych, w kształcie promptów gry, jako materiał do douczenia własnego modelu |
 
 Lokalny model przez Ollamę:
@@ -242,6 +245,8 @@ Model nigdy nie decyduje o wyniku i niczego nie liczy.
 
 *Generowanie świata*: model zwraca opis świata zgodny ze schematem JSON: nazwy, opisy, rodzaje terenu i kształty przeciwników z zamkniętych list oraz poziomy trudności w skali 1-3. Kod w `internal/world` sprawdza i naprawia ten opis, a potem wylicza z niego mapę, statystyki przeciwników oraz działanie i ceny przedmiotów. Wbudowane światy to takie same opisy, zapisane w `internal/world/presets`.
 
+*Karta stylu*: zanim model zaprojektuje świat, dostaje osobne pytanie o inspirację z opisu gracza („gra detektywistyczna w stylu Cowboy Bebop”): ma rozpoznać dzieło, gatunek albo epokę i spisać kartę stylu: estetykę i nastrój, ton rozmów z dwoma przykładowymi zdaniami, pasujące typy postaci oraz angielskie hasła do rysowania obrazków. Karta trafia do projektu świata (nazwy, persony, powitania), zapisuje się w jego opisie (`style`) i odtąd wchodzi do promptów gospodarzy, najemników i Mistrza Gry, więc styl słychać w rozmowach, a nie tylko w nazwach. Imion i nazw z pierwowzoru model ma nie kopiować: świat jest własny, tylko w tym stylu. Gdy opis nie wskazuje żadnej inspiracji, karta opisuje po prostu klimat, jaki z niego wynika; gdy modelowi nie uda się jej napisać, świat powstaje bez niej.
+
 *Polecenia*: tekst gracza czyta zwykły parser w `internal/game`, bez modelu, więc odpowiedź jest natychmiastowa i zawsze taka sama.
 
 *Rozmowy w budynkach*: każda tura ma trzy kroki.
@@ -256,16 +261,18 @@ Model nigdy nie decyduje o wyniku i niczego nie liczy.
 
 *Grafika*: widoki miejsc i przeciwnicy to małe obrazki o 256 kolorach w `assets/px`. Gra składa z nich scenę i rysuje ją znakami półbloków, po dwa piksele na znak.
 
-Rysowanie awatarów
-==================
+Rysowanie awatarów i światów
+============================
 
-Własne awatary rysuje lokalnie mały model obrazkowy SD-Turbo (ok. 2,5 GB), a gra zamienia obraz na pixel art 40x40 w 256 kolorach, taki sam jak wbudowane portrety. Przygotowanie, jednorazowo:
+Własne awatary rysuje lokalnie mały model obrazkowy SD-Turbo (ok. 2,5 GB), a gra zamienia obraz na pixel art: obcina do kadru, zmniejsza do rozmiaru portretu, redukuje paletę do 32 kolorów (median cut, bez ditheringu, żeby wyszły czyste plamy, a nie ziarno) i rysuje znakami blokowymi w kolorach 24-bitowych (`NEURO_BLOCKS`, `NEURO_TRUECOLOR`). Przygotowanie, jednorazowo:
 
 ```
 tools/avatar/setup.sh
 ```
 
 Skrypt tworzy środowisko Pythona z biblioteką diffusers w katalogu danych gry i pobiera model. Potem w ekranie wyboru postaci, za ostatnim awatarem, jest pozycja „Dodaj nowy…”: opisujesz postać, model ją rysuje (na Macu z układem Apple kilka sekund, pierwszy raz dłużej, bo model się ładuje), nadajesz nazwę i zapisujesz. Zapisane awatary leżą w podkatalogu `avatars` katalogu danych i są dostępne także gościom przez SSH, choć goście sami nowych nie rysują.
+
+Ten sam model maluje **grafikę wygenerowanych światów**. Gdy taki świat startuje po raz pierwszy (albo wczytuje się jego zapis), gra w tle zleca modelowi 2 tła do menu, po 2 sceny dla każdego rodzaju miejsca i portrety trzech gospodarzy: ok. 25 obrazków, na Macu z układem Apple około minuty, model ładowany raz. Opisy miejsc i gospodarzy są tłumaczone na angielski modelem językowym, a do każdego promptu dochodzą hasła z karty stylu świata, więc miasto „w stylu Cowboy Bebop” naprawdę wygląda jak neonowy space western, a nie jak las z wbudowanych teł. Do tego czasu (i dla wbudowanych światów) ekrany pokazują wbudowaną grafikę; gotowe obrazki pojawiają się same, bez restartu. Leżą w `art/<nazwa-świata>/` w katalogu danych (format `PX2`: paleta RGB i indeksy), więc goście przez SSH widzą to samo. Potwory i bohaterowie zostają wbudowane: sprite potrzebuje przezroczystości, której model nie daje. `NEURO_WORLD_ART=0` wyłącza malowanie światów.
 
 Mowa: głos i mikrofon
 =====================

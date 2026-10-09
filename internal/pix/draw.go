@@ -11,6 +11,7 @@ func New(width, height int) Image {
 // a flash, or a silhouette.
 func (img Image) Tint(colour uint8) Image {
 	out := img.Clone()
+	colour = out.colour(colour)
 
 	for index, pixel := range out.Pix {
 		if pixel != 0 {
@@ -24,16 +25,16 @@ func (img Image) Tint(colour uint8) Image {
 // Shifted returns the picture moved right by dx pixels, what falls off
 // the edge being lost.
 func (img Image) Shifted(dx int) Image {
-	out := New(img.W, img.H)
+	out := img.blank(img.W, img.H)
 	out.Draw(img, dx, 0)
 
 	return out
 }
 
-// Set colours one pixel, if it lies inside.
+// Set colours one pixel in a terminal colour, if it lies inside.
 func (img *Image) Set(x, y int, colour uint8) {
 	if x >= 0 && x < img.W && y >= 0 && y < img.H {
-		img.Pix[y*img.W+x] = colour
+		img.Pix[y*img.W+x] = img.colour(colour)
 	}
 }
 
@@ -192,7 +193,7 @@ func (img Image) Shrink(factor int) Image {
 		return img
 	}
 
-	out := New((img.W+factor-1)/factor, (img.H+factor-1)/factor)
+	out := img.blank((img.W+factor-1)/factor, (img.H+factor-1)/factor)
 
 	for y := range out.H {
 		for x := range out.W {
@@ -222,9 +223,20 @@ func (img Image) Shrink(factor int) Image {
 }
 
 // Dim returns the picture as seen at night: every colour of the 256-colour
-// cube a step darker, greys darker too, the transparent left alone.
+// cube a step darker, greys darker too, the transparent left alone. A
+// picture with its own palette has every palette colour darkened instead.
 func (img Image) Dim() Image {
 	out := img.Clone()
+
+	if out.Palette != nil {
+		for index := 1; index < len(out.Palette); index++ {
+			for channel := range 3 {
+				out.Palette[index][channel] = uint8(int(out.Palette[index][channel]) * 2 / 3)
+			}
+		}
+
+		return out
+	}
 
 	for index, colour := range out.Pix {
 		switch {

@@ -16,6 +16,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sebastianrozmus/neuro-processor/internal/gallery"
+	"github.com/sebastianrozmus/neuro-processor/internal/pix"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -200,7 +202,7 @@ type Painter struct {
 	Translate func(ctx context.Context, text string) (string, error)
 }
 
-// Generate draws a portrait and returns it as half-block art.
+// Generate draws a portrait and returns it rendered in block characters.
 func (p Painter) Generate(ctx context.Context, prompt string) (Drawing, error) {
 	if err := os.MkdirAll(p.Dir, 0o755); err != nil {
 		return Drawing{}, err
@@ -213,15 +215,18 @@ func (p Painter) Generate(ctx context.Context, prompt string) (Drawing, error) {
 	}
 
 	stamp := time.Now().UnixNano()
-	small := filepath.Join(p.Dir, fmt.Sprintf("draft-%d.txt", stamp))
-	large := filepath.Join(p.Dir, fmt.Sprintf("draft-%d-big.txt", stamp))
+	small := filepath.Join(p.Dir, fmt.Sprintf("draft-%d.px", stamp))
+	large := filepath.Join(p.Dir, fmt.Sprintf("draft-%d-big.px", stamp))
 	defer os.Remove(small)
 	defer os.Remove(large)
 
 	ctx, cancel := context.WithTimeout(ctx, generateTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, p.Python, "-", "--prompt", prompt, "--out", small, "--big", large, "--seed", fmt.Sprint(stamp%1000000))
+	// The picture is drawn for the block characters the game renders with.
+	cellW, cellH := pix.Cell()
+	cmd := exec.CommandContext(ctx, p.Python, "-", "--prompt", prompt, "--out", small, "--big", large,
+		"--seed", fmt.Sprint(stamp%1000000), "--kind", "portrait", "--cell", fmt.Sprintf("%dx%d", cellW, cellH))
 	cmd.Stdin = strings.NewReader(generator)
 
 	var stderr bytes.Buffer
@@ -238,12 +243,12 @@ func (p Painter) Generate(ctx context.Context, prompt string) (Drawing, error) {
 	var drawing Drawing
 
 	for path, target := range map[string]*string{small: &drawing.Small, large: &drawing.Large} {
-		art, err := os.ReadFile(path)
+		art, err := pix.ReadFile(path)
 		if err != nil {
 			return Drawing{}, err
 		}
 
-		*target = strings.TrimRight(string(art), "\n")
+		*target = art.Render()
 	}
 
 	return drawing, nil
@@ -260,4 +265,68 @@ func lastLine(text string) string {
 	lines := strings.Split(strings.TrimSpace(text), "\n")
 
 	return strings.TrimSpace(lines[len(lines)-1])
+}
+
+// paintTimeout bounds painting a whole world's pictures.
+const paintTimeout = 40 * time.Minute
+
+// Paint draws a world's pictures in one run of the image model, each into
+// the PX2 file its job names.
+func (p Painter) Paint(ctx context.Context, jobs []gallery.Job) error {
+	if len(jobs) == 0 {
+		return nil
+	}
+
+	if err := os.MkdirAll(p.Dir, 0o755); err != nil {
+		return err
+	}
+
+	list, err := os.CreateTemp(p.Dir, "jobs-*.json")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(list.Name())
+
+	type job struct {
+		Kind   string `json:"kind"`
+		Prompt string `json:"prompt"`
+		Out    string `json:"out"`
+		Cells  [2]int `json:"cells"`
+		Seed   int    `json:"seed"`
+	}
+
+	wanted := make([]job, 0, len(jobs))
+	for _, item := range jobs {
+		wanted = append(wanted, job{Kind: item.Kind, Prompt: item.Prompt, Out: item.Out, Cells: item.Cells, Seed: item.Seed})
+	}
+
+	if err := json.NewEncoder(list).Encode(wanted); err != nil {
+		list.Close()
+
+		return err
+	}
+
+	if err := list.Close(); err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, paintTimeout)
+	defer cancel()
+
+	cellW, cellH := pix.Cell()
+	cmd := exec.CommandContext(ctx, p.Python, "-", "--jobs", list.Name(), "--cell", fmt.Sprintf("%dx%d", cellW, cellH))
+	cmd.Stdin = strings.NewReader(generator)
+
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		if message := lastLine(stderr.String()); message != "" {
+			return errors.New(message)
+		}
+
+		return err
+	}
+
+	return nil
 }

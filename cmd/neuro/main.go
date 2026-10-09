@@ -15,8 +15,10 @@ import (
 
 	"github.com/sebastianrozmus/neuro-processor/internal/avatars"
 	"github.com/sebastianrozmus/neuro-processor/internal/config"
+	"github.com/sebastianrozmus/neuro-processor/internal/gallery"
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
 	"github.com/sebastianrozmus/neuro-processor/internal/llm"
+	"github.com/sebastianrozmus/neuro-processor/internal/pix"
 	"github.com/sebastianrozmus/neuro-processor/internal/server"
 	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/ui"
@@ -38,6 +40,7 @@ func main() {
 
 func run(listen, name string) error {
 	cfg := config.Load()
+	pix.Configure(cfg.Blocks, cfg.TrueColor)
 
 	var (
 		brain     game.Brain = llm.Mock{}
@@ -106,6 +109,15 @@ func run(listen, name string) error {
 
 	if painter.Available() {
 		host.painter = painter
+
+		// Generated worlds get pictures of their own, painted in the
+		// background the first time they are played.
+		if cfg.WorldArt {
+			host.gallery = gallery.Open(filepath.Join(dataDir, "art"))
+			host.gallery.Translate = painter.Translate
+			host.brush = painter
+			ui.UseGallery(host.gallery)
+		}
 	}
 
 	if ear := (&speech.Listener{Python: python, Dir: filepath.Join(dataDir, "speech")}); cfg.Hearing && ear.Available() {
@@ -131,6 +143,8 @@ type host struct {
 	record  ui.Record
 	library *avatars.Library
 	painter avatars.Generator
+	gallery *gallery.Gallery
+	brush   gallery.Brush
 	ear     ui.Ear
 	name    string
 	listen  string
@@ -149,6 +163,7 @@ func (h *host) New(spec world.Spec) (tea.Model, tea.Cmd, error) {
 	}
 
 	realm := game.NewRealm(built, time.Now().UnixNano())
+	h.paint(spec)
 
 	invite, err := h.open(realm)
 	if err != nil {
@@ -174,9 +189,22 @@ func (h *host) Load(state game.State) (tea.Model, tea.Cmd, error) {
 		return nil, nil, err
 	}
 
+	h.paint(state.Spec)
 	scene, cmd := h.play(realm, realm.Join(state.Host, ""), invite)
 
 	return scene, cmd, nil
+}
+
+// paint has the pictures of a generated world painted in the background,
+// unless they already are. The screens pick them up as they appear.
+func (h *host) paint(spec world.Spec) {
+	if h.gallery == nil || !gallery.Wanted(spec) || h.gallery.Painted(spec) {
+		return
+	}
+
+	go func() {
+		_ = h.gallery.Paint(context.Background(), spec, h.brush)
+	}()
 }
 
 // play gives the local player their interface. Only they can save the

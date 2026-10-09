@@ -307,9 +307,7 @@ func (m Menu) View() string {
 		return menu
 	}
 
-	pictures := backdropsFor(spec)
-
-	return loadBackdrop(pictures[m.slide%len(pictures)]).under(menu, m.width, m.height)
+	return backdropFor(spec, m.slide).under(menu, m.width, m.height)
 }
 
 func (m Menu) pointer(index int) string {
