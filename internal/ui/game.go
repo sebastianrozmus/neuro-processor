@@ -293,7 +293,12 @@ func (g *Game) refresh() {
 	}
 
 	if g.view.Shop != nil && g.view.Shop.Serial != g.shop.serial {
-		g.shop.open(*g.view.Shop, keeperPortrait(g.view.World.Spec, g.view.Shop.Kind))
+		portrait := keeperPortrait(g.view.World.Spec, g.view.Shop.Kind)
+		if g.view.Shop.Avatar != "" && g.library != nil {
+			portrait = g.library.Art(g.view.Shop.Avatar)
+		}
+
+		g.shop.open(*g.view.Shop, portrait)
 		g.speak(g.view.Shop.Greeting)
 	}
 }

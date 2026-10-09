@@ -138,6 +138,8 @@ type CompanionState struct {
 	Bag    []string  `json:"bag,omitempty"`
 	Spells []string  `json:"spells,omitempty"`
 	Auto   bool      `json:"auto,omitempty"`
+	// Wage is the daily pay agreed with a legend.
+	Wage int `json:"wage,omitempty"`
 }
 
 // BeastState is a saved page of the bestiary.
@@ -246,7 +248,7 @@ func (r *Realm) State(host string) State {
 			party = append(party, CompanionState{
 				Kind: member.kind, Scores: member.abilities, Level: member.level, XP: member.xp, HP: member.hp, Mana: member.mana,
 				Weapon: id(member.weapon), Armor: id(member.armor), Charm: id(member.charm),
-				Bag: ids(member.bag), Spells: ids(member.spells), Auto: member.auto,
+				Bag: ids(member.bag), Spells: ids(member.spells), Auto: member.auto, Wage: member.wage,
 			})
 		}
 
@@ -437,6 +439,11 @@ func Restore(state State, seed int64) (*Realm, error) {
 			}
 
 			ally.level, ally.xp, ally.auto = min(max(member.Level, 1), MaxLevel), max(member.XP, 0), member.Auto
+			ally.wage = member.Wage
+
+			if ally.wage == 0 && ally.spec().Legend {
+				ally.wage = ally.spec().Wage()
+			}
 			ally.weapon, ally.armor, ally.charm = realm.slot(member.Weapon), realm.slot(member.Armor), realm.slot(member.Charm)
 			ally.bag, ally.spells = realm.items(member.Bag), realm.items(member.Spells)
 			ally.hp = min(max(member.HP, 0), ally.maxHealth())

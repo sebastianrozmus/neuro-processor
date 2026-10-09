@@ -107,8 +107,14 @@ func (s *shop) open(view game.ShopView, portrait string) {
 	s.portrait = portrait
 
 	s.greeting = view.Greeting
+	advice := "Pisz zwykłym tekstem: pytaj o towar, podawaj swoją cenę, targuj się. Kilka sztuk naraz wychodzi taniej, np. «kupię 5 naparów za 60». Enter wysyła, PgUp/PgDn przewija, Esc wychodzi z budynku."
+
+	if view.Avatar != "" {
+		advice = "Pisz zwykłym tekstem: pytaj o warunki, podawaj swoją cenę, targuj się; «zgoda» przypieczętowuje umowę. Enter wysyła, PgUp/PgDn przewija, Esc kończy rozmowę."
+	}
+
 	s.lines = []chatLine{
-		{speakerSystem, "Pisz zwykłym tekstem: pytaj o towar, podawaj swoją cenę, targuj się. Kilka sztuk naraz wychodzi taniej, np. «kupię 5 naparów za 60». Enter wysyła, PgUp/PgDn przewija, Esc wychodzi z budynku."},
+		{speakerSystem, advice},
 		{speakerMerchant, view.Greeting},
 	}
 	s.resize(s.width, s.height)

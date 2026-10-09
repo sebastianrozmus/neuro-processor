@@ -49,6 +49,9 @@ type companion struct {
 	order *Command
 	// warned is set once the companion has spoken up against a place.
 	warned bool
+	// wage is what the companion takes each dawn: a legend's, as agreed
+	// at the inn; zero for the rest.
+	wage int
 }
 
 func (r *Realm) newCompanion(kind int, owner *player) *companion {
@@ -194,7 +197,7 @@ func (r *Realm) innLine(town int) string {
 		}
 	}
 
-	return "W karczmie czeka do wynajęcia: " + join(names) + ". Wynajmiesz poleceniem «najmij»."
+	return "W karczmie czeka do wynajęcia: " + join(names) + ". Wynajmiesz poleceniem «najmij», a potargujesz się przez «rozmawiaj z X»."
 }
 
 func (r *Realm) hire(leader *player, what string) {
@@ -252,16 +255,7 @@ func (r *Realm) hire(leader *player, what string) {
 	}
 
 	leader.gold -= price
-	leader.party = append(leader.party, r.newCompanion(found, leader))
-	r.hired[found] = leader.name
-	r.tell(leader, fmt.Sprintf("%s dołącza do drużyny. %s Rzeczy dasz poleceniem «daj X %s», kartę zobaczysz pod F%d.",
-		spec.Name, spec.Description, spec.Name, len(leader.party)+1))
-
-	if spec.Legend {
-		r.tell(leader, fmt.Sprintf("Umowa: %d %s za każdy dzień, płatne o świcie. Gdy zabraknie, %s odchodzi.", spec.Wage(), r.world.Currency, spec.Name))
-	}
-
-	r.tellOthers(leader, fmt.Sprintf("%s najmuje towarzysza: %s.", leader.name, spec.Name))
+	r.recruit(leader, found, spec.Wage())
 }
 
 // payWages settles a hero's legends at daybreak; whoever cannot be paid
@@ -280,13 +274,13 @@ func (r *Realm) payWages(leader *player) {
 			continue
 		}
 
-		if spec.Wage() == 0 {
+		if member.wage == 0 {
 			continue
 		}
 
-		if leader.gold >= spec.Wage() {
-			leader.gold -= spec.Wage()
-			r.tell(leader, fmt.Sprintf("%s bierze żołd: %d %s. Zostaje ci %d.", spec.Name, spec.Wage(), r.world.Currency, leader.gold))
+		if leader.gold >= member.wage {
+			leader.gold -= member.wage
+			r.tell(leader, fmt.Sprintf("%s bierze żołd: %d %s. Zostaje ci %d.", spec.Name, member.wage, r.world.Currency, leader.gold))
 
 			continue
 		}
@@ -323,7 +317,7 @@ func (r *Realm) dismiss(leader *player, what string) {
 		r.release(leader, index)
 		r.tell(leader, fmt.Sprintf("%s odchodzi i oddaje twoje rzeczy. Wróci do karczmy w osadzie %s.", spec.Name, r.placeAt(r.world.Towns[r.innOf(member.kind)]).Name))
 
-		if spec.Wage() > 0 {
+		if member.wage > 0 {
 			r.tell(leader, "Żołd przestaje biec.")
 		}
 

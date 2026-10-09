@@ -52,7 +52,7 @@ Główne Funkcje
 
 *Zapis gry*: Polecenie `zapisz` zapisuje stan świata; zapisane gry pojawiają się w menu.
 
-*Towarzysze*: W karczmie każdej osady czekają bohaterowie do wynajęcia: wojownik, uzdrowiciel albo mag. `najmij X` bierze ich do drużyny (najwyżej dwoje), `odpraw X` odsyła. Towarzysz jest pełną postacią: ma poziom i doświadczenie, zdrowie, moc, broń, pancerz, amulet, moce i awatar. Rzeczy dajesz mu poleceniem `daj kord bognie`, odbierasz `odbierz kord od bogny`. Lewy panel ma karty: F1 to twoja postać, F2 i F3 towarzysze (albo `pokaż bognę`), a Tab pokazuje plecak i moce wybranej karty.
+*Towarzysze*: W karczmie każdej osady czekają bohaterowie do wynajęcia: wojownik, uzdrowiciel albo mag. `najmij X` bierze ich do drużyny (najwyżej dwoje), `odpraw X` odsyła. `rozmawiaj z bogną` przysiada się do najemnika w karczmie: gadasz z nim jak z kupcem, tyle że jedynym towarem jest jego służba — cenę (a u legendy dzienny żołd) targujesz jak każdą inną, do 70 % (żołd do 80 %), a «zgoda» przypieczętowuje umowę. Z towarzyszem, który już z tobą chodzi, rozmawiasz tak samo, za darmo. Towarzysz jest pełną postacią: ma poziom i doświadczenie, zdrowie, moc, broń, pancerz, amulet, moce i awatar. Rzeczy dajesz mu poleceniem `daj kord bognie`, odbierasz `odbierz kord od bogny`. Lewy panel ma karty: F1 to twoja postać, F2 i F3 towarzysze (albo `pokaż bognę`), a Tab pokazuje plecak i moce wybranej karty.
 
 *Karta postaci*: Tab otwiera kartę wybranej postaci (F1 ty, F2 i F3 towarzysze): sześć cech jak w D&D (Siła, Zręczność, Kondycja, Inteligencja, Mądrość, Charyzma) z modyfikatorami, liczby bojowe, sprzęt, plecak i moce. Cechy działają na zasady: Siła dodaje do ataku, Zręczność do szybkości i ucieczki, Kondycja do zdrowia z każdym poziomem, Inteligencja do mocy, Mądrość wzmacnia leczenie, a Charyzma zjednuje kupców (niższe ceny) i obniża koszt najmu. Twoja postać dostaje cechy według wybranego awatara (wojownik jest silny, czarodziej bystry), a własny awatar oznacza losowanie czterema kośćmi.
 
@@ -92,6 +92,7 @@ Polecenia
 | `odpocznij` | w osadzie przywraca zdrowie i moc |
 | `idź do X`, `rozmawiaj z X` | wejście do budynku w osadzie, np. `idź do zbrojowni` |
 | `najmij X`, `odpraw X` | wynajęcie towarzysza z karczmy albo odesłanie go |
+| `rozmawiaj z X` | rozmowa z najemnikiem w karczmie (targ o cenę lub żołd) albo z własnym towarzyszem |
 | `daj X Y`, `odbierz X od Y` | przekazanie rzeczy towarzyszowi (sprzęt zakłada od razu, moce uczy się, mikstury nosi) i zabranie jej |
 | `pokaż Y`, `autowalka` | karta towarzysza w lewym panelu (także F1-F3); towarzysze walczą sami |
 | `ulecz` | rzuca najsilniejsze leczenie, na jakie masz moc, na całą drużynę (w walce i poza nią) |

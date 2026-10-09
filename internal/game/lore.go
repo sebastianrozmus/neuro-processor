@@ -21,6 +21,10 @@ func (r *Realm) lore(customer *player, wares []Ware) string {
 		return r.caseLore(customer, customer.shop)
 	}
 
+	if kind, ok := r.mateOf(customer.shop); ok {
+		return r.mateLore(customer, kind, wares)
+	}
+
 	built := r.world
 	here := customer.pos
 

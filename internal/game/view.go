@@ -127,10 +127,13 @@ type FightView struct {
 // ShopView is the viewer's ongoing conversation with a shopkeeper.
 type ShopView struct {
 	// Serial changes whenever a new conversation starts.
-	Serial      int
-	Building    string
-	Kind        world.ShopKind
-	Keeper      string
+	Serial   int
+	Building string
+	Kind     world.ShopKind
+	Keeper   string
+	// Avatar names the portrait of a companion talked to; empty for a
+	// keeper, who is drawn by the kind of shop.
+	Avatar      string
 	Greeting    string
 	Patience    int
 	MaxPatience int
@@ -336,7 +339,7 @@ func (r *Realm) partyView(leader *player) []CompanionView {
 		spec := member.spec()
 		party = append(party, CompanionView{
 			Name: spec.Name, Role: roleName(spec.Role), Description: spec.Description, Avatar: member.avatar(),
-			Abilities: member.abilities, Legend: spec.Legend, Wage: spec.Wage(),
+			Abilities: member.abilities, Legend: spec.Legend, Wage: member.wage,
 			Level: member.level, XP: member.xp, NextXP: member.nextLevel(),
 			HP: member.hp, MaxHP: member.maxHealth(), Mana: member.mana, MaxMana: member.maxEnergy(),
 			Attack: member.might(), Defense: member.guard(), Speed: member.pace(), AC: armourClass(member),
@@ -409,11 +412,17 @@ func (r *Realm) fightView(current *fight, viewer string) *FightView {
 func (r *Realm) shopView(customer *player) *ShopView {
 	shop, current := r.shopSpec(customer.shop), customer.talks[customer.shop]
 
+	avatar := ""
+	if kind, ok := r.mateOf(customer.shop); ok {
+		avatar = roleAvatars[r.world.Companions[kind].Role]
+	}
+
 	return &ShopView{
 		Serial:      current.serial,
 		Building:    shop.Name,
 		Kind:        shop.Kind,
 		Keeper:      shop.Keeper,
+		Avatar:      avatar,
 		Greeting:    shop.Greeting,
 		Patience:    current.session.Patience(),
 		MaxPatience: current.session.Merchant.Patience,

@@ -46,7 +46,7 @@ const (
 
 // Help lists the commands the game understands.
 const Help = "Polecenia: idź na północ / południe / wschód / zachód (albo n, s, e, w) · rozejrzyj się · podnieś X · upuść X · " +
-	"użyj X (załóż, wypij, naucz się) · atakuj X · rzuć X na Y · ulecz (najsilniejsze leczenie, jakie znasz) · uciekaj · odpocznij · idź do X (budynek w osadzie; w środku także «sprzedam X za N») · najmij X · odpraw X · " +
+	"użyj X (załóż, wypij, naucz się) · atakuj X · rzuć X na Y · ulecz (najsilniejsze leczenie, jakie znasz) · uciekaj · odpocznij · idź do X (budynek w osadzie; w środku także «sprzedam X za N») · najmij X · rozmawiaj z X (najemnik w karczmie: targ o cenę, albo towarzysz) · odpraw X · " +
 	"daj X Y (rzecz towarzyszowi) · odbierz X od Y · pokaż Y (karta towarzysza, także F1-F3) · autowalka · " +
 	"Imię, ulecz / rzuć X / atakuj X / wypij X (rozkaz dla towarzysza, np. «Lyrasa, ulecz załogę») · " +
 	"powiedz X · plecak · bestiariusz (także F4) · dziennik (co wiesz) · zlecenia · przyjmij (zlecenie kupca, u którego jesteś) · handluj z karawaną (gdy stoi obok) · zapisz · pomoc · wyjdź. Strzałki też chodzą, Tab otwiera plecak, a pusty Enter powtarza ostatnie polecenie."

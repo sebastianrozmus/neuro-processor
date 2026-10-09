@@ -50,6 +50,10 @@ func (r *Realm) shopSpec(index int) world.ShopSpec {
 		return caravanSpec
 	}
 
+	if kind, ok := r.mateOf(index); ok {
+		return r.mateSpec(kind)
+	}
+
 	return r.world.Shops[index]
 }
 

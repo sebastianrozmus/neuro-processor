@@ -57,6 +57,11 @@ func (r *Realm) visit(visitor *player, what string, loud bool) int {
 		found = r.caravanShop()
 	}
 
+	// A companion named is somebody to sit down with at the inn.
+	if kind, ok := r.findMate(visitor, what); found < 0 && ok {
+		return r.talkToMate(visitor, kind)
+	}
+
 	if found < 0 {
 		if loud {
 			r.tell(visitor, "Dokąd chcesz wejść? Są tu: "+join(r.buildings())+".")
@@ -176,6 +181,10 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	case OutcomeInsulted:
 		r.esteem(customer, town, insultStanding, "Obelgi w kramie niosą się po osadzie.")
 	case OutcomeSold:
+		if r.settle(customer, session, decision) {
+			break
+		}
+
 		customer.gold = session.Gold
 		r.bought(decision.Item.ID)
 		r.esteem(customer, town, tradeStanding, "Kupcy lubią, kto zostawia pieniądze.")
@@ -200,6 +209,8 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 
 	if r.investigation() {
 		request.Role = "Odgrywasz mieszkańca miasteczka w grze detektywistycznej: rozmawiasz z detektywem, który cię zagadnął. Niczym nie handlujesz."
+	} else if kind, ok := r.mateOf(customer.shop); ok {
+		request.Role = r.mateRole(kind)
 	}
 
 	if afterHours {

@@ -2134,3 +2134,101 @@ func TestThePulseOfTheWorld(t *testing.T) {
 		t.Errorf("the wilds did not fill: %d -> %d monsters", before, after)
 	}
 }
+
+func TestCompanionsHaggleAtTheInn(t *testing.T) {
+	realm := partyRealm(t)
+	realm.world.Companions = append(realm.world.Companions, world.CompanionSpec{Name: "Sir Gniewomir", Description: "Legenda.", Role: world.RoleFighter, Tier: 3, Legend: true})
+	hero := enlist(realm, "Ala")
+	ala := realm.players[hero]
+	ala.gold = 200
+	price := realm.world.Companions[0].Stats().Price
+
+	// Sitting down with a companion for hire opens a talk over one ware:
+	// their service, at their price.
+	do(realm, hero, "rozmawiaj z bogną")
+
+	view := realm.View(hero)
+	if view.Shop == nil || view.Shop.Keeper != "Bogna Topór" || view.Shop.Avatar != "wojownik" || len(view.Shop.Wares) != 1 || view.Shop.Wares[0].Price != price {
+		t.Fatalf("no talk with Bogna: %+v, %v", view.Shop, view.Log)
+	}
+
+	if !logged(realm, hero, "Przysiadasz się do: Bogna Topór.") {
+		t.Fatalf("log: %v", view.Log)
+	}
+
+	// A bare sum is an offer for it, even without a model.
+	request, ok := realm.HaggleRequest(hero, "30")
+	if reading := Read(request).Alone(); !ok || reading.Action != ActionOffer || reading.Amount != 30 {
+		t.Errorf("a bare sum: %+v", reading)
+	}
+
+	// The model is told who it plays.
+	_, narrate, _ := realm.Haggle(hero, "co umiesz?", Intent{Action: ActionChat})
+	if !strings.Contains(narrate.Lore, "Nie prowadzisz sklepu. Jesteś: Bogna Topór, wojownik") || !strings.Contains(narrate.Role, "najemnikiem") || !strings.Contains(narrate.Lore, "Twoja służba kosztuje") {
+		t.Errorf("lore for a mercenary: %q / %q", narrate.Lore, narrate.Role)
+	}
+
+	// A low offer is countered; taking the counter seals the deal.
+	low := price * 38 / 100
+	decision, _, _ := realm.Haggle(hero, fmt.Sprintf("dam %d", low), Intent{Action: ActionOffer, Amount: low})
+	if decision.Outcome != OutcomeCounter || decision.Price >= price {
+		t.Fatalf("a low offer: %+v", decision)
+	}
+
+	decision, narrate, _ = realm.Haggle(hero, "zgoda", Intent{Action: ActionAccept})
+	if decision.Outcome != OutcomeSold || len(ala.party) != 1 || ala.gold != 200-decision.Price || !logged(realm, hero, "Bogna Topór dołącza do drużyny.") {
+		t.Fatalf("the deal: %+v, party %d, gold %d, %v", decision, len(ala.party), ala.gold, realm.View(hero).Log)
+	}
+
+	if wares := realm.View(hero).Shop.Wares; len(wares) != 0 || !strings.Contains(narrate.Role, "towarzyszem") {
+		t.Errorf("after joining: wares %+v, role %q", wares, narrate.Role)
+	}
+
+	// A companion in the party talks for free; let go, they are for hire again.
+	realm.CloseShop(hero)
+	do(realm, hero, "rozmawiaj z bogną")
+	if !logged(realm, hero, "Rozmawiasz z: Bogna Topór, twój towarzysz.") || len(realm.View(hero).Shop.Wares) != 0 {
+		t.Fatalf("talk with a party member: %v", realm.View(hero).Log)
+	}
+
+	realm.CloseShop(hero)
+	do(realm, hero, "odpraw bognę", "rozmawiaj z bogną")
+	if wares := realm.View(hero).Shop.Wares; len(wares) != 1 || wares[0].Price != price {
+		t.Fatalf("the service is not back on the table: %+v", wares)
+	}
+
+	// A legend haggles over the daily wage, pays nothing up front and
+	// keeps the agreed wage through a save.
+	realm.CloseShop(hero)
+	do(realm, hero, "s", "s")
+	ala.standing = map[int]int{1: 1}
+	do(realm, hero, "rozmawiaj z gniewomirem")
+
+	view = realm.View(hero)
+	if view.Shop == nil || len(view.Shop.Wares) != 1 || view.Shop.Wares[0].Name != "Żołd dzienny" || view.Shop.Wares[0].Price != 65 {
+		t.Fatalf("no talk with the legend: %+v, %v", view.Shop, view.Log)
+	}
+
+	gold := ala.gold
+	decision, _, _ = realm.Haggle(hero, "dam 55 dziennie", Intent{Action: ActionOffer, Amount: 55})
+	if decision.Outcome != OutcomeSold || decision.Price != 55 || ala.gold != gold || len(ala.party) != 1 || ala.party[0].wage != 55 {
+		t.Fatalf("the legend's wage: %+v, gold %d, party %d", decision, ala.gold, len(ala.party))
+	}
+
+	if me := realm.View(hero).Me; len(me.Party) != 1 || me.Party[0].Wage != 55 || !logged(realm, hero, "Umowa: 55 kapsli za każdy dzień") {
+		t.Errorf("the view of the wage: %+v", me.Party)
+	}
+
+	restored, err := Restore(realm.State(hero), 1)
+	if err != nil || len(restored.players[hero].party) != 1 || restored.players[hero].party[0].wage != 55 {
+		t.Errorf("the wage was not saved: %v", err)
+	}
+
+	// Nobody talks to the disliked.
+	realm.CloseShop(hero)
+	ala.standing[1] = -1
+	do(realm, hero, "odpraw gniewomira", "rozmawiaj z jaromirem")
+	if ala.shop >= 0 || !logged(realm, hero, "Brat Jaromir: «Z kimś, kogo tu mają za") {
+		t.Errorf("the disliked got a talk: %v", realm.View(hero).Log)
+	}
+}

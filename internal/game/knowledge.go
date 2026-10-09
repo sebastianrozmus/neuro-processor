@@ -134,6 +134,10 @@ func (r *Realm) keeperName(index int) string {
 		return r.world.Shops[index].Keeper
 	}
 
+	if kind, ok := r.mateOf(index); ok {
+		return r.world.Companions[kind].Name
+	}
+
 	return ""
 }
 

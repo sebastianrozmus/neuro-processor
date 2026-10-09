@@ -82,6 +82,29 @@ func (s *Session) Stock(item Item) {
 	s.asks[item.ID] = item.ListPrice
 }
 
+// Unstock takes an item off what the merchant sells.
+func (s *Session) Unstock(id string) {
+	for i := range s.stock {
+		if s.stock[i].ID == id {
+			s.stock = append(s.stock[:i], s.stock[i+1:]...)
+
+			break
+		}
+	}
+
+	for i := range s.Merchant.Items {
+		if s.Merchant.Items[i].ID == id {
+			s.Merchant.Items = append(s.Merchant.Items[:i], s.Merchant.Items[i+1:]...)
+
+			break
+		}
+	}
+
+	if s.focus == id {
+		s.focus, s.quantity = "", 0
+	}
+}
+
 // Patience returns how many more setbacks the merchant will put up with.
 func (s *Session) Patience() int {
 	return s.patience
