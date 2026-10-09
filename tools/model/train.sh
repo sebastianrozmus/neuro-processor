@@ -95,4 +95,8 @@ MODELFILE
 
 echo "Rejestruję w Ollamie jako neuro-npc..."
 ollama create neuro-npc -f "$WORK/Modelfile"
-echo "Gotowe. W .env.local ustaw: NEURO_LLM_MODEL=neuro-npc"
+
+# Ollama keeps its own copy of the GGUF, and the fused weights can be made
+# again from the adapter, so neither needs to take up 14 GB of disk.
+rm -rf "$WORK/fused" "$WORK/neuro-npc-q8_0.gguf"
+echo "Gotowe. W .env.local ustaw: NEURO_TALK_MODEL=neuro-npc (albo NEURO_LLM_MODEL=neuro-npc)"
