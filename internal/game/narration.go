@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -64,6 +65,9 @@ type NarrateRequest struct {
 	// Role, when set, replaces the opening line of the narrator's
 	// instructions: who the speaker is instead of a shopkeeper.
 	Role string
+	// Forbidden are amounts the reply must not quote although the lore
+	// holds them: a mercenary's fee in talk that is not about the hire.
+	Forbidden []int
 }
 
 // Interpreter turns free player text into a structured Intent.
@@ -144,6 +148,7 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 	// What the merchant knows may hold numbers of its own ("Schron 7").
 	known := request.Lore + " " + request.Merchant.Persona
 	allowed := append(request.Decision.Numbers(), numbersIn(known)...)
+	allowed = slices.DeleteFunc(allowed, func(number int) bool { return slices.Contains(request.Forbidden, number) })
 	known = Fold(known)
 	problem := ErrInconsistent
 	streamer, streams := narrator.(Streamer)
@@ -357,6 +362,13 @@ var chatBriefs = map[string]string{
 func (d Decision) BriefFor(role string) string {
 	if brief, ok := chatBriefs[role]; ok && d.Outcome == OutcomeChat {
 		return brief + " Nastrój twojej postaci: " + string(d.Mood) + "."
+	}
+
+	// A mercenary's deal is a hire, not a sale: told to "potwierdź
+	// sprzedaż", models confirmed a sale and paid the player.
+	if role == RoleMercenary && d.Outcome == OutcomeSold {
+		return fmt.Sprintf("Gracz przyjmuje twoją cenę i płaci ci %s za %s. Umowa stoi: potwierdź, że dołączasz do drużyny. Pieniądze bierzesz ty, nie dajesz.", d.amount(d.Price), d.what()) +
+			" Nastrój twojej postaci: " + string(d.Mood) + "."
 	}
 
 	return d.Brief()

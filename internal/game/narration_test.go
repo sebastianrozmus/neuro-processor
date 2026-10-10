@@ -277,6 +277,28 @@ func TestSanitize(t *testing.T) {
 	}
 }
 
+func TestForbiddenAmountsEarnASecondTry(t *testing.T) {
+	narrator := &scriptedNarrator{replies: []string{"[spokój] Dołączam za 85 koron.", "[spokój] Topór mówi za mnie."}}
+	request := NarrateRequest{
+		Decision:  Decision{Outcome: OutcomeChat},
+		Lore:      "Twoja służba kosztuje: «Umowa najmu» 85 koron.",
+		Role:      RoleMercenary,
+		Forbidden: []int{85},
+	}
+
+	text, err := Narrate(context.Background(), narrator, request)
+	if err != nil || text != "[spokój] Topór mówi za mnie." || narrator.calls != 2 || narrator.corrections[1] != correction {
+		t.Errorf("got %q, %v after %d calls (%q)", text, err, narrator.calls, narrator.corrections)
+	}
+
+	// Without the ban the fee from the lore passes as before.
+	narrator = &scriptedNarrator{replies: []string{"[spokój] Dołączam za 85 koron."}}
+	request.Forbidden = nil
+	if text, _ := Narrate(context.Background(), narrator, request); narrator.calls != 1 || text != "[spokój] Dołączam za 85 koron." {
+		t.Errorf("the fee from the lore was refused: %q after %d calls", text, narrator.calls)
+	}
+}
+
 func TestChatBriefFollowsTheRole(t *testing.T) {
 	chat := Decision{Outcome: OutcomeChat, Mood: MoodPleased}
 	if brief := chat.BriefFor(""); brief != chat.Brief() || !strings.Contains(brief, "polecić coś ze swojego towaru") {
@@ -290,6 +312,16 @@ func TestChatBriefFollowsTheRole(t *testing.T) {
 		if !strings.Contains(brief, want) || strings.Contains(brief, "towaru") || !strings.HasSuffix(brief, " Nastrój twojej postaci: zadowolona.") {
 			t.Errorf("brief for %q = %q", role[:20], brief)
 		}
+	}
+
+	// A mercenary's closed deal is a hire the player pays for, not a sale.
+	hired := Decision{Outcome: OutcomeSold, Item: Ware{Name: "Umowa najmu"}, Price: 85, Currency: "koron", Mood: MoodPleased}
+	if brief := hired.BriefFor(RoleMercenary); !strings.Contains(brief, "płaci ci 85 koron za «Umowa najmu»") || strings.Contains(brief, "sprzedaż") || !strings.HasSuffix(brief, "zadowolona.") {
+		t.Errorf("hire brief = %q", brief)
+	}
+
+	if hired.BriefFor("") != hired.Brief() {
+		t.Errorf("shopkeeper's sale briefed as a hire: %q", hired.BriefFor(""))
 	}
 
 	// Other decisions keep their brief whatever the role.

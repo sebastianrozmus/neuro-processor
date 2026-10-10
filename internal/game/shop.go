@@ -211,6 +211,15 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 		request.Role = RoleWitness
 	} else if kind, ok := r.mateOf(customer.shop); ok {
 		request.Role = r.mateRole(kind)
+
+		// Small talk with a mercenary is not about the fee: quoting it
+		// anyway ("dołączam za 85 koron" to "dołącz za darmo") earns the
+		// model a second try.
+		if request.Role == RoleMercenary && decision.Outcome == OutcomeChat {
+			for _, ware := range session.Wares() {
+				request.Forbidden = append(request.Forbidden, ware.Price)
+			}
+		}
 	}
 
 	if afterHours {

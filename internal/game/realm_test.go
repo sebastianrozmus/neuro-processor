@@ -2205,6 +2205,11 @@ func TestCompanionsHaggleAtTheInn(t *testing.T) {
 		t.Errorf("lore for a mercenary: %q / %q", narrate.Lore, narrate.Role)
 	}
 
+	// The fee is in the lore, but small talk may not quote it.
+	if !slices.Contains(narrate.Forbidden, price) {
+		t.Errorf("the fee is allowed in small talk: %v", narrate.Forbidden)
+	}
+
 	// A low offer is countered; taking the counter seals the deal.
 	low := price * 38 / 100
 	decision, _, _ := realm.Haggle(hero, fmt.Sprintf("dam %d", low), Intent{Action: ActionOffer, Amount: low})
