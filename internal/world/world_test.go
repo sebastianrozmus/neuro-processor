@@ -341,3 +341,49 @@ func TestClipEndsAtASentence(t *testing.T) {
 		t.Errorf("clip = %q", got)
 	}
 }
+
+func TestScatteredRoomsAreClustered(t *testing.T) {
+	spec := Spec{
+		Name: "Neon", Intro: "Deszcz.", Mode: ModeInvestigation,
+		Rooms: []RoomSpec{
+			{Name: "Rynek", X: 10, Y: 2}, {Name: "Bar", X: 3, Y: 3}, {Name: "Dom", X: 8, Y: 5}, {Name: "Stacja", X: 14, Y: 3},
+			{Name: "Park", X: 2, Y: 7}, {Name: "Cmentarz", X: 9, Y: 1}, {Name: "Poczta", X: 6, Y: 4}, {Name: "Radio", X: 12, Y: 7},
+		},
+		People: []PersonSpec{{Name: "Reed", Room: "Bar"}},
+		Case:   &CaseSpec{Answer: "Reed", Client: "Reed"},
+	}
+
+	if connected(spec.Rooms) {
+		t.Fatal("scattered rooms counted as connected")
+	}
+
+	if err := spec.Normalize(); err != nil {
+		t.Fatal(err)
+	}
+
+	if !connected(spec.Rooms) || spec.Rooms[0].Name != "Rynek" || spec.Rooms[0].X != Width/2 || spec.Rooms[0].Y != Height/2 {
+		t.Errorf("rooms after normalizing: %+v", spec.Rooms)
+	}
+
+	cells := map[Point]bool{}
+	for _, room := range spec.Rooms {
+		if cells[Point{X: room.X, Y: room.Y}] {
+			t.Errorf("two rooms share %d,%d", room.X, room.Y)
+		}
+
+		cells[Point{X: room.X, Y: room.Y}] = true
+	}
+
+	// A map that already hangs together is left as it is.
+	jeziorna := presets(t)[5]
+	before := append([]RoomSpec(nil), jeziorna.Rooms...)
+	if err := jeziorna.Normalize(); err != nil {
+		t.Fatal(err)
+	}
+
+	for index, room := range jeziorna.Rooms {
+		if room.X != before[index].X || room.Y != before[index].Y {
+			t.Errorf("preset room %s moved to %d,%d", room.Name, room.X, room.Y)
+		}
+	}
+}

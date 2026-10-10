@@ -244,6 +244,12 @@ func (s *Spec) normalizeAdventure() {
 		rooms = append(rooms, room)
 	}
 
+	// A model tends to scatter its rooms over the grid; rooms nobody can
+	// walk between are laid out again around the first one.
+	if !connected(rooms) {
+		cluster(rooms)
+	}
+
 	things := make([]ThingSpec, 0, len(s.Things))
 	for _, thing := range s.Things {
 		thing.Name = clip(thing.Name, maxName)
@@ -431,6 +437,62 @@ func (w *World) RoomAt(p Point) (RoomSpec, bool) {
 	}
 
 	return RoomSpec{}, false
+}
+
+// connected reports whether every room can be reached from the first by
+// walking between neighbouring cells.
+func connected(rooms []RoomSpec) bool {
+	if len(rooms) == 0 {
+		return true
+	}
+
+	at := map[Point]int{}
+	for index, room := range rooms {
+		at[Point{X: room.X, Y: room.Y}] = index
+	}
+
+	seen := map[int]bool{0: true}
+	queue := []Point{{X: rooms[0].X, Y: rooms[0].Y}}
+	for len(queue) > 0 {
+		here := queue[0]
+		queue = queue[1:]
+
+		for _, step := range []Point{{X: 0, Y: -1}, {X: 0, Y: 1}, {X: 1, Y: 0}, {X: -1, Y: 0}} {
+			next := Point{X: here.X + step.X, Y: here.Y + step.Y}
+			if index, ok := at[next]; ok && !seen[index] {
+				seen[index] = true
+				queue = append(queue, next)
+			}
+		}
+	}
+
+	return len(seen) == len(rooms)
+}
+
+// cluster places the rooms around the first one, ring by ring of the
+// grid, so that every room touches one placed before it; their order and
+// names stay, only the coordinates change.
+func cluster(rooms []RoomSpec) {
+	centre := Point{X: Width / 2, Y: Height / 2}
+	index := 0
+
+	for distance := 0; index < len(rooms) && distance < Width+Height; distance++ {
+		for y := -distance; y <= distance && index < len(rooms); y++ {
+			span := distance - abs(y)
+			for _, dx := range []int{span, -span} {
+				point := Point{X: centre.X + dx, Y: centre.Y + y}
+				if index < len(rooms) && point.X >= 0 && point.Y >= 0 && point.X < Width && point.Y < Height {
+					rooms[index].X, rooms[index].Y = point.X, point.Y
+					index++
+				}
+
+				// On the axis both candidates are the same cell.
+				if span == 0 {
+					break
+				}
+			}
+		}
+	}
 }
 
 // Door returns the shut exit of a room in a direction, if there is one.
