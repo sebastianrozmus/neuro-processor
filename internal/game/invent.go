@@ -40,6 +40,13 @@ func (r *Realm) Invent(name string, item world.ItemSpec) (world.ItemSpec, bool) 
 		return world.ItemSpec{}, false
 	}
 
+	// Only a shopkeeper's talk brings goods into the world: a mercenary's
+	// one ware is their service (a muddled line once made "Umowa Najmu" a
+	// charm with attack +2), and a witness sells nothing.
+	if _, mate := r.mateOf(customer.shop); mate || r.investigation() {
+		return world.ItemSpec{}, false
+	}
+
 	item, ok := world.CleanItem(item)
 	if !ok || r.known(item.Name) {
 		return world.ItemSpec{}, false

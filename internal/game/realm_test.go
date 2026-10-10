@@ -2161,6 +2161,17 @@ func TestThePulseOfTheWorld(t *testing.T) {
 	}
 }
 
+func TestMercenariesInventNoGoods(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	do(realm, hero, "rozmawiaj z bogną")
+
+	contract := world.ItemSpec{Name: "Umowa Najmu", Description: "Kontrakt.", Kind: world.KindCharm, Effect: world.EffectPower, Tier: 1}
+	if _, ok := realm.Invent(hero, contract); ok || realm.known("Umowa Najmu") {
+		t.Error("a mercenary's contract became a charm")
+	}
+}
+
 func TestCompanionsHaggleAtTheInn(t *testing.T) {
 	realm := partyRealm(t)
 	realm.world.Companions = append(realm.world.Companions, world.CompanionSpec{Name: "Sir Gniewomir", Description: "Legenda.", Role: world.RoleFighter, Tier: 3, Legend: true})
