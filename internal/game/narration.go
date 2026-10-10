@@ -367,8 +367,13 @@ func (d Decision) BriefFor(role string) string {
 	// A mercenary's deal is a hire, not a sale: told to "potwierdź
 	// sprzedaż", models confirmed a sale and paid the player.
 	if role == RoleMercenary && d.Outcome == OutcomeSold {
-		return fmt.Sprintf("Gracz przyjmuje twoją cenę i płaci ci %s za %s. Umowa stoi: potwierdź, że dołączasz do drużyny. Pieniądze bierzesz ty, nie dajesz.", d.amount(d.Price), d.what()) +
-			" Nastrój twojej postaci: " + string(d.Mood) + "."
+		brief := fmt.Sprintf("Gracz przyjmuje twoją cenę i płaci ci %s za %s. Umowa stoi: potwierdź, że dołączasz do drużyny. Pieniądze bierzesz ty, nie dajesz.", d.amount(d.Price), d.what())
+		if d.Item.Name == WageName {
+			// A legend's wage is settled at dawn: nothing changes hands now.
+			brief = fmt.Sprintf("Gracz przyjmuje twoją stawkę %s %s za każdy dzień, płatne o świcie; nic z góry. Umowa stoi: potwierdź, że dołączasz do drużyny. Teraz nie bierzesz pieniędzy.", d.what(), d.amount(d.Price))
+		}
+
+		return brief + " Nastrój twojej postaci: " + string(d.Mood) + "."
 	}
 
 	return d.Brief()

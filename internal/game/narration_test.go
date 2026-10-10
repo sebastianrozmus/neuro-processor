@@ -324,6 +324,12 @@ func TestChatBriefFollowsTheRole(t *testing.T) {
 		t.Errorf("shopkeeper's sale briefed as a hire: %q", hired.BriefFor(""))
 	}
 
+	// A legend's wage is agreed, not paid: nothing changes hands until dawn.
+	wage := Decision{Outcome: OutcomeSold, Item: Ware{Name: WageName}, Price: 15, Currency: "koron", Mood: MoodCalm}
+	if brief := wage.BriefFor(RoleMercenary); !strings.HasPrefix(brief, "Gracz przyjmuje twoją stawkę «Żołd dzienny» 15 koron za każdy dzień, płatne o świcie; nic z góry.") || !strings.Contains(brief, "Teraz nie bierzesz pieniędzy.") {
+		t.Errorf("wage brief = %q", brief)
+	}
+
 	// Other decisions keep their brief whatever the role.
 	farewell := Decision{Outcome: OutcomeFarewell}
 	if farewell.BriefFor(RoleMercenary) != farewell.Brief() {

@@ -58,12 +58,19 @@ func (r *Realm) mateSpec(kind int) world.ShopSpec {
 	}
 }
 
+// WageName and HireName are the wares a companion for hire talks over: a
+// legend's daily wage, or the price of joining.
+const (
+	WageName = "Żołd dzienny"
+	HireName = "Umowa najmu"
+)
+
 // hireWare is a companion's service as a thing to haggle over: the price
 // of joining, or for a legend the daily wage.
 func hireWare(kind int, spec world.CompanionSpec) Item {
 	if spec.Legend {
 		return Item{
-			ID: fmt.Sprintf("%s%d", wagePrefix, kind), Name: "Żołd dzienny",
+			ID: fmt.Sprintf("%s%d", wagePrefix, kind), Name: WageName,
 			Description: fmt.Sprintf("%s idzie z tobą za dzienny żołd, płatny o świcie.", spec.Name),
 			Aliases:     []string{"zold", "dzien", "umow", "najem", "sluzb"},
 			ListPrice:   spec.Wage(), MinPrice: max(1, spec.Wage()*wageFloorPercent/100),
@@ -71,7 +78,7 @@ func hireWare(kind int, spec world.CompanionSpec) Item {
 	}
 
 	return Item{
-		ID: fmt.Sprintf("%s%d", hirePrefix, kind), Name: "Umowa najmu",
+		ID: fmt.Sprintf("%s%d", hirePrefix, kind), Name: HireName,
 		Description: fmt.Sprintf("%s dołącza do drużyny jako %s.", spec.Name, roleName(spec.Role)),
 		Aliases:     []string{"umow", "najem", "sluzb", "wynaj"},
 		ListPrice:   spec.Stats().Price, MinPrice: max(1, spec.Stats().Price*hireFloorPercent/100),
