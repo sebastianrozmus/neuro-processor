@@ -278,14 +278,16 @@ func TestSanitize(t *testing.T) {
 }
 
 func TestChatBriefFollowsTheRole(t *testing.T) {
-	chat := Decision{Outcome: OutcomeChat}
+	chat := Decision{Outcome: OutcomeChat, Mood: MoodPleased}
 	if brief := chat.BriefFor(""); brief != chat.Brief() || !strings.Contains(brief, "polecić coś ze swojego towaru") {
 		t.Errorf("shopkeeper brief = %q", brief)
 	}
 
+	// The mood closes a role's brief as it closes the shopkeeper's: the
+	// model was trained on briefs that end this way.
 	for role, want := range map[string]string{RoleMercenary: "O cenie służby mów tylko", RoleCompanion: "Jesteś już w drużynie", RoleWitness: "CO WIESZ"} {
 		brief := chat.BriefFor(role)
-		if !strings.Contains(brief, want) || strings.Contains(brief, "towaru") {
+		if !strings.Contains(brief, want) || strings.Contains(brief, "towaru") || !strings.HasSuffix(brief, " Nastrój twojej postaci: zadowolona.") {
 			t.Errorf("brief for %q = %q", role[:20], brief)
 		}
 	}

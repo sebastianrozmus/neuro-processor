@@ -356,7 +356,7 @@ var chatBriefs = map[string]string{
 // that plain talk is briefed by the role.
 func (d Decision) BriefFor(role string) string {
 	if brief, ok := chatBriefs[role]; ok && d.Outcome == OutcomeChat {
-		return brief
+		return brief + " Nastrój twojej postaci: " + string(d.Mood) + "."
 	}
 
 	return d.Brief()

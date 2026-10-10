@@ -205,7 +205,7 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 
 	request := session.NarrateRequest(text, decision)
 	request.Lore = r.lore(customer, session.Wares())
-	request.Hint = r.hint(customer, text, decision)
+	request.Hint = r.hint(customer, text, decision, session.Wares())
 
 	if r.investigation() {
 		request.Role = RoleWitness

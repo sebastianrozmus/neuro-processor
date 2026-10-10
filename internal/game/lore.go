@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
@@ -181,10 +182,20 @@ func touches(words []string, text string) int {
 	return count
 }
 
+// kindWords are folded beginnings of the words a player uses for a kind of
+// ware without naming one: "jaką masz zbroję", "coś na rany".
+var kindWords = map[world.Kind][]string{
+	world.KindWeapon: {"bron", "orez", "miecz", "topor", "luk", "sztylet", "noz", "wloczn", "mlot", "pistolet", "karabin", "strzelb"},
+	world.KindArmor:  {"zbroj", "pancerz", "kaftan", "kolczug", "oslon", "tarcz", "helm", "kamizel", "ochron"},
+	world.KindPotion: {"mikstur", "napar", "eliksir", "wywar", "lekarstw", "leku", "leki", "lecz", "rany", "rane", "rann"},
+	world.KindSpell:  {"zakle", "czar", "zwoj", "ksieg", "magi"},
+	world.KindCharm:  {"amulet", "talizman", "urok", "pierscien", "wisior"},
+}
+
 // hint finds the fact the player's words touch among those the keeper
 // knows; when they touch none and only chat, it offers one, so that the
 // talk goes somewhere. Whatever is touched, the player has now heard.
-func (r *Realm) hint(customer *player, text string, decision Decision) string {
+func (r *Realm) hint(customer *player, text string, decision Decision, wares []Ware) string {
 	switch decision.Outcome {
 	case OutcomeChat, OutcomeInfo, OutcomeWares, OutcomeFarewell, OutcomeUnclear:
 	default:
@@ -194,9 +205,25 @@ func (r *Realm) hint(customer *player, text string, decision Decision) string {
 	known := r.openTo(customer, customer.shop)
 	words := strings.Fields(Fold(text))
 
-	// The fact the player's words touch most: subject words count double.
+	// Talk about the goods goes to the goods before anything else: "jaką
+	// masz zbroję" is about the mail on the shelf, not about the skeleton
+	// whose armour hangs on rust.
+	if decision.Outcome == OutcomeChat || decision.Outcome == OutcomeUnclear {
+		if fitting := waresAsked(words, wares); len(fitting) > 0 {
+			return "Gracz pyta o twój towar. Pasuje: " + join(fitting) + ". Poleć jedną z tych rzeczy, powiedz, do czego jest, i podaj jej cenę z listy."
+		}
+	}
+
+	// A bare greeting is answered in one sentence: the model has never seen
+	// one, and given three sentences and a random fact it drifts.
+	if decision.Outcome == OutcomeChat && greeting(words) {
+		return "Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej."
+	}
+
+	// The fact the player's words touch most: subject words count double,
+	// and a single word somewhere in a fact's body is not enough.
 	var best *Fact
-	bestScore := 0
+	bestScore := 1
 
 	for _, fact := range known {
 		if score := touches(words, fact.Subject)*2 + touches(words, fact.Text); score > bestScore {
@@ -238,5 +265,74 @@ func (r *Realm) hint(customer *player, text string, decision Decision) string {
 		return fmt.Sprintf("Możesz wpleść jedną rzecz, którą wiesz: %s. %s", fact.Subject, fact.Text)
 	}
 
+	// A greeting or banter with nothing to hang on: without a direction a
+	// small model fills the three sentences with noise.
+	if decision.Outcome == OutcomeChat {
+		return "Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, " +
+			"i sam zagadnij go o jedno: po co przyszedł, dokąd idzie albo czy ma czym walczyć."
+	}
+
 	return ""
+}
+
+// greetingWords are folded words a greeting is made of, with the fillers
+// that come with it ("siema mordo", "no hej", "dzień dobry panu").
+var greetingWords = []string{
+	"siema", "siemka", "siemano", "hej", "hejka", "czesc", "czolem", "witam", "witaj", "witajcie", "dzien", "dobry", "wieczor",
+	"elo", "yo", "hello", "hi", "halo", "ej", "no", "mordo", "stary", "ziom", "ziomek", "ziomku", "bracie", "brachu", "panu", "pani", "panie", "kolego", "mistrzu",
+}
+
+// greeting reports words that are a greeting and nothing else.
+func greeting(words []string) bool {
+	if len(words) == 0 || len(words) > 4 {
+		return false
+	}
+
+	for _, word := range words {
+		if !slices.Contains(greetingWords, strings.Trim(word, ".,!?")) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// waresAsked lists the wares the player's words point at: by the kind of
+// thing they ask for, by name or by what the description says; three at
+// most, with prices, as the brief wants them.
+func waresAsked(words []string, wares []Ware) []string {
+	var kinds []world.Kind
+
+	for kind, stems := range kindWords {
+		for _, word := range words {
+			if len(word) < minQueryWord || slices.Contains(kinds, kind) {
+				continue
+			}
+
+			for _, stem := range stems {
+				if strings.HasPrefix(word, stem) {
+					kinds = append(kinds, kind)
+
+					break
+				}
+			}
+		}
+	}
+
+	var fitting []string
+
+	for _, ware := range wares {
+		score := touches(words, ware.Name)*2 + touches(words, ware.Description)
+		if slices.Contains(kinds, ware.Kind) {
+			score += 2
+		}
+
+		if score == 0 || len(fitting) >= referrals {
+			continue
+		}
+
+		fitting = append(fitting, fmt.Sprintf("«%s» %d (%s)", ware.Name, ware.Price, strings.TrimSuffix(ware.Description, ".")))
+	}
+
+	return fitting
 }

@@ -108,6 +108,7 @@ type Ware struct {
 	ID          string
 	Name        string
 	Description string
+	Kind        world.Kind
 	Aliases     []string
 	Price       int
 }

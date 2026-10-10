@@ -830,6 +830,31 @@ func TestMatches(t *testing.T) {
 	}
 }
 
+func TestTalkAboutTheGoodsPointsAtThem(t *testing.T) {
+	realm := testRealm(t)
+	hero := enlist(realm, "Ala")
+	do(realm, hero, "idź do zbrojowni")
+
+	// A kind of ware asked for without a name goes to the wares of that
+	// kind, not to whatever fact has the word in its body.
+	_, request, ok := realm.Haggle(hero, "jaką masz najlepszą zbroję?", Intent{Action: ActionChat})
+	if !ok || !strings.Contains(request.Hint, "Pasuje: «Kaftan» 35") || strings.Contains(request.Hint, "Kij") {
+		t.Errorf("hint about armour = %q", request.Hint)
+	}
+
+	// A bare greeting is answered as a greeting; banter with no fact in it
+	// still gets a direction instead of nothing.
+	_, request, ok = realm.Haggle(hero, "siema mordo!", Intent{Action: ActionChat})
+	if !ok || !strings.Contains(request.Hint, "tylko się wita") {
+		t.Errorf("hint for a greeting = %q", request.Hint)
+	}
+
+	_, request, ok = realm.Haggle(hero, "siema, nudno dziś u ciebie", Intent{Action: ActionChat})
+	if !ok || request.Hint == "" || strings.Contains(request.Hint, "wita") || strings.Contains(request.Hint, "Pasuje") {
+		t.Errorf("hint for banter = %q", request.Hint)
+	}
+}
+
 func TestKeepersKnowTheWorld(t *testing.T) {
 	realm := testRealm(t)
 	hero := enlist(realm, "Ala")
