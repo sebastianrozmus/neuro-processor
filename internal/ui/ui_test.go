@@ -341,7 +341,14 @@ func TestShopBuyAndEquip(t *testing.T) {
 		assertFits(t, model, size, "shop after a purchase")
 
 		model = press(model, tea.KeyEsc, tea.KeyTab)
-		assertShows(t, model, "sheet", "Zardzewiały Kord", "atak +3")
+		assertShows(t, model, "sheet", "Zardzewiały Kord", "atak +3", "⚔")
+		assertFits(t, model, size, "sheet with an icon")
+
+		// The chosen thing is drawn: a sword is a diagonal of steel.
+		if row := strings.Split(icon(world.KindWeapon, world.EffectNone, 1, "Zardzewiały Kord"), "\n")[2]; !strings.Contains(model.View(), row) {
+			at := strings.Index(model.View(), "Plecak")
+			t.Errorf("%v: the sheet shows no icon of the sword, want %q in:\n%s", size, row, model.View()[at:min(at+1500, len(model.View()))])
+		}
 
 		model = press(model, tea.KeyEnter, tea.KeyEsc)
 
@@ -855,13 +862,22 @@ func TestFunctionKeysPickCards(t *testing.T) {
 		t.Errorf("card = %d after F2", got)
 	}
 
-	assertShows(t, model, "two cards", "F1 Seba", "F2 Bogna Topór", "wojownik, poziom 1", "Broń ")
+	// The members are tabs with their keys; only the chosen card is drawn.
+	assertShows(t, model, "two cards", "F1 Seba", "F2 Bogna", "Bogna Topór", "wojownik, poziom 1", "Broń ")
 	assertFits(t, model, sizes[1], "two cards")
 
-	// On a small terminal only the selected card is drawn in full.
+	if view := model.View(); strings.Count(view, "HP  ") != 1 || strings.Contains(view, "Poziom 1") {
+		t.Errorf("the hero's card is drawn beside the companion's: %s", view)
+	}
+
 	small, _ := model.Update(tea.WindowSizeMsg{Width: sizes[0][0], Height: sizes[0][1]})
-	assertShows(t, small, "folded cards", "F1 Seba", "F2 Bogna Topór")
-	assertFits(t, small, sizes[0], "folded cards")
+	assertShows(t, small, "small terminal", "F1 Seba", "F2 Bogna")
+	assertFits(t, small, sizes[0], "small terminal")
+
+	// The sheet carries the same tabs.
+	sheet := press(model, tea.KeyTab)
+	assertShows(t, sheet, "sheet tabs", "F1 Seba", "F2 Bogna", "Plecak")
+	assertFits(t, sheet, sizes[1], "sheet tabs")
 
 	model = press(model, tea.KeyF1)
 	if got := model.(Game).card; got != 0 {

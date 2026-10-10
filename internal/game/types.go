@@ -12,6 +12,8 @@ type Item struct {
 	Name        string
 	Description string
 	Kind        world.Kind
+	Effect      world.Effect
+	Tier        int
 	// Aliases are lowercase word stems used to spot the item in player text.
 	Aliases   []string
 	ListPrice int
@@ -109,6 +111,8 @@ type Ware struct {
 	Name        string
 	Description string
 	Kind        world.Kind
+	Effect      world.Effect
+	Tier        int
 	Aliases     []string
 	Price       int
 }

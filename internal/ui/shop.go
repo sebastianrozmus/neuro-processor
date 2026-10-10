@@ -370,13 +370,21 @@ func (g Game) shopStatus(view game.ShopView) string {
 	fmt.Fprintf(&status, "%s %s\n", labelStyle.Render("Cierpliwość:"), strings.Repeat("●", view.Patience)+strings.Repeat("○", max(0, view.MaxPatience-view.Patience)))
 	fmt.Fprintf(&status, "%s %s\n\n", labelStyle.Render("Twoja sakwa:"), goldStyle.Render(fmt.Sprintf("%d %s", g.view.Me.Gold, g.view.World.Currency)))
 
-	for _, ware := range view.Wares {
-		name := fmt.Sprintf("%-*s", portraitWidth-8, ware.Name)
+	var focused *game.Ware
+
+	for index, ware := range view.Wares {
+		name := fmt.Sprintf("%-*s", portraitWidth-10, ware.Name)
 		if ware.ID == view.Focus {
 			name = titleStyle.Render(name)
+			focused = &view.Wares[index]
 		}
 
-		fmt.Fprintf(&status, "%s %4d\n", name, ware.Price)
+		fmt.Fprintf(&status, "%s %s %4d\n", glyph(ware.Kind, ware.Effect), name, ware.Price)
+	}
+
+	// The ware under discussion is shown, when the panel has the room.
+	if room := g.height - portraitHeight - 4 - 5 - len(view.Wares); focused != nil && room >= iconRows+1 {
+		status.WriteString("\n" + withIcon(icon(focused.Kind, focused.Effect, focused.Tier, focused.Name), focused.Description, portraitWidth-2))
 	}
 
 	return status.String()

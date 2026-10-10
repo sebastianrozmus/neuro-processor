@@ -37,7 +37,7 @@ func (g Game) View() string {
 
 	left := lipgloss.JoinVertical(lipgloss.Left,
 		panel(leftWidth, mapHeight, titleStyle.Render(g.view.World.Name)+"\n"+g.mapView(), false),
-		panel(leftWidth, bodyHeight-mapHeight, g.partyView(bodyHeight-mapHeight-2), false),
+		panel(leftWidth, bodyHeight-mapHeight, g.partyView(), false),
 	)
 
 	right := panel(rightWidth, bodyHeight, g.bagView(), false)
@@ -183,47 +183,12 @@ func (g Game) cards() []card {
 	return all
 }
 
-// cardRows is the height of a full card: the portrait with the figures
-// beside it.
-const cardRows = 10
-
-func (g Game) heroView() string {
-	return g.partyView(0)
-}
-
-// partyView draws the hero and the companions one under another. Cards
-// that do not fit the given height are folded to a line each, except the
-// selected one; height 0 means unlimited.
-func (g Game) partyView(height int) string {
+// partyView draws the party as tabs, one for each member with the key
+// that picks them, and the card of the chosen one under the tabs.
+func (g Game) partyView() string {
 	all := g.cards()
 	selected := min(g.card, len(all)-1)
-	others := len(g.view.Others)
-	if others > 0 {
-		others++
-	}
-
-	full := map[int]bool{}
-	if height == 0 || cardRows*len(all)+len(all)-1+others <= height {
-		for index := range all {
-			full[index] = true
-		}
-	} else {
-		full[selected] = true
-	}
-
-	var lines []string
-
-	for index, member := range all {
-		if len(lines) > 0 {
-			lines = append(lines, "")
-		}
-
-		if full[index] {
-			lines = append(lines, g.fullCard(index, member, index == selected))
-		} else {
-			lines = append(lines, g.foldedCard(index, member))
-		}
-	}
+	lines := []string{tabBar(all, selected, leftWidth-4), g.fullCard(all[selected])}
 
 	if len(g.view.Others) > 0 {
 		lines = append(lines, "", labelStyle.Render("Inni gracze"))
@@ -245,15 +210,36 @@ func (g Game) partyView(height int) string {
 	return strings.Join(lines, "\n")
 }
 
-// fullCard draws a member's portrait with their figures and gear beside it.
-func (g Game) fullCard(index int, member card, selected bool) string {
-	name := fmt.Sprintf("F%d %s", index+1, member.name)
-	if selected {
-		name = selfStyle.Render(name)
-	} else {
-		name = playerStyle.Render(name)
+// tabBar draws the members as tabs with the keys that pick them: the
+// chosen one lit and underlined, the others dim. First names only, so
+// that three fit beside each other.
+func tabBar(all []card, selected, width int) string {
+	var tabs, rule []string
+
+	for index, member := range all {
+		label := fmt.Sprintf(" F%d %s ", index+1, strings.Fields(member.name)[0])
+		if index == selected {
+			tabs = append(tabs, tabOnStyle.Render(label))
+			rule = append(rule, goldBar.Render(strings.Repeat("━", lipgloss.Width(label))))
+		} else {
+			tabs = append(tabs, labelStyle.Render(label))
+			rule = append(rule, emptyStyle.Render(strings.Repeat("─", lipgloss.Width(label))))
+		}
 	}
 
+	under := strings.Join(rule, "")
+	if rest := width - lipgloss.Width(under); rest > 0 {
+		under += emptyStyle.Render(strings.Repeat("─", rest))
+	}
+
+	clip := lipgloss.NewStyle().MaxWidth(width)
+
+	return clip.Render(strings.Join(tabs, "")) + "\n" + clip.Render(under)
+}
+
+// fullCard draws a member's portrait with their figures and gear beside it.
+func (g Game) fullCard(member card) string {
+	name := selfStyle.Render(member.name)
 	experience := gauge("EXP ", member.xp, member.nextXP, goldBar)
 	if member.level >= game.MaxLevel {
 		experience = labelStyle.Render("EXP ") + goldStyle.Render("maks.")
@@ -340,15 +326,6 @@ func (g Game) combatLine(member card) string {
 	return fmt.Sprintf("%s %d %s %d %s %d", labelStyle.Render("Atk"), member.attack, labelStyle.Render("Obr"), member.defense, labelStyle.Render("Szyb"), member.speed)
 }
 
-// foldedCard sums a member up in one line.
-func (g Game) foldedCard(index int, member card) string {
-	return fmt.Sprintf("%s %s %s %d/%d %s %d/%d",
-		playerStyle.Render(fmt.Sprintf("F%d %s", index+1, member.name)),
-		labelStyle.Render(member.title),
-		healthBar(member.hp, member.maxHP, barWidth/2), member.hp, member.maxHP,
-		bar(member.mana, member.maxMana, barWidth/2, manaStyle), member.mana, member.maxMana)
-}
-
 // gauge draws a labelled bar beside the portrait with its numbers.
 func gauge(label string, value, limit int, style lipgloss.Style) string {
 	return fmt.Sprintf("%s %s %d/%d", labelStyle.Render(label), bar(value, limit, gaugeWidth, style), value, limit)
@@ -417,8 +394,10 @@ func (g Game) bagView() string {
 
 	index := min(g.card, len(g.view.Me.Party))
 	who := g.sheetOf(index)
+	width := g.width - leftWidth - 4
 
 	head := []string{
+		tabBar(g.cards(), index, width),
 		selfStyle.Render(who.name) + "  " + titleStyle.Render(who.title),
 		dimStyle.Render(who.description),
 	}
@@ -465,11 +444,12 @@ func (g Game) bagView() string {
 			pointer = selfStyle.Render("> ")
 		}
 
-		lines = append(lines, pointer+item.Name+" "+labelStyle.Render(game.Effect(item)))
+		lines = append(lines, pointer+glyph(item.Kind, item.Effect)+" "+item.Name+" "+labelStyle.Render(game.Effect(item)))
 	}
 
 	if g.cursor < len(who.bag) {
-		lines = append(lines, dimStyle.Render(who.bag[g.cursor].Description))
+		item := who.bag[g.cursor]
+		lines = append(lines, "", withIcon(icon(item.Kind, item.Effect, item.Tier, item.Name), item.Description, width))
 	}
 
 	lines = append(lines, "", titleStyle.Render(fmt.Sprintf("Moce (%d)", len(who.spells))))
@@ -479,7 +459,7 @@ func (g Game) bagView() string {
 	}
 
 	for _, spell := range who.spells {
-		lines = append(lines, "  "+spell.Name+" "+labelStyle.Render(game.SpellEffect(spell)))
+		lines = append(lines, "  "+glyph(spell.Kind, spell.Effect)+" "+spell.Name+" "+labelStyle.Render(game.SpellEffect(spell)))
 	}
 
 	if index > 0 {
@@ -504,11 +484,12 @@ func (g Game) thingsView() string {
 			pointer = selfStyle.Render("> ")
 		}
 
-		lines = append(lines, pointer+item.Name)
+		lines = append(lines, pointer+glyph(item.Kind, item.Effect)+" "+item.Name)
 	}
 
 	if g.cursor < len(g.view.Me.Bag) {
-		lines = append(lines, "", dimStyle.Render(g.view.Me.Bag[g.cursor].Description))
+		item := g.view.Me.Bag[g.cursor]
+		lines = append(lines, "", withIcon(icon(item.Kind, item.Effect, item.Tier, item.Name), item.Description, g.width-leftWidth-4))
 	}
 
 	return strings.Join(lines, "\n")

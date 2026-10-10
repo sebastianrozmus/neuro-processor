@@ -453,7 +453,7 @@ func (s *Session) resolve(id string) *Item {
 }
 
 func (s *Session) ware(item Item) Ware {
-	return Ware{ID: item.ID, Name: item.Name, Description: item.Description, Kind: item.Kind, Aliases: item.Aliases, Price: s.asks[item.ID]}
+	return Ware{ID: item.ID, Name: item.Name, Description: item.Description, Kind: item.Kind, Effect: item.Effect, Tier: item.Tier, Aliases: item.Aliases, Price: s.asks[item.ID]}
 }
 
 func (s *Session) decide(outcome Outcome, item *Item, offer int) Decision {

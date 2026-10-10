@@ -31,6 +31,7 @@ var (
 	warnStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("214"))
 	badStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("203"))
 	emptyStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("238"))
+	tabOnStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("231")).Background(lipgloss.Color("238")).Bold(true)
 
 	// Map markers sit in the middle of a tile on their own background.
 	meMarker      = lipgloss.NewStyle().Foreground(lipgloss.Color("16")).Background(lipgloss.Color("226")).Bold(true)

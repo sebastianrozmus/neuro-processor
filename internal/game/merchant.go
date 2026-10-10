@@ -43,6 +43,8 @@ func ware(item world.ItemSpec) Item {
 		ID:          item.ID,
 		Name:        item.Name,
 		Kind:        item.Kind,
+		Effect:      item.Effect,
+		Tier:        item.Tier,
 		Description: strings.TrimSpace(item.Description + " " + Effect(item)),
 		Aliases:     Aliases(item.Name),
 		ListPrice:   item.Price(),
