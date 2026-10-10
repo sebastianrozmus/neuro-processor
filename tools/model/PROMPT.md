@@ -157,6 +157,8 @@ Zwróć wyłącznie linie JSON, bez numeracji i komentarzy. Przed oddaniem spraw
 
 Po otrzymaniu pliku: `python3 -I tools/model/rebrief.py` nie jest potrzebny, jeśli bloki są co do znaku; sprawdź próbkę 30 linii ręcznie (kierunek zapłaty, polszczyzna, czy wejścia gracza są rzeczywiście potoczne), zapisz jako `extra-gpt-npc-run5.jsonl` i trenuj od adaptera run 4: `NEURO_RESUME="$M/run4-final.safetensors" NEURO_MODEL_NAME=neuro-npc-run5 NEURO_RATE=5e-5 tools/model/train.sh 800`.
 
+Wynik run 5 (10 X 2026, 550 wierszy z zamówienia, zbiór 3070/171/64, resume od run 4, 800 kroków, lr 5e-5): val 1,22 → 1,09 (min. 1,02 przy 600), test loss 1,095 / ppl 2,99. Pomiar 80 przypadków w dwóch przebiegach: run 4 78 i 79, run 5 72 i 78 — różnica w granicach szumu, potknięcia run 5 to słowne liczebniki 1–9 i potwierdzenie najmu bez kwoty (gra tego nie karze). Odtworzenie rozmów z gry: powitanie 3/3 jednym zdaniem (run 4: 0/3), odesłanie do znawcy 3/3 (run 4: 1/3), kierunek zapłaty przy najmie 12/12 (run 4: ok. połowa źle). Gra przełączona na `neuro-npc-run5`; adapter zachowany jako `model/run5-final.safetensors`. Maszyna zabrakła pamięci przy wtapianiu adaptera — końcówkę (fuse → GGUF → Ollama) robi osobno `tools/model/publish.sh`. Słabe nadal: „plotki” bez konkretnego pytania (oba modele plotą) — temat na kolejne dane.
+
 Co dalej z wynikiem
 -------------------
 
