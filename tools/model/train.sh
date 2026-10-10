@@ -25,6 +25,12 @@ RATE="${NEURO_RATE:-1e-4}"
 # NEURO_MODEL_NAME registers the result under another name in Ollama, so a
 # new run can be compared with the one the game uses before replacing it.
 NAME="${NEURO_MODEL_NAME:-neuro-npc}"
+# NEURO_RESUME continues from an adapter file (a short run on new data on
+# top of the last model instead of a long one from scratch).
+RESUME="${NEURO_RESUME:-}"
+# Validation every 100 steps on 50 examples: run 3 scored 25 per point and
+# the curve jumped by ±0.3, which said more about the sample than the model.
+VAL_BATCHES="${NEURO_VAL_BATCHES:-50}"
 
 mkdir -p "$WORK"
 exec > >(tee -a "$WORK/train.log") 2>&1
@@ -51,12 +57,17 @@ fi
 echo "Trenuję LoRA na $BASE ($ITERS kroków po $BATCH x $ACCUMULATE)..."
 # --mask-prompt: the loss counts only the reply, not the thousand tokens
 # of rules in front of it, so the model learns to answer, not to recite.
+RESUME_ARGS=()
+if [ -n "$RESUME" ]; then
+  echo "Kontynuuję od adaptera $RESUME"
+  RESUME_ARGS=(--resume-adapter-file "$RESUME")
+fi
 "$VENV/bin/python3" -m mlx_lm.lora \
   --model "$BASE" --train --data "$WORK/data" --mask-prompt \
   --fine-tune-type lora --num-layers "$LAYERS" --batch-size "$BATCH" \
   --grad-accumulation-steps "$ACCUMULATE" --grad-checkpoint --iters "$ITERS" \
-  --learning-rate "$RATE" --steps-per-eval 50 --save-every 50 \
-  --adapter-path "$WORK/adapters" --max-seq-length 2048
+  --learning-rate "$RATE" --steps-per-eval 100 --val-batches "$VAL_BATCHES" --save-every 50 \
+  --adapter-path "$WORK/adapters" --max-seq-length 2048 "${RESUME_ARGS[@]}"
 
 echo "Sprawdzam na zbiorze testowym..."
 "$VENV/bin/python3" -m mlx_lm.lora --model "$BASE" --data "$WORK/data" --adapter-path "$WORK/adapters" --test --mask-prompt
