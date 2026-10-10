@@ -796,3 +796,42 @@ func TestAnInvestigationIsWonByTheAccusationAlone(t *testing.T) {
 		t.Errorf("a step or event of the case still wins the game: %+v %+v", spec.Steps[0], spec.Events[0])
 	}
 }
+
+func TestSourceGivesEveryProofAClue(t *testing.T) {
+	spec := world.Spec{
+		Case: &world.CaseSpec{Answer: "Elias", Proof: []string{"spotkanie na molo", "przekupstwo urzędników", "zaginiony skaner"}},
+		People: []world.PersonSpec{
+			{Name: "Glitch", Clues: []world.ClueSpec{{Subject: "Spotkanie na molo", Text: "Widziałem ich."}, {Subject: "przekupstwa urzędnika", Text: "Brał kopertę."}}},
+		},
+		Things: []world.ThingSpec{
+			{Name: "lampa"},
+			{Name: "rejestr", Fixed: true, Clues: []world.ClueSpec{{Subject: "długi w porcie", Text: "Spis dłużników."}}},
+			{Name: "szafka", Fixed: true},
+		},
+	}
+
+	source(&spec)
+
+	if err := playable(world.Spec{Case: spec.Case, People: spec.People, Things: append(spec.Things, world.ThingSpec{Name: "x"})}); err != nil {
+		t.Fatalf("after sourcing: %v", err)
+	}
+
+	// The same words with another ending are the same fact, renamed to
+	// match the proof exactly; the exact one is left alone.
+	if clues := spec.People[0].Clues; clues[0].Subject != "Spotkanie na molo" || clues[1].Subject != "przekupstwo urzędników" || clues[1].Text != "Brał kopertę." {
+		t.Errorf("person clues = %+v", clues)
+	}
+
+	// A proof nothing resembles goes on a fixed thing without clues.
+	if clues := spec.Things[2].Clues; len(clues) != 1 || clues[0].Subject != "zaginiony skaner" || !strings.Contains(clues[0].Text, "zaginiony skaner") {
+		t.Errorf("szafka clues = %+v", clues)
+	}
+
+	if len(spec.Things[0].Clues)+len(spec.Things[1].Clues) != 1 {
+		t.Errorf("other things changed: %+v", spec.Things)
+	}
+
+	if alike("znikające fundusze z kościelnego rachunku", "fundusze kościelne") != 2 || alike("molo", "port") != 0 {
+		t.Errorf("alike = %d, %d", alike("znikające fundusze z kościelnego rachunku", "fundusze kościelne"), alike("molo", "port"))
+	}
+}

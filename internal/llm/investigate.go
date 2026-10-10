@@ -153,6 +153,8 @@ func (c *Client) generateInvestigation(ctx context.Context, brief string, style 
 			return err
 		}
 
+		source(&spec)
+
 		return playable(spec)
 	})
 	if err != nil {
@@ -160,6 +162,123 @@ func (c *Client) generateInvestigation(ctx context.Context, brief string, style 
 	}
 
 	return spec, nil
+}
+
+// source gives every proof of the case a clue that yields it. A small
+// model names the same fact a little differently in proof and in clues
+// ("przekupstwo urzędników" against "przekupstwa urzędnika"), so a clue
+// about the same words is renamed to the proof; a proof nothing comes
+// close to is put on a thing as a plain clue rather than left unprovable.
+func source(spec *world.Spec) {
+	if spec.Case == nil {
+		return
+	}
+
+	var clues []*world.ClueSpec
+	for index := range spec.People {
+		for at := range spec.People[index].Clues {
+			clues = append(clues, &spec.People[index].Clues[at])
+		}
+	}
+
+	for index := range spec.Things {
+		for at := range spec.Things[index].Clues {
+			clues = append(clues, &spec.Things[index].Clues[at])
+		}
+	}
+
+	known := func(subject string) bool {
+		for _, clue := range clues {
+			if strings.EqualFold(clue.Subject, subject) {
+				return true
+			}
+		}
+
+		for _, step := range spec.Steps {
+			if step.Fact != nil && strings.EqualFold(step.Fact.Subject, subject) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	proofs := map[string]bool{}
+	for _, proof := range spec.Case.Proof {
+		proofs[strings.ToLower(proof)] = true
+	}
+
+	for _, proof := range spec.Case.Proof {
+		if known(proof) {
+			continue
+		}
+
+		var best *world.ClueSpec
+		score := 0
+		for _, clue := range clues {
+			// A clue that already yields another proof stays as it is.
+			if proofs[strings.ToLower(clue.Subject)] {
+				continue
+			}
+
+			if shared := alike(clue.Subject, proof); shared > score {
+				best, score = clue, shared
+			}
+		}
+
+		if best != nil {
+			best.Subject = proof
+
+			continue
+		}
+
+		if at := clueHolder(spec.Things); at >= 0 {
+			spec.Things[at].Clues = append(spec.Things[at].Clues, world.ClueSpec{Subject: proof, Text: "Wszystko tu wskazuje na jedno: " + proof + "."})
+		}
+	}
+}
+
+// alike counts the word stems two subjects share: the first five letters
+// of every word of at least four, which rides over Polish endings.
+func alike(a, b string) int {
+	stems := func(text string) map[string]bool {
+		found := map[string]bool{}
+		for _, word := range strings.Fields(strings.ToLower(text)) {
+			if runes := []rune(word); len(runes) >= 4 {
+				found[string(runes[:min(5, len(runes))])] = true
+			}
+		}
+
+		return found
+	}
+
+	shared := 0
+	other := stems(b)
+	for stem := range stems(a) {
+		if other[stem] {
+			shared++
+		}
+	}
+
+	return shared
+}
+
+// clueHolder picks the thing to put a clue on: a fixed one without clues
+// (a register, a cabinet), else any without, else the first.
+func clueHolder(things []world.ThingSpec) int {
+	for pass := 0; pass < 2; pass++ {
+		for index, thing := range things {
+			if len(thing.Clues) == 0 && (thing.Fixed || pass == 1) {
+				return index
+			}
+		}
+	}
+
+	if len(things) > 0 {
+		return 0
+	}
+
+	return -1
 }
 
 // playable tells what the second step left out: a case whose proof nobody
