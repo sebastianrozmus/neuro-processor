@@ -74,7 +74,7 @@ func main() {
 		*out = filepath.Join(dir, "neuro-processor", "synth.jsonl")
 	}
 
-	client := &llm.Client{BaseURL: cfg.BaseURL, APIKey: cfg.APIKey, Model: cfg.Model, MaxTokens: cfg.MaxTokens}
+	client := &llm.Client{BaseURL: cfg.BaseURL, APIKey: cfg.APIKey, Model: cfg.Model, MaxTokens: cfg.MaxTokens, Context: cfg.Context}
 	presets, err := world.Presets()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "synth:", err)

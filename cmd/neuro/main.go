@@ -54,12 +54,12 @@ func run(listen, name string) error {
 	var client *llm.Client
 
 	if !cfg.Offline() {
-		client = &llm.Client{BaseURL: cfg.BaseURL, APIKey: cfg.APIKey, Model: cfg.Model, MaxTokens: cfg.MaxTokens}
+		client = &llm.Client{BaseURL: cfg.BaseURL, APIKey: cfg.APIKey, Model: cfg.Model, MaxTokens: cfg.MaxTokens, Context: cfg.Context}
 		brain, generator, backend = client, client, cfg.Model
 
 		// A second model may do the talking while the first keeps reading.
 		if cfg.TalkModel != "" {
-			voice := &llm.Client{BaseURL: cfg.TalkBaseURL, APIKey: cfg.TalkAPIKey, Model: cfg.TalkModel, MaxTokens: cfg.MaxTokens}
+			voice := &llm.Client{BaseURL: cfg.TalkBaseURL, APIKey: cfg.TalkAPIKey, Model: cfg.TalkModel, MaxTokens: cfg.MaxTokens, Context: cfg.TalkContext}
 			split := llm.Split{Mind: client, Voice: voice}
 			brain, generator, backend = split, split, cfg.Model+" + "+cfg.TalkModel
 		}

@@ -27,6 +27,12 @@ type Config struct {
 	TalkBaseURL string
 	TalkAPIKey  string
 	TalkModel   string
+	// Context is the window, in tokens, a local Ollama is asked to run the
+	// main model in, which it otherwise does in 4096, too few to design a
+	// world; TalkContext the same for the talking model. 0 keeps the
+	// server's own setting.
+	Context     int
+	TalkContext int
 	// Speech turns reading the characters' lines aloud on; Voice picks the
 	// system voice, empty meaning the Polish one; SpeechCommand, when set,
 	// is a shell command that gets each line on its input instead.
@@ -80,6 +86,8 @@ func Load() Config {
 
 	// A value that is not a number means no cap.
 	maxTokens, _ := strconv.Atoi(get("NEURO_LLM_MAX_TOKENS", ""))
+	window, _ := strconv.Atoi(get("NEURO_LLM_CONTEXT", "8192"))
+	talkWindow, _ := strconv.Atoi(get("NEURO_TALK_CONTEXT", ""))
 
 	return Config{
 		BaseURL:       get("NEURO_LLM_BASE_URL", defaultBaseURL),
@@ -89,6 +97,8 @@ func Load() Config {
 		TalkBaseURL:   get("NEURO_TALK_BASE_URL", get("NEURO_LLM_BASE_URL", defaultBaseURL)),
 		TalkAPIKey:    get("NEURO_TALK_API_KEY", get("NEURO_LLM_API_KEY", "")),
 		TalkModel:     get("NEURO_TALK_MODEL", ""),
+		Context:       max(window, 0),
+		TalkContext:   max(talkWindow, 0),
 		Speech:        isOn(get("NEURO_TTS", "")),
 		Voice:         get("NEURO_TTS_VOICE", ""),
 		SpeechCommand: get("NEURO_TTS_COMMAND", ""),

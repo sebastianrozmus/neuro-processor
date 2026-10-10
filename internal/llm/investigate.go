@@ -38,12 +38,12 @@ const townInstructions = `Dokańczasz ŚLEDZTWO do tekstowej gry przygodowej w s
 	`Zwracasz obiekt JSON zgodny ze schematem. Wszystkie teksty po polsku. Nazwy miejsc i osób piszesz dokładnie tak, jak w ustalonej sprawie.
 
 Wymagania:
-- things: 8 do 14 rzeczy. name po polsku, zwykłe słowa ze spacjami (np. "książka telefoniczna", nie identyfikator), description (1-2 zdania), room (nazwa miejsca, w którym leży na początku), fixed true dla tych, których nie da się zabrać (szafka, rejestr, automat). ` +
+- things: 8 do 12 rzeczy. name po polsku, zwykłe słowa ze spacjami (np. "książka telefoniczna", nie identyfikator), description (1-2 zdania), room (nazwa miejsca, w którym leży na początku), fixed true dla tych, których nie da się zabrać (szafka, rejestr, automat). ` +
 	`Część ma clues (kartka, książka telefoniczna, rejestr, zdjęcie): subject, text i warunki heard/hour/needs jak u ludzi; tak powstaje łańcuch poszlak od ludzi do rzeczy i adresów ` +
 	`(np. numer na kartce w szafce dostępnej wieczorem, książka telefoniczna zamieniająca numer na nazwisko i adres). Fakty z proof, których nie zna żaden człowiek, muszą być w clues rzeczy albo w fact kroków.
-- steps: 8 do 16 reguł. verb: "use" (użyj rzeczy; "użyj X na Y": thing X, on Y), "give" (daj thing osobie on), "talk" (rozmowa z osobą on), "open" (otwórz on), "examine" (zbadaj on), ` +
+- steps: 4 do 10 reguł. verb: "use" (użyj rzeczy; "użyj X na Y": thing X, on Y), "give" (daj thing osobie on), "talk" (rozmowa z osobą on), "open" (otwórz on), "examine" (zbadaj on), ` +
 	`"enter" (wejście do miejsca on), "wait" (gracz czeka godzinę w miejscu on) z with (osoby, które muszą tam być) i hour: tak powstaje dowód naoczny (fact: subject i text, np. zdjęcie ze spotkania). ` +
-	`room ogranicza krok do miejsca; needs i unless to flagi; once true dla jednorazowych; text to odpowiedź gry; flag ustawia flagę, gives daje rzecz, takes true zużywa użytą rzecz, reveals ujawnia rzecz w miejscu. ` +
+	`room ogranicza krok do miejsca; needs to flaga; heard to subject faktu, który gracz musi już znać; once true dla jednorazowych; text to odpowiedź gry (1-2 zdania); gives daje rzecz, reveals ujawnia rzecz w miejscu; pola, których krok nie używa, zostają puste. ` +
 	`Co najmniej jeden fakt z proof pochodzi z kroku wait albo enter z with i hour. Krok win nie jest potrzebny: sprawę kończy oskarżenie.
 - events: 2-4 zdarzenia dziwności w stylu analog horror (when.day 2 lub 3, global true, text, opcjonalnie transform miejsca: room i description): miasteczko robi się dziwniejsze, im więcej gracz wie.`
 
@@ -87,15 +87,25 @@ func caseSchema() map[string]any {
 	})
 }
 
+// townSchema asks for the things, the rules and the events. Its rules
+// carry only the fields an investigation uses: every field of the schema
+// is one the model must fill, and a small model kept to a long schema
+// spends its answer on empty fields and the whitespace between them.
 func townSchema() map[string]any {
 	full := investigationSchema()["properties"].(map[string]any)
 	thing := full["things"].(map[string]any)["items"].(map[string]any)["properties"].(map[string]any)
+	step := full["steps"].(map[string]any)["items"].(map[string]any)["properties"].(map[string]any)
+
+	rule := map[string]any{}
+	for _, name := range []string{"verb", "thing", "on", "room", "with", "hour", "heard", "needs", "once", "text", "gives", "reveals", "fact"} {
+		rule[name] = step[name]
+	}
 
 	return object(map[string]any{
 		"things": list(object(map[string]any{
 			"name": thing["name"], "description": thing["description"], "room": map[string]any{"type": "string"}, "fixed": thing["fixed"], "clues": thing["clues"],
 		})),
-		"steps":  full["steps"],
+		"steps":  list(object(rule)),
 		"events": full["events"],
 	})
 }
@@ -156,7 +166,7 @@ func (c *Client) generateInvestigation(ctx context.Context, brief string, style 
 // and nothing can give cannot be solved.
 func playable(spec world.Spec) error {
 	if len(spec.Things) < 4 {
-		return fmt.Errorf("jest tylko %d rzeczy w things, ma być 8 do 14", len(spec.Things))
+		return fmt.Errorf("jest tylko %d rzeczy w things, ma być 8 do 12", len(spec.Things))
 	}
 
 	known := map[string]bool{}
@@ -326,6 +336,19 @@ func (d caseDraft) merge(town townDraft) world.Spec {
 		}
 	}
 
+	// An investigation is won by the accusation alone: a model that marks
+	// its steps and events as winning would end the case at the first
+	// conversation.
+	steps := append([]world.StepSpec(nil), town.Steps...)
+	for index := range steps {
+		steps[index].Win = false
+	}
+
+	events := append([]world.EventSpec(nil), town.Events...)
+	for index := range events {
+		events[index].Win = false
+	}
+
 	things := make([]world.ThingSpec, 0, len(town.Things))
 	for _, thing := range town.Things {
 		things = append(things, thing.ThingSpec)
@@ -347,8 +370,8 @@ func (d caseDraft) merge(town townDraft) world.Spec {
 		Rooms:    rooms,
 		Things:   things,
 		People:   people,
-		Steps:    town.Steps,
-		Events:   town.Events,
+		Steps:    steps,
+		Events:   events,
 		Case:     d.Case,
 		Deadline: d.Deadline,
 		Loss:     d.Loss,
@@ -363,6 +386,18 @@ func dump(content, suffix string) {
 		_ = os.WriteFile(path+suffix, []byte(content), 0o644)
 	}
 }
+
+// designBudget caps a design answer in tokens. A sound world needs fewer;
+// a model that runs on past it is repeating itself, and without the cap a
+// local one would do so for a quarter of an hour until the window is full.
+const designBudget = 3000
+
+// designTemperature is the sampling temperature of a design. At the
+// model's default of 1 a small model, kept to the schema's grammar, falls
+// into runs of tabs and spaces between the fields (the grammar allows
+// them) and spends the budget on whitespace; cooler sampling keeps it on
+// the words.
+const designTemperature = 0.6
 
 // design asks for an object by schema and, when the game rejects it, shows
 // the model what was wrong and lets it mend the answer once.
@@ -384,6 +419,8 @@ func (c *Client) design(ctx context.Context, instructions string, schema map[str
 				{Role: "system", Content: instructions},
 				{Role: "user", Content: asked},
 			},
+			MaxTokens:   designBudget,
+			Temperature: designTemperature,
 			ResponseFormat: map[string]any{
 				"type": "json_schema",
 				"json_schema": map[string]any{
@@ -394,7 +431,16 @@ func (c *Client) design(ctx context.Context, instructions string, schema map[str
 			},
 		})
 		if err != nil {
-			return "", err
+			// An answer that did not fit the window is a design to redo
+			// shorter, not a broken server.
+			if !errors.Is(err, ErrCut) {
+				return "", err
+			}
+
+			dump(content, ".cut")
+			rejected = errors.New("odpowiedź była za długa i została ucięta; pisz zwięźle, opisy po jednym krótkim zdaniu")
+
+			continue
 		}
 
 		if rejected = accept(content); rejected == nil {

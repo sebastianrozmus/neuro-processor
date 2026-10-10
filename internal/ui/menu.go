@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	generateTimeout = 5 * time.Minute
+	generateTimeout = 10 * time.Minute
 	slideInterval   = 6 * time.Second
 	menuWidth       = 72
 	themeLimit      = 400

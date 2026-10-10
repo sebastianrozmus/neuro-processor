@@ -3,6 +3,7 @@ package llm
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -613,5 +614,185 @@ func TestPlayableNeedsASourceForEveryProof(t *testing.T) {
 	orphan.Case = &world.CaseSpec{Answer: preset.Case.Answer, Proof: append([]string{"Fakt Znikąd"}, preset.Case.Proof...)}
 	if err := playable(orphan); err == nil || !strings.Contains(err.Error(), "Fakt Znikąd") {
 		t.Errorf("an unobtainable proof passed: %v", err)
+	}
+}
+
+// ollamaServer answers like an Ollama: it has a version and takes chat
+// requests on its own API, each remembered in seen.
+func ollamaServer(t *testing.T, seen *[]map[string]any, answer func(w http.ResponseWriter, request map[string]any)) *Client {
+	t.Helper()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/version":
+			_ = json.NewEncoder(w).Encode(map[string]any{"version": "0.18.2"})
+		case "/api/chat":
+			request := map[string]any{}
+			body, _ := io.ReadAll(r.Body)
+			_ = json.Unmarshal(body, &request)
+			*seen = append(*seen, request)
+			answer(w, request)
+		default:
+			t.Errorf("path = %s", r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	return &Client{BaseURL: server.URL + "/v1", Model: "gemma", Context: 8192}
+}
+
+func TestOllamaIsAskedForTheWindowOnItsOwnAPI(t *testing.T) {
+	var seen []map[string]any
+	client := ollamaServer(t, &seen, func(w http.ResponseWriter, request map[string]any) {
+		if request["stream"] == true {
+			for _, piece := range []string{"Daj ", "140."} {
+				_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"role": "assistant", "content": piece}, "done": false})
+			}
+
+			_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"role": "assistant", "content": ""}, "done": true, "done_reason": "stop"})
+
+			return
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"role": "assistant", "content": `{"action":"offer","amount":30}`}, "done": true, "done_reason": "stop"})
+	})
+
+	content, err := client.chat(context.Background(), chatRequest{
+		Model:          "gemma",
+		Messages:       []message{{Role: "user", Content: "dam 30 za plaszcz, mam 30"}},
+		ResponseFormat: map[string]any{"type": "json_schema", "json_schema": map[string]any{"name": "x", "strict": true, "schema": map[string]any{"type": "object"}}},
+	})
+	if err != nil || content != `{"action":"offer","amount":30}` {
+		t.Fatalf("chat = %q, %v", content, err)
+	}
+
+	client.Warm(context.Background())
+
+	var pieces []string
+	text, err := client.Stream(context.Background(), game.NarrateRequest{}, func(piece string) { pieces = append(pieces, piece) })
+	if err != nil || text != "Daj 140." || len(pieces) != 2 {
+		t.Errorf("stream = %q, %v, pieces %q", text, err, pieces)
+	}
+
+	if len(seen) != 3 {
+		t.Fatalf("%d requests: %v", len(seen), seen)
+	}
+
+	options := seen[0]["options"].(map[string]any)
+	if options["num_ctx"] != float64(8192) || options["num_predict"] != nil || seen[0]["stream"] != false {
+		t.Errorf("design request = %v", seen[0])
+	}
+
+	if format, ok := seen[0]["format"].(map[string]any); !ok || format["type"] != "object" || seen[0]["response_format"] != nil {
+		t.Errorf("schema was not passed as the format: %v", seen[0])
+	}
+
+	if options := seen[1]["options"].(map[string]any); options["num_predict"] != float64(1) || options["num_ctx"] != float64(8192) {
+		t.Errorf("warm-up request = %v", seen[1])
+	}
+
+	if seen[2]["stream"] != true || seen[2]["format"] != nil {
+		t.Errorf("stream request = %v", seen[2])
+	}
+}
+
+func TestOtherServersKeepTheOpenAIPath(t *testing.T) {
+	asked := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		asked++
+		if r.URL.Path != "/v1/chat/completions" {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"choices": []any{map[string]any{"message": map[string]any{"role": "assistant", "content": "ok"}, "finish_reason": "stop"}},
+		})
+	}))
+	t.Cleanup(server.Close)
+
+	client := &Client{BaseURL: server.URL + "/v1", Model: "gpt", Context: 8192}
+	for range 2 {
+		if content, err := client.chat(context.Background(), chatRequest{Model: "gpt", Messages: []message{{Role: "user", Content: "ok"}}}); err != nil || content != "ok" {
+			t.Fatalf("chat = %q, %v", content, err)
+		}
+	}
+
+	// The server is asked what it is once, not before every request.
+	if asked != 3 {
+		t.Errorf("%d requests to a plain server", asked)
+	}
+
+	// Without a window to ask for, nobody is probed.
+	plain := &Client{BaseURL: server.URL + "/v1", Model: "gpt"}
+	if plain.ollama(context.Background()) || asked != 3 {
+		t.Errorf("a client without a window probed the server")
+	}
+}
+
+func TestACutAnswerIsRedoneShorter(t *testing.T) {
+	var seen []map[string]any
+	client := ollamaServer(t, &seen, func(w http.ResponseWriter, request map[string]any) {
+		if len(seen) == 1 {
+			_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"role": "assistant", "content": `{"name":"Mia`}, "done": true, "done_reason": "length"})
+
+			return
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"role": "assistant", "content": `{"name":"Miasto"}`}, "done": true, "done_reason": "stop"})
+	})
+
+	_, err := client.chat(context.Background(), chatRequest{Model: "gemma", Messages: []message{{Role: "user", Content: "świat"}}})
+	if !errors.Is(err, ErrCut) {
+		t.Fatalf("a cut answer came back as %v", err)
+	}
+
+	// A capped reply may end at the cap: that is not a cut.
+	seen = nil
+	client.server = serverUnknown
+	if _, err := client.chat(context.Background(), chatRequest{Model: "gemma", Messages: []message{{Role: "user", Content: "mów"}}, MaxTokens: 5}); err != nil {
+		t.Errorf("a capped reply was refused: %v", err)
+	}
+
+	seen = nil
+	content, err := client.design(context.Background(), "projektuj", map[string]any{"type": "object"}, "świat", func(content string) error {
+		if !strings.HasSuffix(content, "}") {
+			return errors.New("ucięte")
+		}
+
+		return nil
+	})
+	if err != nil || content != `{"name":"Miasto"}` || len(seen) != 2 {
+		t.Fatalf("design = %q, %v after %d requests", content, err, len(seen))
+	}
+
+	retry := seen[1]["messages"].([]any)[1].(map[string]any)["content"].(string)
+	if !strings.Contains(retry, "została ucięta") {
+		t.Errorf("the retry did not ask for a shorter answer: %q", retry)
+	}
+
+	// Designs are capped, so that a rambling model cannot run for a quarter
+	// of an hour; a design cut at the cap is still a cut.
+	if options := seen[0]["options"].(map[string]any); options["num_predict"] != float64(designBudget) || options["temperature"] != designTemperature {
+		t.Errorf("design request = %v", seen[0])
+	}
+
+	seen = nil
+	if _, err := client.chat(context.Background(), chatRequest{Model: "gemma", Messages: []message{{Role: "user", Content: "świat"}}, MaxTokens: 5, ResponseFormat: map[string]any{"type": "json_object"}}); !errors.Is(err, ErrCut) {
+		t.Errorf("a cut JSON answer came back as %v", err)
+	}
+}
+
+func TestAnInvestigationIsWonByTheAccusationAlone(t *testing.T) {
+	draft := caseDraft{Name: "Mgła", Rooms: []world.RoomSpec{{Name: "Port"}}}
+	spec := draft.merge(townDraft{
+		Steps:  []world.StepSpec{{Verb: "talk", Thing: "Elias", Room: "Port", Win: true}},
+		Events: []world.EventSpec{{Text: "Syrena.", Win: true}},
+	})
+
+	if spec.Steps[0].Win || spec.Events[0].Win {
+		t.Errorf("a step or event of the case still wins the game: %+v %+v", spec.Steps[0], spec.Events[0])
 	}
 }
