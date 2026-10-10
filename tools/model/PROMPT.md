@@ -89,7 +89,11 @@ Decyzje (`Decision.Brief`), kwoty zawsze z walutą („44 szt. złota”, „30 
 - niejasne: `Nie jest jasne, co i za ile gracz chce kupić. Poproś, żeby powiedział wprost, o który przedmiot chodzi i ile oferuje. Nie podawaj żadnych kwot.`
 - pytanie o przedmiot: `Gracz pyta o «X». Opis: <opis> Twoja aktualna cena: M. Opowiedz krótko o przedmiocie i podaj cenę.`
 - lista towaru: `Gracz pyta, co masz na sprzedaż. Na sprzedaż: «X» za M, «Y» za K.`
-- pogawędka: `Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedział. Jeśli pyta o towar, możesz polecić coś ze swojego towaru i podać jego cenę z listy. W tej kwestii niczego nie sprzedajesz.`
+- pogawędka kupca: `Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedział. Jeśli pyta o towar, możesz polecić coś ze swojego towaru i podać jego cenę z listy. W tej kwestii niczego nie sprzedajesz.`
+- pogawędka najemnika: `Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedział: o swojej broni, rzemiośle, drodze albo świecie. O cenie służby mów tylko, gdy o nią pyta. W tej kwestii niczego nie sprzedajesz.` (gra odrzuca wtedy odpowiedź z ceną służby, choć stoi ona w CO WIESZ)
+- pogawędka towarzysza: `Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedział. Jesteś już w drużynie: nie proponujesz najmu ani zapłaty i nie opisujesz czynów, których nie było; tylko rozmawiasz.`
+- pogawędka mieszkańca w śledztwie: `Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz w swojej roli na to, co powiedział. O sprawie mówisz tylko to, co masz w CO WIESZ; niczego nie dopowiadasz i niczym nie handlujesz.`
+- najem zawarty (zamiast „kupno zawarte” u najemnika): `Gracz przyjmuje twoją cenę i płaci ci N za «Umowa najmu». Umowa stoi: potwierdź, że dołączasz do drużyny. Pieniądze bierzesz ty, nie dajesz.` — kontroferta, obraza, brak pieniędzy i pytanie o «Umowę najmu»/«Żołd dzienny» mają u najemnika te same bloki co u kupca.
 - skup zawarty: `Gracz sprzedaje ci «X» za N. Transakcja zawarta: płacisz i potwierdzasz.`
 - kontroferta skupu: `Gracz chce ci sprzedać «X» i żąda N. To za dużo. Odmów i zaoferuj swoją cenę: M.` albo bez żądania: `Gracz chce ci sprzedać «X». Obejrzyj rzecz i zaoferuj za nią M; więcej nie dasz.`
 - odmowa skupu: `Gracz chce ci sprzedać «X», ale ty takimi rzeczami nie handlujesz. Odmów i powiedz, czym handlujesz. Nie podawaj żadnych kwot.`
@@ -102,7 +106,10 @@ Podpowiedzi, które gra dokleja po nastroju (w pogawędce, pytaniu o towar, poż
 - `Możesz wpleść jedną rzecz, którą wiesz: <temat>. <fakt>`;
 - `Gracz pyta o coś, o czym nie wiesz: <temat> (wie o tym <imię>). Powiedz, że nie wiesz, i odeślij go tam.`;
 - `W karczmie usłyszałeś od sąsiada i możesz powtórzyć: <temat>. <fakt>` (wieczorem);
-- `Gracz chce handlować, ale jest wieczór i kram zamknięty: odmów grzecznie, zaproś rano, nic nie sprzedawaj.` (wtedy decyzja jest pogawędką).
+- `Gracz chce handlować, ale jest wieczór i kram zamknięty: odmów grzecznie, zaproś rano, nic nie sprzedawaj.` (wtedy decyzja jest pogawędką);
+- `Gracz pyta o twój towar. Pasuje: «Skórzany Kaftan» 35 (Utwardzana skóra, dobra na gobliński nóż), «Kolczuga» 95 (Krasnoludzka kolczuga z drobnych kółek, ciężka i wierna). Poleć jedną z tych rzeczy, powiedz, do czego jest, i podaj jej cenę z listy.` — gdy gracz pyta o rodzaj towaru, nie nazywając sztuki („jaką masz zbroję”, „coś na rany”); najwyżej 3 rzeczy;
+- `Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej.` — gdy kwestia to samo powitanie („siema mordo”, „hej”, „dzień dobry”);
+- `Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po co przyszedł, dokąd idzie albo czy ma czym walczyć.` — gdy słowa gracza nie trafiają w żaden fakt (u najemnika i towarzysza zawsze, bo nie mają faktów osady).
 
 Mistrz Gry (walka) ma inny SYSTEM (`masterInstructions`: `TWOJA POSTAĆ`, `STAN WALKI` z bohaterami i przeciwnikami, zasady „opisujesz wyłącznie to, co jest w bloku [GRA]”), wiadomość `[GRA] Przebieg rundy: <kto kogo trafił, ile traci, kto pada, łup>. Odpowiedz najwyżej trzema krótkimi zdaniami. Liczby pisz cyframi.` i odpowiedź **bez znacznika nastroju**, najwyżej 3 zdania, z liczbami tylko z bloku.
 
@@ -125,6 +132,30 @@ Rozkład (łącznie ok. 2 000):
 - po równo fantasy / postapokalipsa / science fiction / horror; 8 archetypów gospodarzy; waluty i przedmioty dopasowane do gatunku; bohater raz zdrowy, raz ranny, raz bez broni; opinia osady od wyklętego do bohatera.
 Zwróć wyłącznie linie JSON, bez numeracji i komentarzy.
 ```
+
+Zamówienie uzupełniające po run 4 (10 X 2026): ~550 przykładów
+---------------------------------------------------------------
+
+Run 4 (2 755 przykładów) zdaje 78/80 przypadków regresji, ale w grze gracz pisze inaczej niż dane: „siema mordo”, „jaka masz najlepsza zbroje”, „co wiesz o krolu ?”. W całym zbiorze nie ma **ani jednego** powitania ani zaczepki, wszystkie wejścia to grzeczne, pełne zdania z polskimi znakami; potwierdzeń najmu jest 40 wobec setek skupów, w których płaci kupiec — stąd „wypłaciłem ci 85 koron” przy najmie. Zamówienie uzupełnia dokładnie te dziury; reszta zbioru zostaje.
+
+```
+Piszesz dane treningowe dla polskiej gry tekstowej (format, szablony SYSTEM, bloki [GRA] i podpowiedzi masz niżej — używaj ich co do znaku). Każdy przykład to jedna linia JSONL {"messages":[...]}: system, opcjonalna historia (user/assistant naprzemiennie, słowa gracza BEZ [GRA]) i ostatnia para user (kwestia + [GRA]) / assistant (kwestia postaci).
+
+NAJWAŻNIEJSZE: kwestie gracza mają wyglądać jak pisane na klawiaturze w grze, nie jak z książki. Co najmniej 70 % bez polskich znaków („zbroje”, „krolu”), małą literą, bez kropki, ze spacją przed „?”, czasem z literówką albo potocznie („siema mordo”, „ej stary”, „co tam”, „nudno u ciebie”, „jak leci”, „elo”, „no hej”, „co masz dobrego”, „jaka masz najlepsza zbroje”, „co wiesz o krolu ?”, „dasz cos na rany”). Odpowiedzi postaci za to po polsku bez zarzutu: pełne, naturalne zdania, polskie znaki, bez wymyślonych słów. Każdą odpowiedź piszesz osobno, w głosie postaci.
+
+Rozkład (łącznie ok. 550; po równo fantasy / postapokalipsa / science fiction / horror, różne postacie, waluty i nastroje):
+
+1. 160 powitań — podpowiedź „Gracz tylko się wita…”: 60 kupców, 50 najemników, 30 towarzyszy, 20 mieszkańców w śledztwie. Odpowiedź: JEDNO zdanie, odwzajemnione powitanie po swojemu plus pytanie, czego gracz chce. Najemnik NIE podaje ceny, kupiec NIE wylicza towaru, nikt nie recytuje świata. Różne powitania gracza (siema, hej, czesc, witam, dzien dobry, elo, yo, no hej, siema mordo, czolem, ej), połowa z dopiskiem („siema mordo”, „hej stary”, „dzien dobry panu”).
+2. 120 zaczepek bez pytania o świat — podpowiedź „Gracz zagaduje bez konkretnego pytania…”: 40 kupców, 50 najemników, 30 towarzyszy. Gracz: „co tam”, „nudno tu”, „jak leci”, „ladna pogoda co”, „zmeczony jestem”, „nic nie robisz caly dzien ?”, „fajny toporek”. Odpowiedź: 1–2 zdania, w charakterze, odnosi się do słów gracza i do tego, jak wygląda (rany, brak broni), kończy jednym pytaniem (po co przyszedł, dokąd idzie, czy ma czym walczyć). Zero cen.
+3. 100 potwierdzeń najmu — blok „Gracz przyjmuje twoją cenę i płaci ci N za «Umowa najmu». Umowa stoi: potwierdź, że dołączasz do drużyny. Pieniądze bierzesz ty, nie dajesz.”: 1–2 zdania, kwota N cyframi z walutą dokładnie raz, kierunek zapłaty jasny (najemnik BIERZE, chowa, przelicza; nigdy „wypłacam ci”, „oddaję ci”, „zapłacę ci”), wojownik/uzdrowiciel/mag po równo, co trzeci przykład z historią 2 wymian (targ przed zgodą, słowa gracza bez [GRA]). Dla «Żołdu dziennego» (30 ze 100): „płatne o świcie; nic z góry” — najemnik dołącza, pieniędzy jeszcze nie bierze i mówi to wprost.
+4. 60 pytań o rodzaj towaru — podpowiedź „Gracz pyta o twój towar. Pasuje: …” z 1–3 rzeczami z cennika kupca: gracz pyta o zbroję, broń, coś na rany, zaklęcie, amulet, nie nazywając sztuki. Odpowiedź: poleca jedną rzecz, mówi do czego, podaje jej cenę z listy (cyframi, z walutą), może wspomnieć drugą. Ceny tylko z „Pasuje:”.
+5. 60 odesłań — podpowiedź „Gracz pyta o coś, o czym nie wiesz: <temat> (wie o tym <imię>). Powiedz, że nie wiesz, i odeślij go tam.”: 30 najemników, 20 towarzyszy, 10 kupców. Gracz pyta potocznie („co wiesz o krolu ?”, „a ta kopalnia ?”). Odpowiedź: 1–2 zdania, „nie wiem” plus imię i miejsce osoby, która wie; żadnych domysłów o temacie.
+6. 50 towarzyszy w drużynie — brief towarzysza, gracz żąda rzeczy niemożliwych („napisz ze mnie uleczyles”, „powiedz ze juz wyszlismy”, „obiecaj ze nie spadne”): odmowa po ludzku, bez opisywania czynów, których nie było, bez najmu i zapłaty, polszczyzna bez zarzutu.
+
+Zwróć wyłącznie linie JSON, bez numeracji i komentarzy. Przed oddaniem sprawdź każdą odpowiedź: znacznik nastroju na początku, 1–3 zdania, liczby tylko z [GRA]/podpowiedzi/cennika i cyframi, żadnych gwiazdek, didaskaliów, imienia na początku ani wymyślonych słów.
+```
+
+Po otrzymaniu pliku: `python3 -I tools/model/rebrief.py` nie jest potrzebny, jeśli bloki są co do znaku; sprawdź próbkę 30 linii ręcznie (kierunek zapłaty, polszczyzna, czy wejścia gracza są rzeczywiście potoczne), zapisz jako `extra-gpt-npc-run5.jsonl` i trenuj od adaptera run 4: `NEURO_RESUME="$M/run4-final.safetensors" NEURO_MODEL_NAME=neuro-npc-run5 NEURO_RATE=5e-5 tools/model/train.sh 800`.
 
 Co dalej z wynikiem
 -------------------
