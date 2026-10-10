@@ -7,6 +7,7 @@ mlx_lm.lora expects: {"messages": [{"role": ..., "content": ...}, ...]}.
 
 Usage: python3 prepare.py OUT_DIR FILE.jsonl [FILE.jsonl ...]
 """
+import hashlib
 import json
 import os
 import random
@@ -74,14 +75,22 @@ def main():
             seen.add(key)
             unique.append(row)
 
-    random.Random(7).shuffle(unique)
-    valid = max(1, int(len(unique) * VALID_SHARE))
-    test = max(1, int(len(unique) * TEST_SHARE))
-    splits = {
-        "test": unique[:test],
-        "valid": unique[test:test + valid],
-        "train": unique[test + valid:],
-    }
+    # Each row's split follows from a hash of the row itself, so adding
+    # data later leaves every earlier row where it was: the valid and test
+    # sets of one run stay the valid and test sets of the next, and their
+    # numbers can be compared.
+    splits = {"test": [], "valid": [], "train": []}
+    for row in unique:
+        key = json.dumps(row, ensure_ascii=False, sort_keys=True)
+        bucket = int(hashlib.sha1(key.encode("utf-8")).hexdigest()[:8], 16) / 0xFFFFFFFF
+        if bucket < TEST_SHARE:
+            splits["test"].append(row)
+        elif bucket < TEST_SHARE + VALID_SHARE:
+            splits["valid"].append(row)
+        else:
+            splits["train"].append(row)
+
+    random.Random(7).shuffle(splits["train"])
 
     import os
     os.makedirs(out, exist_ok=True)

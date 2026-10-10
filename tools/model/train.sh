@@ -3,7 +3,7 @@
 # Silicon), fuses the adapter into the weights and hands the result to
 # Ollama under the name neuro-npc.
 #
-#   tools/model/train.sh [ITERS]
+#   tools/model/train.sh [ITERS]            (NEURO_MODEL_NAME=neuro-npc-run4 for a candidate)
 #
 # Needs the venv from tools/avatar/setup.sh (mlx-lm is installed there) and
 # the data folder prepared by prepare.py (default: ~/Library/Application
@@ -22,6 +22,9 @@ BATCH="${NEURO_BATCH:-1}"
 ACCUMULATE="${NEURO_ACCUMULATE:-4}"
 LAYERS="${NEURO_LAYERS:-24}"
 RATE="${NEURO_RATE:-1e-4}"
+# NEURO_MODEL_NAME registers the result under another name in Ollama, so a
+# new run can be compared with the one the game uses before replacing it.
+NAME="${NEURO_MODEL_NAME:-neuro-npc}"
 
 mkdir -p "$WORK"
 exec > >(tee -a "$WORK/train.log") 2>&1
@@ -99,10 +102,10 @@ PARAMETER temperature 0.8
 PARAMETER num_ctx 4096
 MODELFILE
 
-echo "Rejestruję w Ollamie jako neuro-npc..."
-ollama create neuro-npc -f "$WORK/Modelfile"
+echo "Rejestruję w Ollamie jako $NAME..."
+ollama create "$NAME" -f "$WORK/Modelfile"
 
 # Ollama keeps its own copy of the GGUF, and the fused weights can be made
 # again from the adapter, so neither needs to take up 14 GB of disk.
 rm -rf "$WORK/fused" "$WORK/neuro-npc-q8_0.gguf"
-echo "Gotowe. W .env.local ustaw: NEURO_TALK_MODEL=neuro-npc (albo NEURO_LLM_MODEL=neuro-npc)"
+echo "Gotowe. W .env.local ustaw: NEURO_TALK_MODEL=$NAME (albo NEURO_LLM_MODEL=$NAME)"
