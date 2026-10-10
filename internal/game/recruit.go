@@ -249,10 +249,10 @@ func (r *Realm) settle(customer *player, session *Session, decision Decision) bo
 // shopkeeper.
 func (r *Realm) mateRole(kind int) string {
 	if r.hired[kind] != "" {
-		return "Jesteś towarzyszem bohatera w grze tekstowej: siedzicie razem i rozmawiacie o drodze, walce i świecie. Niczym nie handlujesz."
+		return RoleCompanion
 	}
 
-	return "Jesteś najemnikiem w karczmie osady w grze tekstowej: bohater przysiadł się do ciebie, żeby pogadać albo wynająć cię do drużyny. Niczym nie handlujesz poza własną służbą, a o jej cenie rozstrzyga gra."
+	return RoleMercenary
 }
 
 // mateLore words what a companion knows and wants, for the model.

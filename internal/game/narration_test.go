@@ -276,3 +276,23 @@ func TestSanitize(t *testing.T) {
 		t.Errorf("Sanitize = %+v, want %+v", got, want)
 	}
 }
+
+func TestChatBriefFollowsTheRole(t *testing.T) {
+	chat := Decision{Outcome: OutcomeChat}
+	if brief := chat.BriefFor(""); brief != chat.Brief() || !strings.Contains(brief, "polecić coś ze swojego towaru") {
+		t.Errorf("shopkeeper brief = %q", brief)
+	}
+
+	for role, want := range map[string]string{RoleMercenary: "O cenie służby mów tylko", RoleCompanion: "Jesteś już w drużynie", RoleWitness: "CO WIESZ"} {
+		brief := chat.BriefFor(role)
+		if !strings.Contains(brief, want) || strings.Contains(brief, "towaru") {
+			t.Errorf("brief for %q = %q", role[:20], brief)
+		}
+	}
+
+	// Other decisions keep their brief whatever the role.
+	farewell := Decision{Outcome: OutcomeFarewell}
+	if farewell.BriefFor(RoleMercenary) != farewell.Brief() {
+		t.Errorf("a farewell briefed by role: %q", farewell.BriefFor(RoleMercenary))
+	}
+}

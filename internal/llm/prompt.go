@@ -142,7 +142,7 @@ func narrateMessages(request game.NarrateRequest) []message {
 
 	return append(messages, message{
 		Role: "user",
-		Content: strings.TrimSpace(request.Text + "\n\n" + game.VerdictMark + " " + request.Decision.Brief() + hint +
+		Content: strings.TrimSpace(request.Text + "\n\n" + game.VerdictMark + " " + request.Decision.BriefFor(request.Role) + hint +
 			" Odpowiedz najwyżej trzema krótkimi zdaniami. Liczby pisz cyframi. " + request.Correction),
 	})
 }

@@ -208,7 +208,7 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	request.Hint = r.hint(customer, text, decision)
 
 	if r.investigation() {
-		request.Role = "Odgrywasz mieszkańca miasteczka w grze detektywistycznej: rozmawiasz z detektywem, który cię zagadnął. Niczym nie handlujesz."
+		request.Role = RoleWitness
 	} else if kind, ok := r.mateOf(customer.shop); ok {
 		request.Role = r.mateRole(kind)
 	}

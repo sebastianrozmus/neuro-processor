@@ -331,6 +331,37 @@ func (d Decision) what() string {
 }
 
 // Brief describes the decision to the narrating model, in Polish.
+// The opening sentences of the narrator's instructions for those who are
+// not shopkeepers; empty Role in a NarrateRequest means a shopkeeper.
+const (
+	RoleMercenary = "Jesteś najemnikiem w karczmie osady w grze tekstowej: bohater przysiadł się do ciebie, żeby pogadać albo wynająć cię do drużyny. Niczym nie handlujesz poza własną służbą, a o jej cenie rozstrzyga gra."
+	RoleCompanion = "Jesteś towarzyszem bohatera w grze tekstowej: siedzicie razem i rozmawiacie o drodze, walce i świecie. Niczym nie handlujesz."
+	RoleWitness   = "Odgrywasz mieszkańca miasteczka w grze detektywistycznej: rozmawiasz z detektywem, który cię zagadnął. Niczym nie handlujesz."
+)
+
+// chatBriefs are the briefs of plain talk for those who are not
+// shopkeepers. The shopkeeper's brief invites them to recommend wares
+// with prices, which sends a mercenary straight back to his wage when he
+// was asked about his axe.
+var chatBriefs = map[string]string{
+	RoleMercenary: "Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedział: o swojej broni, rzemiośle, drodze albo świecie. " +
+		"O cenie służby mów tylko, gdy o nią pyta. W tej kwestii niczego nie sprzedajesz.",
+	RoleCompanion: "Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedział. " +
+		"Jesteś już w drużynie: nie proponujesz najmu ani zapłaty i nie opisujesz czynów, których nie było; tylko rozmawiasz.",
+	RoleWitness: "Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz w swojej roli na to, co powiedział. " +
+		"O sprawie mówisz tylko to, co masz w CO WIESZ; niczego nie dopowiadasz i niczym nie handlujesz.",
+}
+
+// BriefFor is the brief for somebody in a role: the same as Brief, except
+// that plain talk is briefed by the role.
+func (d Decision) BriefFor(role string) string {
+	if brief, ok := chatBriefs[role]; ok && d.Outcome == OutcomeChat {
+		return brief
+	}
+
+	return d.Brief()
+}
+
 func (d Decision) Brief() string {
 	var brief string
 
