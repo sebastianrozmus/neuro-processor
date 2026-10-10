@@ -50,6 +50,16 @@ func (r *Realm) passage(mover *player, step world.Point) bool {
 		return false
 	}
 
+	// A shut door holds from the other side too: a room whose only exit
+	// is boarded up would otherwise be a trap for whoever walks in.
+	if room, _ := r.world.RoomAt(target); true {
+		if door, shut := room.Door(dirCode(world.Point{X: -step.X, Y: -step.Y})); shut && !r.story.flags[door.Flag] {
+			r.tell(mover, door.Text)
+
+			return false
+		}
+	}
+
 	return true
 }
 

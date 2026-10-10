@@ -94,16 +94,16 @@
   },
   {
    "name": "Młyńska 3",
-   "description": "Mieszkanie nad starym młynem: schody z zewnątrz, drzwi z wizytówką MALEC. Pod oknem widać pomost.",
+   "description": "Mieszkanie nad starym młynem, zaraz za Pod Sumem: schody z zewnątrz, drzwi z wizytówką MALEC. Pod oknem widać pomost.",
    "terrain": "station",
-   "x": 7,
-   "y": 6,
+   "x": 8,
+   "y": 5,
    "things": [
     "Zapalniczka z Pod Sumem"
    ],
    "doors": [
     {
-     "dir": "n",
+     "dir": "w",
      "text": "Schody na pomost od tej strony są zabite deskami.",
      "flag": "nigdy"
     }

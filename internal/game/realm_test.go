@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -2255,5 +2256,50 @@ func TestStyleCardReachesTheKeepersAndTheMaster(t *testing.T) {
 	realm.world.Style = nil
 	if _, request, _ = realm.Haggle(hero, "co słychać?", Intent{Action: ActionChat}); strings.Contains(request.Lore, "Styl") {
 		t.Errorf("a world without a card got a style line:\n%s", request.Lore)
+	}
+}
+
+func TestShutDoorsHoldFromBothSides(t *testing.T) {
+	presets, err := world.Presets()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	index := slices.IndexFunc(presets, func(spec world.Spec) bool { return strings.HasPrefix(spec.Name, "Jeziorna") })
+	built, err := world.Build(presets[index])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	realm := NewRealm(built, 1)
+	hero := realm.Join("Ewa", "lowczyni")
+
+	// From the park the boarded stairs keep the player out of Młyńska 3.
+	do(realm, hero, "s")
+	if realm.View(hero).Place.Name != "Park nad Jeziorem" {
+		t.Fatalf("south of the market: %s", realm.View(hero).Place.Name)
+	}
+
+	do(realm, hero, "e")
+	if realm.View(hero).Place.Name != "Park nad Jeziorem" || !logged(realm, hero, "zabite deskami") {
+		t.Fatalf("walked in through a boarded door: %s, %q", realm.View(hero).Place.Name, lastLog(realm, hero))
+	}
+
+	// The flat is entered from the inn's side, and left the same way.
+	do(realm, hero, "n")
+	do(realm, hero, "e")
+	do(realm, hero, "s")
+	if realm.View(hero).Place.Name != "Młyńska 3" {
+		t.Fatalf("via the inn: %s", realm.View(hero).Place.Name)
+	}
+
+	do(realm, hero, "w")
+	if realm.View(hero).Place.Name != "Młyńska 3" {
+		t.Errorf("walked out through the boarded door")
+	}
+
+	do(realm, hero, "n")
+	if realm.View(hero).Place.Name != "Pod Sumem" {
+		t.Errorf("could not leave the flat: %s", realm.View(hero).Place.Name)
 	}
 }
