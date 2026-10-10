@@ -121,7 +121,7 @@ const (
 	maxMonsters     = 12
 	maxItems        = 24
 	maxName         = 40
-	maxText         = 400
+	maxText         = 600
 	defaultCurrency = "szt. złota"
 	defaultGreeting = "Czego szukasz?"
 )
@@ -524,13 +524,27 @@ func (s *Spec) ShopFor(kind Kind) int {
 	return 0
 }
 
+// clip shortens a text to the limit. A long text is cut after the last
+// sentence that fits, so that it does not stop in the middle of a word;
+// only when no sentence ends in the second half is it cut at a word, with
+// an ellipsis.
 func clip(text string, limit int) string {
 	text = strings.Join(strings.Fields(text), " ")
-	if runes := []rune(text); len(runes) > limit {
-		return strings.TrimSpace(string(runes[:limit]))
+	runes := []rune(text)
+	if len(runes) <= limit {
+		return text
 	}
 
-	return text
+	cut := string(runes[:limit])
+	if at := strings.LastIndexAny(cut, ".!?"); at >= limit/2 && at+1 == len(cut) || at >= limit/2 && strings.HasPrefix(cut[at+1:], " ") {
+		return strings.TrimSpace(cut[:at+1])
+	}
+
+	if at := strings.LastIndex(cut, " "); at >= limit/2 {
+		return strings.TrimSpace(cut[:at]) + "…"
+	}
+
+	return strings.TrimSpace(cut) + "…"
 }
 
 // knownOr returns value if it is one of known, and the first known otherwise.

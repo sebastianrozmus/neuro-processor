@@ -310,17 +310,34 @@ func TestStyleCard(t *testing.T) {
 	}
 
 	spec := presets[0]
-	spec.Style = &StyleSpec{Look: strings.Repeat("x", 500), Source: "  dużo   spacji  "}
+	spec.Style = &StyleSpec{Look: strings.Repeat("x", maxText+100), Source: "  dużo   spacji  "}
 	if err := spec.Normalize(); err != nil {
 		t.Fatal(err)
 	}
 
-	if len([]rune(spec.Style.Look)) != maxText || spec.Style.Source != "dużo spacji" {
+	if len([]rune(spec.Style.Look)) != maxText+1 || !strings.HasSuffix(spec.Style.Look, "…") || spec.Style.Source != "dużo spacji" {
 		t.Errorf("style not clipped: %d runes, source %q", len([]rune(spec.Style.Look)), spec.Style.Source)
 	}
 
 	spec.Style = &StyleSpec{Source: "tylko hasło"}
 	if err := spec.Normalize(); err != nil || spec.Style != nil {
 		t.Errorf("a card without content should be dropped: %v %v", spec.Style, err)
+	}
+}
+
+func TestClipEndsAtASentence(t *testing.T) {
+	long := strings.Repeat("Deszcz padał na miasto. ", 30)
+	if got := clip(long, 100); !strings.HasSuffix(got, "miasto.") || len([]rune(got)) > 100 {
+		t.Errorf("clip = %q", got)
+	}
+
+	// Without a sentence end in reach the cut falls on a word, marked.
+	words := strings.Repeat("neon ", 40)
+	if got := clip(words, 50); !strings.HasSuffix(got, "neon…") || len([]rune(got)) > 51 {
+		t.Errorf("clip = %q", got)
+	}
+
+	if got := clip("  Krótki   opis. ", 100); got != "Krótki opis." {
+		t.Errorf("clip = %q", got)
 	}
 }
