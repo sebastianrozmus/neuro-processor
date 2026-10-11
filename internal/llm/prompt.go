@@ -226,9 +226,10 @@ func notePrompt(request game.NoteRequest) string {
 	return prompt.String()
 }
 
-const rewriteInstructions = `Poprawiasz jeden opis ze świata polskiej gry tekstowej. Zachowujesz sens i wszystkie nazwy własne, ` +
-	`ale piszesz go od nowa: czysta, naturalna polszczyzna, konkret zamiast ogólników, bez zwrotów do gracza, bez cudzysłowów i bez komentarza. ` +
-	`Najwyżej dwa zdania. Zwracasz wyłącznie nowy tekst.`
+const rewriteInstructions = `Poprawiasz jeden opis ze świata polskiej gry tekstowej. Zachowujesz sens, każdy konkret i wszystkie nazwy własne, ` +
+	`a poprawiasz tylko język: czysta, naturalna polszczyzna, bez zwrotów do gracza, bez cudzysłowów i bez komentarza. ` +
+	`Nie dodajesz niczego, czego nie ma w tekście: żadnych nowych szczegółów, ozdobników ani krajobrazów. ` +
+	`Jeśli tekst jest bełkotem, zostawiasz tylko to, co da się z niego zrozumieć. Najwyżej dwa zdania. Zwracasz wyłącznie nowy tekst.`
 
 var rewriteKinds = map[string]string{
 	game.DescribePlace:     "opis miejsca",
