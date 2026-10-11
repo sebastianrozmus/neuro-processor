@@ -195,11 +195,11 @@ var kindWords = map[world.Kind][]string{
 // hint finds the fact the player's words touch among those the keeper
 // knows; when they touch none and only chat, it offers one, so that the
 // talk goes somewhere. Whatever is touched, the player has now heard.
-func (r *Realm) hint(customer *player, text string, decision Decision, wares []Ware) string {
+func (r *Realm) hint(customer *player, text string, decision Decision, wares []Ware) (string, *lead) {
 	switch decision.Outcome {
 	case OutcomeChat, OutcomeInfo, OutcomeWares, OutcomeFarewell, OutcomeUnclear:
 	default:
-		return ""
+		return "", nil
 	}
 
 	known := r.openTo(customer, customer.shop)
@@ -210,14 +210,14 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	// whose armour hangs on rust.
 	if decision.Outcome == OutcomeChat || decision.Outcome == OutcomeUnclear {
 		if fitting := waresAsked(words, wares); len(fitting) > 0 {
-			return "Gracz pyta o twój towar. Pasuje: " + join(fitting) + ". Poleć jedną z tych rzeczy, powiedz, do czego jest, i podaj jej cenę z listy."
+			return "Gracz pyta o twój towar. Pasuje: " + join(fitting) + ". Poleć jedną z tych rzeczy, powiedz, do czego jest, i podaj jej cenę z listy.", nil
 		}
 	}
 
 	// A bare greeting is answered in one sentence: the model has never seen
 	// one, and given three sentences and a random fact it drifts.
 	if decision.Outcome == OutcomeChat && greeting(words) {
-		return "Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej."
+		return "Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej.", nil
 	}
 
 	// The fact the player's words touch most: subject words count double,
@@ -234,19 +234,19 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	if best != nil {
 		r.learn(customer, best)
 
-		return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s", best.Subject, best.Text)
+		return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s", best.Subject, best.Text), nil
 	}
 
-	for _, word := range words {
-		if len(word) < minQueryWord+1 {
-			continue
-		}
+	// Something the keeper lacks but another has is a lead: the keeper
+	// passes on the little they heard and names who knows the rest.
+	if fact, keeper := r.gapFor(customer, customer.shop, words); fact != nil {
+		return r.referral(fact, keeper, false), &lead{fact: fact, keeper: keeper}
+	}
 
-		for _, gap := range r.gapsFor(customer, customer.shop) {
-			if subject, _, _ := strings.Cut(gap, " (wie o tym"); Matches(subject, word) {
-				return "Gracz pyta o coś, o czym nie wiesz: " + gap + ". Powiedz, że nie wiesz, i odeślij go tam."
-			}
-		}
+	// "A co słyszałeś?" after a lead stays on that lead instead of
+	// drifting to a random fact.
+	if last := customer.talks[customer.shop]; last != nil && last.lead != nil && decision.Outcome == OutcomeChat {
+		return r.referral(last.lead, last.leadKeeper, true), &lead{fact: last.lead, keeper: last.leadKeeper}
 	}
 
 	if customer.inn && decision.Outcome == OutcomeChat {
@@ -254,7 +254,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		if gossip := r.gossip(customer.shop); gossip != nil {
 			r.learn(customer, gossip)
 
-			return fmt.Sprintf("W karczmie usłyszałeś od sąsiada i możesz powtórzyć: %s. %s", gossip.Subject, gossip.Text)
+			return fmt.Sprintf("W karczmie usłyszałeś od sąsiada i możesz powtórzyć: %s. %s", gossip.Subject, gossip.Text), nil
 		}
 	}
 
@@ -262,17 +262,41 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		fact := known[r.rng.Intn(len(known))]
 		r.learn(customer, fact)
 
-		return fmt.Sprintf("Możesz wpleść jedną rzecz, którą wiesz: %s. %s", fact.Subject, fact.Text)
+		return fmt.Sprintf("Możesz wpleść jedną rzecz, którą wiesz: %s. %s", fact.Subject, fact.Text), nil
 	}
 
 	// A greeting or banter with nothing to hang on: without a direction a
 	// small model fills the three sentences with noise.
 	if decision.Outcome == OutcomeChat {
 		return "Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, " +
-			"i sam zagadnij go o jedno: po co przyszedł, dokąd idzie albo czy ma czym walczyć."
+			"i sam zagadnij go o jedno: po co przyszedł, dokąd idzie albo czy ma czym walczyć.", nil
 	}
 
-	return ""
+	return "", nil
+}
+
+// lead is a fact a keeper sent the player to somebody else about.
+type lead struct {
+	fact   *Fact
+	keeper int
+}
+
+// referral words the hint for a fact the keeper lacks: the crumb they
+// heard and who to ask, by name, so the name can be checked in the reply.
+// A follow-up repeats that nothing more is known instead of inventing it.
+func (r *Realm) referral(fact *Fact, keeper int, again bool) string {
+	who := r.keeperName(keeper)
+	if where := r.whereIs(keeper); where != "" {
+		who += " (" + where + ")"
+	}
+
+	if again {
+		return fmt.Sprintf("Gracz dopytuje o to samo: %s. Nic więcej nie wiesz poza tym, co słyszałeś: „%s”. Nie zmyślaj: powtórz krótko, że to wszystko, i że więcej wie %s. Imię podaj dokładnie tak.",
+			fact.Subject, crumb(fact), who)
+	}
+
+	return fmt.Sprintf("Gracz pyta o coś, czego nie znasz: %s. Słyszałeś tylko tyle: „%s”. Powiedz to jak zasłyszaną plotkę, przyznaj, że więcej nie wiesz, i odeślij go do osoby, która zna sprawę: %s. Imię podaj dokładnie tak.",
+		fact.Subject, crumb(fact), who)
 }
 
 // greetingWords are folded words a greeting is made of, with the fillers

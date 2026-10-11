@@ -299,6 +299,28 @@ func TestForbiddenAmountsEarnASecondTry(t *testing.T) {
 	}
 }
 
+func TestMangledNamesEarnASecondTry(t *testing.T) {
+	narrator := &scriptedNarrator{replies: []string{"[spokój] O tym pytaj Wędronowego Kupuca.", "[spokój] O tym pytaj: Wędrowny Kupiec, on wie."}}
+	request := NarrateRequest{Decision: Decision{Outcome: OutcomeChat}, Required: []string{"Wędrowny Kupiec"}}
+
+	text, err := Narrate(context.Background(), narrator, request)
+	if err != nil || text != "[spokój] O tym pytaj: Wędrowny Kupiec, on wie." || narrator.calls != 2 || !strings.HasPrefix(narrator.corrections[1], nameCorrection) || !strings.HasSuffix(narrator.corrections[1], "Wędrowny Kupiec.") {
+		t.Errorf("got %q, %v after %d calls (%q)", text, err, narrator.calls, narrator.corrections)
+	}
+
+	// A name in another case is the name; so is one with its fleeting e
+	// gone. Half a name or a mangled one is not.
+	for _, line := range []string{"Pytaj u Wędrownego Kupca w karczmie.", "Wędrownemu Kupcowi to zostaw.", "Wędrowny Kupiec wie."} {
+		if !namesOK(line, []string{"Wędrowny Kupiec"}) {
+			t.Errorf("%q refused", line)
+		}
+	}
+
+	if !namesOK("Ozryka z Akademii pytaj, Jagny nie.", []string{"Ozryk", "Jagna"}) || namesOK("Oźyrka pytaj.", []string{"Ozryk"}) || namesOK("Kupca pytaj.", []string{"Wędrowny Kupiec"}) {
+		t.Error("name check is off")
+	}
+}
+
 func TestChatBriefFollowsTheRole(t *testing.T) {
 	chat := Decision{Outcome: OutcomeChat, Mood: MoodPleased}
 	if brief := chat.BriefFor(""); brief != chat.Brief() || !strings.Contains(brief, "polecić coś ze swojego towaru") {

@@ -29,6 +29,10 @@ type Fact struct {
 	// who know the fact; heard the players who have come across it.
 	known map[int]bool
 	heard map[string]bool
+	// pointed holds the players who were sent to somebody about the fact
+	// before hearing it, and whom they were sent to: a lead in their
+	// journal until the fact itself is heard.
+	pointed map[string]string
 	// A clue of an investigation may be held by a thing rather than
 	// known by anyone, and may wait for a flag, for another fact to have
 	// been heard, or for a time of day.
@@ -50,6 +54,9 @@ type FactView struct {
 	Text    string
 	Source  string
 	Day     int
+	// Lead names who to ask about a fact the player has only been
+	// pointed at; such a view has no Text.
+	Lead string
 }
 
 // knowledge is the graph of a realm.
@@ -65,6 +72,8 @@ const (
 	// referrals is how many things a keeper does not know but could point
 	// the player to.
 	referrals = 2
+	// crumbWords is how much of a fact a keeper who lacks it has heard.
+	crumbWords = 12
 )
 
 // add puts a fact into the graph, known by the given keepers.
@@ -73,7 +82,7 @@ func (r *Realm) add(subject, text, source string, keepers ...int) *Fact {
 		return nil
 	}
 
-	fact := &Fact{ID: len(r.wisdom.facts) + 1, Subject: strings.TrimSpace(subject), Text: strings.TrimSpace(text), Source: source, Day: r.day, known: map[int]bool{}, heard: map[string]bool{}}
+	fact := &Fact{ID: len(r.wisdom.facts) + 1, Subject: strings.TrimSpace(subject), Text: strings.TrimSpace(text), Source: source, Day: r.day, known: map[int]bool{}, heard: map[string]bool{}, pointed: map[string]string{}}
 	for _, keeper := range keepers {
 		fact.known[keeper] = true
 	}
@@ -267,6 +276,81 @@ func (r *Realm) learn(hero *player, fact *Fact) {
 	}
 }
 
+// gapFor finds a fact the keeper lacks, another keeper has, and the
+// player's words ask about: the subject matched by a word of theirs. It
+// returns the fact and who knows it, or nil.
+func (r *Realm) gapFor(hero *player, keeper int, words []string) (*Fact, int) {
+	for _, word := range words {
+		if len(word) < minQueryWord+1 {
+			continue
+		}
+
+		for _, fact := range r.wisdom.facts {
+			if fact.known[keeper] || !r.open(fact, hero) || !Matches(fact.Subject, word) {
+				continue
+			}
+
+			for other := range fact.known {
+				if other != keeper && r.keeperName(other) != "" {
+					return fact, other
+				}
+			}
+		}
+	}
+
+	return nil, -1
+}
+
+// crumb is the little a keeper who does not know a fact has heard of it:
+// its first sentence, cut short.
+func crumb(fact *Fact) string {
+	text := fact.Text
+	for index, char := range text {
+		if strings.ContainsRune(".!?", char) && (index+len(string(char)) == len(text) || strings.HasPrefix(text[index+len(string(char)):], " ")) {
+			text = text[:index]
+
+			break
+		}
+	}
+
+	words := strings.Fields(text)
+	if len(words) > crumbWords {
+		words = append(words[:crumbWords], "…")
+	}
+
+	return strings.Join(words, " ")
+}
+
+// whereIs says where a keeper can be found, for a lead.
+func (r *Realm) whereIs(keeper int) string {
+	switch {
+	case r.investigation():
+		return ""
+	case r.caravan != nil && keeper == r.caravanShop():
+		return "karawana na trakcie, dziś w miejscu: " + r.placeAt(r.caravan.pos).Name
+	case keeper < len(r.world.Shops):
+		return r.world.Shops[keeper].Name + " w każdej osadzie"
+	}
+
+	if kind, ok := r.mateOf(keeper); ok {
+		return "karczma w osadzie " + r.placeAt(r.world.Towns[r.innOf(kind)]).Name
+	}
+
+	return ""
+}
+
+// point records that a player was sent to a keeper about a fact. It
+// returns the journal line of the lead, which the player is told.
+func (r *Realm) point(hero *player, fact *Fact, keeper int) string {
+	who := r.keeperName(keeper)
+	fact.pointed[hero.name] = who
+
+	line := "Trop: " + fact.Subject + " → " + who + "."
+	r.tell(hero, line)
+
+	return line
+}
+
 // Learn records a fact a keeper just stated for the first time: it joins
 // the graph, known by that keeper and heard by the player.
 func (r *Realm) Learn(name string, spec FactSpec) bool {
@@ -305,8 +389,11 @@ func (r *Realm) Journal(name string) []FactView {
 
 	var journal []FactView
 	for _, fact := range r.wisdom.facts {
-		if fact.heard[name] {
+		switch {
+		case fact.heard[name]:
 			journal = append(journal, FactView{Subject: fact.Subject, Text: fact.Text, Source: fact.Source, Day: fact.Day})
+		case fact.pointed[name] != "":
+			journal = append(journal, FactView{Subject: fact.Subject, Lead: fact.pointed[name], Day: fact.Day})
 		}
 	}
 
@@ -321,6 +408,12 @@ func JournalLines(journal []FactView) []string {
 
 	lines := []string{fmt.Sprintf("Dziennik (%d):", len(journal))}
 	for _, fact := range journal {
+		if fact.Lead != "" {
+			lines = append(lines, fmt.Sprintf("• Trop: %s — pytaj: %s", fact.Subject, fact.Lead))
+
+			continue
+		}
+
 		source := ""
 		if fact.Source != "" {
 			source = " (od: " + fact.Source + ")"

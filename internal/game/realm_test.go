@@ -855,6 +855,54 @@ func TestTalkAboutTheGoodsPointsAtThem(t *testing.T) {
 	}
 }
 
+func TestWhatAKeeperLacksBecomesALead(t *testing.T) {
+	realm := testRealm(t)
+	hero := enlist(realm, "Ala")
+	do(realm, hero, "idź do zbrojowni")
+	herbalist := realm.shopOfKind(world.ShopAlchemist)
+	fact := realm.add("Kurhany Królów", "Pod kurhanami śpi stary król, a jego miecz świeci nocą. Nikt stamtąd nie wrócił.", "", herbalist)
+
+	// The smith lacks the fact: he passes on the crumb he heard, names
+	// who knows it, and the name must come out right.
+	_, request, ok := realm.Haggle(hero, "co wiesz o kurhanach?", Intent{Action: ActionChat})
+	if !ok || !strings.Contains(request.Hint, "czego nie znasz: Kurhany Królów. Słyszałeś tylko tyle: „Pod kurhanami śpi stary król, a jego miecz świeci nocą”.") ||
+		!strings.Contains(request.Hint, "zna sprawę: Jagna (Chata Zielarki w każdej osadzie). Imię podaj dokładnie tak.") {
+		t.Errorf("referral hint = %q", request.Hint)
+	}
+
+	if len(request.Required) != 1 || request.Required[0] != "Jagna" || request.Lead != "Trop: Kurhany Królów → Jagna." {
+		t.Errorf("required %q, lead %q", request.Required, request.Lead)
+	}
+
+	journal := realm.Journal(hero)
+	if len(journal) != 1 || journal[0].Lead != "Jagna" || journal[0].Text != "" || JournalLines(journal)[1] != "• Trop: Kurhany Królów — pytaj: Jagna" {
+		t.Errorf("journal = %+v", journal)
+	}
+
+	// Asking further stays on the lead instead of a random fact, and
+	// the lead is not written down twice.
+	_, request, ok = realm.Haggle(hero, "a co dokładnie słyszałeś?", Intent{Action: ActionChat})
+	if !ok || !strings.Contains(request.Hint, "Gracz dopytuje o to samo: Kurhany Królów.") || !strings.Contains(request.Hint, "więcej wie Jagna") || request.Lead == "" || len(realm.Journal(hero)) != 1 {
+		t.Errorf("follow-up hint = %q, journal %d", request.Hint, len(realm.Journal(hero)))
+	}
+
+	// Another topic lets the lead go.
+	_, request, _ = realm.Haggle(hero, "siema mordo", Intent{Action: ActionChat})
+	if request.Lead != "" || !strings.Contains(request.Hint, "tylko się wita") || realm.players[hero].talks[realm.players[hero].shop].lead != nil {
+		t.Errorf("after a greeting: lead %q, hint %q", request.Lead, request.Hint)
+	}
+
+	// Hearing the fact itself turns the lead into knowledge.
+	realm.learn(realm.players[hero], fact)
+	if journal := realm.Journal(hero); len(journal) != 1 || journal[0].Lead != "" || journal[0].Text == "" {
+		t.Errorf("journal after hearing = %+v", journal)
+	}
+
+	if crumb(&Fact{Text: "Jedno dwa trzy cztery pięć sześć siedem osiem dziewięć dziesięć jedenaście dwanaście trzynaście czternaście"}) != "Jedno dwa trzy cztery pięć sześć siedem osiem dziewięć dziesięć jedenaście dwanaście …" {
+		t.Error("a long crumb is not cut")
+	}
+}
+
 func TestKeepersKnowTheWorld(t *testing.T) {
 	realm := testRealm(t)
 	hero := enlist(realm, "Ala")

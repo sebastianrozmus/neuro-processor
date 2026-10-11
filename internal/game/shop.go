@@ -205,7 +205,27 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 
 	request := session.NarrateRequest(text, decision)
 	request.Lore = r.lore(customer, session.Wares())
-	request.Hint = r.hint(customer, text, decision, session.Wares())
+	hint, lead := r.hint(customer, text, decision, session.Wares())
+	request.Hint = hint
+
+	// A lead is remembered for the follow-up, must name its keeper
+	// right, and goes to the journal; the chat before it is forgotten
+	// once the talk moves on.
+	if current := customer.talks[customer.shop]; current != nil && (lead != nil || decision.Outcome == OutcomeChat) {
+		current.lead, current.leadKeeper = nil, -1
+		if lead != nil {
+			current.lead, current.leadKeeper = lead.fact, lead.keeper
+		}
+	}
+
+	if lead != nil {
+		request.Required = append(request.Required, r.keeperName(lead.keeper))
+		if lead.fact.pointed[customer.name] == "" {
+			request.Lead = r.point(customer, lead.fact, lead.keeper)
+		} else {
+			request.Lead = "Trop: " + lead.fact.Subject + " → " + r.keeperName(lead.keeper) + "."
+		}
+	}
 
 	if r.investigation() {
 		request.Role = RoleWitness

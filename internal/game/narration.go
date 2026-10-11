@@ -22,6 +22,11 @@ const (
 // VerdictMark opens the note that tells a narrator what the rules decided.
 const VerdictMark = "[GRA]"
 
+// nameCorrection is what a narrator hears after mangling a name it had
+// to pass on.
+const nameCorrection = "Twoja poprzednia odpowiedź była zła: przekręciła albo pominęła imię osoby, do której odsyłasz gracza. " +
+	"Napisz je dokładnie tak, bez odmiany: "
+
 // correction is what a narrator hears after quoting a number it should not.
 const correction = "Twoja poprzednia odpowiedź była zła: podała liczbę słownie albo taką, której nie ma w bloku [GRA]. " +
 	"Napisz ją jeszcze raz. Liczby wolno ci podać tylko te z bloku [GRA] i tylko cyframi."
@@ -68,6 +73,13 @@ type NarrateRequest struct {
 	// Forbidden are amounts the reply must not quote although the lore
 	// holds them: a mercenary's fee in talk that is not about the hire.
 	Forbidden []int
+	// Required are names the reply must get right: whom the player is
+	// sent to. A mangled name earns the model a second try.
+	Required []string
+	// Lead is the journal line of a referral in this reply ("Trop: …"),
+	// for the screen to show; a reply with a lead teaches the world no
+	// new fact.
+	Lead string
 }
 
 // Interpreter turns free player text into a structured Intent.
@@ -176,11 +188,14 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 		leaked := strings.Contains(text, VerdictMark)
 
 		text = tidy(text, request.Merchant.Name, request.Decision.sentences())
-		if text != "" && !leaked && numbersOK(text, allowed, known) {
+		if text != "" && !leaked && numbersOK(text, allowed, known) && namesOK(text, request.Required) {
 			return text, nil
 		}
 
 		request.Correction = correction
+		if !namesOK(text, request.Required) {
+			request.Correction = nameCorrection + join(request.Required) + "."
+		}
 	}
 
 	return request.Decision.Fallback(), problem
@@ -226,6 +241,47 @@ func (d Decision) sentences() int {
 	}
 
 	return tradeSentences
+}
+
+// namesOK reports whether every required name is in the text: each of
+// its words in some case, so that "u Wędrownego Kupca" passes and
+// "u Wędronowego Kupuca" does not.
+func namesOK(text string, required []string) bool {
+	words := strings.Fields(Fold(text))
+
+	for _, name := range required {
+		for _, part := range strings.Fields(Fold(name)) {
+			if len(part) >= minQueryWord && !nameOK(words, part) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// nameOK reports whether one word of a name is among the words in some
+// case: a word starts with the name less its ending, allowing for a
+// fleeting e ("Kupiec" → "Kupca", "Kowalec" → "Kowalca").
+func nameOK(words []string, part string) bool {
+	stems := []string{part[:max(minQueryWord, len(part)-2)]}
+
+	switch fled := fleeting(part); {
+	case strings.HasSuffix(part, "iec"):
+		stems = append(stems, part[:len(part)-3]+"c")
+	case fled != part:
+		stems = append(stems, fled)
+	}
+
+	for _, word := range words {
+		for _, stem := range stems {
+			if strings.HasPrefix(word, stem) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // NumbersOK reports whether every number written in text is one of

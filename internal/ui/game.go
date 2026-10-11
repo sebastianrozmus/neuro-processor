@@ -205,6 +205,14 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		g.refresh()
 
+		// A line that sent the player elsewhere is a lead, not news: the
+		// world learns nothing from it, and nothing in it is for sale.
+		if msg.request.Lead != "" && msg.problem == nil {
+			g.shop.say(speakerSystem, msg.request.Lead+" (dziennik)")
+
+			return g, nil
+		}
+
 		if msg.look && g.view.Shop != nil {
 			return g, tea.Batch(invent(g.brain, msg.text, g.view.Shop.Wares), note(g.brain, msg.text, g.realm.Subjects()))
 		}

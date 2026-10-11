@@ -139,6 +139,10 @@ type player struct {
 type talk struct {
 	session *Session
 	serial  int
+	// lead is the fact the keeper last sent the player elsewhere about,
+	// so that "a co słyszałeś?" stays on it; leadKeeper who knows it.
+	lead       *Fact
+	leadKeeper int
 }
 
 type monster struct {

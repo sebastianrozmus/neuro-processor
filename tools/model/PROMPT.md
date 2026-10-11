@@ -104,7 +104,8 @@ Podpowiedzi, które gra dokleja po nastroju (w pogawędce, pytaniu o towar, poż
 
 - `Gracz wspomina o: <temat>. Co o tym wiesz: <fakt>` — gdy słowa gracza trafiają w fakt z „Wiesz:”;
 - `Możesz wpleść jedną rzecz, którą wiesz: <temat>. <fakt>`;
-- `Gracz pyta o coś, o czym nie wiesz: <temat> (wie o tym <imię>). Powiedz, że nie wiesz, i odeślij go tam.`;
+- odesłanie (trop): `Gracz pyta o coś, czego nie znasz: <temat>. Słyszałeś tylko tyle: „<pierwsze zdanie faktu, do 12 słów>”. Powiedz to jak zasłyszaną plotkę, przyznaj, że więcej nie wiesz, i odeślij go do osoby, która zna sprawę: <imię> (<gdzie: kuźnia w każdej osadzie / karczma w osadzie X / karawana na trakcie, dziś w miejscu: Y>). Imię podaj dokładnie tak.` — gra sprawdza, czy imię padło (po rdzeniu, z odmianą; przekręcone daje drugą próbę), zapisuje w dzienniku „Trop: <temat> → <imię>” i nie wyciąga z tej kwestii nowych faktów; wcześniejsza wersja `Gracz pyta o coś, o czym nie wiesz: <temat> (wie o tym <imię>). Powiedz, że nie wiesz, i odeślij go tam.` jest w danych run 5;
+- dopytanie o trop: `Gracz dopytuje o to samo: <temat>. Nic więcej nie wiesz poza tym, co słyszałeś: „<okruch>”. Nie zmyślaj: powtórz krótko, że to wszystko, i że więcej wie <imię> (<gdzie>). Imię podaj dokładnie tak.` — gdy po odesłaniu kolejna kwestia gracza nie trafia w nic innego („a co słyszałeś?”, „opowiedz”);
 - `W karczmie usłyszałeś od sąsiada i możesz powtórzyć: <temat>. <fakt>` (wieczorem);
 - `Gracz chce handlować, ale jest wieczór i kram zamknięty: odmów grzecznie, zaproś rano, nic nie sprzedawaj.` (wtedy decyzja jest pogawędką);
 - `Gracz pyta o twój towar. Pasuje: «Skórzany Kaftan» 35 (Utwardzana skóra, dobra na gobliński nóż), «Kolczuga» 95 (Krasnoludzka kolczuga z drobnych kółek, ciężka i wierna). Poleć jedną z tych rzeczy, powiedz, do czego jest, i podaj jej cenę z listy.` — gdy gracz pyta o rodzaj towaru, nie nazywając sztuki („jaką masz zbroję”, „coś na rany”); najwyżej 3 rzeczy;
