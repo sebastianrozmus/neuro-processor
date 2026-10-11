@@ -177,6 +177,8 @@ Czego brakuje w danych i co model robi źle:
 
 Rozkład nastrojów w całym zamówieniu: spokój 35 %, kpina 25 %, radość 15 %, gniew 10 %, znużenie 10 %, strach 5 %; **czułość najwyżej 2 %** (w run 5 było jej za dużo). Zapisz jako `extra-gpt-npc-run6.jsonl` (source gpt-run6); trenuj od adaptera run 5: `NEURO_RESUME="$M/run5-final.safetensors" NEURO_MODEL_NAME=neuro-npc-run6 NEURO_RATE=4e-5 tools/model/train.sh 600`, potem `tools/model/publish.sh` osobno, jeśli maszynie zabraknie pamięci przy wtapianiu. Pomiar jak zawsze: 80 przypadków w dwóch seedach plus odtworzenie rozmów z `talks.jsonl` (`scratchpad/replay4.py`).
 
+Wynik run 6 (11 X 2026): 320 wierszy GPT („bardzo wysoki”, walidacja czysta: szablony identyczne z run 5, 100 % potocznych wejść, 60/60 imion znawców, 0 cyfr w zaczepkach), zbiór 3369/185/71, od adaptera run 5, 600 kroków, lr 4e‑5; val 1,14 → 1,12, test loss 1,156 / ppl 3,18 (nowy podział). Bench w dwóch seedach: run 4 78/79, run 5 72/78, **run 6 76/78**. Odtworzenie rozmów z gry: trop z okruchem i imieniem 3/3 („Słyszałem o Kurhanach Królów…; Siostra Agnes w Aptece”), dopytanie 3/3 w formie „to wszystko, więcej wie X”, zaczepki o piwo/polowanie odpowiadają na temat i same dopytują (run 5 plotło), „plotki” wreszcie oparte na fakcie z podpowiedzi 2/3 (run 5: 0/3). Słabe nadal: odmiana nietypowych imion („Kupcz”, „Agness”, „Wędrony”) i pisownia nazw towaru („Kokczuga”) — limit bazy 4,5B, nie danych. Gra przełączona na `neuro-npc-run6`; adapter `model/run6-final.safetensors`.
+
 Co dalej z wynikiem
 -------------------
 
