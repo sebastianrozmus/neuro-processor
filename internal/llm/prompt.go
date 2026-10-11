@@ -226,6 +226,38 @@ func notePrompt(request game.NoteRequest) string {
 	return prompt.String()
 }
 
+const rewriteInstructions = `Poprawiasz jeden opis ze świata polskiej gry tekstowej. Zachowujesz sens i wszystkie nazwy własne, ` +
+	`ale piszesz go od nowa: czysta, naturalna polszczyzna, konkret zamiast ogólników, bez zwrotów do gracza, bez cudzysłowów i bez komentarza. ` +
+	`Najwyżej dwa zdania. Zwracasz wyłącznie nowy tekst.`
+
+var rewriteKinds = map[string]string{
+	game.DescribePlace:     "opis miejsca",
+	game.DescribeMonster:   "opis potwora",
+	game.DescribeBoss:      "opis największego zagrożenia",
+	game.DescribeItem:      "opis przedmiotu",
+	game.DescribeCompanion: "opis towarzysza do najęcia",
+	game.DescribeKeeper:    "charakter mieszkańca osady (jak mówi, jaki jest)",
+	game.DescribeFact:      "fakt o świecie (w trzeciej osobie)",
+}
+
+func rewritePrompt(request game.RewriteRequest) string {
+	var prompt strings.Builder
+
+	fmt.Fprintf(&prompt, "Świat: %s\n", request.World)
+	if request.Style != "" {
+		fmt.Fprintf(&prompt, "Styl świata: %s\n", request.Style)
+	}
+
+	kind := rewriteKinds[request.Kind]
+	if kind == "" {
+		kind = "opis"
+	}
+
+	fmt.Fprintf(&prompt, "Rodzaj: %s. Temat: %s.\nObecny tekst: %s\n\nNowy tekst:", kind, request.Name, request.Text)
+
+	return prompt.String()
+}
+
 func noteSchema() map[string]any {
 	return object(map[string]any{
 		"found":   map[string]any{"type": "boolean"},

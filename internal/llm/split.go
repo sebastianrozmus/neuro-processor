@@ -32,6 +32,11 @@ func (s Split) Note(ctx context.Context, request game.NoteRequest) (game.FactSpe
 	return s.Mind.Note(ctx, request)
 }
 
+// Rewrite has the Mind word a description again.
+func (s Split) Rewrite(ctx context.Context, request game.RewriteRequest) (string, error) {
+	return s.Mind.Rewrite(ctx, request)
+}
+
 // Invent asks the Mind whether a line offered a new thing.
 func (s Split) Invent(ctx context.Context, request game.InventRequest) (world.ItemSpec, bool, error) {
 	return s.Mind.Invent(ctx, request)

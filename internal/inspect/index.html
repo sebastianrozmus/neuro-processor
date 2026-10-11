@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuro Processor · podgląd świata</title>
+<style>
+  :root {
+    --bg: #15161a; --panel: #1d1f25; --line: #2c2f38; --ink: #e6e3dc; --dim: #8b8f9a;
+    --gold: #e0b341; --blue: #6cb6ff; --red: #ef6a6a; --green: #7bc67b; --violet: #b995f0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 "Menlo", "SF Mono", ui-monospace, monospace; }
+  header { display: flex; align-items: baseline; gap: 18px; padding: 10px 18px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+  header h1 { font-size: 15px; margin: 0; color: var(--gold); letter-spacing: .04em; }
+  header .meta { color: var(--dim); font-size: 12px; }
+  header .meta b { color: var(--ink); font-weight: 600; }
+  nav { display: flex; gap: 2px; margin-left: auto; }
+  nav button { white-space: nowrap; background: transparent; border: 1px solid transparent; color: var(--dim); padding: 5px 11px; border-radius: 6px 6px 0 0; cursor: pointer; font: inherit; }
+  nav button.on { color: var(--ink); background: var(--bg); border-color: var(--line); border-bottom-color: var(--bg); }
+  main { padding: 16px 18px 40px; }
+  section { display: none; }
+  section.on { display: block; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 18px 0 8px; }
+  .grid { display: grid; gap: 14px; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .card h3 { margin: 0 0 6px; font-size: 14px; color: var(--ink); }
+  .dim { color: var(--dim); }
+  .gold { color: var(--gold); } .blue { color: var(--blue); } .red { color: var(--red); } .green { color: var(--green); } .violet { color: var(--violet); }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: 500; font-size: 12px; }
+  tr:hover td { background: #22242b; }
+  input[type=text], textarea, input[type=number] { width: 100%; background: #111216; color: var(--ink); border: 1px solid var(--line); border-radius: 5px; padding: 5px 7px; font: inherit; }
+  textarea { min-height: 54px; resize: vertical; }
+  button.act { background: #262932; color: var(--ink); border: 1px solid var(--line); border-radius: 5px; padding: 4px 9px; cursor: pointer; font: inherit; font-size: 12px; }
+  button.act:hover { border-color: var(--gold); color: var(--gold); }
+  button.act.spin { opacity: .6; pointer-events: none; }
+  button.act.danger:hover { border-color: var(--red); color: var(--red); }
+  .acts { display: flex; gap: 6px; white-space: nowrap; }
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 10px; background: #262932; color: var(--dim); font-size: 11px; margin: 1px 3px 1px 0; }
+  .tag.k { color: var(--blue); } .tag.h { color: var(--green); } .tag.p { color: var(--gold); }
+  .bar { height: 6px; background: #2a2d36; border-radius: 3px; overflow: hidden; margin-top: 3px; }
+  .bar i { display: block; height: 100%; background: var(--green); }
+  .bar.mana i { background: var(--blue); }
+  /* map */
+  .map { display: grid; gap: 2px; }
+  .tile { aspect-ratio: 1; border-radius: 3px; position: relative; font-size: 11px; display: flex; align-items: center; justify-content: center; color: #fff; text-shadow: 0 1px 2px #000; cursor: default; }
+  .tile.fog { filter: brightness(.55) saturate(.4); }
+  .tile .n { position: absolute; right: 3px; bottom: 1px; font-size: 10px; color: #ffd7d7; }
+  .tile .g { position: absolute; left: 3px; bottom: 1px; font-size: 10px; color: #ffe9a8; }
+  .tile.me { outline: 2px solid var(--gold); }
+  .pic { image-rendering: pixelated; background: #0f1013; border-radius: 6px; border: 1px solid var(--line); }
+  /* graph */
+  svg text { font: 12px "Menlo", ui-monospace, monospace; fill: var(--ink); }
+  svg line { stroke: #3a3f4c; stroke-width: 1.2; }
+  svg line.hot { stroke: var(--gold); stroke-width: 2; }
+  svg .node rect { fill: #262932; stroke: var(--line); rx: 5; }
+  svg .node.keeper rect { stroke: var(--blue); }
+  svg .node.hot rect { stroke: var(--gold); fill: #2e2a1c; }
+  svg text.small { fill: var(--dim); font-size: 10px; }
+  .log { max-height: 220px; overflow: auto; font-size: 12px; color: var(--dim); }
+  .log div:last-child { color: var(--ink); }
+  #toast { position: fixed; right: 16px; bottom: 16px; background: #262932; border: 1px solid var(--gold); color: var(--ink); padding: 8px 12px; border-radius: 6px; display: none; max-width: 480px; font-size: 12px; }
+  .muted { opacity: .5; }
+</style>
+</head>
+<body>
+<header>
+  <h1>NEURO PROCESSOR · podgląd</h1>
+  <div class="meta" id="meta">łączę się…</div>
+  <nav id="nav">
+    <button data-tab="world" class="on">Świat</button>
+    <button data-tab="graph">Graf wiedzy</button>
+    <button data-tab="facts">Fakty</button>
+    <button data-tab="beasts">Bestiariusz</button>
+    <button data-tab="items">Przedmioty</button>
+    <button data-tab="people">Ludzie</button>
+    <button data-tab="quests">Zadania</button>
+  </nav>
+</header>
+<main>
+  <section id="world" class="on"></section>
+  <section id="graph"></section>
+  <section id="facts"></section>
+  <section id="beasts"></section>
+  <section id="items"></section>
+  <section id="people"></section>
+  <section id="quests"></section>
+</main>
+<div id="toast"></div>
+<script>
+const terrainColours = {
+  plains: "#4f7a2e", forest: "#2d5a27", mountain: "#6b6f78", swamp: "#2f5f5a", desert: "#b08a4a", ruins: "#6a6a72",
+  cave: "#4a3f66", snow: "#c9d0d8", wasteland: "#7a5a3a", water: "#2f5f9a", street: "#5a5a60", station: "#4d4a78",
+};
+const kindNames = { weapon: "broń", armor: "pancerz", potion: "mikstura", spell: "zwój", charm: "amulet" };
+const effectNames = { none: "—", heal: "leczenie", mana: "mana", bolt: "pocisk", blast: "wybuch", power: "siła", ward: "ochrona", vigor: "wigor", focus: "skupienie" };
+let state = null, tab = "world", editing = 0, hot = null;
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const toast = (text, bad) => { const t = document.getElementById("toast"); t.textContent = text; t.style.borderColor = bad ? "var(--red)" : "var(--gold)"; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 3200); };
+
+async function api(method, path, body) {
+  const r = await fetch(path, { method, headers: body ? { "Content-Type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function load() {
+  try {
+    const fresh = await api("GET", "/api/world");
+    // Empty lists arrive as null.
+    ["tiles", "places", "players", "keepers", "facts", "beasts", "items", "companions", "quests", "flags"].forEach(k => fresh[k] = fresh[k] || []);
+    fresh.players.forEach(p => ["bag", "spells", "party", "log", "standing"].forEach(k => p[k] = p[k] || []));
+    fresh.facts.forEach(f => { f.known = f.known || []; f.heard = f.heard || []; });
+    state = fresh;
+    document.getElementById("meta").innerHTML = `<b>${esc(state.name)}</b> · ${esc(state.mode)} · dzień <b>${state.day}</b> · ${esc(state.season)}, ${esc(state.weather)} · faktów <b>${state.facts.length}</b> · graczy <b>${state.players.length}</b>${state.won ? ' · <span class="gold">wygrana</span>' : ""}${state.lost ? ' · <span class="red">przegrana</span>' : ""}`;
+    if (!editing) render();
+  } catch (e) {
+    document.getElementById("meta").innerHTML = `<span class="red">${esc(e.message)}</span>`;
+  }
+}
+
+function render() {
+  if (!state) return;
+  const el = document.getElementById(tab);
+  const draw = { world: worldView, graph: graphView, facts: factsView, beasts: beastsView, items: itemsView, people: peopleView, quests: questsView }[tab];
+  const scroll = window.scrollY;
+  el.innerHTML = draw();
+  window.scrollTo(0, scroll);
+}
+
+function rewriteButton(kind, index) {
+  if (!state.rewrites) return "";
+  return `<button class="act" title="Przepisz modelem" onclick="rewrite(this, '${kind}', ${index})">↻</button>`;
+}
+
+// --- Świat -------------------------------------------------------------
+function worldView() {
+  let html = `<div class="grid" style="grid-template-columns: minmax(0, 7fr) minmax(0, 5fr)">`;
+  html += `<div class="card"><h3>Mapa <span class="dim">${state.width}×${state.height}</span></h3>`;
+  if (state.tiles && state.tiles.length) {
+    html += `<div class="map" style="grid-template-columns: repeat(${state.width}, 1fr)">`;
+    state.tiles.forEach((t, i) => {
+      const place = state.places[t.place] || {};
+      const colour = terrainColours[place.terrain] || "#444";
+      let mark = "", title = `${place.name || ""} (zagrożenie ${place.danger || 0})`;
+      if (t.town >= 0) { mark = "⌂"; title = "Osada: " + title; }
+      if (t.site >= 0) { mark = "✦"; title += " · miejsce szczególne"; }
+      if (state.lair && state.lair.X === i % state.width && state.lair.Y === Math.floor(i / state.width)) { mark = "☠"; title += " · leże"; }
+      if (t.caravan) { mark = "⛟"; title += " · karawana"; }
+      if (t.players && t.players.length) { mark = "@"; title += " · " + t.players.join(", "); }
+      if (t.monsters && t.monsters.length) title += " · " + t.monsters.join(", ");
+      if (t.ground && t.ground.length) title += " · na ziemi: " + t.ground.join(", ");
+      const mine = t.players && t.players.length ? " me" : "";
+      html += `<div class="tile${t.revealed ? "" : " fog"}${mine}" style="background:${colour}" title="${esc(title)}">${mark}${t.monsters && t.monsters.length ? `<span class="n">${t.boss ? "☠" : t.monsters.length}</span>` : ""}${t.ground && t.ground.length ? `<span class="g">•</span>` : ""}</div>`;
+    });
+    html += `</div><p class="dim" style="font-size:11px;margin:8px 0 0">⌂ osada · ✦ miejsce · ☠ leże · ⛟ karawana · @ gracz · liczba = potwory · • rzeczy na ziemi · ciemne = niezbadane</p>`;
+  } else {
+    html += `<p class="dim">Świat bez mapy (pomieszczenia).</p>`;
+  }
+  html += `</div><div>`;
+  html += `<div class="card"><h3>${esc(state.name)}</h3><p class="dim" style="margin:0 0 6px">${esc(state.intro)}</p>${state.style ? `<p class="dim" style="margin:0;font-size:12px">Styl: ${esc(state.style)}</p>` : ""}${state.heir ? `<p class="red" style="margin:6px 0 0">Nadciąga: ${esc(state.heir)}</p>` : ""}</div>`;
+  state.players.forEach(p => {
+    html += `<div class="card" style="margin-top:10px"><div style="display:flex;gap:12px"><img class="pic" src="/api/picture?kind=hero&avatar=${encodeURIComponent(p.avatar)}" width="48" height="60" alt="">`;
+    html += `<div style="flex:1"><h3>${esc(p.name)} <span class="dim">poz. ${p.level} · ${esc(p.hour)}${p.connected ? "" : " · odłączony"}</span></h3>`;
+    html += `<div class="dim" style="font-size:12px">HP ${p.hp}/${p.max_hp}</div><div class="bar"><i style="width:${Math.round(100 * p.hp / Math.max(1, p.max_hp))}%"></i></div>`;
+    html += `<div class="dim" style="font-size:12px;margin-top:4px">Mana ${p.mana}/${p.max_mana}</div><div class="bar mana"><i style="width:${Math.round(100 * p.mana / Math.max(1, p.max_mana))}%"></i></div>`;
+    html += `<div style="margin-top:6px;font-size:12px"><span class="gold">${p.gold} ${esc(state.currency)}</span> · atak ${p.attack} · obrona ${p.defense} · pole (${p.pos.X},${p.pos.Y})${p.talking ? ` · rozmawia z <b>${esc(p.talking)}</b>` : ""}</div>`;
+    html += `<div style="font-size:12px;margin-top:4px">${esc(p.weapon || "bez broni")} · ${esc(p.armor || "bez pancerza")} · ${esc(p.charm || "bez amuletu")}</div>`;
+    html += `<div style="margin-top:4px">${p.bag.map(b => `<span class="tag">${esc(b)}</span>`).join("")}${p.spells.map(b => `<span class="tag violet">${esc(b)}</span>`).join("")}</div>`;
+    if (p.party.length) html += `<div style="margin-top:4px" class="dim">Drużyna: ${esc(p.party.join(", "))}</div>`;
+    if (p.standing && p.standing.length) html += `<div style="margin-top:4px" class="dim">Opinia: ${p.standing.map(s => `${esc(s.Town)} ${esc(s.Label)} (${s.Score > 0 ? "+" : ""}${s.Score})`).join(" · ")}</div>`;
+    html += `<div class="acts" style="margin-top:8px"><button class="act" onclick="adjust('${esc(p.name)}','gold',${p.gold})">złoto…</button><button class="act" onclick="adjust('${esc(p.name)}','hp',${p.hp})">HP…</button><button class="act" onclick="adjust('${esc(p.name)}','mana',${p.mana})">mana…</button></div>`;
+    html += `</div></div></div>`;
+  });
+  html += `</div></div>`;
+  html += `<h2>Miejsca</h2><div class="card"><table><tr><th>Miejsce</th><th>Teren</th><th>Zagr.</th><th>Opis</th><th></th></tr>`;
+  state.places.forEach(pl => {
+    html += `<tr><td><b>${esc(pl.name)}</b></td><td class="dim">${esc(pl.terrain)}</td><td>${pl.danger}</td><td>${editable("place", pl.index, pl.description)}</td><td class="acts">${rewriteButton("place", pl.index)}</td></tr>`;
+  });
+  html += `</table></div>`;
+  return html;
+}
+
+// An editable description: click to edit, Enter/blur to save.
+function editable(kind, index, text) {
+  return `<span class="edit" contenteditable="plaintext-only" spellcheck="false" data-kind="${kind}" data-index="${index}" onfocus="editing++" onblur="editing--; saveEdit(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${esc(text)}</span>`;
+}
+
+async function saveEdit(el) {
+  const text = el.textContent.trim();
+  const was = (findText(el.dataset.kind, +el.dataset.index) || "").trim();
+  if (!text || text === was) { el.textContent = was; return; }
+  try {
+    await api("POST", "/api/describe", { kind: el.dataset.kind, index: +el.dataset.index, text });
+    toast("Zapisane.");
+    load();
+  } catch (e) { toast(e.message, true); }
+}
+
+function findText(kind, index) {
+  if (!state) return "";
+  switch (kind) {
+    case "place": return (state.places[index] || {}).description;
+    case "monster": return (state.beasts.find(b => b.kind === index) || {}).description;
+    case "boss": return (state.beasts.find(b => b.boss) || {}).description;
+    case "item": return (state.items[index] || {}).description;
+    case "companion": return (state.companions[index] || {}).description;
+    case "keeper": return (state.keepers.find(k => k.index === index) || {}).persona;
+    case "fact": return (state.facts.find(f => f.id === index) || {}).text;
+  }
+  return "";
+}
+
+async function rewrite(button, kind, index) {
+  button.classList.add("spin"); button.textContent = "…";
+  try {
+    const r = await api("POST", "/api/rewrite", { kind, index });
+    toast("Przepisane: " + r.text);
+    await load();
+  } catch (e) { toast(e.message, true); }
+  button.classList.remove("spin"); button.textContent = "↻";
+}
+
+async function adjust(name, field, current) {
+  const value = prompt(`${name} · ${field}:`, current);
+  if (value === null) return;
+  try { await api("POST", "/api/player", { name, field, value: +value }); toast("Zmienione."); load(); } catch (e) { toast(e.message, true); }
+}
+
+// --- Graf wiedzy -------------------------------------------------------
+function graphView() {
+  const keepers = state.keepers, facts = state.facts;
+  const rowH = 30, left = 20, right = 440, width = 1180, top = 20;
+  const height = top + Math.max(keepers.length, facts.length) * rowH + 20;
+  const kY = i => top + i * rowH + (facts.length > keepers.length ? (facts.length - keepers.length) * rowH / 2 : 0);
+  const fY = i => top + i * rowH + (keepers.length > facts.length ? (keepers.length - facts.length) * rowH / 2 : 0);
+  let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
+  facts.forEach((f, fi) => f.known.forEach(name => {
+    const ki = keepers.findIndex(k => k.name === name);
+    if (ki < 0) return;
+    const isHot = hot && (hot.fact === f.id || hot.keeper === name);
+    svg += `<line x1="${left + 200}" y1="${kY(ki) + 10}" x2="${right}" y2="${fY(fi) + 10}" class="${isHot ? "hot" : ""}"></line>`;
+  }));
+  keepers.forEach((k, ki) => {
+    const isHot = hot && hot.keeper === k.name;
+    svg += `<g class="node keeper${isHot ? " hot" : ""}" onmouseenter="hot={keeper:'${esc(k.name)}'};render()" onmouseleave="hot=null;render()"><rect x="${left}" y="${kY(ki)}" width="200" height="22"></rect><text x="${left + 8}" y="${kY(ki) + 15}">${esc(k.name)}</text><text x="${left + 192}" y="${kY(ki) + 15}" text-anchor="end" class="small">${k.knows}</text></g>`;
+  });
+  facts.forEach((f, fi) => {
+    const isHot = hot && (hot.fact === f.id || (hot.keeper && f.known.includes(hot.keeper)));
+    const heard = f.heard.length ? " ✓" : "";
+    svg += `<g class="node${isHot ? " hot" : ""}" onmouseenter="hot={fact:${f.id}};render()" onmouseleave="hot=null;render()" onclick="tab='facts';switchTab();setTimeout(()=>{const r=document.getElementById('fact-${f.id}'); if(r) r.scrollIntoView({block:'center'})},50)"><rect x="${right}" y="${fY(fi)}" width="${width - right - 20}" height="22"></rect><text x="${right + 8}" y="${fY(fi) + 15}">${esc(f.subject)}<tspan class="small"> · ${esc(f.text.slice(0, 70))}${f.text.length > 70 ? "…" : ""}${heard}</tspan></text></g>`;
+  });
+  svg += `</svg>`;
+  const lonely = facts.filter(f => !f.known.length).length;
+  return `<div class="card" style="overflow:auto"><h3>Kto co wie <span class="dim">· ${keepers.length} osób, ${facts.length} faktów${lonely ? `, ${lonely} bez nikogo` : ""} · ✓ = gracz słyszał</span></h3>${svg}</div>`;
+}
+
+// --- Fakty -------------------------------------------------------------
+function factsView() {
+  const names = state.keepers.map(k => k.name).concat(state.companions.map(c => c.name)).filter((n, i, a) => a.indexOf(n) === i);
+  let html = `<div class="card"><h3>Nowy fakt</h3><div class="grid" style="grid-template-columns: 1fr 3fr auto; align-items:start">`;
+  html += `<input type="text" id="nf-subject" placeholder="temat (do 4 słów)" onfocus="editing++" onblur="editing--">`;
+  html += `<textarea id="nf-text" placeholder="jedno zdanie w trzeciej osobie" onfocus="editing++" onblur="editing--"></textarea>`;
+  html += `<button class="act" onclick="addFact()">dodaj</button></div>`;
+  html += `<div style="margin-top:6px">${names.map(n => `<label class="tag"><input type="checkbox" class="nf-known" value="${esc(n)}"> ${esc(n)}</label>`).join("")}</div></div>`;
+  html += `<div class="card" style="margin-top:14px"><table><tr><th>#</th><th>Temat</th><th>Treść</th><th>Wie</th><th>Słyszał</th><th>Źródło</th><th></th></tr>`;
+  state.facts.forEach(f => {
+    html += `<tr id="fact-${f.id}"><td class="dim">${f.id}</td><td><b>${esc(f.subject)}</b></td><td>${editable("fact", f.id, f.text)}</td>`;
+    html += `<td>${f.known.map(k => `<span class="tag k">${esc(k)}</span>`).join("") || '<span class="dim">nikt</span>'}<br><button class="act" style="margin-top:4px" onclick="editKnown(${f.id})">kto wie…</button></td>`;
+    html += `<td>${f.heard.map(h => `<span class="tag h">${esc(h)}</span>`).join("")}${f.pointed ? Object.entries(f.pointed).map(([p, k]) => `<span class="tag p" title="trop">${esc(p)} → ${esc(k)}</span>`).join("") : ""}</td>`;
+    html += `<td class="dim">${esc(f.source || "świat")} · d. ${f.day}</td>`;
+    html += `<td class="acts">${rewriteButton("fact", f.id)}<button class="act danger" onclick="dropFact(${f.id})">✕</button></td></tr>`;
+  });
+  html += `</table></div>`;
+  return html;
+}
+
+async function addFact() {
+  const subject = document.getElementById("nf-subject").value, text = document.getElementById("nf-text").value;
+  const known = [...document.querySelectorAll(".nf-known:checked")].map(c => c.value);
+  try { await api("POST", "/api/fact", { id: 0, subject, text, known }); toast("Dodane."); load(); } catch (e) { toast(e.message, true); }
+}
+
+async function editKnown(id) {
+  const f = state.facts.find(x => x.id === id);
+  const names = state.keepers.map(k => k.name).concat(state.companions.map(c => c.name)).filter((n, i, a) => a.indexOf(n) === i);
+  const value = prompt(`Kto wie o „${f.subject}”? Imiona po przecinku.\nDostępni: ${names.join(", ")}`, f.known.join(", "));
+  if (value === null) return;
+  const known = value.split(",").map(s => s.trim()).filter(Boolean);
+  try { await api("POST", "/api/fact", { id, subject: f.subject, text: f.text, known }); toast("Zmienione."); load(); } catch (e) { toast(e.message, true); }
+}
+
+async function dropFact(id) {
+  if (!confirm("Usunąć ten fakt ze świata?")) return;
+  try { await api("DELETE", "/api/fact?id=" + id); toast("Usunięte."); load(); } catch (e) { toast(e.message, true); }
+}
+
+// --- Bestiariusz -------------------------------------------------------
+function beastsView() {
+  let html = `<div class="grid cols-3">`;
+  state.beasts.forEach(b => {
+    const src = b.boss ? "/api/picture?kind=boss" : `/api/picture?kind=monster&index=${b.kind}`;
+    const kind = b.boss ? "boss" : "monster";
+    html += `<div class="card"><div style="display:flex;gap:12px"><img class="pic" src="${src}" style="width:96px;height:96px;object-fit:contain" alt="">`;
+    html += `<div style="flex:1"><h3>${esc(b.name)} ${b.boss ? '<span class="red">☠</span>' : `<span class="dim">poz. ${b.tier}</span>`}</h3>`;
+    html += `<div class="dim" style="font-size:12px">${esc(b.shape)} · HP ${b.hp} · atak ${b.attack}</div>`;
+    html += `<div style="font-size:12px;margin-top:4px"><span class="violet">${esc(b.trait.Name)}</span> <span class="dim">${esc(b.trait.Text)}</span></div>`;
+    html += `<div style="font-size:12px;margin-top:4px">żyje: <b>${b.alive}</b> · pokonane: <b>${b.slain}</b></div></div></div>`;
+    html += `<p style="margin:8px 0 0;font-size:13px">${editable(kind, b.boss ? 0 : b.kind, b.description)}</p><div class="acts" style="margin-top:6px">${rewriteButton(kind, b.boss ? 0 : b.kind)}</div></div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+// --- Przedmioty --------------------------------------------------------
+function itemsView() {
+  let html = `<div class="card"><table><tr><th></th><th>Nazwa</th><th>Rodzaj</th><th>Efekt</th><th>Poz.</th><th>Cena</th><th>Opis</th><th></th></tr>`;
+  state.items.forEach(it => {
+    html += `<tr><td><img class="pic" src="/api/picture?kind=item&index=${it.index}" width="40" height="40" alt=""></td><td><b>${esc(it.name)}</b><br><span class="dim" style="font-size:11px">${esc(it.id)}</span></td>`;
+    html += `<td>${esc(kindNames[it.kind] || it.kind)}</td><td>${esc(effectNames[it.effect] || it.effect)}<br><span class="dim" style="font-size:11px">${esc(it.power)}</span></td><td>${it.tier}</td><td class="gold">${it.price}</td>`;
+    html += `<td>${editable("item", it.index, it.description)}</td><td class="acts">${rewriteButton("item", it.index)}</td></tr>`;
+  });
+  html += `</table></div>`;
+  return html;
+}
+
+// --- Ludzie ------------------------------------------------------------
+function peopleView() {
+  let html = `<h2>Mieszkańcy</h2><div class="card"><table><tr><th>Imię</th><th>Gdzie</th><th>Zna faktów</th><th>Charakter</th><th>Powitanie</th><th></th></tr>`;
+  state.keepers.forEach(k => {
+    html += `<tr><td><b>${esc(k.name)}</b></td><td class="dim">${esc(k.building)}</td><td>${k.knows}</td><td>${k.kind && k.kind !== "caravan" ? editable("keeper", k.index, k.persona) : esc(k.persona)}</td><td class="dim" style="font-size:12px">${esc(k.greeting || "")}</td><td class="acts">${k.kind && k.kind !== "caravan" ? rewriteButton("keeper", k.index) : ""}</td></tr>`;
+  });
+  html += `</table></div>`;
+  html += `<h2>Do najęcia</h2><div class="grid cols-3">`;
+  state.companions.forEach(c => {
+    html += `<div class="card"><div style="display:flex;gap:12px"><img class="pic" src="/api/picture?kind=companion&index=${c.kind}" width="48" height="60" alt=""><div><h3>${esc(c.name)} ${c.legend ? '<span class="gold">legenda</span>' : ""}</h3><div class="dim" style="font-size:12px">${esc(c.role)} · poz. ${c.tier} · karczma: ${esc(c.inn)}${c.hired_by ? ` · <span class="green">w drużynie: ${esc(c.hired_by)}</span>` : ""}</div></div></div>`;
+    html += `<p style="margin:8px 0 0;font-size:13px">${editable("companion", c.kind, c.description)}</p><div class="acts" style="margin-top:6px">${rewriteButton("companion", c.kind)}</div></div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+// --- Zadania i log -----------------------------------------------------
+function questsView() {
+  let html = `<h2>Zadania</h2><div class="card">`;
+  if (!state.quests.length) html += `<p class="dim">Nikt jeszcze niczego nie zlecił.</p>`;
+  else {
+    html += `<table><tr><th>Zleca</th><th>Rodzaj</th><th>Treść</th><th>Nagroda</th><th>Stan</th></tr>`;
+    state.quests.forEach(q => {
+      html += `<tr><td><b>${esc(q.keeper)}</b></td><td class="dim">${esc(q.kind)}</td><td>${esc(q.text)}</td><td class="gold">${q.reward}</td><td>${q.paid ? '<span class="green">wypłacone</span>' : q.finished ? '<span class="gold">wykonane</span>' : q.taker ? `wzięte: ${esc(q.taker)}` : '<span class="dim">na tablicy</span>'} <span class="dim">· d. ${q.day}</span></td></tr>`;
+    });
+    html += `</table>`;
+  }
+  html += `</div>`;
+  if (state.flags && state.flags.length) html += `<h2>Flagi opowieści</h2><div class="card">${state.flags.map(f => `<span class="tag">${esc(f)}</span>`).join("")}</div>`;
+  if (state.markup && Object.keys(state.markup).length) html += `<h2>Ceny (odchylenie)</h2><div class="card">${Object.entries(state.markup).map(([k, v]) => `<span class="tag">${esc(k)} ${v > 0 ? "+" : ""}${v}%</span>`).join("")}</div>`;
+  html += `<h2>Log graczy</h2><div class="grid cols-2">`;
+  state.players.forEach(p => {
+    html += `<div class="card"><h3>${esc(p.name)}</h3><div class="log">${p.log.slice(-40).map(l => `<div>${esc(l)}</div>`).join("")}</div></div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function switchTab() {
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  document.querySelectorAll("main section").forEach(s => s.classList.toggle("on", s.id === tab));
+  render();
+}
+
+document.querySelectorAll("#nav button").forEach(b => b.onclick = () => { tab = b.dataset.tab; hot = null; switchTab(); });
+if (location.hash) { tab = location.hash.slice(1) || "world"; switchTab(); }
+load();
+setInterval(load, 2000);
+</script>
+</body>
+</html>

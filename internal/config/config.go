@@ -59,6 +59,9 @@ type Config struct {
 	// speak the kitty graphics protocol: "off" (the default), "auto" or
 	// "kitty" (forced).
 	Images string
+	// Inspector is the address the browser inspector of the running
+	// world listens on; empty keeps it off.
+	Inspector string
 }
 
 // Offline reports whether no model is configured, in which case the game
@@ -109,6 +112,7 @@ func Load() Config {
 		TrueColor:     !isOff(get("NEURO_TRUECOLOR", "")),
 		WorldArt:      !isOff(get("NEURO_WORLD_ART", "")),
 		Images:        images(get("NEURO_IMAGES", "")),
+		Inspector:     inspector(get("NEURO_DEBUG", "")),
 	}
 }
 
@@ -178,4 +182,17 @@ func isOff(value string) bool {
 	}
 
 	return false
+}
+
+// inspector reads the inspector setting: off by default, "on" (or "1",
+// "true") for the local default address, or an address of its own.
+func inspector(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", "0", "off", "false", "no":
+		return ""
+	case "1", "on", "true", "yes":
+		return "127.0.0.1:7788"
+	}
+
+	return strings.TrimSpace(value)
 }

@@ -2,9 +2,9 @@
 
 Usage: python3 render.py FRAMES_DIR OUT.mp4
 
-FRAMES_DIR holds frame-NNNN.txt files of ANSI-coloured text and frames.txt
-with one "file seconds" line per frame. Each frame becomes a PNG, and
-ffmpeg joins them into an H.264 video.
+FRAMES_DIR holds frame-NNNN.txt files of ANSI-coloured text (or
+frame-NNNN.png screenshots) and frames.txt with one "file seconds" line per
+frame. Each frame becomes a PNG, and ffmpeg joins them into an H.264 video.
 """
 import os
 import re
@@ -92,13 +92,30 @@ def render(src, dst):
     img.save(dst)
 
 
+CANVAS = (140 * CW, 44 * CH)
+
+
+def picture(src, dst):
+    """Fits a ready picture (a browser screenshot) onto the frame canvas."""
+    img = Image.open(src).convert("RGB")
+    if img.size != CANVAS:
+        img.thumbnail(CANVAS)
+        canvas = Image.new("RGB", CANVAS, DEF_BG)
+        canvas.paste(img, ((CANVAS[0] - img.width) // 2, (CANVAS[1] - img.height) // 2))
+        img = canvas
+    img.save(dst)
+
+
 def main():
     frames_dir, out = sys.argv[1], sys.argv[2]
     entries = [line.split() for line in open(os.path.join(frames_dir, "frames.txt"), encoding="utf-8") if line.strip()]
     concat = []
     for index, (name, seconds) in enumerate(entries):
         png = os.path.join(frames_dir, f"{index:04d}.png")
-        render(os.path.join(frames_dir, name), png)
+        if name.endswith(".png"):
+            picture(os.path.join(frames_dir, name), png)
+        else:
+            render(os.path.join(frames_dir, name), png)
         concat.append(f"file '{png}'\nduration {seconds}")
     concat.append(f"file '{png}'")
     with open(os.path.join(frames_dir, "concat.txt"), "w", encoding="utf-8") as handle:

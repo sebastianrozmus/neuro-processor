@@ -18,6 +18,7 @@ import (
 	"github.com/sebastianrozmus/neuro-processor/internal/gallery"
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
 	"github.com/sebastianrozmus/neuro-processor/internal/inline"
+	"github.com/sebastianrozmus/neuro-processor/internal/inspect"
 	"github.com/sebastianrozmus/neuro-processor/internal/llm"
 	"github.com/sebastianrozmus/neuro-processor/internal/pix"
 	"github.com/sebastianrozmus/neuro-processor/internal/server"
@@ -98,6 +99,17 @@ func run(listen, name string) error {
 		host.record = recorder(filepath.Join(dataDir, "talks.jsonl"))
 	}
 
+	// The inspector shows the world being played in a browser.
+	if cfg.Inspector != "" {
+		inspector, err := inspect.Start(cfg.Inspector)
+		if err != nil {
+			return fmt.Errorf("podgląd w przeglądarce: %w", err)
+		}
+
+		host.inspector = inspector
+		backend += " · podgląd: " + inspector.URL()
+	}
+
 	host.library = avatars.Open(filepath.Join(dataDir, "avatars"))
 
 	python := cfg.Python
@@ -152,6 +164,8 @@ type host struct {
 	name    string
 	listen  string
 	dataDir string
+	// inspector, when on, shows the realm being played in a browser.
+	inspector *inspect.Server
 }
 
 func (h *host) savesDir() string {
@@ -225,6 +239,11 @@ func (h *host) play(realm *game.Realm, hero, invite string) (tea.Model, tea.Cmd)
 
 	if invite != "" {
 		realm.Tell(hero, "Świat jest otwarty dla innych graczy: "+invite)
+	}
+
+	if h.inspector != nil {
+		h.inspector.Watch(realm, h.brain)
+		realm.Tell(hero, "Podgląd świata w przeglądarce: "+h.inspector.URL())
 	}
 
 	scene := ui.NewGame(realm, hero, h.brain, h.library, save, h.voice, h.ear, h.record).Inline(inline.Enabled())

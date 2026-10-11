@@ -234,6 +234,29 @@ func (c *Client) Note(ctx context.Context, request game.NoteRequest) (game.FactS
 	return found.FactSpec, found.Found && found.Subject != "" && found.Text != "", nil
 }
 
+// Rewrite words a description of the world again with the Mind: the same
+// meaning and names in cleaner Polish, for the inspector's refresh.
+func (c *Client) Rewrite(ctx context.Context, request game.RewriteRequest) (string, error) {
+	content, err := c.chat(ctx, chatRequest{
+		Model: c.Model,
+		Messages: []message{
+			{Role: "system", Content: rewriteInstructions},
+			{Role: "user", Content: rewritePrompt(request)},
+		},
+		MaxTokens: 200,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	text := strings.Trim(strings.TrimSpace(content), "\"„”«»")
+	if text == "" {
+		return "", errors.New("model returned an empty description")
+	}
+
+	return text, nil
+}
+
 func (c *Client) Invent(ctx context.Context, request game.InventRequest) (world.ItemSpec, bool, error) {
 	content, err := c.chat(ctx, chatRequest{
 		Model: c.Model,

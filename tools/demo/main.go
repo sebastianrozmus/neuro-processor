@@ -17,14 +17,17 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/avatars"
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/inspect"
 	"github.com/sebastianrozmus/neuro-processor/internal/ui"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
@@ -49,6 +52,18 @@ func (r *recorder) frame(view string, seconds float64) {
 	r.index++
 
 	if err := os.WriteFile(filepath.Join(r.dir, name), []byte(view), 0o644); err != nil {
+		panic(err)
+	}
+
+	r.list = append(r.list, fmt.Sprintf("%s %.2f", name, seconds))
+}
+
+// picture records a ready PNG (a browser screenshot) as a frame.
+func (r *recorder) picture(path string, seconds float64) {
+	name := fmt.Sprintf("frame-%04d.png", r.index)
+	r.index++
+
+	if err := os.Rename(path, filepath.Join(r.dir, name)); err != nil {
 		panic(err)
 	}
 
@@ -160,6 +175,7 @@ func (generator) GenerateWorld(_ context.Context, mode world.Mode, theme string)
 
 func main() {
 	out := flag.String("out", "demo-frames", "folder for the frames")
+	only := flag.String("only", "", "record one part alone: imagination, tabletop, adventure, generated or inspector")
 	flag.Parse()
 
 	if err := os.MkdirAll(*out, 0o755); err != nil {
@@ -182,14 +198,34 @@ func main() {
 	library := avatars.Open("")
 	launch := &launcher{brain: demoBrain{}, library: library}
 
+	parts := map[string]func(){
+		"imagination": func() { imagination(rec, launch, byMode[world.ModeImagination]) },
+		"tabletop":    func() { tabletop(rec, launch, byMode[world.ModeDnD]) },
+		"adventure":   func() { adventure(rec, launch, byMode[world.ModeAdventure]) },
+		"generated":   func() { generated(rec, launch, presets) },
+		"inspector":   func() { inspector(rec, launch, byMode[world.ModeImagination]) },
+	}
+
+	if *only != "" {
+		part, ok := parts[*only]
+		if !ok {
+			panic("no such part: " + *only)
+		}
+
+		part()
+		rec.save()
+		fmt.Printf("%d klatek w %s\n", rec.index, *out)
+
+		return
+	}
+
 	rec.card("NEURO PROCESSOR", "Generator gier tekstowych w terminalu. Trzy rodzaje gry, jeden silnik.", 3)
 
-	imagination(rec, launch, byMode[world.ModeImagination])
-	tabletop(rec, launch, byMode[world.ModeDnD])
-	adventure(rec, launch, byMode[world.ModeAdventure])
-	generated(rec, launch, presets)
+	for _, name := range []string{"imagination", "tabletop", "adventure", "generated", "inspector"} {
+		parts[name]()
+	}
 
-	rec.card("NEURO PROCESSOR", "Mapa, walka, handel z żywymi postaciami, drużyna, wiedza, która krąży, i świat, który się zmienia.", 4)
+	rec.card("NEURO PROCESSOR", "Mapa, walka, handel z żywymi postaciami, drużyna, wiedza, która krąży, świat, który się zmienia, i podgląd tego wszystkiego w przeglądarce.", 4)
 	rec.save()
 	fmt.Printf("%d klatek w %s\n", rec.index, *out)
 }
@@ -408,6 +444,91 @@ func generated(rec *recorder, launch *launcher, presets []world.Spec) {
 	}
 
 	rec.shot(model, 2.4)
+}
+
+// inspector plays a little, then shows the same world in the browser
+// inspector: the map, the knowledge graph, the bestiary and the items,
+// as screenshots taken with a headless Chrome. Without Chrome the part
+// is skipped.
+func inspector(rec *recorder, launch *launcher, spec world.Spec) {
+	chrome := chromePath()
+	if chrome == "" {
+		fmt.Fprintln(os.Stderr, "brak Chrome: pomijam podgląd w przeglądarce")
+
+		return
+	}
+
+	rec.card("5. Podgląd w przeglądarce", "Ten sam świat na żywo: mapa, graf wiedzy, bestiariusz, przedmioty. Do czytania i poprawiania.", 3.5)
+
+	model, _, _ := launch.New(spec)
+	model = size(model)
+	name := model.(ui.Game).Name()
+	realm := launch.last
+
+	model = typed(rec, model, "idź do zbrojowni", 1.6)
+	model = typed(rec, model, "co słychać?", 2.2)
+	model = press(model, tea.KeyEsc)
+	model = walkToFight(rec, model, realm, name)
+
+	for round := 0; round < 4 && realm.View(name).Fight != nil; round++ {
+		model = typed(rec, model, "", 0.9)
+	}
+
+	rec.shot(model, 1.6)
+
+	server, err := inspect.Start("127.0.0.1:0")
+	if err != nil {
+		panic(err)
+	}
+
+	server.Watch(realm, nil)
+
+	for _, tab := range []struct {
+		name    string
+		seconds float64
+	}{{"world", 4}, {"graph", 4}, {"facts", 3.5}, {"beasts", 3.5}, {"items", 3}, {"people", 3}} {
+		shot := filepath.Join(rec.dir, "browser-"+tab.name+".png")
+		command := exec.Command(chrome, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=1",
+			fmt.Sprintf("--window-size=%d,%d", columns*9, rows*18), "--virtual-time-budget=6000", "--screenshot="+shot, server.URL()+"#"+tab.name)
+		command.Stderr = nil
+
+		if err := command.Run(); err != nil {
+			fmt.Fprintln(os.Stderr, "zrzut z Chrome nie wyszedł:", err)
+
+			continue
+		}
+
+		rec.picture(shot, tab.seconds)
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// chromePath finds a Chrome to take screenshots with: NEURO_CHROME, or the
+// usual places.
+func chromePath() string {
+	candidates := []string{
+		os.Getenv("NEURO_CHROME"),
+		"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+		"/Applications/Chromium.app/Contents/MacOS/Chromium",
+	}
+
+	for _, name := range []string{"google-chrome", "chromium", "chromium-browser", "chrome"} {
+		if path, err := exec.LookPath(name); err == nil {
+			candidates = append(candidates, path)
+		}
+	}
+
+	for _, candidate := range candidates {
+		if candidate == "" {
+			continue
+		}
+
+		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
+			return candidate
+		}
+	}
+
+	return ""
 }
 
 // towards says which way the hero's piece should step to reach the
