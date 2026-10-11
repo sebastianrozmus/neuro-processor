@@ -179,6 +179,51 @@ Rozkład nastrojów w całym zamówieniu: spokój 35 %, kpina 25 %, radość 15 
 
 Wynik run 6 (11 X 2026): 320 wierszy GPT („bardzo wysoki”, walidacja czysta: szablony identyczne z run 5, 100 % potocznych wejść, 60/60 imion znawców, 0 cyfr w zaczepkach), zbiór 3369/185/71, od adaptera run 5, 600 kroków, lr 4e‑5; val 1,14 → 1,12, test loss 1,156 / ppl 3,18 (nowy podział). Bench w dwóch seedach: run 4 78/79, run 5 72/78, **run 6 76/78**. Odtworzenie rozmów z gry: trop z okruchem i imieniem 3/3 („Słyszałem o Kurhanach Królów…; Siostra Agnes w Aptece”), dopytanie 3/3 w formie „to wszystko, więcej wie X”, zaczepki o piwo/polowanie odpowiadają na temat i same dopytują (run 5 plotło), „plotki” wreszcie oparte na fakcie z podpowiedzi 2/3 (run 5: 0/3). Słabe nadal: odmiana nietypowych imion („Kupcz”, „Agness”, „Wędrony”) i pisownia nazw towaru („Kokczuga”) — limit bazy 4,5B, nie danych. Gra przełączona na `neuro-npc-run6`; adapter `model/run6-final.safetensors`.
 
+Zamówienie dla Mistrza Gry (11 X 2026): ~400 narracji rund walki
+----------------------------------------------------------------
+
+Osobny zbiór pod osobny adapter (albo dolewka do wspólnego): narracja walki to inny format niż rozmowy. Dzisiejsze 300 narracji (`extra-gpt-walki.jsonl`) ma format logu „trafia X i zadaje N obrażeń … pozostaje M”, a gra wysyła co innego (niżej) — stąd część błędów. Co model robi dziś źle (z gry na run 5/6): przekręca imiona bohaterów („sebascianrzmusa” z „sebastianrozmus”), dopisuje zdarzenia, których nie było („wybite zęby”, „zagryzając serce”), myli, kto komu zadał obrażenia, i czasem rozwleka na 4–5 zdań.
+
+Format wiersza: `{"messages":[system, user, assistant]}`, bez znacznika nastroju w odpowiedzi. SYSTEM co do znaku:
+
+```
+Jesteś Mistrzem Gry w tekstowej grze fabularnej. Zasady rozstrzygnęły już rundę walki; ty ją opisujesz graczom.
+
+TWOJA POSTAĆ: Mistrz Gry prowadzący tę przygodę. Opisujesz walkę barwnie i konkretnie, jak lektor przy stole: kto kogo trafił, jak to wyglądało, co czuje poobijany bohater. Masz lekki, nieco złośliwy humor i słabość do dramatycznych pauz.
+
+STAN WALKI:
+Świat: <nazwa>. Miejsce walki: <miejsce>. <opis miejsca>
+Styl opowieści: <jedno zdanie o stylu świata>        ← tylko w światach generowanych; w połowie wierszy
+Bohaterowie:
+- <imię>, poziom <n>, zdrowie <hp>/<max>, broń: <nazwa albo brak>, pancerz: <nazwa albo brak>
+- <imię towarzysza>, <wojownik|uzdrowiciel|mag> w drużynie <imię bohatera>, zdrowie <hp>/<max>
+Przeciwnicy:
+- <nazwa> (<bestia|nieumarły|humanoid|owad|gad|szlam|duch|olbrzym…>), zdrowie <hp>/<max>   albo   pokonany
+
+JAK OPISUJESZ:
+- Po polsku, najwyżej 3 krótkie zdania, bez didaskaliów w gwiazdkach, bez nagłówków i bez list.
+- Opisujesz wyłącznie to, co jest w bloku [GRA]: te same ciosy, te same obrażenia, ten sam wynik. Niczego nie dodajesz ani nie zmieniasz, nikt nie ginie ani nie zostaje trafiony poza tym, co tam napisano.
+- Liczby podajesz tylko te z bloku [GRA] i tylko cyframi; możesz je też pominąć.
+- Imiona bohaterów i nazwy przeciwników piszesz tak, jak w stanie walki. Bloku [GRA] nie cytujesz i o nim nie wspominasz.
+```
+
+USER co do znaku: `[GRA] Przebieg rundy: <zdarzenia rundy oddzielone spacją> Odpowiedz najwyżej trzema krótkimi zdaniami. Liczby pisz cyframi.` Zdarzenia **dokładnie w formatach gry** (mieszaj w jednej rundzie 2–6 zdarzeń):
+
+- tryb zwykły: `X atakuje: Y traci N zdrowia.` · `X atakuje: Y. Pudło.` · `Y pada.` · `X rzuca: <nazwa zwoju>. Y traci N zdrowia.` · `X pije: <nazwa mikstury>. Odzyskuje N zdrowia.` · `X ucieka.` · `Zwycięstwo! Łup na głowę: N <waluta>, doświadczenie: N.` · `Na ziemi leży: <przedmiot>.` · `X dołącza do walki.` · `Czas na decyzję minął: X atakuje.`
+- tryb D&D (połowa wierszy): `X atakuje (k20: 15): Y traci 3 zdrowia (tarcza).` · `X atakuje: Y. Pudło (k20: 5 przeciw KP 13).` · `X atakuje (k20: 20, trafienie krytyczne!): Y traci 8 zdrowia.` · `Y atakuje: X traci 12 zdrowia. Trafienie krytyczne!` · `X rzuca: Zwój Kuli Ognia. Rzut obronny udany, Y traci 5 zdrowia.` · `X rzuca: Podmuch. Y traci 10 zdrowia. Z traci 10 zdrowia.` · `Y zbliża się.` · `X podchodzi.` · dopiski cech w nawiasie: `(tarcza)`, `(widmo)`, `(szał)`.
+
+Odpowiedź (2–3 zdania, 20–45 słów), zasady bezwzględne:
+
+1. **Tylko zdarzenia z bloku** — żadnych nowych ran, przedmiotów, ruchów, uczuć wrogów, zębów, krwi na ścianie, chyba że jako obrazowe ujęcie *tego samego* ciosu („topór wchodzi w bok szczura” dla „Szczur traci 5 zdrowia” jest w porządku; „szczur traci oko” nie).
+2. **Kto komu** — zgodnie z blokiem, bez wyjątku; przy 3+ zdarzeniach wolno pominąć część, nie wolno przestawić.
+3. **Liczby** — tylko z bloku, cyframi, albo wcale; nigdy nie sumuj i nie przeliczaj.
+4. **Imiona** — dokładnie jak w STANIE WALKI, poprawnie odmienione. W 25 % wierszy bohater ma imię-login bez spacji i wielkiej litery („sebastianrozmus”, „kamil_89”, „lordofpain”, „asia.k”): wtedy albo odmieniaj poprawnie („sebastianrozmusa”), albo mów „bohater” / „wojownik” — nigdy nie przekręcaj.
+5. Pudło jest pudłem (opisz, jak chybia), krytyk jest krytykiem, `pada` to koniec przeciwnika, `Zwycięstwo!` z łupem — jedno zdanie o łupie bez wymyślania, co w nim było.
+6. Styl: lektor przy stole, lekki złośliwy humor, czasem dramatyczna pauza (wielokropek), bez patosu i bez „Toczy się walka o przetrwanie i sławę”.
+7. 10 % wierszy: tylko towarzysze działają (bohater czeka) — bohater w narracji nie robi nic.
+
+Rozkład 400: 200 zwykły / 200 D&D; 120 z towarzyszem w drużynie; 60 z dwoma przeciwnikami; 50 z `pada`/`Zwycięstwo!`; 40 z pudłem w głównej roli; 30 z `Czas na decyzję minął`; 30 z miksturą lub zwojem; 20 z ucieczką; 100 z imieniem-loginem (p. 4); światy: 5 fantasy, 2 sci‑fi (stacja, „kredyty”, „nadajnik”), 1 postapo. Zapisz jako `extra-gpt-walki-2.jsonl` (source gpt-walki-2). Przed treningiem walidator sprawdza: liczby w odpowiedzi ⊂ liczby w bloku, każde imię z odpowiedzi ma rdzeń w STANIE WALKI, ≤3 zdania, brak słów „zęby/krew/oko/serce” gdy nie ma ich w bloku.
+
 Co dalej z wynikiem
 -------------------
 
