@@ -198,7 +198,25 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 		}
 	}
 
-	return request.Decision.Fallback(), problem
+	return fallbackFor(request), problem
+}
+
+// fallbackFor is the canned line when the model fails: the decision's, or
+// for small talk one that fits who is speaking, since a mercenary does
+// not "handluje".
+func fallbackFor(request NarrateRequest) string {
+	if request.Decision.Outcome == OutcomeChat {
+		switch request.Role {
+		case RoleMercenary:
+			return "Nie mój interes. Mów o robocie albo o drodze."
+		case RoleCompanion:
+			return "Może i tak. Idziemy dalej?"
+		case RoleWitness:
+			return "Nie wiem, co ci na to powiedzieć."
+		}
+	}
+
+	return request.Decision.Fallback()
 }
 
 // tidy strips what models like to wrap a line in (quotes, emphasis marks,

@@ -244,8 +244,8 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	}
 
 	// "A co słyszałeś?" after a lead stays on that lead instead of
-	// drifting to a random fact.
-	if last := customer.talks[customer.shop]; last != nil && last.lead != nil && decision.Outcome == OutcomeChat {
+	// drifting to a random fact; "dobre mają piwo?" is another topic.
+	if last := customer.talks[customer.shop]; last != nil && last.lead != nil && decision.Outcome == OutcomeChat && followUp(words, last.lead) {
 		return r.referral(last.lead, last.leadKeeper, true), &lead{fact: last.lead, keeper: last.leadKeeper}
 	}
 
@@ -273,6 +273,43 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	}
 
 	return "", nil
+}
+
+// followWords are the stems of words a player asks further with: "a co
+// dokładnie słyszałeś?", "opowiedz więcej", "no i?".
+var followWords = []string{
+	"wiec", "slysz", "powiedz", "opowi", "mow", "gada", "wtedy", "dokladn", "takie", "tego", "tym", "tamt", "tam", "jeszcze", "dalej",
+	"czego", "czym", "ktor", "kto", "gdzie", "kiedy", "dlaczego", "czemu", "dobr", "czlowiek", "przyjaciel", "wiesz", "wiem", "chodzi",
+	"znacz", "mial", "mysl", "pewn", "napraw", "serio", "prosz", "powtorz", "wspomn", "spraw", "rzecz", "temat", "legend", "histori", "plotk",
+}
+
+// followUp reports whether the player's words ask further about a lead
+// rather than start something else: every word of any length is either
+// small talk, a way of asking further, or from the lead itself.
+func followUp(words []string, fact *Fact) bool {
+	topic := strings.Fields(Fold(fact.Subject + " " + crumb(fact)))
+
+	for _, word := range words {
+		word = strings.Trim(word, ".,!?;:")
+		if len(word) < minQueryWord+1 || slices.Contains(greetingWords, word) {
+			continue
+		}
+
+		known := false
+		for _, stem := range followWords {
+			known = known || strings.HasPrefix(word, stem)
+		}
+
+		for _, part := range topic {
+			known = known || (len(part) >= minQueryWord+1 && strings.HasPrefix(word, Stem(part)))
+		}
+
+		if !known {
+			return false
+		}
+	}
+
+	return true
 }
 
 // lead is a fact a keeper sent the player to somebody else about.

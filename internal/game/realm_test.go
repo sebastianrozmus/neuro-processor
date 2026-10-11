@@ -886,7 +886,24 @@ func TestWhatAKeeperLacksBecomesALead(t *testing.T) {
 		t.Errorf("follow-up hint = %q, journal %d", request.Hint, len(realm.Journal(hero)))
 	}
 
-	// Another topic lets the lead go.
+	// Another topic is not a follow-up: it gets banter, and lets the lead
+	// go, so that asking further afterwards is no longer about it.
+	_, request, _ = realm.Haggle(hero, "dobre mają piwo w karczmie?", Intent{Action: ActionChat})
+	if request.Lead != "" || len(request.Required) != 0 || strings.Contains(request.Hint, "dopytuje") || strings.Contains(request.Hint, "Kurhany") {
+		t.Errorf("after a new topic: lead %q, required %q, hint %q", request.Lead, request.Required, request.Hint)
+	}
+
+	_, request, _ = realm.Haggle(hero, "a co dokładnie słyszałeś?", Intent{Action: ActionChat})
+	if request.Lead != "" || strings.Contains(request.Hint, "dopytuje") {
+		t.Errorf("the lead came back: %q", request.Hint)
+	}
+
+	for text, want := range map[string]bool{"a co takiego wtedy słyszałeś, dobry człowieku?": true, "no i? gadaj dalej": true, "a te kurhany gdzie są?": true, "ile chcesz za służbę": false, "dobre mają piwo?": false} {
+		if got := followUp(strings.Fields(Fold(text)), fact); got != want {
+			t.Errorf("followUp(%q) = %v", text, got)
+		}
+	}
+
 	_, request, _ = realm.Haggle(hero, "siema mordo", Intent{Action: ActionChat})
 	if request.Lead != "" || !strings.Contains(request.Hint, "tylko się wita") || realm.players[hero].talks[realm.players[hero].shop].lead != nil {
 		t.Errorf("after a greeting: lead %q, hint %q", request.Lead, request.Hint)
@@ -894,8 +911,10 @@ func TestWhatAKeeperLacksBecomesALead(t *testing.T) {
 
 	// Hearing the fact itself turns the lead into knowledge.
 	realm.learn(realm.players[hero], fact)
-	if journal := realm.Journal(hero); len(journal) != 1 || journal[0].Lead != "" || journal[0].Text == "" {
-		t.Errorf("journal after hearing = %+v", journal)
+	for _, entry := range realm.Journal(hero) {
+		if entry.Subject == "Kurhany Królów" && (entry.Lead != "" || entry.Text == "") {
+			t.Errorf("journal after hearing = %+v", entry)
+		}
 	}
 
 	if crumb(&Fact{Text: "Jedno dwa trzy cztery pięć sześć siedem osiem dziewięć dziesięć jedenaście dwanaście trzynaście czternaście"}) != "Jedno dwa trzy cztery pięć sześć siedem osiem dziewięć dziesięć jedenaście dwanaście …" {

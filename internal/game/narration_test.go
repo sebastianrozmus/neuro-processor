@@ -321,6 +321,19 @@ func TestMangledNamesEarnASecondTry(t *testing.T) {
 	}
 }
 
+func TestFallbackFitsTheSpeaker(t *testing.T) {
+	narrator := &scriptedNarrator{err: errors.New("down")}
+	chat := NarrateRequest{Decision: Decision{Outcome: OutcomeChat}, Role: RoleMercenary}
+	if text, _ := Narrate(context.Background(), narrator, chat); text != "Nie mój interes. Mów o robocie albo o drodze." {
+		t.Errorf("mercenary fallback = %q", text)
+	}
+
+	chat.Role = ""
+	if text, _ := Narrate(context.Background(), narrator, chat); text != "Ciekawe rzeczy opowiadasz, ale ja tu handluję." {
+		t.Errorf("shopkeeper fallback = %q", text)
+	}
+}
+
 func TestChatBriefFollowsTheRole(t *testing.T) {
 	chat := Decision{Outcome: OutcomeChat, Mood: MoodPleased}
 	if brief := chat.BriefFor(""); brief != chat.Brief() || !strings.Contains(brief, "polecić coś ze swojego towaru") {
