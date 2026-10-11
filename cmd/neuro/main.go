@@ -246,7 +246,7 @@ func (h *host) play(realm *game.Realm, hero, invite string) (tea.Model, tea.Cmd)
 		realm.Tell(hero, "Podgląd świata w przeglądarce: "+h.inspector.URL())
 	}
 
-	scene := ui.NewGame(realm, hero, h.brain, h.library, save, h.voice, h.ear, h.record).Inline(inline.Enabled())
+	scene := ui.NewGame(realm, hero, h.brain, h.library, save, h.voice, h.ear, h.record).Inline(inline.Enabled()).Debug(h.inspector != nil)
 
 	return scene, scene.Init()
 }

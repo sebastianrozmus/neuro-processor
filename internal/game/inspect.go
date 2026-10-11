@@ -48,6 +48,41 @@ type Inspection struct {
 	Flags   []string       `json:"flags,omitempty"`
 	// Rewrites says whether a model is there to reword descriptions.
 	Rewrites bool `json:"rewrites"`
+	// Rejected are the latest lines of the model that the rules refused,
+	// newest last.
+	Rejected []RejectionInfo `json:"rejected"`
+}
+
+// RejectionInfo is one refused reply: who asked whom what, and what the
+// model offered instead of the canned line that was spoken.
+type RejectionInfo struct {
+	Day      int       `json:"day"`
+	Player   string    `json:"player"`
+	Keeper   string    `json:"keeper"`
+	Said     string    `json:"said"`
+	Hint     string    `json:"hint"`
+	Attempts []Attempt `json:"attempts"`
+}
+
+// rejectionsKept is how many refused replies the realm remembers.
+const rejectionsKept = 40
+
+// Reject remembers a reply the rules refused, for the inspector.
+func (r *Realm) Reject(name string, request NarrateRequest, rejection *Rejection) {
+	if rejection == nil {
+		return
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.rejections = append(r.rejections, RejectionInfo{
+		Day: r.day, Player: name, Keeper: request.Merchant.Name, Said: request.Text, Hint: request.Hint, Attempts: rejection.Attempts,
+	})
+
+	if len(r.rejections) > rejectionsKept {
+		r.rejections = r.rejections[len(r.rejections)-rejectionsKept:]
+	}
 }
 
 // TileInfo is one square of the map with everything on it.
@@ -326,6 +361,7 @@ func (r *Realm) Inspect() Inspection {
 	}
 
 	sort.Strings(report.Flags)
+	report.Rejected = append([]RejectionInfo{}, r.rejections...)
 
 	return report
 }

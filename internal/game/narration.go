@@ -144,6 +144,41 @@ func (r InterpretRequest) Sanitize(intent Intent) Intent {
 // never produced.
 var ErrInconsistent = errors.New("narrator contradicted the rules")
 
+// Attempt is one line a model offered and why it was refused.
+type Attempt struct {
+	Text   string `json:"text"`
+	Reason string `json:"reason"`
+}
+
+// Rejection is the error of a reply that was refused on every attempt:
+// it says what the model wrote and what was wrong with it, so that the
+// screen and the inspector can show why a canned line was spoken. It is
+// an ErrInconsistent.
+type Rejection struct {
+	Attempts []Attempt
+}
+
+func (r *Rejection) Error() string {
+	reasons := make([]string, 0, len(r.Attempts))
+	for _, attempt := range r.Attempts {
+		reasons = append(reasons, attempt.Reason)
+	}
+
+	return "narrator contradicted the rules: " + strings.Join(reasons, "; ")
+}
+
+func (r *Rejection) Unwrap() error {
+	return ErrInconsistent
+}
+
+// Reasons a line is refused for.
+const (
+	reasonEmpty   = "pusta odpowiedź"
+	reasonLeak    = "cytuje notę gry"
+	reasonNumbers = "liczba spoza bloku [GRA] albo napisana słownie"
+	reasonNames   = "imię przekręcone albo pominięte"
+)
+
 // Narrate asks the narrator for a reply and checks it against the decision.
 // The reply is cleaned up and cut to a few sentences. If it quotes amounts
 // the rules never produced, the narrator is told so and asked again; if
@@ -162,8 +197,11 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 	allowed := append(request.Decision.Numbers(), numbersIn(known)...)
 	allowed = slices.DeleteFunc(allowed, func(number int) bool { return slices.Contains(request.Forbidden, number) })
 	known = Fold(known)
-	problem := ErrInconsistent
-	streamer, streams := narrator.(Streamer)
+	var (
+		problem  error
+		refused  []Attempt
+		streamer, streams = narrator.(Streamer)
+	)
 
 	for attempt := range narrateAttempts {
 		var (
@@ -186,16 +224,31 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 		// A reply that quotes the game's own note to the narrator is no line
 		// of dialogue at all.
 		leaked := strings.Contains(text, VerdictMark)
-
 		text = tidy(text, request.Merchant.Name, request.Decision.sentences())
-		if text != "" && !leaked && numbersOK(text, allowed, known) && namesOK(text, request.Required) {
+
+		reason := ""
+		switch {
+		case text == "":
+			reason = reasonEmpty
+		case leaked:
+			reason = reasonLeak
+		case !numbersOK(text, allowed, known):
+			reason = reasonNumbers
+		case !namesOK(text, request.Required):
+			reason = reasonNames
+		default:
 			return text, nil
 		}
 
+		refused = append(refused, Attempt{Text: text, Reason: reason})
 		request.Correction = correction
-		if !namesOK(text, request.Required) {
+		if reason == reasonNames {
 			request.Correction = nameCorrection + join(request.Required) + "."
 		}
+	}
+
+	if problem == nil || len(refused) > 0 && errors.Is(problem, context.DeadlineExceeded) {
+		problem = &Rejection{Attempts: refused}
 	}
 
 	return fallbackFor(request), problem

@@ -49,6 +49,8 @@ type Game struct {
 	library *avatars.Library
 	save    Save
 	voice   Voice
+	// debug shows on the screen why the rules refused a model's line.
+	debug bool
 	ear     Ear
 	record  Record
 	// hearing is what the help line says about the microphone.
@@ -114,6 +116,14 @@ func NewGame(realm *game.Realm, name string, brain game.Brain, library *avatars.
 // this screen.
 func (g Game) Inline(on bool) Game {
 	g.inline = on
+
+	return g
+}
+
+// Debug makes the screen say why a model's line was refused and a canned
+// one spoken instead; the inspector keeps the same.
+func (g Game) Debug(on bool) Game {
+	g.debug = on
 
 	return g
 }
@@ -195,6 +205,19 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if g.record != nil && msg.problem == nil {
 			g.record(msg.request, msg.text)
+		}
+
+		// What the rules refused goes to the inspector, and to the screen
+		// when it is debugging.
+		var rejection *game.Rejection
+		if errors.As(msg.problem, &rejection) {
+			g.realm.Reject(g.name, msg.request, rejection)
+
+			if g.debug {
+				for _, attempt := range rejection.Attempts {
+					g.shop.say(speakerSystem, fmt.Sprintf("Odrzucone (%s): „%s”", attempt.Reason, attempt.Text))
+				}
+			}
 		}
 
 		// A model that keeps contradicting the rules is not worth a note,

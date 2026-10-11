@@ -83,6 +83,8 @@ type Realm struct {
 	caravan *caravan
 	quests  []*quest
 	heir    *heir
+	// rejections are the model's latest lines the rules refused.
+	rejections []RejectionInfo
 
 	// master narrates rounds of combat when the world has one.
 	master Narrator

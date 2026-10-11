@@ -321,6 +321,28 @@ func TestMangledNamesEarnASecondTry(t *testing.T) {
 	}
 }
 
+func TestRefusedLinesSayWhy(t *testing.T) {
+	narrator := &scriptedNarrator{replies: []string{"[spokój] Piwo warzą 2 wsie dalej.", "[spokój] Pytaj Wedronowego Kupuca."}}
+	request := NarrateRequest{Decision: Decision{Outcome: OutcomeChat}, Role: RoleMercenary, Required: []string{"Wędrowny Kupiec"}}
+
+	text, err := Narrate(context.Background(), narrator, request)
+
+	var rejection *Rejection
+	if !errors.As(err, &rejection) || !errors.Is(err, ErrInconsistent) || text != "Nie mój interes. Mów o robocie albo o drodze." {
+		t.Fatalf("got %q, %v", text, err)
+	}
+
+	if len(rejection.Attempts) != 2 || rejection.Attempts[0].Reason != reasonNumbers || rejection.Attempts[1].Reason != reasonNames || rejection.Attempts[1].Text != "[spokój] Pytaj Wedronowego Kupuca." {
+		t.Errorf("attempts = %+v", rejection.Attempts)
+	}
+
+	// A model that cannot be reached is another matter.
+	narrator = &scriptedNarrator{err: errors.New("down")}
+	if _, err := Narrate(context.Background(), narrator, request); errors.As(err, &rejection) || errors.Is(err, ErrInconsistent) {
+		t.Errorf("a dead model counted as a refusal: %v", err)
+	}
+}
+
 func TestFallbackFitsTheSpeaker(t *testing.T) {
 	narrator := &scriptedNarrator{err: errors.New("down")}
 	chat := NarrateRequest{Decision: Decision{Outcome: OutcomeChat}, Role: RoleMercenary}

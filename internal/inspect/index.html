@@ -79,6 +79,7 @@
     <button data-tab="items">Przedmioty</button>
     <button data-tab="people">Ludzie</button>
     <button data-tab="quests">Zadania</button>
+    <button data-tab="model">Model</button>
   </nav>
 </header>
 <main>
@@ -89,6 +90,7 @@
   <section id="items"></section>
   <section id="people"></section>
   <section id="quests"></section>
+  <section id="model"></section>
 </main>
 <div id="toast"></div>
 <script>
@@ -113,7 +115,7 @@ async function load() {
   try {
     const fresh = await api("GET", "/api/world");
     // Empty lists arrive as null.
-    ["tiles", "places", "players", "keepers", "facts", "beasts", "items", "companions", "quests", "flags"].forEach(k => fresh[k] = fresh[k] || []);
+    ["tiles", "places", "players", "keepers", "facts", "beasts", "items", "companions", "quests", "flags", "rejected"].forEach(k => fresh[k] = fresh[k] || []);
     fresh.players.forEach(p => ["bag", "spells", "party", "log", "standing"].forEach(k => p[k] = p[k] || []));
     fresh.facts.forEach(f => { f.known = f.known || []; f.heard = f.heard || []; });
     state = fresh;
@@ -127,7 +129,7 @@ async function load() {
 function render() {
   if (!state) return;
   const el = document.getElementById(tab);
-  const draw = { world: worldView, graph: graphView, facts: factsView, beasts: beastsView, items: itemsView, people: peopleView, quests: questsView }[tab];
+  const draw = { world: worldView, graph: graphView, facts: factsView, beasts: beastsView, items: itemsView, people: peopleView, quests: questsView, model: modelView }[tab];
   const scroll = window.scrollY;
   el.innerHTML = draw();
   window.scrollTo(0, scroll);
@@ -364,6 +366,21 @@ function questsView() {
     html += `<div class="card"><h3>${esc(p.name)}</h3><div class="log">${p.log.slice(-40).map(l => `<div>${esc(l)}</div>`).join("")}</div></div>`;
   });
   html += `</div>`;
+  return html;
+}
+
+// --- Model -------------------------------------------------------------
+function modelView() {
+  let html = `<h2>Kwestie odrzucone przez zasady <span class="dim">· zamiast nich padła gotowa kwestia</span></h2><div class="card">`;
+  if (!state.rejected.length) html += `<p class="dim">Nic jeszcze nie odrzucono${state.rewrites ? "" : " (bez modelu nie ma czego)"}.</p>`;
+  else {
+    html += `<table><tr><th>Dzień</th><th>Kto → komu</th><th>Gracz powiedział</th><th>Podpowiedź gry</th><th>Model napisał</th><th>Powód</th></tr>`;
+    [...state.rejected].reverse().forEach(r => r.attempts.forEach((a, i) => {
+      html += `<tr>${i === 0 ? `<td rowspan="${r.attempts.length}" class="dim">${r.day}</td><td rowspan="${r.attempts.length}"><b>${esc(r.player)}</b> → ${esc(r.keeper)}</td><td rowspan="${r.attempts.length}">${esc(r.said)}</td><td rowspan="${r.attempts.length}" class="dim" style="font-size:11px;max-width:320px">${esc(r.hint)}</td>` : ""}<td>${esc(a.text)}</td><td class="red">${esc(a.reason)}</td></tr>`;
+    }));
+    html += `</table>`;
+  }
+  html += `</div><p class="dim" style="font-size:12px">Liczba spoza bloku [GRA]: w pogawędce każda cyfra jest podejrzana (ceny), a cena służby najemnika jest zakazana. Imię: osoba, do której gra kazała odesłać, musi paść po imieniu.</p>`;
   return html;
 }
 
