@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jak powstał neuro-npc</title>
+<meta name="description" content="Historia douczania własnego modelu głosu postaci w grze Neuro Processor: kroki, błędy, tutorial od zera i plan rozwoju.">
+<style>
+  :root {
+    --bg: #f6f3ec; --panel: #fffdf8; --ink: #1f1d1a; --dim: #6b655c; --line: #e2dccf;
+    --gold: #a8741a; --green: #2f7d4a; --amber: #b7791f; --red: #b4382f; --blue: #2c5f9e; --code: #efe9dc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15161a; --panel: #1d1f25; --ink: #e8e4db; --dim: #9a958b; --line: #2c2f38;
+      --gold: #e0b341; --green: #7bc67b; --amber: #e0a949; --red: #ef6a6a; --blue: #6cb6ff; --code: #111216;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15161a; --panel: #1d1f25; --ink: #e8e4db; --dim: #9a958b; --line: #2c2f38;
+    --gold: #e0b341; --green: #7bc67b; --amber: #e0a949; --red: #ef6a6a; --blue: #6cb6ff; --code: #111216;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 Georgia, "Iowan Old Style", "Palatino Linotype", serif; }
+  code, pre, .mono { font: 13px/1.5 "Menlo", "SF Mono", ui-monospace, monospace; }
+  a { color: var(--blue); }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px 80px; }
+  header.hero { padding: 56px 0 28px; border-bottom: 1px solid var(--line); }
+  header.hero .kicker { color: var(--gold); letter-spacing: .14em; text-transform: uppercase; font-size: 12px; font-family: "Menlo", ui-monospace, monospace; }
+  header.hero h1 { font-size: 40px; line-height: 1.15; margin: 10px 0 12px; }
+  header.hero p { color: var(--dim); font-size: 18px; margin: 0; max-width: 720px; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 14px; position: sticky; top: 0; background: var(--bg); z-index: 3; }
+  nav.toc a { text-decoration: none; color: var(--dim); }
+  nav.toc a:hover { color: var(--ink); }
+  h2 { font-size: 26px; margin: 48px 0 12px; }
+  h3 { font-size: 18px; margin: 28px 0 8px; }
+  p { margin: 10px 0; }
+  .lead { font-size: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin: 14px 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .two { grid-template-columns: 1fr; } header.hero h1 { font-size: 30px; } }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: normal; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+  pre { background: var(--code); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow: auto; }
+  code { background: var(--code); padding: 1px 5px; border-radius: 4px; }
+  pre code { background: none; padding: 0; }
+  .badge { display: inline-block; font: 12px/1 "Menlo", ui-monospace, monospace; padding: 4px 8px; border-radius: 999px; border: 1px solid; margin-right: 8px; vertical-align: middle; white-space: nowrap; }
+  .ok { color: var(--green); border-color: var(--green); }
+  .meh { color: var(--amber); border-color: var(--amber); }
+  .bad { color: var(--red); border-color: var(--red); }
+  /* timeline */
+  .timeline { position: relative; padding-left: 26px; }
+  .timeline::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: var(--line); }
+  .step { position: relative; margin: 0 0 22px; }
+  .step::before { content: ""; position: absolute; left: -24px; top: 9px; width: 12px; height: 12px; border-radius: 50%; background: var(--panel); border: 2px solid var(--dim); }
+  .step.ok::before { border-color: var(--green); background: var(--green); }
+  .step.meh::before { border-color: var(--amber); background: var(--amber); }
+  .step.bad::before { border-color: var(--red); background: var(--red); }
+  .step h3 { margin: 0 0 6px; }
+  .step .when { color: var(--dim); font-size: 13px; font-family: "Menlo", ui-monospace, monospace; margin-left: 8px; }
+  .step ul { margin: 6px 0 0; padding-left: 20px; }
+  .step li { margin: 4px 0; }
+  /* chart */
+  .chart { display: grid; grid-template-columns: 90px 1fr 70px; gap: 6px 10px; align-items: center; font-size: 14px; }
+  .chart .bar { height: 14px; border-radius: 3px; background: var(--blue); opacity: .85; }
+  .chart .lbl { font-family: "Menlo", ui-monospace, monospace; color: var(--dim); font-size: 13px; }
+  .note { color: var(--dim); font-size: 14px; }
+  ol.tutorial > li { margin: 14px 0; }
+  ol.tutorial > li > strong { font-size: 17px; }
+  .dont li { margin: 6px 0; }
+  footer { margin-top: 60px; color: var(--dim); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Neuro Processor · tools/model</div>
+  <h1>Jak powstał model <span style="color:var(--gold)">neuro-npc</span></h1>
+  <p>Historia douczania własnego „głosu” postaci gry: krok po kroku, z zaznaczeniem tego, co nie wyszło; tutorial, jak to powtórzyć od zera bez wiedzy o uczeniu maszynowym; i plan, co dalej — także gdyby zaczynać jeszcze raz.</p>
+</header>
+
+<nav class="toc">
+  <a href="#co">O co chodzi</a>
+  <a href="#slownik">Słowniczek</a>
+  <a href="#kroki">Kroki po kolei</a>
+  <a href="#liczby">Liczby</a>
+  <a href="#slabe">Co było słabe</a>
+  <a href="#tutorial">Tutorial od zera</a>
+  <a href="#plan">Plan rozwoju</a>
+  <a href="#odnowa">Gdyby od nowa</a>
+</nav>
+
+<h2 id="co">1. O co w ogóle chodzi</h2>
+<p class="lead">Gra ma dwa „mózgi”, i to rozdzielenie jest jedną z najważniejszych decyzji w całej historii.</p>
+<div class="two">
+  <div class="card">
+    <h3 style="margin-top:0">Umysł</h3>
+    <p><code>NEURO_LLM_MODEL</code>, u nas <code>gemma3:4b</code> przez Ollamę. Czyta, co gracz napisał (oferta? pytanie? obelga?), generuje światy, wyłapuje z rozmów nowe fakty i przedmioty, przepisuje opisy w podglądzie. Liczy się rozumienie, nie styl.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Głos</h3>
+    <p><code>NEURO_TALK_MODEL</code>, u nas <code>neuro-npc-run5</code>. <strong>Tylko wymyśla kwestię postaci.</strong> Dostaje od gry gotową decyzję („sprzedajesz kord za 40”, „odsyłasz do Jagny”), opis postaci, to, co postać wie, nastrój — i ma to powiedzieć po polsku, w charakterze, krótko, z liczbami co do grosza.</p>
+  </div>
+</div>
+<p>Gotowe modele robiły to źle: albo drewnianie (gemma), albo nie trzymały zasad — wymyślały ceny, pisały liczebniki słownie, wstawiały emoji, mieszały dialekty (Bielik bez treningu). Dlatego Głos <strong>douczyliśmy</strong> na własnych przykładach rozmów. To <em>fine-tuning</em>, konkretnie <strong>LoRA</strong>: nie ruszamy całego modelu (miliardów liczb), tylko dokładamy mały zestaw wag (kilkadziesiąt MB), który uczy się naszego stylu i naszych zasad.</p>
+
+<h2 id="slownik">2. Słowniczek</h2>
+<div class="card">
+<table>
+  <tr><th>Pojęcie</th><th>Po ludzku</th></tr>
+  <tr><td><strong>Model bazowy</strong></td><td>gotowy model, od którego zaczynamy: <code>Bielik-4.5B-v3.0-Instruct</code> (polski, 4,5 mld parametrów).</td></tr>
+  <tr><td><strong>LoRA / adapter</strong></td><td>mały plik z „poprawkami” do modelu bazowego; trenujemy tylko jego. Jeden trening = jeden adapter (<code>runN-final.safetensors</code>).</td></tr>
+  <tr><td><strong>Dane treningowe</strong></td><td>plik JSONL: każda linia to jedna rozmowa — SYSTEM (kim jesteś, co wiesz), wejście gracza z blokiem <code>[GRA]</code> (decyzja gry) i wzorcowa odpowiedź postaci. Model uczy się <em>odpowiadać jak wzorzec</em>.</td></tr>
+  <tr><td><strong>Maskowanie promptu</strong></td><td>uczymy tylko na odpowiedziach, nie na promptach — żeby model nie uczył się „pisać promptów gry”.</td></tr>
+  <tr><td><strong>Krok</strong></td><td>jedno poprawienie wag na porcji przykładów. 800 kroków × 4 przykłady ≈ jedna epoka naszego zbioru.</td></tr>
+  <tr><td><strong>Learning rate</strong></td><td>jak duże poprawki na krok. Za duży — model „zapomina” bazę; za mały — nic się nie uczy. Od zera 1e‑4, przy douczaniu 4–5e‑5.</td></tr>
+  <tr><td><strong>Val / test loss, ppl</strong></td><td>miara „zaskoczenia” modelu na przykładach, których nie widział. Mniej = lepiej. Perplexity ≈ e<sup>loss</sup>; 3 = „model wybiera średnio spośród 3 sensownych słów”. <strong>Nie porównuj między runami, jeśli zmienił się zbiór.</strong></td></tr>
+  <tr><td><strong>Fuse</strong></td><td>wtopienie adaptera w wagi bazowe → pełny model.</td></tr>
+  <tr><td><strong>GGUF / q8_0</strong></td><td>format i kompresja (8 bitów na wagę), w jakich Ollama trzyma model.</td></tr>
+  <tr><td><strong>Bench</strong></td><td>stały zestaw 80 przypadków; automatycznie sprawdzamy, czy odpowiedź trzyma format (liczby, zdania, nastrój).</td></tr>
+  <tr><td><strong>Replay</strong></td><td>odtworzenie prawdziwej rozmowy z gry (z logu) na dwóch modelach obok siebie — najtańszy sposób, żeby <em>zobaczyć</em> różnicę.</td></tr>
+</table>
+</div>
+
+<h2 id="kroki">3. Kroki po kolei</h2>
+<p><span class="badge ok">✓ zostało</span><span class="badge meh">~ słabe, częściowo użyteczne</span><span class="badge bad">✕ słabe, odrzucone</span></p>
+
+<div class="timeline">
+
+<div class="step meh">
+  <h3>Krok 0 — gotowe modele bez treningu <span class="when">6 X</span></h3>
+  <ul>
+    <li><span class="badge meh">~</span><code>gemma3:4b</code> jako jedyny model: działa, ale kwestie drewniane. Została jako Umysł.</li>
+    <li><span class="badge bad">✕</span>Bielik 4,5B Q8 z Ollamy bez treningu: żywszy polski, ale zmyślone ceny, liczebniki słownie, emoji, wycieki znaczników gry.</li>
+    <li>Wniosek: to nie prompt jest problemem, tylko brak przykładów <em>naszego</em> formatu. Decyzja: douczyć Bielika.</li>
+  </ul>
+</div>
+
+<div class="step ok">
+  <h3>Krok 1 — baza i narzędzia <span class="when">7 X</span></h3>
+  <ul>
+    <li><span class="badge ok">✓</span>Baza <code>speakleash/Bielik-4.5B-v3.0-Instruct-MLX-8bit</code>: polski, wersja na Apple Silicon, mieści się w 18 GB razem z treningiem.</li>
+    <li><span class="badge ok">✓</span><code>mlx-lm</code>, <code>prepare.py</code> (składa i dzieli zbiór), <code>train.sh</code> (trening → fuse → Ollama). Ustawienia do dziś: LoRA na 24 warstwach, rank 8, batch 1 × akumulacja 4, grad checkpointing, 2048 tokenów, <code>--mask-prompt</code>.</li>
+  </ul>
+</div>
+
+<div class="step meh">
+  <h3>Krok 2 — pierwsze dane: syntetyczne z gemmy <span class="when">7–8 X</span></h3>
+  <ul>
+    <li><span class="badge meh">~</span><code>tools/synth</code> grał w sklep i walki z gemmą: 275 rozmów. Szablonowe wejścia, odpowiedzi równie drewniane jak w grze. Uczyć się od słabego modelu = powielać słabość.</li>
+    <li><span class="badge ok">✓</span>Ratunek: <strong>269 z 275 odpowiedzi przepisanych ręcznie</strong> (<code>digest.py</code> → poprawki → <code>apply.py</code>). Powstał <code>synth-fixed.jsonl</code>, 314 wierszy — do dziś w zbiorze.</li>
+  </ul>
+</div>
+
+<div class="step bad">
+  <h3>Krok 3 — run 1 <span class="when">8 X</span></h3>
+  <ul>
+    <li><span class="badge bad">✕</span>Zbiór: synth + <strong>surowe logi gemmy z gry</strong> (44 % zbioru, głównie narracje walk). Błąd: logi gemmy to nie wzorzec, tylko to, od czego chcieliśmy odejść. 400 kroków, ~45 min, test ppl <strong>5,9</strong>.</li>
+    <li><span class="badge bad">✕</span>Import do Ollamy dawał śmieci (<code>[UNK_BYTE_…]</code>): wtopione wagi MLX nie niosą tokenizera, a importer Ollamy psuje tokenizer Bielika.</li>
+    <li><span class="badge meh">~</span>Obejście: serwer <code>mlx_lm.server</code> z adapterem (odrzucony po naprawie importu) — ale wymusił <strong>rozdział Umysł / Głos</strong> <span class="badge ok">✓</span>, który został i okazał się jedną z najlepszych decyzji.</li>
+    <li>Drobiazg: pierwszy start padł na nieocytowanej ścieżce ze spacją („Application Support”).</li>
+  </ul>
+</div>
+
+<div class="step ok">
+  <h3>Krok 4 — naprawa drogi do Ollamy <span class="when">9 X</span></h3>
+  <ul>
+    <li><span class="badge ok">✓</span><code>mlx_lm.fuse --dequantize</code> → skopiować pliki tokenizera z cache HF → <code>llama.cpp/convert_hf_to_gguf.py --outtype q8_0</code> → Modelfile (ChatML, <code>stop &lt;|im_end|&gt;</code>, temperatura 0,8, <code>num_ctx 4096</code>) → <code>ollama create</code>.</li>
+    <li>Pułapki: konwertera nie uruchamiać z <code>python -I</code>, ścieżki ze spacją w cudzysłowie, <code>ollama create</code> bez <code>-q</code>.</li>
+  </ul>
+</div>
+
+<div class="step meh">
+  <h3>Krok 5 — run 2 <span class="when">9 X</span></h3>
+  <ul>
+    <li><span class="badge meh">~</span>Bez surowych logów; zbiór kuratorowany 355 wierszy, 240 kroków, test ppl <strong>4,59</strong>. Ceny trzyma, odmiana się sypie („plombów”, „filt”).</li>
+    <li>Kluczowe odkrycie: w zbiorze było <strong>10 przykładów kontroferty</strong>. Model nie umie tego, czego prawie nie widział. <strong>Dane są wąskim gardłem, nie liczba kroków.</strong></li>
+    <li><code>train.sh</code> zaczął zachowywać poprzedni adapter; sprzątnięte 27 GB sierot w <code>~/.ollama</code>.</li>
+  </ul>
+</div>
+
+<div class="step ok">
+  <h3>Krok 6 — zamówienie u silnego modelu i run 3 <span class="when">9 X · pierwszy grywalny</span></h3>
+  <ul>
+    <li><span class="badge ok">✓</span><code>PROMPT.md</code>: <strong>dokładny kontrakt</strong> promptu gry (SYSTEM co do znaku, bloki <code>[GRA]</code> każdej decyzji, nastroje, zasada liczb) i zamówienie dla GPT: 8 światów, ~1700 rozmów NPC + 300 narracji walk. Walidator sprawdzał każdy wiersz względem szablonów z kodu.</li>
+    <li><span class="badge bad">✕</span>660 szablonowych „sklepowych” wierszy odrzucone (powtarzalne jak synth).</li>
+    <li><span class="badge ok">✓</span>Run 3: 2355 wierszy, 1600 kroków, ~4 h, test ppl <strong>3,85</strong>. Ceny 6/6, nastroje, polski dobry. Słabe: pogawędka najemnika ogólnikowa.</li>
+    <li><span class="badge meh">~</span>Podział train/val losowy, a rozmowy z historią współdzielą fragmenty — val zawyżony. Od run 4 podział po haszu wiersza.</li>
+  </ul>
+</div>
+
+<div class="step ok">
+  <h3>Krok 7 — run 4: dane celowane i bench <span class="when">10 X</span></h3>
+  <ul>
+    <li><span class="badge ok">✓</span>Najpierw <strong>poprawka w grze</strong>: najemnik i towarzysz dostawali brief kupca („poleć coś ze swojego towaru”). Stare dane przepisane skryptem.</li>
+    <li><span class="badge ok">✓</span>400 wierszy skupionych (najemnik / towarzysz / kupiec) + <strong>80 przypadków regresji, których nie uczymy</strong> — stały bench.</li>
+    <li><span class="badge ok">✓</span>Kontynuacja od adaptera run 3, 700 kroków, lr 5e‑5, ~70 min. Bench <strong>71 → 78/80</strong>.</li>
+    <li>Lekcja: bench nie łapie wszystkiego. W grze „siema mordo” dawało bełkot; przyczyny po stronie gry (brief bez nastroju, podpowiedź z jednego słowa, zero powitań w danych). Od tej pory logi pełnych promptów i replay to podstawowe narzędzie.</li>
+  </ul>
+</div>
+
+<div class="step bad">
+  <h3>Krok 8 — temperatura 0,6 <span class="when">10 X</span></h3>
+  <ul><li><span class="badge bad">✕</span>Bench 75/80 vs 78/80. Zostało 0,8.</li></ul>
+</div>
+
+<div class="step ok">
+  <h3>Krok 9 — run 5: luki z gry <span class="when">10 X · obecny model</span></h3>
+  <ul>
+    <li><span class="badge ok">✓</span>Zamówienie z tego, czego brakowało <em>w logach gry</em>: 160 powitań, 120 zaczepek, 100 potwierdzeń najmu (model mylił kierunek zapłaty), 60 pytań o rodzaj towaru, 60 odesłań, 50 odmów; potoczne wejścia. GPT „bardzo wysoki” — czystsze niż poprzednie paczki.</li>
+    <li><span class="badge ok">✓</span>Od run 4, 800 kroków, test ppl 2,99. Bench w dwóch seedach: run 4 <strong>78, 79</strong>; run 5 <strong>72, 78</strong> — różnica w szumie. Replay: powitania 3/3 (było 0/3), odesłanie 3/3 (1/3), kierunek zapłaty <strong>12/12</strong> (~połowa źle).</li>
+    <li><span class="badge meh">~</span>Przy wtapianiu adaptera zabrakło pamięci. Trening był skończony; końcówkę robi osobno <code>publish.sh</code>. Przed fuse zamknij przeglądarkę.</li>
+  </ul>
+</div>
+
+<div class="step ok">
+  <h3>Równolegle — poprawki gry, które dały więcej niż niejeden trening</h3>
+  <ul>
+    <li><span class="badge ok">✓</span>Podpowiedzi w <code>[GRA]</code> (fakt, towar wg rodzaju, powitanie, zaczepka), <strong>trop</strong> z okruchem i imieniem znawcy, sprawdzanie liczb i imion z jedną poprawką, cena służby jako liczba zakazana w pogawędce, blokada wymyślania przedmiotów u najemników, odrzucone kwestie <strong>z powodem</strong> (zakładka Model w podglądzie).</li>
+    <li>Zasada: <strong>zanim douczysz model, sprawdź w logu, co dokładnie dostał</strong> — w większości „bełkotów” winny był prompt.</li>
+  </ul>
+</div>
+
+</div>
+
+<h2 id="liczby">4. Liczby</h2>
+<div class="two">
+  <div class="card">
+    <h3 style="margin-top:0">Test perplexity po runach</h3>
+    <div class="chart">
+      <div class="lbl">run 1</div><div class="bar" style="width:100%"></div><div class="mono">5,90</div>
+      <div class="lbl">run 2</div><div class="bar" style="width:78%"></div><div class="mono">4,59</div>
+      <div class="lbl">run 3</div><div class="bar" style="width:65%"></div><div class="mono">3,85</div>
+      <div class="lbl">run 4</div><div class="bar" style="width:48%"></div><div class="mono">2,82</div>
+      <div class="lbl">run 5</div><div class="bar" style="width:51%"></div><div class="mono">2,99</div>
+    </div>
+    <p class="note">Każdy run miał inny zbiór (i od run 4 inny podział), więc to kierunek, nie ranking. Run 5 ma w teście powitania i zaczepki, których wcześniej nie było.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Bench: 80 przypadków, format OK</h3>
+    <div class="chart">
+      <div class="lbl">run 3</div><div class="bar" style="width:89%;background:var(--amber)"></div><div class="mono">71</div>
+      <div class="lbl">run 4</div><div class="bar" style="width:98%;background:var(--green)"></div><div class="mono">78 · 79</div>
+      <div class="lbl">run 4 t=0,6</div><div class="bar" style="width:94%;background:var(--red)"></div><div class="mono">75</div>
+      <div class="lbl">run 5</div><div class="bar" style="width:94%;background:var(--green)"></div><div class="mono">72 · 78</div>
+    </div>
+    <p class="note">Dwa wyniki = dwa seedy przy temperaturze 0,8. Szum to ±3–4 punkty; jeden przebieg niczego nie rozstrzyga.</p>
+  </div>
+</div>
+<div class="card">
+  <table>
+    <tr><th>Run</th><th>Zbiór (train/valid/test)</th><th>Start</th><th>Kroki · lr</th><th>Czas</th><th>Co weszło nowego</th></tr>
+    <tr><td>1</td><td>~700, w tym 44 % surowych logów</td><td>baza</td><td>400 · 1e‑4</td><td>45 min</td><td>synth + logi gemmy</td></tr>
+    <tr><td>2</td><td>355</td><td>baza</td><td>240 · 1e‑4</td><td>~30 min</td><td>synth-fixed + manual</td></tr>
+    <tr><td>3</td><td>2191 / 117 / 47</td><td>baza</td><td>1600 · 1e‑4</td><td>~4 h</td><td>1700 NPC + 300 walk od GPT</td></tr>
+    <tr><td>4</td><td>2552 / 149 / 54</td><td>adapter run 3</td><td>700 · 5e‑5</td><td>~70 min</td><td>400 celowanych (role) + bench 80</td></tr>
+    <tr><td>5</td><td>3070 / 171 / 64</td><td>adapter run 4</td><td>800 · 5e‑5</td><td>~95 min</td><td>550 z luk z logów (powitania, najem, odesłania)</td></tr>
+  </table>
+</div>
+
+<h2 id="slabe">5. Co było słabe — lista do zapamiętania</h2>
+<div class="card">
+  <ol class="dont">
+    <li><span class="badge bad">✕</span>Uczenie na surowych logach słabego modelu (run 1).</li>
+    <li><span class="badge bad">✕</span>Szablonowe dane (synth, 660 „sklepowych”) — model uczy się szablonu, nie języka.</li>
+    <li><span class="badge bad">✕</span>Za mały zbiór z dziurami (run 2) — policz przykłady <em>na każdy rodzaj decyzji</em>, zanim ruszysz trening.</li>
+    <li><span class="badge meh">~</span>Losowy podział train/val przy rozmowach z historią — val zawyżony.</li>
+    <li><span class="badge meh">~</span>Pomiar jednym przebiegiem przy temperaturze 0,8 — ±4 punkty szumu; zawsze dwa seedy.</li>
+    <li><span class="badge meh">~</span>Bench formalny ≠ gra; dopiero replay logów i granie pokazują bełkot.</li>
+    <li><span class="badge meh">~</span>Import do Ollamy „na skróty” — zawsze przez llama.cpp.</li>
+    <li><span class="badge bad">✕</span>Temperatura 0,6.</li>
+    <li><span class="badge meh">~</span>Fuse z dekwantyzacją przy otwartej przeglądarce — brak pamięci.</li>
+  </ol>
+</div>
+
+<h2 id="tutorial">6. Tutorial: jak to powtórzyć od zera</h2>
+<p class="note">Mac z Apple Silicon i 18 GB pamięci. Przygotowanie ~1 h, każdy trening 1–4 h (w trakcie gra wyłączona), ~25 GB miejsca.</p>
+<ol class="tutorial">
+  <li><strong>Narzędzia.</strong> Zainstaluj Ollamę (ollama.com) i Pythona 3.11+. Z katalogu gry uruchom <code>tools/avatar/setup.sh</code> — tworzy środowisko <code>venv</code> w folderze danych gry (<code>~/Library/Application Support/neuro-processor/</code>) i instaluje <code>mlx-lm</code>. Sprawdź:
+<pre><code>"$HOME/Library/Application Support/neuro-processor/venv/bin/python3" -m mlx_lm.lora --help</code></pre></li>
+
+  <li><strong>Zbierz dane.</strong> Wszystko leży w folderze danych gry jako pliki JSONL (jedna rozmowa na linię: pole <code>messages</code> jak w API czatu + <code>source</code>):
+    <ul>
+      <li><code>extra-gpt-npc*.jsonl</code> — rozmowy zamówione u silnego modelu według <code>tools/model/PROMPT.md</code>. To serce zbioru: zamawiaj po 300–600, z listą braków, każ pisać potoczne wejścia gracza.</li>
+      <li><code>synth-fixed.jsonl</code>, <code>manual*.jsonl</code> — ręcznie poprawione i własne.</li>
+      <li><code>talks.jsonl</code> — logi z gry; <strong>domyślnie pomijane</strong> (wchodzą tylko z <code>NEURO_RAW_TALKS=1</code>), bo to zapis obecnego modelu, nie wzorzec.</li>
+    </ul>
+    Każdą nową paczkę przepuść przez walidator i przeczytaj losowe 30 linii oczami: kierunek zapłaty, liczby, polszczyzna.</li>
+
+  <li><strong>Złóż zbiór.</strong>
+<pre><code>python3 tools/model/prepare.py</code></pre>
+    Powstają <code>model/data/{train,valid,test}.jsonl</code>. Podział po haszu wiersza jest stały, więc kolejne runy są porównywalne. Spójrz na liczbę przykładów na rodzaj decyzji.</li>
+
+  <li><strong>Trenuj.</strong>
+<pre><code>M="$HOME/Library/Application Support/neuro-processor/model"
+
+# od zera (pierwszy raz): ~1500 kroków, lr 1e-4
+NEURO_MODEL_NAME=neuro-npc-run1 tools/model/train.sh 1500 &gt; "$M/train-1.out" 2&gt;&amp;1
+
+# douczanie od poprzedniego adaptera: 600–800 kroków, lr 4e-5 … 5e-5
+NEURO_RESUME="$M/run5-final.safetensors" NEURO_MODEL_NAME=neuro-npc-run6 NEURO_RATE=4e-5 \
+  tools/model/train.sh 600 &gt; "$M/train-6.out" 2&gt;&amp;1
+
+# punkt powrotu
+cp "$M/adapters/adapters.safetensors" "$M/run6-final.safetensors"
+
+# gdy zabraknie pamięci przy wtapianiu: sama końcówka (fuse → GGUF → Ollama)
+NEURO_MODEL_NAME=neuro-npc-run6 tools/model/publish.sh</code></pre>
+    W logu co 100 kroków jest <code>val</code> — powinien spadać (z szumem). Na końcu <code>Test loss … ppl …</code>, fuse, GGUF i <code>ollama create</code>.</li>
+
+  <li><strong>Zmierz, zanim przełączysz.</strong>
+<pre><code>cd scratchpad/run4/zip/neuro_run4_focus        # bez python3 -I
+python3 tools/bench_ollama.py --model neuro-npc-run6 --cases ../../bench/regression-80-game.jsonl \
+  --out ../../bench/run6 --temperature 0.8 --num-predict 220 --num-ctx 4096 --timeout 300
+python3 tools/bench_ollama.py … --seed 7 --out ../../bench/run6-s7
+python3 scratchpad/replay4.py "$DATA/talks.jsonl" neuro-npc-run5,neuro-npc-run6</code></pre>
+    Patrz na trzy rzeczy: OK/80 w dwóch seedach, replay oczami, i czy błędy z poprzedniej wersji zniknęły. Lepszy model naprawia to, co widziałeś w grze, nie psując benchu o więcej niż szum.</li>
+
+  <li><strong>Przełącz.</strong> W <code>.env.local</code>: <code>NEURO_TALK_MODEL=neuro-npc-run6</code>. Powrót to jedna linijka. Graj z <code>NEURO_DEBUG=on</code> i patrz na zakładkę <strong>Model</strong> w podglądzie: każda odrzucona kwestia to albo błąd modelu (materiał na następne zamówienie), albo za ostra zasada w grze.</li>
+
+  <li><strong>Pętla.</strong> Z logów spisz, co wychodzi źle → punkty zamówienia (ile, jaka podpowiedź co do znaku, jak wygląda dobra odpowiedź, czego nie wolno) → 300–600 nowych wierszy → kroki 3–6. Jedna pętla to pół dnia.</li>
+</ol>
+
+<h2 id="plan">7. Plan rozwoju</h2>
+<div class="two">
+  <div class="card">
+    <h3 style="margin-top:0">Najbliżej (tygodnie)</h3>
+    <ol>
+      <li><strong>Run 6</strong> z zamówienia w PROMPT.md: tropy, dopytania, zmiany tematu, zaczepki bez liczb, powitania z nastrojem, plotki na fakcie.</li>
+      <li><strong>Zasady liczb w pogawędce</strong> — po zebraniu odrzuceń zdecydować, czy cyfry 1–9 bez waluty puszczać.</li>
+      <li><strong>Większy bench</strong> (200–300 przypadków z gry) + <strong>sędzia</strong>: Umysł ocenia „na temat i po polsku?” w skali 1–3.</li>
+      <li><strong>Pary dobre/złe z odrzuceń</strong> → uczenie preferencji (DPO, <code>mlx_lm.dpo</code>). 300–500 par ukróci konkretne nawyki skuteczniej niż kolejne 500 przykładów.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Dalej (miesiące)</h3>
+    <ol start="5">
+      <li><strong>Większa baza</strong>: Bielik 11B w 4 bitach (LoRA ~9–10 GB, na styk na 18 GB, 3–4× wolniej) albo Qwen2.5‑7B / Gemma 3 12B. Każdy „Wędronowy Kupuc” to limit rozmiaru, nie danych. Alternatywa: <strong>GPU w chmurze na 2–3 h</strong> — pełna LoRA rank 32 na 11B, lokalnie tylko GGUF do grania.</li>
+      <li><strong>Dane z historią</strong>: rozmowy 3–5 tur z narastającym kontekstem, bo w grze model widzi historię i czasem się nią myli.</li>
+      <li><strong>Osobny adapter dla Mistrza Gry</strong> (narracja walk) — inny styl, inny format. Osobne modele per rola postaci: nie, briefy ról wystarczą.</li>
+    </ol>
+  </div>
+</div>
+
+<h2 id="odnowa">8. Gdyby zaczynać od nowa</h2>
+<div class="card">
+  <ul>
+    <li><strong>Najpierw kontrakt i test, potem dane.</strong> Prompt co do znaku i 100 przypadków testowych <em>zanim</em> powstanie pierwszy przykład treningowy. My zrobiliśmy to przy run 3–4 i część wcześniejszej pracy poszła do kosza.</li>
+    <li><strong>Pominąć dane ze słabego modelu i surowe logi</strong> — od razu silny model z walidatorem w pętli (odrzuca wiersz → model poprawia). Oszczędza dwa runy.</li>
+    <li><strong>Od razu rozdzielić Umysł i Głos</strong> i logować pełne prompty — największy skok diagnostyczny.</li>
+    <li><strong>Od razu podział po haszu i dwa seedy</strong> w każdym pomiarze.</li>
+    <li><strong>Większa baza na starcie</strong>, jeśli sprzęt pozwala (albo chmura na trening). 4,5B jest dobre na laptop i szybkie pętle, ale sufit polszczyzny widać już teraz.</li>
+    <li><strong>Uczyć krótkich odmów poza rolą</strong> („nie wiem”, „nie mój interes”) zamiast zmyślania — brak takich przykładów to źródło połowy bełkotu.</li>
+    <li><strong>Preferencje z odrzuceń od pierwszego dnia</strong> — zbierają się same podczas grania.</li>
+  </ul>
+  <h3>Czego nie robić</h3>
+  <ul class="dont">
+    <li>Nie uczyć na własnych wyjściach modelu bez ręcznej selekcji.</li>
+    <li>Nie zmieniać kilku rzeczy naraz (dane + lr + temperatura) — nie będzie wiadomo, co pomogło.</li>
+    <li>Nie przełączać gry na nowy model bez replayu prawdziwych rozmów.</li>
+    <li>Nie trenować, gdy Ollama trzyma model w pamięci, i nie wtapiać adaptera przy otwartej przeglądarce.</li>
+  </ul>
+</div>
+
+<footer>
+  Neuro Processor · <code>docs/index.html</code> · tekst źródłowy: <code>tools/model/HISTORIA.md</code>, kontrakt promptu i zamówienia danych: <code>tools/model/PROMPT.md</code>.
+</footer>
+
+</div>
+</body>
+</html>
