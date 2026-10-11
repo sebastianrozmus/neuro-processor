@@ -336,6 +336,23 @@ func TestRefusedLinesSayWhy(t *testing.T) {
 		t.Errorf("attempts = %+v", rejection.Attempts)
 	}
 
+	// A line refused for a name alone is spoken anyway: better a mangled
+	// name than a canned line, and the journal has it right.
+	narrator = &scriptedNarrator{replies: []string{"[spokój] Pytaj Wedronowego Kupuca.", "[spokój] Kupcy wiedzą."}}
+	text, err = Narrate(context.Background(), narrator, request)
+	if !errors.As(err, &rejection) || !rejection.Kept || text != "[spokój] Pytaj Wedronowego Kupuca." || len(rejection.Attempts) != 2 {
+		t.Errorf("kept line: %q, %v", text, err)
+	}
+
+	for text, want := range map[string]bool{
+		"[spokój] Idę na pole z kolegami i wracam tu odpocząć.": false, "[kpina] Piwo warzy Stary Młyn za rzeką.": true,
+		"Nie wiem. Pytaj w Akademii.": true, "Nie wiem.": false, "[radość] „Kurhany” to tylko słowo.": false,
+	} {
+		if Noteworthy(text) != want {
+			t.Errorf("Noteworthy(%q) = %v", text, !want)
+		}
+	}
+
 	// A model that cannot be reached is another matter.
 	narrator = &scriptedNarrator{err: errors.New("down")}
 	if _, err := Narrate(context.Background(), narrator, request); errors.As(err, &rejection) || errors.Is(err, ErrInconsistent) {

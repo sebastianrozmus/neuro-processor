@@ -898,6 +898,17 @@ func TestWhatAKeeperLacksBecomesALead(t *testing.T) {
 		t.Errorf("the lead came back: %q", request.Hint)
 	}
 
+	// Question words and short words point at nothing: "skąd" is not
+	// about "Troll Skalny".
+	troll := realm.add("Troll Skalny", "Gruby jak głaz i równie rozmowny.", "", herbalist)
+	if fact, _ := realm.gapFor(realm.players[hero], realm.players[hero].shop, strings.Fields(Fold("skad maja tu piwo i jakie?"))); fact != nil {
+		t.Errorf("a lead from a question word: %q", fact.Subject)
+	}
+
+	if fact, _ := realm.gapFor(realm.players[hero], realm.players[hero].shop, strings.Fields(Fold("co wiesz o trollu?"))); fact != troll {
+		t.Errorf("no lead to the troll: %v", fact)
+	}
+
 	for text, want := range map[string]bool{"a co takiego wtedy słyszałeś, dobry człowieku?": true, "no i? gadaj dalej": true, "a te kurhany gdzie są?": true, "ile chcesz za służbę": false, "dobre mają piwo?": false} {
 		if got := followUp(strings.Fields(Fold(text)), fact); got != want {
 			t.Errorf("followUp(%q) = %v", text, got)

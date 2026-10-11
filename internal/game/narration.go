@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -156,6 +157,10 @@ type Attempt struct {
 // an ErrInconsistent.
 type Rejection struct {
 	Attempts []Attempt
+	// Kept is set when the first attempt was spoken anyway: a line that
+	// only got a name wrong is still a better line than a canned one, and
+	// the journal has the name right.
+	Kept bool
 }
 
 func (r *Rejection) Error() string {
@@ -248,10 +253,51 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 	}
 
 	if problem == nil || len(refused) > 0 && errors.Is(problem, context.DeadlineExceeded) {
-		problem = &Rejection{Attempts: refused}
+		rejection := &Rejection{Attempts: refused}
+		if len(refused) > 0 && namesOnly(refused) {
+			rejection.Kept = true
+
+			return refused[0].Text, rejection
+		}
+
+		problem = rejection
 	}
 
 	return fallbackFor(request), problem
+}
+
+// namesOnly reports attempts that were all refused for a name alone.
+func namesOnly(attempts []Attempt) bool {
+	for _, attempt := range attempts {
+		if attempt.Reason != reasonNames {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Noteworthy reports whether a keeper's line could hold a new fact worth
+// asking the mind about: it names something, with a capital letter not
+// at the start of a sentence. "Idę na pole z kolegami" names nothing,
+// and a mind asked anyway tends to note it.
+func Noteworthy(text string) bool {
+	if _, rest, tagged := strings.Cut(text, "] "); tagged && strings.HasPrefix(text, "[") {
+		text = rest
+	}
+
+	start := true
+
+	for _, word := range strings.Fields(text) {
+		runes := []rune(strings.TrimLeft(word, "„«\"("))
+		if len(runes) > 1 && unicode.IsUpper(runes[0]) && !start {
+			return true
+		}
+
+		start = strings.ContainsAny(string(runes[len(runes)-1:]), ".!?;:")
+	}
+
+	return false
 }
 
 // fallbackFor is the canned line when the model fails: the decision's, or

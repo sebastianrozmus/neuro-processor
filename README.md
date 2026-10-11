@@ -316,6 +316,7 @@ Trzy źródła danych i jeden skrypt treningu:
 1. `NEURO_LOG_TALKS=1` zapisuje każdą dobrą wymianę z gry do `talks.jsonl` w folderze danych gry.
 2. `go run ./tools/synth -n 200 -fights 20` gra sam ze sobą: losuje świat, sklep i scenariusz rozmowy (pytania, targi, obelgi, hurt, sprzedaż), zasady gry rozstrzygają jak zwykle, a skonfigurowany model (`.env.local`) ubiera odpowiedzi w słowa; zostają tylko odpowiedzi, które przechodzą kontrole gry. `-fights` dokłada narracje Mistrza Gry z automatycznych walk. Wynik: `synth.jsonl`. Jakość danych jest taka jak modelu, który je generuje: lokalna gemma daje poprawny format, model chmurowy ciekawsze kwestie.
 3. `tools/model/PROMPT.md` to prompt do wklejenia w dowolny czat z silnym modelem, gdy chcesz generować dane ręcznie.
+4. `tools/model/HISTORIA.md` opisuje po kolei, jak powstawał model `neuro-npc` (co zadziałało, co odrzucono), jak to powtórzyć od zera krok po kroku i jaki jest plan rozwoju.
 
 Odpowiedzi małego modelu bywają poprawne, ale nijakie; dane można poprawić silniejszym modelem (albo ręcznie) bez ruszania promptów, które są prawdziwymi sytuacjami z gry: `tools/model/digest.py synth.jsonl digest.jsonl` skraca każdą wymianę do charakteru gospodarza, ostatnich kwestii, słów gracza i bloku `[GRA]`; na tej podstawie pisze się nowe kwestie jako linie `{"id": N, "reply": "[nastrój] ..."}`, a `tools/model/apply.py synth.jsonl poprawki.jsonl synth-fixed.jsonl` wstawia je w miejsce starych (kwestie bez znacznika nastroju odrzuca).
 

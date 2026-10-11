@@ -214,8 +214,13 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			g.realm.Reject(g.name, msg.request, rejection)
 
 			if g.debug {
-				for _, attempt := range rejection.Attempts {
-					g.shop.say(speakerSystem, fmt.Sprintf("Odrzucone (%s): „%s”", attempt.Reason, attempt.Text))
+				for index, attempt := range rejection.Attempts {
+					verdict := "Odrzucone"
+					if rejection.Kept && index == 0 {
+						verdict = "Przyjęte mimo wszystko"
+					}
+
+					g.shop.say(speakerSystem, fmt.Sprintf("%s (%s): „%s”", verdict, attempt.Reason, attempt.Text))
 				}
 			}
 		}
@@ -237,7 +242,12 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if msg.look && g.view.Shop != nil {
-			return g, tea.Batch(invent(g.brain, msg.text, g.view.Shop.Wares), note(g.brain, msg.text, g.realm.Subjects()))
+			commands := []tea.Cmd{invent(g.brain, msg.text, g.view.Shop.Wares)}
+			if game.Noteworthy(msg.text) {
+				commands = append(commands, note(g.brain, msg.text, g.realm.Subjects()))
+			}
+
+			return g, tea.Batch(commands...)
 		}
 
 		return g, nil

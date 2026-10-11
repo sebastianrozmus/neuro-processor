@@ -74,7 +74,31 @@ const (
 	referrals = 2
 	// crumbWords is how much of a fact a keeper who lacks it has heard.
 	crumbWords = 12
+	// leadWord is how long a player's word must be to point at a fact
+	// the keeper lacks: its stem is then four letters, not three.
+	leadWord = 5
 )
+
+// questionWords are what a question is asked with, never what it is
+// about.
+var questionWords = []string{
+	"jaki", "jaka", "jakie", "jakiego", "jakich", "ktory", "ktora", "ktore", "skad", "dokad", "gdzie", "kiedy", "czemu", "dlaczego",
+	"ile", "czego", "komu", "czym", "kogo", "kto", "coś", "cos", "powiedz", "opowiedz", "wiesz", "slyszales", "slyszalas", "znasz",
+	"masz", "macie", "maja", "jest", "tutaj", "karczmie", "karczma", "dobre", "dobry", "dobra", "moze", "chyba", "wlasciwie",
+}
+
+// questionWord reports a folded word that is part of asking, not of the
+// subject asked about.
+func questionWord(word string) bool {
+	word = strings.Trim(word, ".,!?;:")
+	for _, candidate := range questionWords {
+		if word == candidate {
+			return true
+		}
+	}
+
+	return false
+}
 
 // add puts a fact into the graph, known by the given keepers.
 func (r *Realm) add(subject, text, source string, keepers ...int) *Fact {
@@ -281,7 +305,9 @@ func (r *Realm) learn(hero *player, fact *Fact) {
 // returns the fact and who knows it, or nil.
 func (r *Realm) gapFor(hero *player, keeper int, words []string) (*Fact, int) {
 	for _, word := range words {
-		if len(word) < minQueryWord+1 {
+		// A short word's stem is a prefix of too much ("skad" of
+		// "Skalny"), and a question word is never a subject.
+		if len(word) < leadWord || questionWord(word) {
 			continue
 		}
 
