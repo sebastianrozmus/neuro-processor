@@ -319,6 +319,11 @@ func TestMangledNamesEarnASecondTry(t *testing.T) {
 	if !namesOK("Ozryka z Akademii pytaj, Jagny nie.", []string{"Ozryk", "Jagna"}) || namesOK("Oźyrka pytaj.", []string{"Ozryk"}) || namesOK("Kupca pytaj.", []string{"Wędrowny Kupiec"}) {
 		t.Error("name check is off")
 	}
+
+	// The given name alone is enough; a mangled given name is not.
+	if !namesOK("Idź do Thorina w kuźni.", []string{"Thorin Żelazna Broda"}) || namesOK("Idź do Thoraina na kowadle.", []string{"Thorin Żelazna Broda"}) {
+		t.Error("the given name rule is off")
+	}
 }
 
 func TestRefusedLinesSayWhy(t *testing.T) {

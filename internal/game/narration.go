@@ -360,17 +360,26 @@ func (d Decision) sentences() int {
 	return tradeSentences
 }
 
-// namesOK reports whether every required name is in the text: each of
-// its words in some case, so that "u Wędrownego Kupca" passes and
-// "u Wędronowego Kupuca" does not.
+// namesOK reports whether every required name is in the text: its first
+// word (the given name) in some case, so that "u Wędrownego Kupca" and
+// "idź do Thorina" pass and "u Wędronowego Kupuca" does not. The rest of
+// a name ("Żelazna Broda") a small model may drop; the journal has it.
 func namesOK(text string, required []string) bool {
 	words := strings.Fields(Fold(text))
 
 	for _, name := range required {
-		for _, part := range strings.Fields(Fold(name)) {
-			if len(part) >= minQueryWord && !nameOK(words, part) {
-				return false
-			}
+		parts := strings.Fields(Fold(name))
+		if len(parts) == 0 {
+			continue
+		}
+
+		if len(parts[0]) >= minQueryWord && !nameOK(words, parts[0]) {
+			return false
+		}
+
+		// A one-letter or two-letter given name is told by the rest.
+		if len(parts[0]) < minQueryWord && len(parts) > 1 && !nameOK(words, parts[1]) {
+			return false
 		}
 	}
 
@@ -381,7 +390,14 @@ func namesOK(text string, required []string) bool {
 // case: a word starts with the name less its ending, allowing for a
 // fleeting e ("Kupiec" → "Kupca", "Kowalec" → "Kowalca").
 func nameOK(words []string, part string) bool {
-	stems := []string{part[:max(minQueryWord, len(part)-2)]}
+	// A long name loses two letters to its ending, a short one only one:
+	// "Thorin" must not pass as "Thoraina".
+	cut := 1
+	if len(part) >= 7 {
+		cut = 2
+	}
+
+	stems := []string{part[:max(minQueryWord, len(part)-cut)]}
 
 	switch fled := fleeting(part); {
 	case strings.HasSuffix(part, "iec"):
