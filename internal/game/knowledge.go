@@ -42,10 +42,13 @@ type Fact struct {
 	hour       string
 }
 
-// FactSpec is a fact as a model or an event states it.
+// FactSpec is a fact as a model or an event states it. Quote, from a
+// model, is the words of the line the fact was read from: a fact without
+// its source in the line is not taken.
 type FactSpec struct {
 	Subject string `json:"subject"`
 	Text    string `json:"fact"`
+	Quote   string `json:"quote,omitempty"`
 }
 
 // FactView is a fact as a player's journal shows it.
@@ -389,6 +392,13 @@ func (r *Realm) Learn(name string, spec FactSpec, line string) bool {
 		return false
 	}
 
+	// A fact must be grounded in the line: the quote the mind gives must
+	// be in it, and so must the subject. A mind asked about a garbled
+	// line otherwise "notes" whatever it imagines ("Karczma i Woda").
+	if !Grounded(spec, line) {
+		return false
+	}
+
 	for _, fact := range r.wisdom.facts {
 		if Matches(fact.Subject, spec.Subject) && Matches(spec.Subject, fact.Subject) {
 			// Something more about a known subject still counts, once.
@@ -406,6 +416,30 @@ func (r *Realm) Learn(name string, spec FactSpec, line string) bool {
 	r.learn(customer, fact)
 	r.trace(DescribeFact, fact.ID, Trace{How: HowNoted + " (" + r.keeperName(customer.shop) + ")", Prompt: line})
 	r.tell(customer, "Zapamiętujesz: "+fact.Subject+".")
+
+	return true
+}
+
+// Grounded reports whether a fact the mind read from a line is really in
+// it: the quoted words appear in the line (allowing for case and
+// diacritics) and the subject's words do too, by stem.
+func Grounded(spec FactSpec, line string) bool {
+	folded := Fold(line)
+	quote := strings.TrimSpace(Fold(spec.Quote))
+	if len(strings.Fields(quote)) < 2 || !strings.Contains(folded, quote) {
+		return false
+	}
+
+	words := strings.Fields(folded)
+	for _, part := range strings.Fields(Fold(spec.Subject)) {
+		if len(part) < minQueryWord {
+			continue
+		}
+
+		if !nameOK(words, part) {
+			return false
+		}
+	}
 
 	return true
 }

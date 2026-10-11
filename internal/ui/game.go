@@ -247,7 +247,9 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return g, nil
 		}
 
-		if msg.look && g.view.Shop != nil {
+		// A line the rules refused, even one spoken anyway, teaches the
+		// world nothing.
+		if msg.look && g.view.Shop != nil && rejection == nil {
 			commands := []tea.Cmd{invent(g.brain, msg.text, g.view.Shop.Wares)}
 			if game.Noteworthy(msg.text) {
 				commands = append(commands, note(g.brain, msg.text, g.realm.Subjects()))

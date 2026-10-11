@@ -2077,11 +2077,11 @@ func TestKnowledgeIsSharedSpreadAndLearnt(t *testing.T) {
 
 	// A keeper's new line joins the graph and the hero's journal.
 	do(realm, hero, "idź do zbrojowni")
-	if !realm.Learn(hero, FactSpec{Subject: "Młyn nad rzeką", Text: "Nocą świeci się tam zielone światło."}, "Nocą w młynie świeci się zielone światło.") {
+	if !realm.Learn(hero, FactSpec{Subject: "Młyn nad rzeką", Text: "Nocą świeci się tam zielone światło.", Quote: "w młynie nad rzeką świeci się zielone światło"}, "Nocą w młynie nad rzeką świeci się zielone światło.") {
 		t.Fatal("the fact was not learnt")
 	}
 
-	if realm.Learn(hero, FactSpec{Subject: "Młyn nad rzeką", Text: "Nocą świeci się tam zielone światło."}, "Nocą w młynie świeci się zielone światło.") {
+	if realm.Learn(hero, FactSpec{Subject: "Młyn nad rzeką", Text: "Nocą świeci się tam zielone światło.", Quote: "w młynie nad rzeką świeci się zielone światło"}, "Nocą w młynie nad rzeką świeci się zielone światło.") {
 		t.Error("the same fact was learnt twice")
 	}
 

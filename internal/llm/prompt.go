@@ -210,8 +210,9 @@ func inventSchema() map[string]any {
 const noteInstructions = `Czytasz kwestię mieszkańca osady z gry tekstowej i sprawdzasz, czy podał w niej NOWY, konkretny fakt o świecie gry: ` +
 	`o osobie, miejscu, zdarzeniu, stworzeniu albo zwyczaju, którego nie ma na liście tematów już znanych. ` +
 	`Zwracasz obiekt JSON: found true tylko wtedy, gdy fakt jest konkretny (ma nazwę własną albo wyraźne miejsce i treść) i nowy; ` +
-	`subject to krótka nazwa tematu (najwyżej 4 słowa), fact to jedno zdanie po polsku w trzeciej osobie, bez zwrotów do gracza. ` +
-	`Ogólniki, opinie o graczu, ceny, pogoda i to, co już jest na liście, to found false.`
+	`subject to krótka nazwa tematu (najwyżej 4 słowa, słowami z kwestii), fact to jedno zdanie po polsku w trzeciej osobie, bez zwrotów do gracza, ` +
+	`a quote to dosłowny fragment kwestii (co najmniej 3 słowa, skopiowane bez zmian), z którego ten fakt wynika. ` +
+	`Ogólniki, opinie o graczu, ceny, pogoda, bełkot bez sensu i to, co już jest na liście, to found false.`
 
 func notePrompt(request game.NoteRequest) string {
 	var prompt strings.Builder
@@ -266,5 +267,6 @@ func noteSchema() map[string]any {
 		"found":   map[string]any{"type": "boolean"},
 		"subject": map[string]any{"type": "string"},
 		"fact":    map[string]any{"type": "string"},
+		"quote":   map[string]any{"type": "string"},
 	})
 }

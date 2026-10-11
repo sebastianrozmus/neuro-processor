@@ -120,7 +120,7 @@ func TestTheWorldRemembersWhereThingsCameFrom(t *testing.T) {
 
 	// A fact noted from a line and an item talked into the world keep
 	// the line; a rewrite keeps the old text and the prompt.
-	if !realm.Learn(hero, FactSpec{Subject: "Młyn", Text: "W młynie straszy."}, "[kpina] W młynie straszy, mówię ci.") {
+	if !realm.Learn(hero, FactSpec{Subject: "Młyn", Text: "W młynie straszy.", Quote: "W młynie straszy"}, "[kpina] W młynie straszy, mówię ci.") {
 		t.Fatal("not learnt")
 	}
 
@@ -193,5 +193,27 @@ func TestTheWorldRemembersWhereThingsCameFrom(t *testing.T) {
 
 	if steps := report.Traces[traceKey(DescribeFact, fact.ID)]; len(steps) != 2 || steps[1].How != "uwaga" || steps[1].Why != "to nie fakt" {
 		t.Errorf("fact traces after a mark = %+v", steps)
+	}
+}
+
+func TestFactsMustBeGroundedInTheLine(t *testing.T) {
+	line := "[spokój] Karczma to karczma, piwo sprzedaje sprzedawca. Jeśli chcesz wiedzieć coś więcej o wodzie, idź do Braumainera przy warzelni."
+	for spec, want := range map[FactSpec]bool{
+		{Subject: "Karczma i Woda", Text: "W karczmie sprzedają wodę.", Quote: ""}:                                 false,
+		{Subject: "Karczma i Woda", Text: "W karczmie sprzedają wodę.", Quote: "woda w karczmie jest zatruta"}:     false,
+		{Subject: "Braumainer", Text: "Braumainer prowadzi warzelnię.", Quote: "idź do Braumainera przy warzelni"}: true,
+		{Subject: "Braumainer", Text: "Braumainer prowadzi warzelnię.", Quote: "Idź do braumainera przy warzelni"}: true,
+		{Subject: "Stary Młyn", Text: "W młynie straszy.", Quote: "piwo sprzedaje sprzedawca"}:                     false,
+	} {
+		if Grounded(spec, line) != want {
+			t.Errorf("Grounded(%+v) = %v", spec, !want)
+		}
+	}
+
+	realm := testRealm(t)
+	hero := enlist(realm, "Ala")
+	do(realm, hero, "idź do zbrojowni")
+	if realm.Learn(hero, FactSpec{Subject: "Karczma i Woda", Text: "W karczmie sprzedają wodę."}, line) {
+		t.Error("an ungrounded fact was learnt")
 	}
 }
