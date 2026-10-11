@@ -22,6 +22,21 @@ const (
 	masterTimeout = 90 * time.Second
 )
 
+// fighters names the heroes and companions on the players' side of a
+// fight: the master may leave them out, but not mangle them.
+func (r *Realm) fighters(members []string) []string {
+	names := append([]string(nil), members...)
+	for _, name := range members {
+		if hero := r.players[name]; hero != nil {
+			for _, mate := range hero.party {
+				names = append(names, mate.spec().Name)
+			}
+		}
+	}
+
+	return names
+}
+
 // SetMaster gives the world a game master: a narrator asked, after every
 // round of combat, to describe what the rules just resolved. Its lines
 // arrive asynchronously and go to everyone in the fight. Record, when set,
@@ -47,6 +62,7 @@ func (r *Realm) narrateRound(current *fight, members []string) {
 		Merchant: Merchant{Name: MasterName, Persona: masterPersona, Currency: r.world.Currency},
 		Lore:     r.sceneLore(current, members),
 		Decision: Decision{Outcome: OutcomeScene, Scene: strings.Join(current.events, " "), Currency: r.world.Currency},
+		Guarded:  r.fighters(members),
 	}
 	current.events, current.narrating = nil, true
 	master, record := r.master, r.record

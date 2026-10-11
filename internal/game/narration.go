@@ -77,6 +77,9 @@ type NarrateRequest struct {
 	// Required are names the reply must get right: whom the player is
 	// sent to. A mangled name earns the model a second try.
 	Required []string
+	// Guarded are names that need not be mentioned but must be intact when
+	// they are: the heroes of a fight the master describes.
+	Guarded []string
 	// Lead is the journal line of a referral in this reply ("Trop: …"),
 	// for the screen to show; a reply with a lead teaches the world no
 	// new fact.
@@ -239,7 +242,7 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 			reason = reasonLeak
 		case !numbersOK(text, allowed, known):
 			reason = reasonNumbers
-		case !namesOK(text, request.Required):
+		case !namesOK(text, request.Required) || !namesIntact(text, request.Guarded):
 			reason = reasonNames
 		default:
 			return text, nil
@@ -248,7 +251,7 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 		refused = append(refused, Attempt{Text: text, Reason: reason})
 		request.Correction = correction
 		if reason == reasonNames {
-			request.Correction = nameCorrection + join(request.Required) + "."
+			request.Correction = nameCorrection + join(append(append([]string(nil), request.Required...), request.Guarded...)) + "."
 		}
 	}
 
@@ -380,6 +383,30 @@ func namesOK(text string, required []string) bool {
 		// A one-letter or two-letter given name is told by the rest.
 		if len(parts[0]) < minQueryWord && len(parts) > 1 && !nameOK(words, parts[1]) {
 			return false
+		}
+	}
+
+	return true
+}
+
+// namesIntact reports that no guarded name is mangled in the text: a word
+// that begins like the name ("sebascianrzmusa" for "sebastianrozmus") but
+// is not the name in some case gives it away. Names need not appear.
+func namesIntact(text string, guarded []string) bool {
+	words := strings.Fields(Fold(text))
+
+	for _, name := range guarded {
+		parts := strings.Fields(Fold(name))
+		if len(parts) == 0 || len(parts[0]) < 5 {
+			continue
+		}
+
+		part := parts[0]
+		for _, word := range words {
+			word = strings.Trim(word, ".,!?;:")
+			if strings.HasPrefix(word, part[:4]) && len(word) >= len(part)-2 && !nameOK([]string{word}, part) {
+				return false
+			}
 		}
 	}
 

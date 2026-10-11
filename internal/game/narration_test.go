@@ -320,6 +320,21 @@ func TestMangledNamesEarnASecondTry(t *testing.T) {
 		t.Error("name check is off")
 	}
 
+	// A guarded name may be left out, but a mangled one spoils the line.
+	for text, want := range map[string]bool{
+		"Szczur gryzie sebastianrozmusa w łydkę.": true, "Szczur gryzie bohatera w łydkę.": true, "Szczur gryzie sebascianrzmusa w łydkę.": false,
+		"Thorin odbija cios.": true, "Thorinowi dostało się.": true, "Thoraina odbija cios.": false,
+	} {
+		if namesIntact(text, []string{"sebastianrozmus", "Thorin Żelazna Broda"}) != want {
+			t.Errorf("namesIntact(%q) = %v", text, !want)
+		}
+	}
+
+	narrator = &scriptedNarrator{replies: []string{"Szczur gryzie sebascianrzmusa.", "Szczur gryzie sebastianrozmusa."}}
+	if text, err := Narrate(context.Background(), narrator, NarrateRequest{Decision: Decision{Outcome: OutcomeScene, Scene: "x"}, Guarded: []string{"sebastianrozmus"}}); err != nil || text != "Szczur gryzie sebastianrozmusa." || narrator.calls != 2 {
+		t.Errorf("guarded narration: %q, %v, %d calls", text, err, narrator.calls)
+	}
+
 	// The given name alone is enough; a mangled given name is not.
 	if !namesOK("Idź do Thorina w kuźni.", []string{"Thorin Żelazna Broda"}) || namesOK("Idź do Thoraina na kowadle.", []string{"Thorin Żelazna Broda"}) {
 		t.Error("the given name rule is off")
