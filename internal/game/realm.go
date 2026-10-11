@@ -83,8 +83,14 @@ type Realm struct {
 	caravan *caravan
 	quests  []*quest
 	heir    *heir
-	// rejections are the model's latest lines the rules refused.
-	rejections []RejectionInfo
+	// traces are the histories of things a model wrote into the world;
+	// exchanges the latest lines of talk with their requests, numbered by
+	// exchangeSerial; notes the comments a person left on any of it.
+	traces         map[string][]Trace
+	exchanges      []Exchange
+	requests       map[int]NarrateRequest
+	exchangeSerial int
+	notes          []Note
 
 	// master narrates rounds of combat when the world has one.
 	master Narrator

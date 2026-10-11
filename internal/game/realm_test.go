@@ -1059,14 +1059,14 @@ func TestKeepersTalkItemsIntoTheWorld(t *testing.T) {
 	realm := testRealm(t)
 	ala, bob := enlist(realm, "Ala"), enlist(realm, "Bob")
 
-	if _, ok := realm.Invent(ala, world.ItemSpec{Name: "Kij", Kind: world.KindWeapon}); ok {
+	if _, ok := realm.Invent(ala, world.ItemSpec{Name: "Kij", Kind: world.KindWeapon}, ""); ok {
 		t.Error("an item was invented outside a shop")
 	}
 
 	do(realm, ala, "idź do zbrojowni")
 	before := len(realm.View(ala).Shop.Wares)
 
-	item, ok := realm.Invent(ala, world.ItemSpec{Name: " Hełm  z Rondem ", Description: "Garnek z daszkiem.", Kind: world.KindArmor, Effect: "bolt", Tier: 9})
+	item, ok := realm.Invent(ala, world.ItemSpec{Name: " Hełm  z Rondem ", Description: "Garnek z daszkiem.", Kind: world.KindArmor, Effect: "bolt", Tier: 9}, "")
 	if !ok || item.ID != "extra-1" || item.Name != "Hełm z Rondem" || item.Effect != world.EffectNone || item.Tier != 3 {
 		t.Fatalf("invented = %+v, ok=%v", item, ok)
 	}
@@ -1081,7 +1081,7 @@ func TestKeepersTalkItemsIntoTheWorld(t *testing.T) {
 		{Name: "", Kind: world.KindWeapon},
 		{Name: "Dziwo", Kind: "relic"},
 	} {
-		if _, ok := realm.Invent(ala, double); ok {
+		if _, ok := realm.Invent(ala, double, ""); ok {
 			t.Errorf("%q was invented although it exists or is unusable", double.Name)
 		}
 	}
@@ -2077,11 +2077,11 @@ func TestKnowledgeIsSharedSpreadAndLearnt(t *testing.T) {
 
 	// A keeper's new line joins the graph and the hero's journal.
 	do(realm, hero, "idź do zbrojowni")
-	if !realm.Learn(hero, FactSpec{Subject: "Młyn nad rzeką", Text: "Nocą świeci się tam zielone światło."}) {
+	if !realm.Learn(hero, FactSpec{Subject: "Młyn nad rzeką", Text: "Nocą świeci się tam zielone światło."}, "Nocą w młynie świeci się zielone światło.") {
 		t.Fatal("the fact was not learnt")
 	}
 
-	if realm.Learn(hero, FactSpec{Subject: "Młyn nad rzeką", Text: "Nocą świeci się tam zielone światło."}) {
+	if realm.Learn(hero, FactSpec{Subject: "Młyn nad rzeką", Text: "Nocą świeci się tam zielone światło."}, "Nocą w młynie świeci się zielone światło.") {
 		t.Error("the same fact was learnt twice")
 	}
 
@@ -2245,7 +2245,7 @@ func TestMercenariesInventNoGoods(t *testing.T) {
 	do(realm, hero, "rozmawiaj z bogną")
 
 	contract := world.ItemSpec{Name: "Umowa Najmu", Description: "Kontrakt.", Kind: world.KindCharm, Effect: world.EffectPower, Tier: 1}
-	if _, ok := realm.Invent(hero, contract); ok || realm.known("Umowa Najmu") {
+	if _, ok := realm.Invent(hero, contract, ""); ok || realm.known("Umowa Najmu") {
 		t.Error("a mercenary's contract became a charm")
 	}
 }

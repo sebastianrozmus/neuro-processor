@@ -486,7 +486,7 @@ func inspector(rec *recorder, launch *launcher, spec world.Spec) {
 	for _, tab := range []struct {
 		name    string
 		seconds float64
-	}{{"world", 4}, {"graph", 4}, {"facts", 3.5}, {"beasts", 3.5}, {"items", 3}, {"people", 3}} {
+	}{{"world", 4}, {"graph", 4}, {"facts", 3.5}, {"beasts", 3.5}, {"items", 3}, {"people", 3}, {"talks", 4}} {
 		shot := filepath.Join(rec.dir, "browser-"+tab.name+".png")
 		command := exec.Command(chrome, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=1",
 			fmt.Sprintf("--window-size=%d,%d", columns*9, rows*18), "--virtual-time-budget=6000", "--screenshot="+shot, server.URL()+"#"+tab.name)

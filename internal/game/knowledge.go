@@ -378,8 +378,9 @@ func (r *Realm) point(hero *player, fact *Fact, keeper int) string {
 }
 
 // Learn records a fact a keeper just stated for the first time: it joins
-// the graph, known by that keeper and heard by the player.
-func (r *Realm) Learn(name string, spec FactSpec) bool {
+// the graph, known by that keeper and heard by the player. The line it
+// was noted from is kept as its origin.
+func (r *Realm) Learn(name string, spec FactSpec, line string) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -403,6 +404,7 @@ func (r *Realm) Learn(name string, spec FactSpec) bool {
 	}
 
 	r.learn(customer, fact)
+	r.trace(DescribeFact, fact.ID, Trace{How: HowNoted + " (" + r.keeperName(customer.shop) + ")", Prompt: line})
 	r.tell(customer, "Zapamiętujesz: "+fact.Subject+".")
 
 	return true

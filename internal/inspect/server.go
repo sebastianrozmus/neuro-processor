@@ -1,6 +1,8 @@
 // Package inspect serves the running world to a browser: the map with
 // everyone on it, the knowledge graph, the bestiary, the items and the
-// people, with the means to put right what a model wrote badly.
+// people, every line of talk with the prompt behind it, with the means to
+// put right what a model wrote badly and to mark what a person finds
+// wrong, as material for the next training.
 package inspect
 
 import (
@@ -10,11 +12,14 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/llm"
 	"github.com/sebastianrozmus/neuro-processor/internal/pix"
 	"github.com/sebastianrozmus/neuro-processor/internal/ui"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
@@ -34,6 +39,10 @@ type Server struct {
 	realm    *game.Realm
 	rewriter game.Rewriter
 	addr     net.Addr
+	// Feedback is the JSON Lines file the marks a person leaves are
+	// appended to, with everything behind what they marked; empty keeps
+	// them in the realm alone.
+	Feedback string
 }
 
 // Start listens on the address and serves the inspector. The realm is
@@ -86,11 +95,13 @@ func (s *Server) Handler() http.Handler {
 		_, _ = w.Write(page)
 	})
 	mux.HandleFunc("GET /api/world", s.world)
+	mux.HandleFunc("GET /api/exchange", s.exchange)
 	mux.HandleFunc("POST /api/fact", s.setFact)
 	mux.HandleFunc("DELETE /api/fact", s.dropFact)
 	mux.HandleFunc("POST /api/describe", s.describe)
 	mux.HandleFunc("POST /api/rewrite", s.rewrite)
 	mux.HandleFunc("POST /api/player", s.player)
+	mux.HandleFunc("POST /api/mark", s.mark)
 	mux.HandleFunc("GET /api/picture", s.picture)
 
 	return mux
@@ -118,7 +129,44 @@ func (s *Server) world(w http.ResponseWriter, _ *http.Request) {
 
 	report := realm.Inspect()
 	report.Rewrites = rewriter != nil
+	built := realm.World()
+
+	// The names of the drawings are the screens' business.
+	for index := range report.Beasts {
+		beast := &report.Beasts[index]
+		beast.Picture = ui.SpriteName(beast.Name, world.Shape(beast.Shape), beast.Boss)
+	}
+
+	for index := range report.Items {
+		item := &report.Items[index]
+		item.Picture = ui.IconName(world.ItemSpec{Kind: world.Kind(item.Kind), Effect: world.Effect(item.Effect), Name: item.Name})
+	}
+
+	for index := range report.Companions {
+		if index < len(built.Companions) {
+			report.Companions[index].Picture = ui.FigureName("", built.Companions[index].Role)
+		}
+	}
+
 	reply(w, report)
+}
+
+// exchange shows one line of talk as the model saw it: the full prompt.
+func (s *Server) exchange(w http.ResponseWriter, r *http.Request) {
+	realm, _, ok := s.current(w)
+	if !ok {
+		return
+	}
+
+	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
+	request, entry, ok := realm.ExchangeRequest(id)
+	if !ok {
+		http.Error(w, "nie ma takiej wymiany", http.StatusNotFound)
+
+		return
+	}
+
+	reply(w, map[string]any{"exchange": entry, "messages": llm.Transcript(request, entry.Reply)})
 }
 
 func (s *Server) setFact(w http.ResponseWriter, r *http.Request) {
@@ -180,7 +228,7 @@ func (s *Server) describe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !realm.Describe(body.Kind, body.Index, body.Text) {
+	if !realm.Describe(body.Kind, body.Index, body.Text, game.HowEdited, "") {
 		http.Error(w, "nie ma czego opisać", http.StatusBadRequest)
 
 		return
@@ -189,7 +237,8 @@ func (s *Server) describe(w http.ResponseWriter, r *http.Request) {
 	reply(w, map[string]bool{"ok": true})
 }
 
-// rewrite has the model word a description again and keeps the result.
+// rewrite has the model word a description again and keeps the result,
+// with the prompt it was given, as the thing's history.
 func (s *Server) rewrite(w http.ResponseWriter, r *http.Request) {
 	realm, rewriter, ok := s.current(w)
 	if !ok {
@@ -219,17 +268,18 @@ func (s *Server) rewrite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	intro, style := realm.Tone()
+	request := game.RewriteRequest{Kind: body.Kind, Name: name, Text: text, World: intro, Style: style}
 	ctx, cancel := context.WithTimeout(r.Context(), rewriteTimeout)
 	defer cancel()
 
-	fresh, err := rewriter.Rewrite(ctx, game.RewriteRequest{Kind: body.Kind, Name: name, Text: text, World: intro, Style: style})
+	fresh, err := rewriter.Rewrite(ctx, request)
 	if err != nil {
 		http.Error(w, "model nie przepisał: "+err.Error(), http.StatusBadGateway)
 
 		return
 	}
 
-	if !realm.Describe(body.Kind, body.Index, fresh) {
+	if !realm.Describe(body.Kind, body.Index, fresh, game.HowRewritten, llm.RewritePrompt(request)) {
 		http.Error(w, "nie udało się zapisać", http.StatusInternalServerError)
 
 		return
@@ -263,6 +313,89 @@ func (s *Server) player(w http.ResponseWriter, r *http.Request) {
 	reply(w, map[string]bool{"ok": true})
 }
 
+// mark leaves a person's comment on exchanges or on things in the world,
+// and appends it with everything behind what was marked to the feedback
+// file: the prompts, the replies, the refused lines, the histories.
+func (s *Server) mark(w http.ResponseWriter, r *http.Request) {
+	realm, _, ok := s.current(w)
+	if !ok {
+		return
+	}
+
+	var body struct {
+		Kind    string   `json:"kind"`
+		Keys    []string `json:"keys"`
+		Comment string   `json:"comment"`
+	}
+
+	if !decode(w, r, &body) {
+		return
+	}
+
+	note, ok := realm.Mark(body.Kind, body.Keys, body.Comment)
+	if !ok {
+		http.Error(w, "zaznacz coś i napisz uwagę", http.StatusBadRequest)
+
+		return
+	}
+
+	record := map[string]any{"time": note.Time, "world": realm.World().Name, "kind": note.Kind, "keys": note.Keys, "comment": note.Comment}
+
+	if body.Kind == "exchange" {
+		var marked []map[string]any
+		for _, key := range body.Keys {
+			id, _ := strconv.Atoi(key)
+			if request, entry, ok := realm.ExchangeRequest(id); ok {
+				marked = append(marked, map[string]any{"exchange": entry, "messages": llm.Transcript(request, entry.Reply)})
+			}
+		}
+
+		record["items"] = marked
+	} else {
+		report := realm.Inspect()
+		var marked []map[string]any
+		for _, key := range body.Keys {
+			index, _ := strconv.Atoi(key)
+			name, text, _ := realm.Description(body.Kind, index)
+			marked = append(marked, map[string]any{"kind": body.Kind, "key": key, "name": name, "text": text, "traces": report.Traces[body.Kind+":"+key]})
+		}
+
+		record["items"] = marked
+	}
+
+	if s.Feedback != "" {
+		if err := appendLine(s.Feedback, record); err != nil {
+			http.Error(w, "uwaga zapisana w świecie, ale nie w pliku: "+err.Error(), http.StatusInternalServerError)
+
+			return
+		}
+	}
+
+	reply(w, note)
+}
+
+// appendLine adds a JSON record to a JSON Lines file.
+func appendLine(path string, record any) error {
+	data, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Write(append(data, '\n'))
+
+	return err
+}
+
 // picture serves the game's own pixel art as PNG: an item's icon, a
 // monster's sprite, a companion's or hero's figure.
 func (s *Server) picture(w http.ResponseWriter, r *http.Request) {
@@ -282,8 +415,19 @@ func (s *Server) picture(w http.ResponseWriter, r *http.Request) {
 
 	switch query.Get("kind") {
 	case "item":
-		if index >= 0 && index < len(built.Items) {
-			image, found = ui.ItemIcon(built.Items[index]), true
+		if name, _, ok := realm.Description(game.DescribeItem, index); ok {
+			item := world.ItemSpec{Name: name}
+			if index < len(built.Items) {
+				item = built.Items[index]
+			} else {
+				for _, candidate := range realm.Inspect().Items {
+					if candidate.Index == index {
+						item = world.ItemSpec{Name: candidate.Name, Kind: world.Kind(candidate.Kind), Effect: world.Effect(candidate.Effect), Tier: candidate.Tier}
+					}
+				}
+			}
+
+			image, found = ui.ItemIcon(item), true
 		}
 	case "monster":
 		if index >= 0 && index < len(built.Monsters) {

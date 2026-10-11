@@ -241,7 +241,7 @@ func (c *Client) Rewrite(ctx context.Context, request game.RewriteRequest) (stri
 		Model: c.Model,
 		Messages: []message{
 			{Role: "system", Content: rewriteInstructions},
-			{Role: "user", Content: rewritePrompt(request)},
+			{Role: "user", Content: RewritePrompt(request)},
 		},
 		MaxTokens:   200,
 		Temperature: 0.3,

@@ -48,41 +48,14 @@ type Inspection struct {
 	Flags   []string       `json:"flags,omitempty"`
 	// Rewrites says whether a model is there to reword descriptions.
 	Rewrites bool `json:"rewrites"`
-	// Rejected are the latest lines of the model that the rules refused,
-	// newest last.
-	Rejected []RejectionInfo `json:"rejected"`
-}
-
-// RejectionInfo is one refused reply: who asked whom what, and what the
-// model offered instead of the canned line that was spoken.
-type RejectionInfo struct {
-	Day      int       `json:"day"`
-	Player   string    `json:"player"`
-	Keeper   string    `json:"keeper"`
-	Said     string    `json:"said"`
-	Hint     string    `json:"hint"`
-	Attempts []Attempt `json:"attempts"`
-}
-
-// rejectionsKept is how many refused replies the realm remembers.
-const rejectionsKept = 40
-
-// Reject remembers a reply the rules refused, for the inspector.
-func (r *Realm) Reject(name string, request NarrateRequest, rejection *Rejection) {
-	if rejection == nil {
-		return
-	}
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	r.rejections = append(r.rejections, RejectionInfo{
-		Day: r.day, Player: name, Keeper: request.Merchant.Name, Said: request.Text, Hint: request.Hint, Attempts: rejection.Attempts,
-	})
-
-	if len(r.rejections) > rejectionsKept {
-		r.rejections = r.rejections[len(r.rejections)-rejectionsKept:]
-	}
+	// Origin is where a generated world came from; nil for a preset.
+	Origin *world.OriginSpec `json:"origin,omitempty"`
+	// Traces are the histories of things a model wrote, by "kind:key";
+	// Exchanges the latest lines of talk, oldest first; Notes the comments
+	// a person left.
+	Traces    map[string][]Trace `json:"traces"`
+	Exchanges []Exchange         `json:"exchanges"`
+	Notes     []Note             `json:"notes"`
 }
 
 // TileInfo is one square of the map with everything on it.
@@ -170,6 +143,7 @@ type BeastInfo struct {
 	Trait       Trait  `json:"trait"`
 	Alive       int    `json:"alive"`
 	Slain       int    `json:"slain"`
+	Picture     string `json:"picture,omitempty"`
 }
 
 // ItemInfo is a kind of item.
@@ -183,6 +157,10 @@ type ItemInfo struct {
 	Tier        int    `json:"tier"`
 	Price       int    `json:"price"`
 	Power       string `json:"power"`
+	// Keeper names who talked an invented item into the world.
+	Keeper string `json:"keeper,omitempty"`
+	// Picture names the drawing the screens use; the inspector fills it.
+	Picture string `json:"picture,omitempty"`
 }
 
 // MateInfo is a hero for hire.
@@ -195,6 +173,7 @@ type MateInfo struct {
 	Legend      bool   `json:"legend"`
 	Inn         string `json:"inn"`
 	HiredBy     string `json:"hired_by,omitempty"`
+	Picture     string `json:"picture,omitempty"`
 }
 
 // QuestInfo is a keeper's job.
@@ -334,6 +313,16 @@ func (r *Realm) Inspect() Inspection {
 		})
 	}
 
+	// Things talked into the world come after the world's own, with the
+	// keeper whose line brought them.
+	for index, made := range r.extras {
+		item := made.item
+		report.Items = append(report.Items, ItemInfo{
+			Index: len(built.Items) + index, ID: item.ID, Name: item.Name, Description: item.Description, Kind: string(item.Kind), Effect: string(item.Effect),
+			Tier: item.Tier, Price: item.Price(), Power: Effect(item), Keeper: r.keeperName(made.shop),
+		})
+	}
+
 	for kind, mate := range built.Companions {
 		info := MateInfo{Kind: kind, Name: mate.Name, Description: mate.Description, Role: roleName(mate.Role), Tier: mate.Tier, Legend: mate.Legend, HiredBy: r.hired[kind]}
 		if len(built.Towns) > 0 && !built.Mode.Rooms() {
@@ -361,7 +350,14 @@ func (r *Realm) Inspect() Inspection {
 	}
 
 	sort.Strings(report.Flags)
-	report.Rejected = append([]RejectionInfo{}, r.rejections...)
+	report.Origin = built.Origin
+	report.Traces = map[string][]Trace{}
+	for key, steps := range r.traces {
+		report.Traces[key] = append([]Trace(nil), steps...)
+	}
+
+	report.Exchanges = append([]Exchange{}, r.exchanges...)
+	report.Notes = append([]Note{}, r.notes...)
 
 	return report
 }
@@ -413,6 +409,12 @@ func (r *Realm) SetFact(id int, subject, text string, known []string) (FactInfo,
 		return FactInfo{}, false
 	}
 
+	how, was := HowEdited, fact.Text
+	if id == 0 {
+		how, was = HowAdded, ""
+	}
+
+	r.trace(DescribeFact, fact.ID, Trace{How: how, Was: was})
 	fact.Subject, fact.Text = subject, text
 	fact.known = map[int]bool{}
 
@@ -487,6 +489,10 @@ func (r *Realm) Description(kind string, index int) (string, string, bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	return r.description(kind, index)
+}
+
+func (r *Realm) description(kind string, index int) (string, string, bool) {
 	built := r.world
 
 	switch kind {
@@ -501,8 +507,8 @@ func (r *Realm) Description(kind string, index int) (string, string, bool) {
 	case DescribeBoss:
 		return built.Boss.Name, built.Boss.Description, true
 	case DescribeItem:
-		if index >= 0 && index < len(built.Items) {
-			return built.Items[index].Name, built.Items[index].Description, true
+		if item := r.itemAt(index); item != nil {
+			return item.Name, item.Description, true
 		}
 	case DescribeCompanion:
 		if index >= 0 && index < len(built.Companions) {
@@ -521,8 +527,25 @@ func (r *Realm) Description(kind string, index int) (string, string, bool) {
 	return "", "", false
 }
 
-// Describe replaces the text of a thing the inspector may reword.
-func (r *Realm) Describe(kind string, index int, text string) bool {
+// itemAt finds a kind of item by its place in the inspector's list: the
+// world's own first, then the ones talked into it.
+func (r *Realm) itemAt(index int) *world.ItemSpec {
+	switch {
+	case index < 0:
+		return nil
+	case index < len(r.world.Items):
+		return &r.world.Items[index]
+	case index-len(r.world.Items) < len(r.extras):
+		return &r.extras[index-len(r.world.Items)].item
+	}
+
+	return nil
+}
+
+// Describe replaces the text of a thing the inspector may reword, and
+// keeps how it happened and what the text was: by hand (HowEdited) or by
+// a model given the prompt (HowRewritten).
+func (r *Realm) Describe(kind string, index int, text, how, prompt string) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	defer r.notify()
@@ -531,6 +554,22 @@ func (r *Realm) Describe(kind string, index int, text string) bool {
 	if text == "" {
 		return false
 	}
+
+	_, was, ok := r.description(kind, index)
+	if !ok {
+		return false
+	}
+
+	if how == "" {
+		how = HowEdited
+	}
+
+	key := any(index)
+	if kind == DescribeItem {
+		key = r.itemAt(index).ID
+	}
+
+	r.trace(kind, key, Trace{How: how, Prompt: prompt, Was: was})
 
 	built := r.world
 
@@ -555,8 +594,8 @@ func (r *Realm) Describe(kind string, index int, text string) bool {
 
 		return true
 	case DescribeItem:
-		if index >= 0 && index < len(built.Items) {
-			built.Items[index].Description = text
+		if item := r.itemAt(index); item != nil {
+			item.Description = text
 
 			return true
 		}

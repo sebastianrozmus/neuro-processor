@@ -106,6 +106,7 @@ func run(listen, name string) error {
 			return fmt.Errorf("podgląd w przeglądarce: %w", err)
 		}
 
+		inspector.Feedback = filepath.Join(dataDir, "feedback.jsonl")
 		host.inspector = inspector
 		backend += " · podgląd: " + inspector.URL()
 	}

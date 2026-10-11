@@ -241,7 +241,9 @@ var rewriteKinds = map[string]string{
 	game.DescribeFact:      "fakt o świecie (w trzeciej osobie)",
 }
 
-func rewritePrompt(request game.RewriteRequest) string {
+// RewritePrompt words the request to reword a description, as the model
+// gets it; the inspector keeps it as the thing's history.
+func RewritePrompt(request game.RewriteRequest) string {
 	var prompt strings.Builder
 
 	fmt.Fprintf(&prompt, "Świat: %s\n", request.World)

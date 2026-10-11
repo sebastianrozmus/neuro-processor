@@ -188,6 +188,14 @@ type ShopSpec struct {
 	Greeting string   `json:"greeting"`
 }
 
+// OriginSpec is the record of a world's generation.
+type OriginSpec struct {
+	Theme string `json:"theme"`
+	Model string `json:"model"`
+	When  string `json:"when"`
+	Brief string `json:"brief"`
+}
+
 // StyleSpec is the style card of a generated world: what the player's
 // inspiration ("w stylu Cowboy Bebop") looks and sounds like, written down
 // once so that every prompt and picture of the world can follow it.
@@ -248,6 +256,9 @@ type Spec struct {
 	Currency string `json:"currency"`
 	// Style is the card of the inspiration a generated world follows.
 	Style *StyleSpec `json:"style,omitempty"`
+	// Origin says where a generated world came from: the player's theme,
+	// the model and the brief it was given. Presets have none.
+	Origin *OriginSpec `json:"origin,omitempty"`
 	// Backdrops name embedded art shown behind the world in the menu.
 	Backdrops  []string        `json:"backdrops,omitempty"`
 	Places     []PlaceSpec     `json:"places"`

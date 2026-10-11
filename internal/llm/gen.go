@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
@@ -105,8 +106,15 @@ func (c *Client) GenerateWorld(ctx context.Context, mode world.Mode, theme strin
 		brief += "\n\nKARTA STYLU (trzymaj się jej w nazwach, opisach, personach i powitaniach; nie kopiuj imion ani nazw z pierwowzoru):\n" + style.Card()
 	}
 
+	origin := &world.OriginSpec{Theme: theme, Model: c.Model, When: time.Now().Format("2006-01-02 15:04"), Brief: brief}
+
 	if mode == world.ModeInvestigation {
-		return c.generateInvestigation(ctx, brief, style)
+		spec, err := c.generateInvestigation(ctx, brief, style)
+		if err == nil {
+			spec.Origin = origin
+		}
+
+		return spec, err
 	}
 
 	var spec world.Spec
@@ -129,6 +137,8 @@ func (c *Client) GenerateWorld(ctx context.Context, mode world.Mode, theme strin
 	if err != nil {
 		return world.Spec{}, fmt.Errorf("model returned an unplayable world: %w", err)
 	}
+
+	spec.Origin = origin
 
 	return spec, nil
 }

@@ -63,12 +63,16 @@ type pieceMsg struct {
 type notedMsg struct {
 	fact  game.FactSpec
 	found bool
+	// line is the keeper's line the fact was noted from.
+	line string
 }
 
 // inventedMsg carries what a keeper's line turned out to offer.
 type inventedMsg struct {
 	item    world.ItemSpec
 	offered bool
+	// line is the keeper's line that offered the item.
+	line string
 }
 
 // shop is the conversation screen with a shopkeeper.
@@ -276,7 +280,7 @@ func note(brain game.Brain, reply string, known []string) tea.Cmd {
 
 		fact, found, err := noter.Note(ctx, game.NoteRequest{Reply: reply, Known: known})
 
-		return notedMsg{fact: fact, found: found && err == nil}
+		return notedMsg{fact: fact, found: found && err == nil, line: reply}
 	}
 }
 
@@ -292,7 +296,7 @@ func invent(brain game.Brain, reply string, wares []game.Ware) tea.Cmd {
 
 		item, offered, err := inventor.Invent(ctx, game.InventRequest{Reply: reply, Wares: wares})
 
-		return inventedMsg{item: item, offered: offered && err == nil}
+		return inventedMsg{item: item, offered: offered && err == nil, line: reply}
 	}
 }
 

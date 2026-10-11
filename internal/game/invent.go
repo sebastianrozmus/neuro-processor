@@ -30,7 +30,7 @@ type extra struct {
 // joins that shop's stock, in the customer's talk right away and in every
 // talk begun later. Items the world already has, under this or a similar
 // name, are not doubled. It reports whether the item was added.
-func (r *Realm) Invent(name string, item world.ItemSpec) (world.ItemSpec, bool) {
+func (r *Realm) Invent(name string, item world.ItemSpec, line string) (world.ItemSpec, bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	defer r.notify()
@@ -54,6 +54,7 @@ func (r *Realm) Invent(name string, item world.ItemSpec) (world.ItemSpec, bool) 
 
 	item.ID = fmt.Sprintf("extra-%d", len(r.extras)+1)
 	r.extras = append(r.extras, extra{shop: customer.shop, item: item})
+	r.trace(DescribeItem, item.ID, Trace{How: HowInvented + " (" + r.keeperName(customer.shop) + ")", Prompt: line})
 	customer.talks[customer.shop].session.Stock(ware(item))
 	r.tell(customer, fmt.Sprintf("Do świata wpada: %s (%d %s). %s", item.Name, item.Price(), r.world.Currency, Effect(item)))
 

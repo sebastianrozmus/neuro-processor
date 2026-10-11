@@ -12,8 +12,8 @@
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 "Menlo", "SF Mono", ui-monospace, monospace; }
   header { display: flex; align-items: baseline; gap: 18px; padding: 10px 18px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
-  header h1 { font-size: 15px; margin: 0; color: var(--gold); letter-spacing: .04em; }
-  header .meta { color: var(--dim); font-size: 12px; }
+  header h1 { font-size: 14px; margin: 0; color: var(--gold); letter-spacing: .04em; white-space: nowrap; }
+  header .meta { color: var(--dim); font-size: 11px; max-width: 360px; }
   header .meta b { color: var(--ink); font-weight: 600; }
   nav { display: flex; gap: 2px; margin-left: auto; }
   nav button { white-space: nowrap; background: transparent; border: 1px solid transparent; color: var(--dim); padding: 5px 11px; border-radius: 6px 6px 0 0; cursor: pointer; font: inherit; }
@@ -65,6 +65,21 @@
   .log div:last-child { color: var(--ink); }
   #toast { position: fixed; right: 16px; bottom: 16px; background: #262932; border: 1px solid var(--gold); color: var(--ink); padding: 8px 12px; border-radius: 6px; display: none; max-width: 480px; font-size: 12px; }
   .muted { opacity: .5; }
+  details.src { display: inline-block; vertical-align: middle; margin-top: 4px; font-size: 12px; color: var(--dim); }
+  details.src[open] { display: block; }
+  details.src summary { cursor: pointer; list-style: none; display: inline-block; padding: 0 5px; border: 1px solid var(--line); border-radius: 4px; }
+  details.src summary::-webkit-details-marker { display: none; }
+  details.src .step { border-left: 2px solid var(--line); padding: 2px 8px; margin: 6px 0; }
+  details.src .step b { color: var(--ink); font-weight: 500; }
+  pre.prompt { white-space: pre-wrap; font-size: 11px; background: #111216; border: 1px solid var(--line); border-radius: 5px; padding: 8px; max-height: 320px; overflow: auto; color: var(--dim); }
+  .xch { border-top: 1px solid var(--line); padding: 10px 0; display: grid; grid-template-columns: 22px 1fr; gap: 8px; }
+  .xch .who { color: var(--dim); font-size: 12px; }
+  .xch .said { color: var(--blue); }
+  .xch .reply { margin-top: 2px; }
+  .xch .reply.canned { color: var(--red); }
+  .xch .meta { font-size: 11px; color: var(--dim); margin-top: 3px; }
+  .xch .mark { color: var(--gold); font-size: 12px; margin-top: 2px; }
+  .sticky { position: sticky; top: 56px; background: var(--panel); padding: 8px 0; z-index: 2; display: flex; gap: 10px; align-items: center; }
 </style>
 </head>
 <body>
@@ -78,6 +93,7 @@
     <button data-tab="beasts">Bestiariusz</button>
     <button data-tab="items">Przedmioty</button>
     <button data-tab="people">Ludzie</button>
+    <button data-tab="talks">Rozmowy</button>
     <button data-tab="quests">Zadania</button>
     <button data-tab="model">Model</button>
   </nav>
@@ -89,6 +105,7 @@
   <section id="beasts"></section>
   <section id="items"></section>
   <section id="people"></section>
+  <section id="talks"></section>
   <section id="quests"></section>
   <section id="model"></section>
 </main>
@@ -115,9 +132,11 @@ async function load() {
   try {
     const fresh = await api("GET", "/api/world");
     // Empty lists arrive as null.
-    ["tiles", "places", "players", "keepers", "facts", "beasts", "items", "companions", "quests", "flags", "rejected"].forEach(k => fresh[k] = fresh[k] || []);
+    ["tiles", "places", "players", "keepers", "facts", "beasts", "items", "companions", "quests", "flags", "exchanges", "notes"].forEach(k => fresh[k] = fresh[k] || []);
     fresh.players.forEach(p => ["bag", "spells", "party", "log", "standing"].forEach(k => p[k] = p[k] || []));
     fresh.facts.forEach(f => { f.known = f.known || []; f.heard = f.heard || []; });
+    fresh.traces = fresh.traces || {};
+    fresh.exchanges.forEach(e => { e.attempts = e.attempts || []; e.marks = e.marks || []; });
     state = fresh;
     document.getElementById("meta").innerHTML = `<b>${esc(state.name)}</b> · ${esc(state.mode)} · dzień <b>${state.day}</b> · ${esc(state.season)}, ${esc(state.weather)} · faktów <b>${state.facts.length}</b> · graczy <b>${state.players.length}</b>${state.won ? ' · <span class="gold">wygrana</span>' : ""}${state.lost ? ' · <span class="red">przegrana</span>' : ""}`;
     if (!editing) render();
@@ -129,7 +148,7 @@ async function load() {
 function render() {
   if (!state) return;
   const el = document.getElementById(tab);
-  const draw = { world: worldView, graph: graphView, facts: factsView, beasts: beastsView, items: itemsView, people: peopleView, quests: questsView, model: modelView }[tab];
+  const draw = { world: worldView, graph: graphView, facts: factsView, beasts: beastsView, items: itemsView, people: peopleView, quests: questsView, model: modelView, talks: talksView }[tab];
   const scroll = window.scrollY;
   el.innerHTML = draw();
   window.scrollTo(0, scroll);
@@ -138,6 +157,21 @@ function render() {
 function rewriteButton(kind, index) {
   if (!state.rewrites) return "";
   return `<button class="act" title="Przepisz modelem" onclick="rewrite(this, '${kind}', ${index})">↻</button>`;
+}
+
+// A thing's history: where it came from, what it said before, why it
+// changed, and the comments left on it.
+function origin(kind, key) {
+  const steps = state.traces[kind + ":" + key] || [];
+  const mark = `<button class="act" title="Oznacz z uwagą" onclick="markOne('${kind}', '${key}')">✎</button>`;
+  if (!steps.length) return `<details class="src"><summary>skąd</summary><div class="step">ze świata (preset albo generator); bez zmian</div></details> ${mark}`;
+  return `<details class="src"><summary>skąd · ${steps.length}</summary>${steps.map(t => `<div class="step"><b>${esc(t.how)}</b> <span>· dzień ${t.day}</span>${t.was ? `<div>było: „${esc(t.was)}”</div>` : ""}${t.why ? `<div class="gold">${esc(t.why)}</div>` : ""}${t.prompt ? `<pre class="prompt">${esc(t.prompt)}</pre>` : ""}</div>`).join("")}</details> ${mark}`;
+}
+
+async function markOne(kind, key) {
+  const comment = prompt("Co tu jest nie tak? (trafia do feedback.jsonl razem z historią wpisu)");
+  if (!comment) return;
+  try { await api("POST", "/api/mark", { kind, keys: [String(key)], comment }); toast("Oznaczone."); load(); } catch (e) { toast(e.message, true); }
 }
 
 // --- Świat -------------------------------------------------------------
@@ -165,7 +199,10 @@ function worldView() {
     html += `<p class="dim">Świat bez mapy (pomieszczenia).</p>`;
   }
   html += `</div><div>`;
-  html += `<div class="card"><h3>${esc(state.name)}</h3><p class="dim" style="margin:0 0 6px">${esc(state.intro)}</p>${state.style ? `<p class="dim" style="margin:0;font-size:12px">Styl: ${esc(state.style)}</p>` : ""}${state.heir ? `<p class="red" style="margin:6px 0 0">Nadciąga: ${esc(state.heir)}</p>` : ""}</div>`;
+  html += `<div class="card"><h3>${esc(state.name)}</h3><p class="dim" style="margin:0 0 6px">${esc(state.intro)}</p>${state.style ? `<p class="dim" style="margin:0;font-size:12px">Styl: ${esc(state.style)}</p>` : ""}${state.heir ? `<p class="red" style="margin:6px 0 0">Nadciąga: ${esc(state.heir)}</p>` : ""}`;
+  if (state.origin) html += `<details class="src"><summary>skąd ten świat</summary><div class="step"><b>wygenerowany</b> · ${esc(state.origin.when)} · model ${esc(state.origin.model)}<div>temat gracza: „${esc(state.origin.theme)}”</div><pre class="prompt">${esc(state.origin.brief)}</pre></div></details>`;
+  else html += `<details class="src"><summary>skąd ten świat</summary><div class="step">wbudowany preset (plik w <code>internal/world/presets</code>), napisany ręcznie</div></details>`;
+  html += `</div>`;
   state.players.forEach(p => {
     html += `<div class="card" style="margin-top:10px"><div style="display:flex;gap:12px"><img class="pic" src="/api/picture?kind=hero&avatar=${encodeURIComponent(p.avatar)}" width="48" height="60" alt="">`;
     html += `<div style="flex:1"><h3>${esc(p.name)} <span class="dim">poz. ${p.level} · ${esc(p.hour)}${p.connected ? "" : " · odłączony"}</span></h3>`;
@@ -182,7 +219,7 @@ function worldView() {
   html += `</div></div>`;
   html += `<h2>Miejsca</h2><div class="card"><table><tr><th>Miejsce</th><th>Teren</th><th>Zagr.</th><th>Opis</th><th></th></tr>`;
   state.places.forEach(pl => {
-    html += `<tr><td><b>${esc(pl.name)}</b></td><td class="dim">${esc(pl.terrain)}</td><td>${pl.danger}</td><td>${editable("place", pl.index, pl.description)}</td><td class="acts">${rewriteButton("place", pl.index)}</td></tr>`;
+    html += `<tr><td><b>${esc(pl.name)}</b></td><td class="dim">${esc(pl.terrain)}</td><td>${pl.danger}</td><td>${editable("place", pl.index, pl.description)}${origin("place", pl.index)}</td><td class="acts">${rewriteButton("place", pl.index)}</td></tr>`;
   });
   html += `</table></div>`;
   return html;
@@ -272,7 +309,7 @@ function factsView() {
   html += `<div style="margin-top:6px">${names.map(n => `<label class="tag"><input type="checkbox" class="nf-known" value="${esc(n)}"> ${esc(n)}</label>`).join("")}</div></div>`;
   html += `<div class="card" style="margin-top:14px"><table><tr><th>#</th><th>Temat</th><th>Treść</th><th>Wie</th><th>Słyszał</th><th>Źródło</th><th></th></tr>`;
   state.facts.forEach(f => {
-    html += `<tr id="fact-${f.id}"><td class="dim">${f.id}</td><td><b>${esc(f.subject)}</b></td><td>${editable("fact", f.id, f.text)}</td>`;
+    html += `<tr id="fact-${f.id}"><td class="dim">${f.id}</td><td><b>${esc(f.subject)}</b></td><td>${editable("fact", f.id, f.text)}${origin("fact", f.id)}</td>`;
     html += `<td>${f.known.map(k => `<span class="tag k">${esc(k)}</span>`).join("") || '<span class="dim">nikt</span>'}<br><button class="act" style="margin-top:4px" onclick="editKnown(${f.id})">kto wie…</button></td>`;
     html += `<td>${f.heard.map(h => `<span class="tag h">${esc(h)}</span>`).join("")}${f.pointed ? Object.entries(f.pointed).map(([p, k]) => `<span class="tag p" title="trop">${esc(p)} → ${esc(k)}</span>`).join("") : ""}</td>`;
     html += `<td class="dim">${esc(f.source || "świat")} · d. ${f.day}</td>`;
@@ -313,7 +350,7 @@ function beastsView() {
     html += `<div class="dim" style="font-size:12px">${esc(b.shape)} · HP ${b.hp} · atak ${b.attack}</div>`;
     html += `<div style="font-size:12px;margin-top:4px"><span class="violet">${esc(b.trait.Name)}</span> <span class="dim">${esc(b.trait.Text)}</span></div>`;
     html += `<div style="font-size:12px;margin-top:4px">żyje: <b>${b.alive}</b> · pokonane: <b>${b.slain}</b></div></div></div>`;
-    html += `<p style="margin:8px 0 0;font-size:13px">${editable(kind, b.boss ? 0 : b.kind, b.description)}</p><div class="acts" style="margin-top:6px">${rewriteButton(kind, b.boss ? 0 : b.kind)}</div></div>`;
+    html += `<p style="margin:8px 0 0;font-size:13px">${editable(kind, b.boss ? 0 : b.kind, b.description)}</p><div class="dim" style="font-size:11px;margin-top:4px">obrazek: wbudowany sprite <code>${esc(b.picture || "")}</code> (wybór po kształcie i nazwie)</div><div class="acts" style="margin-top:6px">${rewriteButton(kind, b.boss ? 0 : b.kind)} ${origin(kind, b.boss ? 0 : b.kind)}</div></div>`;
   });
   html += `</div>`;
   return html;
@@ -325,7 +362,7 @@ function itemsView() {
   state.items.forEach(it => {
     html += `<tr><td><img class="pic" src="/api/picture?kind=item&index=${it.index}" width="40" height="40" alt=""></td><td><b>${esc(it.name)}</b><br><span class="dim" style="font-size:11px">${esc(it.id)}</span></td>`;
     html += `<td>${esc(kindNames[it.kind] || it.kind)}</td><td>${esc(effectNames[it.effect] || it.effect)}<br><span class="dim" style="font-size:11px">${esc(it.power)}</span></td><td>${it.tier}</td><td class="gold">${it.price}</td>`;
-    html += `<td>${editable("item", it.index, it.description)}</td><td class="acts">${rewriteButton("item", it.index)}</td></tr>`;
+    html += `<td>${editable("item", it.index, it.description)}${it.keeper ? `<div class="gold" style="font-size:11px">wymyślone w rozmowie: ${esc(it.keeper)}</div>` : ""}<div class="dim" style="font-size:11px">ikona: ${esc(it.picture || "")}</div>${origin("item", it.keeper ? it.id : it.index)}</td><td class="acts">${rewriteButton("item", it.index)}</td></tr>`;
   });
   html += `</table></div>`;
   return html;
@@ -335,13 +372,13 @@ function itemsView() {
 function peopleView() {
   let html = `<h2>Mieszkańcy</h2><div class="card"><table><tr><th>Imię</th><th>Gdzie</th><th>Zna faktów</th><th>Charakter</th><th>Powitanie</th><th></th></tr>`;
   state.keepers.forEach(k => {
-    html += `<tr><td><b>${esc(k.name)}</b></td><td class="dim">${esc(k.building)}</td><td>${k.knows}</td><td>${k.kind && k.kind !== "caravan" ? editable("keeper", k.index, k.persona) : esc(k.persona)}</td><td class="dim" style="font-size:12px">${esc(k.greeting || "")}</td><td class="acts">${k.kind && k.kind !== "caravan" ? rewriteButton("keeper", k.index) : ""}</td></tr>`;
+    html += `<tr><td><b>${esc(k.name)}</b></td><td class="dim">${esc(k.building)}</td><td>${k.knows}</td><td>${k.kind && k.kind !== "caravan" ? editable("keeper", k.index, k.persona) + origin("keeper", k.index) : esc(k.persona)}</td><td class="dim" style="font-size:12px">${esc(k.greeting || "")}</td><td class="acts">${k.kind && k.kind !== "caravan" ? rewriteButton("keeper", k.index) : ""}</td></tr>`;
   });
   html += `</table></div>`;
   html += `<h2>Do najęcia</h2><div class="grid cols-3">`;
   state.companions.forEach(c => {
     html += `<div class="card"><div style="display:flex;gap:12px"><img class="pic" src="/api/picture?kind=companion&index=${c.kind}" width="48" height="60" alt=""><div><h3>${esc(c.name)} ${c.legend ? '<span class="gold">legenda</span>' : ""}</h3><div class="dim" style="font-size:12px">${esc(c.role)} · poz. ${c.tier} · karczma: ${esc(c.inn)}${c.hired_by ? ` · <span class="green">w drużynie: ${esc(c.hired_by)}</span>` : ""}</div></div></div>`;
-    html += `<p style="margin:8px 0 0;font-size:13px">${editable("companion", c.kind, c.description)}</p><div class="acts" style="margin-top:6px">${rewriteButton("companion", c.kind)}</div></div>`;
+    html += `<p style="margin:8px 0 0;font-size:13px">${editable("companion", c.kind, c.description)}</p><div class="dim" style="font-size:11px;margin-top:4px">figurka: <code>${esc(c.picture || "")}</code></div><div class="acts" style="margin-top:6px">${rewriteButton("companion", c.kind)} ${origin("companion", c.kind)}</div></div>`;
   });
   html += `</div>`;
   return html;
@@ -369,18 +406,71 @@ function questsView() {
   return html;
 }
 
+// --- Rozmowy -----------------------------------------------------------
+const picked = new Set();
+const shownPrompts = {};
+
+function talksView() {
+  const list = [...state.exchanges].reverse();
+  let html = `<div class="card"><div class="sticky"><button class="act" onclick="markPicked()">Oznacz zaznaczone (${picked.size}) i wpisz uwagę</button><button class="act" onclick="picked.clear(); render()">wyczyść</button><span class="dim" style="font-size:12px">Każda uwaga trafia z pełnym promptem i odrzuconymi próbami do <code>feedback.jsonl</code> w katalogu danych gry.</span></div>`;
+  if (!list.length) html += `<p class="dim">Jeszcze nikt z nikim nie rozmawiał.</p>`;
+  list.forEach(e => {
+    const checked = picked.has(e.id) ? "checked" : "";
+    html += `<div class="xch"><input type="checkbox" ${checked} onchange="this.checked ? picked.add(${e.id}) : picked.delete(${e.id}); render()">`;
+    html += `<div><div class="who">#${e.id} · dzień ${e.day} · <b>${esc(e.player)}</b> → ${esc(e.keeper)}${e.role ? ` <span class="tag">${esc(e.role)}</span>` : ""}</div>`;
+    html += `<div class="said">${esc(e.said)}</div>`;
+    html += `<div class="reply${e.canned ? " canned" : ""}">${esc(e.reply)}${e.canned ? ' <span class="tag">gotowa kwestia gry</span>' : ""}${e.kept ? ' <span class="tag p">przyjęte mimo imienia</span>' : ""}</div>`;
+    e.attempts.forEach(a => html += `<div class="meta"><span class="red">odrzucone (${esc(a.reason)})</span>: „${esc(a.text)}”</div>`);
+    html += `<div class="meta">decyzja gry: ${esc(e.brief)}${e.hint ? `<br>podpowiedź: ${esc(e.hint)}` : ""}</div>`;
+    e.marks.forEach(m => html += `<div class="mark">✎ ${esc(m)}</div>`);
+    html += `<div class="acts" style="margin-top:4px"><button class="act" onclick="showPrompt(${e.id})">${shownPrompts[e.id] ? "ukryj prompt" : "pokaż prompt"}</button><button class="act" onclick="markOne('exchange', ${e.id})">✎ uwaga</button></div>`;
+    if (shownPrompts[e.id]) html += `<pre class="prompt">${esc(shownPrompts[e.id])}</pre>`;
+    html += `</div></div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+async function showPrompt(id) {
+  if (shownPrompts[id]) { delete shownPrompts[id]; render(); return; }
+  try {
+    const r = await api("GET", "/api/exchange?id=" + id);
+    shownPrompts[id] = r.messages.map(m => `── ${m.role.toUpperCase()} ──\n${m.content}`).join("\n\n");
+    render();
+  } catch (e) { toast(e.message, true); }
+}
+
+async function markPicked() {
+  if (!picked.size) { toast("Najpierw zaznacz wymiany.", true); return; }
+  const comment = prompt(`Uwaga do ${picked.size} zaznaczonych wymian — co jest źle i jak powinno być?`);
+  if (!comment) return;
+  try {
+    await api("POST", "/api/mark", { kind: "exchange", keys: [...picked].map(String), comment });
+    picked.clear(); toast("Oznaczone i zapisane."); load();
+  } catch (e) { toast(e.message, true); }
+}
+
 // --- Model -------------------------------------------------------------
 function modelView() {
-  let html = `<h2>Kwestie odrzucone przez zasady <span class="dim">· zamiast nich padła gotowa kwestia</span></h2><div class="card">`;
-  if (!state.rejected.length) html += `<p class="dim">Nic jeszcze nie odrzucono${state.rewrites ? "" : " (bez modelu nie ma czego)"}.</p>`;
+  const refused = [...state.exchanges].reverse().filter(e => e.attempts.length);
+  let html = `<h2>Kwestie odrzucone przez zasady <span class="dim">· ${refused.length} z ${state.exchanges.length} wymian</span></h2><div class="card">`;
+  if (!refused.length) html += `<p class="dim">Nic jeszcze nie odrzucono${state.rewrites ? "" : " (bez modelu nie ma czego)"}.</p>`;
   else {
-    html += `<table><tr><th>Dzień</th><th>Kto → komu</th><th>Gracz powiedział</th><th>Podpowiedź gry</th><th>Model napisał</th><th>Powód</th></tr>`;
-    [...state.rejected].reverse().forEach(r => r.attempts.forEach((a, i) => {
-      html += `<tr>${i === 0 ? `<td rowspan="${r.attempts.length}" class="dim">${r.day}</td><td rowspan="${r.attempts.length}"><b>${esc(r.player)}</b> → ${esc(r.keeper)}</td><td rowspan="${r.attempts.length}">${esc(r.said)}</td><td rowspan="${r.attempts.length}" class="dim" style="font-size:11px;max-width:320px">${esc(r.hint)}</td>` : ""}<td>${esc(a.text)}</td><td class="red">${esc(a.reason)}</td></tr>`;
+    html += `<table><tr><th>#</th><th>Kto → komu</th><th>Gracz powiedział</th><th>Podpowiedź gry</th><th>Model napisał</th><th>Powód</th><th>Padło</th></tr>`;
+    refused.forEach(r => r.attempts.forEach((a, i) => {
+      html += `<tr>${i === 0 ? `<td rowspan="${r.attempts.length}" class="dim">${r.id}</td><td rowspan="${r.attempts.length}"><b>${esc(r.player)}</b> → ${esc(r.keeper)}</td><td rowspan="${r.attempts.length}">${esc(r.said)}</td><td rowspan="${r.attempts.length}" class="dim" style="font-size:11px;max-width:300px">${esc(r.hint)}</td>` : ""}<td>${esc(a.text)}</td><td class="red">${esc(a.reason)}</td>${i === 0 ? `<td rowspan="${r.attempts.length}" class="${r.canned ? "red" : "gold"}" style="font-size:12px">${esc(r.reply)}</td>` : ""}</tr>`;
     }));
     html += `</table>`;
   }
-  html += `</div><p class="dim" style="font-size:12px">Liczba spoza bloku [GRA]: w pogawędce każda cyfra jest podejrzana (ceny), a cena służby najemnika jest zakazana. Imię: osoba, do której gra kazała odesłać, musi paść po imieniu.</p>`;
+  html += `</div><p class="dim" style="font-size:12px">Liczba spoza bloku [GRA]: w pogawędce każda cyfra jest podejrzana (ceny), a cena służby najemnika jest zakazana. Imię: osoba, do której gra kazała odesłać, musi paść po imieniu; kwestia odrzucona tylko za imię i tak pada.</p>`;
+  html += `<h2>Uwagi <span class="dim">· ${state.notes.length} · plik feedback.jsonl</span></h2><div class="card">`;
+  if (!state.notes.length) html += `<p class="dim">Brak. Zaznacz wymiany w zakładce Rozmowy albo kliknij ✎ przy wpisie.</p>`;
+  else {
+    html += `<table><tr><th>Kiedy</th><th>Czego dotyczy</th><th>Uwaga</th></tr>`;
+    [...state.notes].reverse().forEach(n => html += `<tr><td class="dim">${esc(n.time.replace("T", " ").slice(0, 16))}</td><td>${esc(n.kind)} ${esc(n.keys.join(", "))}</td><td>${esc(n.comment)}</td></tr>`);
+    html += `</table>`;
+  }
+  html += `</div>`;
   return html;
 }
 

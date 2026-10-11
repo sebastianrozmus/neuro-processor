@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -53,8 +55,23 @@ func testServer(t *testing.T) (*httptest.Server, *game.Realm, *polisher) {
 
 	web := httptest.NewServer(server.Handler())
 	t.Cleanup(web.Close)
+	servers[web] = server
 
 	return web, realm, brain
+}
+
+// servers remembers the Server behind each test web server.
+var servers = map[*httptest.Server]*Server{}
+
+func fromHandler(t *testing.T, web *httptest.Server) *Server {
+	t.Helper()
+
+	server, ok := servers[web]
+	if !ok {
+		t.Fatal("unknown server")
+	}
+
+	return server
 }
 
 func get(t *testing.T, url string, into any) *http.Response {
@@ -167,6 +184,73 @@ func TestInspectorWritesTheWorld(t *testing.T) {
 
 	if response := get(t, empty.URL+"/api/world", nil); response.StatusCode != http.StatusNotFound {
 		t.Errorf("no realm gave %d", response.StatusCode)
+	}
+}
+
+func TestInspectorShowsPromptsAndTakesMarks(t *testing.T) {
+	web, realm, _ := testServer(t)
+	request := game.NarrateRequest{Merchant: game.Merchant{Name: "Ktoś"}, Text: "siema", Decision: game.Decision{Outcome: game.OutcomeChat, Mood: game.MoodCalm}, Hint: "Gracz tylko się wita."}
+	realm.Exchange("Ala", request, "[spokój] Siema.", nil)
+
+	var shown struct {
+		Exchange game.Exchange       `json:"exchange"`
+		Messages []map[string]string `json:"messages"`
+	}
+
+	if response := get(t, web.URL+"/api/exchange?id=1", &shown); response.StatusCode != http.StatusOK || shown.Exchange.Reply != "[spokój] Siema." || len(shown.Messages) < 3 || !strings.Contains(shown.Messages[1]["content"], "Gracz tylko się wita.") {
+		t.Fatalf("exchange: %d %+v", response.StatusCode, shown)
+	}
+
+	if response := get(t, web.URL+"/api/exchange?id=9", nil); response.StatusCode != http.StatusNotFound {
+		t.Errorf("a missing exchange gave %d", response.StatusCode)
+	}
+
+	var note game.Note
+	if response := post(t, web.URL+"/api/mark", map[string]any{"kind": "exchange", "keys": []string{"1"}, "comment": "za sucho"}, &note); response.StatusCode != http.StatusOK || note.Comment != "za sucho" {
+		t.Fatalf("mark: %d %+v", response.StatusCode, note)
+	}
+
+	var report game.Inspection
+	get(t, web.URL+"/api/world", &report)
+	if len(report.Exchanges) != 1 || len(report.Exchanges[0].Marks) != 1 || len(report.Notes) != 1 || report.Traces == nil {
+		t.Errorf("report after a mark: exchanges %+v, notes %+v", report.Exchanges, report.Notes)
+	}
+
+	if response := post(t, web.URL+"/api/mark", map[string]any{"kind": "exchange", "keys": []string{}, "comment": "x"}, nil); response.StatusCode != http.StatusBadRequest {
+		t.Errorf("an empty mark gave %d", response.StatusCode)
+	}
+}
+
+func TestMarksAreWrittenDown(t *testing.T) {
+	web, realm, _ := testServer(t)
+	path := filepath.Join(t.TempDir(), "feedback.jsonl")
+	fromHandler(t, web).Feedback = path
+
+	realm.Exchange("Ala", game.NarrateRequest{Merchant: game.Merchant{Name: "Ktoś"}, Text: "hej", Decision: game.Decision{Outcome: game.OutcomeChat}}, "Hej.", nil)
+	post(t, web.URL+"/api/mark", map[string]any{"kind": "exchange", "keys": []string{"1"}, "comment": "nijakie"}, nil)
+	post(t, web.URL+"/api/mark", map[string]any{"kind": game.DescribePlace, "keys": []string{"0"}, "comment": "opis bez sensu"}, nil)
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("feedback = %q", data)
+	}
+
+	var first struct {
+		Comment string           `json:"comment"`
+		Items   []map[string]any `json:"items"`
+	}
+
+	if err := json.Unmarshal([]byte(lines[0]), &first); err != nil || first.Comment != "nijakie" || len(first.Items) != 1 || first.Items[0]["messages"] == nil {
+		t.Errorf("first record = %+v (%v)", first, err)
+	}
+
+	if !strings.Contains(lines[1], "opis bez sensu") || !strings.Contains(lines[1], `"name"`) {
+		t.Errorf("second record = %s", lines[1])
 	}
 }
 

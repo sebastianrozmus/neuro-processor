@@ -1,6 +1,7 @@
 package game
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 
@@ -81,7 +82,7 @@ func TestInspectorEditsTheWorld(t *testing.T) {
 	// Descriptions of places, monsters, items, companions and keepers can
 	// be reworded; the places the screens draw follow.
 	for kind, index := range map[string]int{DescribePlace: 0, DescribeMonster: 0, DescribeBoss: 0, DescribeItem: 0, DescribeKeeper: 0} {
-		if !realm.Describe(kind, index, "Nowy opis: "+kind+".") {
+		if !realm.Describe(kind, index, "Nowy opis: "+kind+".", "", "") {
 			t.Errorf("%s was not described", kind)
 		}
 
@@ -90,7 +91,7 @@ func TestInspectorEditsTheWorld(t *testing.T) {
 		}
 	}
 
-	if realm.Describe(DescribePlace, 99, "x") || realm.Describe("nothing", 0, "x") || realm.Describe(DescribeItem, 0, "  ") {
+	if realm.Describe(DescribePlace, 99, "x", "", "") || realm.Describe("nothing", 0, "x", "", "") || realm.Describe(DescribeItem, 0, "  ", "", "") {
 		t.Error("a bad description was accepted")
 	}
 
@@ -109,5 +110,88 @@ func TestInspectorEditsTheWorld(t *testing.T) {
 
 	if logged := strings.Join(realm.View(hero).Log, "\n"); !strings.Contains(logged, "Podgląd zmienia: gold = 500.") {
 		t.Errorf("log = %q", logged)
+	}
+}
+
+func TestTheWorldRemembersWhereThingsCameFrom(t *testing.T) {
+	realm := testRealm(t)
+	hero := enlist(realm, "Ala")
+	do(realm, hero, "idź do zbrojowni")
+
+	// A fact noted from a line and an item talked into the world keep
+	// the line; a rewrite keeps the old text and the prompt.
+	if !realm.Learn(hero, FactSpec{Subject: "Młyn", Text: "W młynie straszy."}, "[kpina] W młynie straszy, mówię ci.") {
+		t.Fatal("not learnt")
+	}
+
+	item, ok := realm.Invent(hero, world.ItemSpec{Name: "Hełm z Rondem", Description: "Garnek.", Kind: world.KindArmor, Tier: 1}, "[spokój] Mam też hełm z rondem.")
+	if !ok {
+		t.Fatal("not invented")
+	}
+
+	report := realm.Inspect()
+	var fact *FactInfo
+	for index := range report.Facts {
+		if report.Facts[index].Subject == "Młyn" {
+			fact = &report.Facts[index]
+		}
+	}
+
+	if fact == nil {
+		t.Fatal("no fact")
+	}
+
+	steps := report.Traces[traceKey(DescribeFact, fact.ID)]
+	if len(steps) != 1 || !strings.HasPrefix(steps[0].How, HowNoted) || steps[0].Prompt != "[kpina] W młynie straszy, mówię ci." {
+		t.Errorf("fact traces = %+v", steps)
+	}
+
+	if steps := report.Traces[traceKey(DescribeItem, item.ID)]; len(steps) != 1 || !strings.HasPrefix(steps[0].How, HowInvented+" (Kowal)") {
+		t.Errorf("item traces = %+v", steps)
+	}
+
+	last := report.Items[len(report.Items)-1]
+	if last.ID != item.ID || last.Keeper != "Kowal" {
+		t.Errorf("invented item in the report = %+v", last)
+	}
+
+	if !realm.Describe(DescribeItem, last.Index, "Garnek z daszkiem.", HowRewritten, "PROMPT") {
+		t.Fatal("the invented item was not described")
+	}
+
+	if steps := realm.Inspect().Traces[traceKey(DescribeItem, item.ID)]; len(steps) != 2 || steps[1].Was != "Garnek." || steps[1].Prompt != "PROMPT" || steps[1].How != HowRewritten {
+		t.Errorf("rewrite traces = %+v", steps)
+	}
+
+	// Exchanges keep the request, and marks land on them and in the notes.
+	request := NarrateRequest{Merchant: Merchant{Name: "Kowal"}, Text: "siema", Decision: Decision{Outcome: OutcomeChat, Mood: MoodPleased}, Hint: "H"}
+	realm.Exchange(hero, request, "[spokój] Siema.", nil)
+	realm.Exchange(hero, request, "Nie mój interes.", &Rejection{Attempts: []Attempt{{Text: "x 7", Reason: reasonNumbers}}})
+
+	report = realm.Inspect()
+	if len(report.Exchanges) != 2 || report.Exchanges[0].ID != 1 || report.Exchanges[1].Canned != true || len(report.Exchanges[1].Attempts) != 1 || report.Exchanges[0].Brief == "" {
+		t.Fatalf("exchanges = %+v", report.Exchanges)
+	}
+
+	if got, entry, ok := realm.ExchangeRequest(2); !ok || got.Hint != "H" || entry.Reply != "Nie mój interes." {
+		t.Errorf("exchange request = %+v %+v %v", got, entry, ok)
+	}
+
+	if _, ok := realm.Mark("exchange", []string{"2"}, "odczepka zamiast odpowiedzi"); !ok {
+		t.Fatal("not marked")
+	}
+
+	if _, ok := realm.Mark("exchange", []string{"2"}, "  "); ok {
+		t.Error("an empty comment was accepted")
+	}
+
+	realm.Mark(DescribeFact, []string{strconv.Itoa(fact.ID)}, "to nie fakt")
+	report = realm.Inspect()
+	if len(report.Notes) != 2 || len(report.Exchanges[1].Marks) != 1 || report.Exchanges[1].Marks[0] != "odczepka zamiast odpowiedzi" {
+		t.Errorf("notes %+v, marks %+v", report.Notes, report.Exchanges[1].Marks)
+	}
+
+	if steps := report.Traces[traceKey(DescribeFact, fact.ID)]; len(steps) != 2 || steps[1].How != "uwaga" || steps[1].Why != "to nie fakt" {
+		t.Errorf("fact traces after a mark = %+v", steps)
 	}
 }

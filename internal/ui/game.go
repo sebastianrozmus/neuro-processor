@@ -210,9 +210,10 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// What the rules refused goes to the inspector, and to the screen
 		// when it is debugging.
 		var rejection *game.Rejection
-		if errors.As(msg.problem, &rejection) {
-			g.realm.Reject(g.name, msg.request, rejection)
+		errors.As(msg.problem, &rejection)
+		g.realm.Exchange(g.name, msg.request, msg.text, rejection)
 
+		if rejection != nil {
 			if g.debug {
 				for index, attempt := range rejection.Attempts {
 					verdict := "Odrzucone"
@@ -252,14 +253,14 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return g, nil
 	case inventedMsg:
-		if item, ok := g.realm.Invent(g.name, msg.item); msg.offered && ok {
+		if item, ok := g.realm.Invent(g.name, msg.item, msg.line); msg.offered && ok {
 			g.shop.say(speakerSystem, fmt.Sprintf("Do świata wpada: %s (%d %s). %s", item.Name, item.Price(), g.view.World.Currency, game.Effect(item)))
 			g.refresh()
 		}
 
 		return g, nil
 	case notedMsg:
-		if msg.found && g.realm.Learn(g.name, msg.fact) {
+		if msg.found && g.realm.Learn(g.name, msg.fact, msg.line) {
 			g.shop.say(speakerSystem, "Zapamiętujesz: "+msg.fact.Subject+". (dziennik)")
 			g.refresh()
 		}
