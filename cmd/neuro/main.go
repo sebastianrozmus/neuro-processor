@@ -90,6 +90,27 @@ func run(listen, name string) error {
 			speaker = speech.NewCommand(cfg.SpeechCommand)
 		}
 
+		// Chatterbox speaks with cloned voices and audible moods; the
+		// game runs its server from the TTS environment, if there is one.
+		if cfg.Chatterbox {
+			tts := &speech.Server{
+				Python: filepath.Join(dataDir, "venv-tts", "bin", "python3"), Voices: filepath.Join(dataDir, "voices"),
+				URL: cfg.TTSURL, Log: filepath.Join(dataDir, "tts.log"),
+			}
+
+			if tts.Available() || tts.Running() {
+				if err := tts.Start(); err != nil {
+					return fmt.Errorf("serwer mowy: %w", err)
+				}
+
+				defer tts.Stop()
+				speaker = speech.NewChatterbox(cfg.TTSURL, filepath.Join(dataDir, "voices", "voices.json"))
+				host.tts = &inspect.TTS{URL: cfg.TTSURL, Settings: filepath.Join(dataDir, "voices", "voices.json"), Voices: filepath.Join(dataDir, "voices")}
+			} else {
+				fmt.Fprintln(os.Stderr, "NEURO_TTS=chatterbox, ale nie ma środowiska mowy: uruchom tools/speech/setup-tts.sh; na razie mówi głos systemowy")
+			}
+		}
+
 		if speaker != nil {
 			host.voice = speaker
 		}
@@ -107,6 +128,7 @@ func run(listen, name string) error {
 		}
 
 		inspector.Feedback = filepath.Join(dataDir, "feedback.jsonl")
+		inspector.TTS = host.tts
 		host.inspector = inspector
 		backend += " · podgląd: " + inspector.URL()
 	}
@@ -165,8 +187,10 @@ type host struct {
 	name    string
 	listen  string
 	dataDir string
-	// inspector, when on, shows the realm being played in a browser.
+	// inspector, when on, shows the realm being played in a browser; tts
+	// is the Chatterbox server it may test voices against.
 	inspector *inspect.Server
+	tts       *inspect.TTS
 }
 
 func (h *host) savesDir() string {

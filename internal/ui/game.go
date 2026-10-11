@@ -24,6 +24,11 @@ type Voice interface {
 	Say(text string, mood speech.Emotion)
 }
 
+// namedVoice is a voice that can speak as a given character.
+type namedVoice interface {
+	SayAs(name, kind, text string, mood speech.Emotion)
+}
+
 // Ear records the player's voice and turns it into text.
 type Ear interface {
 	Start() error
@@ -313,7 +318,7 @@ func (g *Game) refresh() {
 	// New lines of the game master are read aloud as they come in.
 	for _, line := range g.view.Log[min(heard, len(g.view.Log)):] {
 		if strings.HasPrefix(line, game.MasterMark) {
-			g.speak(strings.TrimPrefix(line, game.MasterMark))
+			g.narrate(strings.TrimPrefix(line, game.MasterMark))
 		}
 	}
 	bag := g.view.Me.Bag
@@ -364,12 +369,45 @@ func (g *Game) refresh() {
 	}
 }
 
-// speak reads a character's line aloud in its mood, if the game has a voice.
-func (g Game) speak(text string) {
-	if g.voice != nil {
-		mood, line := speech.SplitMood(text)
-		g.voice.Say(line, mood)
+// narrate reads a game master's line aloud, as the narrator.
+func (g Game) narrate(text string) {
+	if g.voice == nil {
+		return
 	}
+
+	mood, line := speech.SplitMood(text)
+	if named, ok := g.voice.(namedVoice); ok {
+		named.SayAs("", "narrator", line, mood)
+
+		return
+	}
+
+	g.voice.Say(line, mood)
+}
+
+// speak reads a character's line aloud in its mood, if the game has a
+// voice: as the keeper being talked to, or as the narrator.
+func (g Game) speak(text string) {
+	if g.voice == nil {
+		return
+	}
+
+	mood, line := speech.SplitMood(text)
+	name, kind := "", "narrator"
+	if g.view.Shop != nil {
+		name, kind = g.view.Shop.Keeper, string(g.view.Shop.Kind)
+		if kind == "" {
+			kind = "towarzysz"
+		}
+	}
+
+	if named, ok := g.voice.(namedVoice); ok {
+		named.SayAs(name, kind, line, mood)
+
+		return
+	}
+
+	g.voice.Say(line, mood)
 }
 
 // withMood shows the mood a line was said in, when it was not a calm one.

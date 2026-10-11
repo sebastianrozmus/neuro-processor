@@ -94,6 +94,7 @@
     <button data-tab="items">Przedmioty</button>
     <button data-tab="people">Ludzie</button>
     <button data-tab="talks">Rozmowy</button>
+    <button data-tab="voice">Głos</button>
     <button data-tab="quests">Zadania</button>
     <button data-tab="model">Model</button>
   </nav>
@@ -106,6 +107,7 @@
   <section id="items"></section>
   <section id="people"></section>
   <section id="talks"></section>
+  <section id="voice"></section>
   <section id="quests"></section>
   <section id="model"></section>
 </main>
@@ -148,7 +150,7 @@ async function load() {
 function render() {
   if (!state) return;
   const el = document.getElementById(tab);
-  const draw = { world: worldView, graph: graphView, facts: factsView, beasts: beastsView, items: itemsView, people: peopleView, quests: questsView, model: modelView, talks: talksView }[tab];
+  const draw = { world: worldView, graph: graphView, facts: factsView, beasts: beastsView, items: itemsView, people: peopleView, quests: questsView, model: modelView, talks: talksView, voice: voiceView }[tab];
   const scroll = window.scrollY;
   el.innerHTML = draw();
   window.scrollTo(0, scroll);
@@ -448,6 +450,74 @@ async function markPicked() {
     await api("POST", "/api/mark", { kind: "exchange", keys: [...picked].map(String), comment });
     picked.clear(); toast("Oznaczone i zapisane."); load();
   } catch (e) { toast(e.message, true); }
+}
+
+// --- Głos --------------------------------------------------------------
+let voiceState = null;
+const moodOrder = ["spokój", "radość", "kpina", "gniew", "strach", "smutek", "zdziwienie", "czułość", "znużenie"];
+
+async function loadVoices() {
+  try { voiceState = await api("GET", "/api/voices"); } catch (e) { voiceState = { enabled: false, error: e.message }; }
+  render();
+}
+
+function voiceView() {
+  if (!voiceState) { loadVoices(); return `<p class="dim">Wczytuję ustawienia głosu…</p>`; }
+  if (!voiceState.enabled) return `<div class="card"><h3>Mowa Chatterbox jest wyłączona</h3><p class="dim">Ustaw w <code>.env.local</code>: <code>NEURO_TTS=chatterbox</code>, zainstaluj środowisko: <code>tools/speech/setup-tts.sh</code>, i uruchom grę ponownie. Wtedy tu przypiszesz głosy postaciom i ustawisz, jak brzmią nastroje.</p></div>`;
+  const v = voiceState, st = v.settings;
+  const opt = (sel) => `<option value="">— domyślny —</option>` + v.samples.map(x => `<option ${x === sel ? "selected" : ""}>${esc(x)}</option>`).join("");
+  let html = `<div class="card"><h3>Serwer mowy <span class="${v.alive ? "green" : "red"}">${v.alive ? "działa" : "nie odpowiada (model może się jeszcze ładować)"}</span> <span class="dim">· ${esc(v.url)}</span></h3>`;
+  html += `<p class="dim" style="font-size:12px">Próbki głosów to pliki WAV (5–15 s czystej polskiej mowy jednej osoby) w katalogu danych gry, folder <code>voices</code>. Każda postać mówi próbką przypisaną po imieniu, inaczej po rodzaju (kuźnia, zielarka, mag, karawana, wojownik, uzdrowiciel, mag, towarzysz, narrator), inaczej domyślną.</p>`;
+  html += `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label>Wgraj próbkę: <input type="file" id="sample-file" accept=".wav,.mp3,.flac"></label><input type="text" id="sample-name" placeholder="nazwa (np. kowal.wav)" style="width:200px"><button class="act" onclick="uploadSample()">wgraj</button></div>`;
+  html += `<div style="margin-top:8px">${v.samples.map(x => `<span class="tag">${esc(x)}</span>`).join("") || '<span class="dim">brak próbek — bez próbki mówi wbudowany głos modelu</span>'}</div></div>`;
+
+  html += `<div class="grid cols-2" style="margin-top:14px"><div class="card"><h3>Kto jakim głosem</h3><table>`;
+  html += `<tr><td>Domyślny</td><td><select onchange="setVoice('default', null, this.value)">${opt(st.default)}</select></td></tr>`;
+  html += `<tr><td>Narrator (Mistrz Gry)</td><td><select onchange="setVoice('narrator', null, this.value)">${opt(st.narrator)}</select></td></tr>`;
+  v.kinds.forEach(k => html += `<tr><td class="dim">rodzaj: ${esc(k)}</td><td><select onchange="setVoice('by_kind', '${esc(k)}', this.value)">${opt(st.by_kind[k] || "")}</select></td></tr>`);
+  v.speakers.forEach(p => html += `<tr><td><b>${esc(p.name)}</b> <span class="dim" style="font-size:11px">${esc(p.where)}</span></td><td><select onchange="setVoice('by_name', '${esc(p.name)}', this.value)">${opt(st.by_name[p.name] || "")}</select> <button class="act" onclick="hear('${esc(p.name)}','${esc(p.kind)}','')">▶</button></td></tr>`);
+  html += `</table></div>`;
+
+  html += `<div class="card"><h3>Jak brzmią nastroje</h3><p class="dim" style="font-size:12px">Ekspresja: jak mocno głos gra (0,25–0,9; wyżej robi się niestabilny). CFG: jak ściśle trzyma się próbki (niżej = wolniej, bardziej dramatycznie). Temperatura: zmienność.</p><table><tr><th>Nastrój</th><th>Ekspresja</th><th>CFG</th><th>Temp.</th><th></th></tr>`;
+  moodOrder.forEach(m => { const e = v.moods[m] || { exaggeration: .5, cfg_weight: .5, temperature: .8 };
+    html += `<tr><td>${esc(m)}</td><td><input type="number" step="0.05" min="0.1" max="1.5" value="${e.exaggeration}" style="width:70px" onchange="setMood('${m}','exaggeration',this.value)"></td><td><input type="number" step="0.05" min="0" max="1" value="${e.cfg_weight}" style="width:70px" onchange="setMood('${m}','cfg_weight',this.value)"></td><td><input type="number" step="0.05" min="0.1" max="1.5" value="${e.temperature}" style="width:70px" onchange="setMood('${m}','temperature',this.value)"></td><td><button class="act" onclick="hear('','', '${m}')">▶</button></td></tr>`; });
+  html += `</table><div style="margin-top:10px"><input type="text" id="say-text" placeholder="tekst próbny (domyślnie zdanie z gry)" onfocus="editing++" onblur="editing--"></div><audio id="say-audio" controls style="width:100%;margin-top:8px"></audio><div id="say-status" class="dim" style="font-size:12px"></div></div></div>`;
+  return html;
+}
+
+async function setVoice(field, key, value) {
+  const st = voiceState.settings;
+  if (field === "default") st.default = value; else if (field === "narrator") st.narrator = value; else st[field][key] = value;
+  try { voiceState.settings = await api("POST", "/api/voices", st); toast("Zapisane."); } catch (e) { toast(e.message, true); }
+}
+
+async function setMood(mood, field, value) {
+  const st = voiceState.settings; st.moods = st.moods || {};
+  const current = Object.assign({}, voiceState.moods[mood] || {}, st.moods[mood] || {});
+  current[field] = parseFloat(value); st.moods[mood] = current; voiceState.moods[mood] = current;
+  try { voiceState.settings = await api("POST", "/api/voices", st); toast("Zapisane."); } catch (e) { toast(e.message, true); }
+}
+
+async function uploadSample() {
+  const input = document.getElementById("sample-file");
+  if (!input.files.length) { toast("Wybierz plik.", true); return; }
+  const form = new FormData(); form.append("sample", input.files[0]); form.append("name", document.getElementById("sample-name").value);
+  try {
+    const r = await fetch("/api/voice", { method: "POST", body: form });
+    if (!r.ok) throw new Error(await r.text());
+    toast("Wgrane."); loadVoices();
+  } catch (e) { toast(e.message, true); }
+}
+
+async function hear(name, kind, mood) {
+  const text = (document.getElementById("say-text") || {}).value || "Siadaj. Jeśli szukasz kogoś do roboty, to trafiłeś; o cenie pogadamy.";
+  const status = document.getElementById("say-status"); status.textContent = "Generuję…";
+  try {
+    const r = await fetch("/api/say", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, mood: mood || "spokój", name, kind: kind || "narrator" }) });
+    if (!r.ok) throw new Error(await r.text());
+    const blob = await r.blob(); const audio = document.getElementById("say-audio"); audio.src = URL.createObjectURL(blob); audio.play();
+    status.textContent = `${name || kind || "domyślny"} · ${mood || "spokój"}`;
+  } catch (e) { status.textContent = ""; toast(e.message, true); }
 }
 
 // --- Model -------------------------------------------------------------

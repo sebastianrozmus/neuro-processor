@@ -39,6 +39,10 @@ type Config struct {
 	Speech        bool
 	Voice         string
 	SpeechCommand string
+	// Chatterbox picks the Chatterbox TTS server (NEURO_TTS=chatterbox)
+	// at TTSURL, started by the game when its environment exists.
+	Chatterbox bool
+	TTSURL     string
 	// Hearing turns the microphone (push-to-talk) off when false.
 	Hearing bool
 	// Talks turns keeping a record of the model's conversations on, as
@@ -102,7 +106,9 @@ func Load() Config {
 		TalkModel:     get("NEURO_TALK_MODEL", ""),
 		Context:       max(window, 0),
 		TalkContext:   max(talkWindow, 0),
-		Speech:        isOn(get("NEURO_TTS", "")),
+		Speech:        isOn(get("NEURO_TTS", "")) || strings.EqualFold(strings.TrimSpace(get("NEURO_TTS", "")), "chatterbox"),
+		Chatterbox:    strings.EqualFold(strings.TrimSpace(get("NEURO_TTS", "")), "chatterbox"),
+		TTSURL:        get("NEURO_TTS_URL", "http://127.0.0.1:7790"),
 		Voice:         get("NEURO_TTS_VOICE", ""),
 		SpeechCommand: get("NEURO_TTS_COMMAND", ""),
 		Hearing:       !isOff(get("NEURO_STT", "")),

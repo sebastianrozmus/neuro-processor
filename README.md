@@ -212,7 +212,8 @@ Gra łączy się z dowolnym serwerem zgodnym z API OpenAI (`/chat/completions`),
 | `NEURO_LLM_MAX_TOKENS` | limit długości kwestii; przyspiesza małe modele lokalne, np. `220` |
 | `NEURO_LLM_CONTEXT` | okno kontekstu w tokenach, o które gra prosi Ollamę dla głównego modelu; domyślnie `8192`, `0` zostawia ustawienie serwera. Inne serwery nie są o nie pytane |
 | `NEURO_TALK_CONTEXT` | to samo dla drugiego modelu (`NEURO_TALK_MODEL`); domyślnie ustawienie serwera, bo kwestie mieszczą się w nim z zapasem |
-| `NEURO_TTS` | `1` włącza czytanie kwestii na głos; domyślnie wyłączone |
+| `NEURO_TTS` | `1` włącza czytanie kwestii na głos głosem systemowym; `chatterbox` — syntezą Chatterbox z klonowanym głosem i słyszalnymi nastrojami (środowisko: `tools/speech/setup-tts.sh`); domyślnie wyłączone |
+| `NEURO_TTS_URL` | adres serwera Chatterbox, który gra sama uruchamia; domyślnie `http://127.0.0.1:7790` |
 | `NEURO_TTS_VOICE` | nazwa głosu systemowego (macOS `say`); domyślnie polski głos „Zosia”, jeśli jest zainstalowany |
 | `NEURO_TTS_COMMAND` | zamiast głosu systemowego: polecenie powłoki, które dostaje kwestię na wejściu i samo ją odtwarza (np. Piper) |
 | `NEURO_STT` | `0` wyłącza mikrofon; domyślnie włączony, gdy jest środowisko z `tools/avatar/setup.sh` |
@@ -292,7 +293,9 @@ Mowa: głos i mikrofon
 
 Obie rzeczy są opcjonalne i gra bez nich działa tak samo.
 
-*Czytanie na głos.* Domyślnie gra używa systemowego `say` z macOS (polski głos „Zosia” jest w systemie), a nastrój kwestii, który model podaje w znaczniku (`[kpina] Tyle za rurę?`), zamienia na tempo i wysokość głosu. Można podpiąć dowolną inną syntezę przez `NEURO_TTS_COMMAND`: polecenie dostaje tekst na wejściu, a nastrój w zmiennej `NEURO_TTS_EMOTION`. Dobre otwarte opcje z polskim głosem: [Piper](https://github.com/rhasspy/piper) (szybki, lekki, głosy `pl_PL-gosia-medium` i `pl_PL-darkman-medium`) oraz XTTS v2 z projektu Coqui (ten z żabą; firma zamknęła się w 2024, projekt żyje jako [społecznościowy fork](https://github.com/idiap/coqui-ai-TTS)), który klonuje głos z kilkusekundowej próbki, ale jest wolniejszy. Przykład z Piperem:
+*Czytanie na głos.* Domyślnie gra używa systemowego `say` z macOS (polski głos „Zosia” jest w systemie), a nastrój kwestii, który model podaje w znaczniku (`[kpina] Tyle za rurę?`), zamienia na tempo i wysokość głosu. Można podpiąć dowolną inną syntezę przez `NEURO_TTS_COMMAND`: polecenie dostaje tekst na wejściu, a nastrój w zmiennej `NEURO_TTS_EMOTION`. **Chatterbox** (`NEURO_TTS=chatterbox`). Otwarta synteza Resemble AI (MIT), wersja wielojęzyczna mówi po polsku, klonuje głos z kilkusekundowej próbki i ma pokrętło ekspresji — dzięki temu nastroje z kwestii naprawdę słychać, nie tylko w tempie. `tools/speech/setup-tts.sh` stawia osobne środowisko `venv-tts` w katalogu danych gry (Chatterbox przypina własne wersje torch i transformers, więc nie może dzielić środowiska z modelem obrazkowym) i pobiera model (ok. 2 GB). Potem gra sama startuje serwer mowy (`internal/speech/chatterbox.py`, log `tts.log` w katalogu danych) i każdą kwestię pobiera jako WAV; pierwsze ładowanie modelu trwa pół minuty, kwestia na M3 Pro to kilka sekund. Próbki głosów (WAV, 5–15 s czystej polskiej mowy jednej osoby) wrzuca się do folderu `voices` — albo przez podgląd w przeglądarce, zakładka **Głos**: tam wgrywasz próbki, przypisujesz je postaciom po imieniu, rodzajom (kuźnia, zielarka, mag, karawana, wojownik, uzdrowiciel, towarzysz, narrator) i jako domyślną, ustawiasz, jak brzmi każdy nastrój (ekspresja, CFG, temperatura), i odsłuchujesz zdanie próbne. Ustawienia leżą w `voices/voices.json` i działają od razu, bez restartu. Bez próbki mówi wbudowany głos modelu; próbka w innym języku niż polski przenosi akcent.
+
+Dobre otwarte opcje z polskim głosem: [Piper](https://github.com/rhasspy/piper) (szybki, lekki, głosy `pl_PL-gosia-medium` i `pl_PL-darkman-medium`) oraz XTTS v2 z projektu Coqui (ten z żabą; firma zamknęła się w 2024, projekt żyje jako [społecznościowy fork](https://github.com/idiap/coqui-ai-TTS)), który klonuje głos z kilkusekundowej próbki, ale jest wolniejszy. Przykład z Piperem:
 
 ```
 NEURO_TTS=1

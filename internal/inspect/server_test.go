@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -258,4 +259,66 @@ func itoa(value int) string {
 	data, _ := json.Marshal(value)
 
 	return string(data)
+}
+
+func TestVoicesAreTunedThroughTheInspector(t *testing.T) {
+	web, _, _ := testServer(t)
+
+	var off struct {
+		Enabled bool `json:"enabled"`
+	}
+
+	if response := get(t, web.URL+"/api/voices", &off); response.StatusCode != http.StatusOK || off.Enabled {
+		t.Fatalf("voices without TTS: %d %+v", response.StatusCode, off)
+	}
+
+	// A fake Chatterbox: it echoes the request as the "wav".
+	var asked speech.SpeakRequest
+	box := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/voices" {
+			_, _ = w.Write([]byte(`{"voices":["kowal.wav"]}`))
+
+			return
+		}
+
+		_ = json.NewDecoder(r.Body).Decode(&asked)
+		w.Header().Set("Content-Type", "audio/wav")
+		_, _ = w.Write([]byte("RIFF"))
+	}))
+	defer box.Close()
+
+	dir := t.TempDir()
+	fromHandler(t, web).TTS = &TTS{URL: box.URL, Settings: filepath.Join(dir, "voices.json"), Voices: dir}
+	_ = os.WriteFile(filepath.Join(dir, "kowal.wav"), []byte("x"), 0o644)
+
+	var on struct {
+		Enabled  bool                 `json:"enabled"`
+		Alive    bool                 `json:"alive"`
+		Samples  []string             `json:"samples"`
+		Speakers []map[string]string  `json:"speakers"`
+		Settings speech.VoiceSettings `json:"settings"`
+	}
+
+	if response := get(t, web.URL+"/api/voices", &on); response.StatusCode != http.StatusOK || !on.Enabled || !on.Alive || len(on.Samples) != 1 || len(on.Speakers) == 0 {
+		t.Fatalf("voices: %d %+v", response.StatusCode, on)
+	}
+
+	if on.Settings.ByName == nil {
+		t.Fatal("the settings came without maps")
+	}
+
+	on.Settings.ByName[on.Speakers[0]["name"]] = "kowal.wav"
+	on.Settings.Moods = map[speech.Emotion]speech.Expression{speech.Anger: {Exaggeration: 0.85, CFG: 0.3, Temperature: 0.8}}
+	if response := post(t, web.URL+"/api/voices", on.Settings, nil); response.StatusCode != http.StatusOK {
+		t.Fatalf("save: %d", response.StatusCode)
+	}
+
+	if saved := speech.LoadVoiceSettings(filepath.Join(dir, "voices.json")); saved.ByName[on.Speakers[0]["name"]] != "kowal.wav" || saved.Expression(speech.Anger).Exaggeration != 0.85 {
+		t.Errorf("saved = %+v", saved)
+	}
+
+	response := post(t, web.URL+"/api/say", map[string]any{"text": "[gniew] Precz!", "mood": "gniew", "name": on.Speakers[0]["name"], "kind": "armory"}, nil)
+	if response.StatusCode != http.StatusOK || response.Header.Get("Content-Type") != "audio/wav" || asked.Voice != "kowal.wav" || asked.Exaggeration != 0.85 || asked.Text != "gniew Precz!" && asked.Text != "Precz!" {
+		t.Errorf("say: %d %s %+v", response.StatusCode, response.Header.Get("Content-Type"), asked)
+	}
 }

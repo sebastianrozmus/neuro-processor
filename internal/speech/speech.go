@@ -54,6 +54,9 @@ var deliveries = map[Emotion]delivery{
 // one short, so that the speech keeps up with the game.
 type Speaker struct {
 	start func(text string, mood Emotion) (stop func())
+	// startAs, when set, speaks as a named character of a kind: a voice
+	// that can tell speakers apart uses it.
+	startAs func(name, kind, text string, mood Emotion) (stop func())
 
 	mu   sync.Mutex
 	stop func()
@@ -150,6 +153,35 @@ func (s *Speaker) Say(text string, mood Emotion) {
 	}
 
 	s.stop = s.start(text, mood)
+}
+
+// SayAs reads a line as a named character of a kind (a shop kind, a role,
+// or "narrator"), when the voice can tell speakers apart; otherwise it is
+// Say.
+func (s *Speaker) SayAs(name, kind, text string, mood Emotion) {
+	if s == nil {
+		return
+	}
+
+	if s.startAs == nil {
+		s.Say(text, mood)
+
+		return
+	}
+
+	text = Clean(text)
+	if text == "" {
+		return
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.stop != nil {
+		s.stop()
+	}
+
+	s.stop = s.startAs(name, kind, text, mood)
 }
 
 // Clean strips what should not be read out: colour codes, quotation marks

@@ -43,6 +43,9 @@ type Server struct {
 	// appended to, with everything behind what they marked; empty keeps
 	// them in the realm alone.
 	Feedback string
+	// TTS, when set, is the Chatterbox server whose voices the inspector
+	// lets a person assign and hear.
+	TTS *TTS
 }
 
 // Start listens on the address and serves the inspector. The realm is
@@ -103,6 +106,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/player", s.player)
 	mux.HandleFunc("POST /api/mark", s.mark)
 	mux.HandleFunc("GET /api/picture", s.picture)
+	s.voicesHandlers(mux)
 
 	return mux
 }
