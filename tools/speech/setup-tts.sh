@@ -20,7 +20,10 @@ import torch
 original = torch.load
 torch.load = lambda *a, **k: original(*a, **{**k, "map_location": k.get("map_location", "cpu")})
 from chatterbox.mtl_tts import ChatterboxMultilingualTTS
-ChatterboxMultilingualTTS.from_pretrained(device="cpu", t3_model="v3")
+try:
+    ChatterboxMultilingualTTS.from_pretrained(device="cpu", t3_model="v3")
+except TypeError:
+    ChatterboxMultilingualTTS.from_pretrained(device="cpu")
 print("Model mowy gotowy.")
 PY
 

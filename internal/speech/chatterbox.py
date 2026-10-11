@@ -57,7 +57,12 @@ def load(wanted):
     torch.load = patched
     from chatterbox.mtl_tts import ChatterboxMultilingualTTS
     started = time.time()
-    model = ChatterboxMultilingualTTS.from_pretrained(device=device, t3_model="v3")
+    try:
+        # Newer releases take the T3 version; older ones have one model.
+        loaded = ChatterboxMultilingualTTS.from_pretrained(device=device, t3_model="v3")
+    except TypeError:
+        loaded = ChatterboxMultilingualTTS.from_pretrained(device=device)
+    model = loaded
     log(f"model ready on {device} in {time.time() - started:.0f}s")
 
 
