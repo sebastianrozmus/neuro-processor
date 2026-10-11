@@ -198,8 +198,8 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 	allowed = slices.DeleteFunc(allowed, func(number int) bool { return slices.Contains(request.Forbidden, number) })
 	known = Fold(known)
 	var (
-		problem  error
-		refused  []Attempt
+		problem           error
+		refused           []Attempt
 		streamer, streams = narrator.(Streamer)
 	)
 

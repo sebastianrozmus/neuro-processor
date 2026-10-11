@@ -50,9 +50,9 @@ type Game struct {
 	save    Save
 	voice   Voice
 	// debug shows on the screen why the rules refused a model's line.
-	debug bool
-	ear     Ear
-	record  Record
+	debug  bool
+	ear    Ear
+	record Record
 	// hearing is what the help line says about the microphone.
 	hearing string
 
