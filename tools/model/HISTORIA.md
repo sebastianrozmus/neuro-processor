@@ -150,6 +150,8 @@ Patrz na trzy rzeczy: liczba OK/80 w dwóch seedach, replay oczami, i to, czy b�
 3. **Większy bench** (200–300 przypadków z gry, nie od GPT) + **sędzia**: Umysł ocenia „czy odpowiedź jest na temat i po polsku” w skali 1–3; dziś mierzymy tylko format.
 4. **Pary dobre/złe z odrzuceń** — gra już zapisuje, co model napisał i co było źle. To gotowy materiał do *uczenia preferencji* (DPO): „ta odpowiedź lepsza od tamtej”. `mlx-lm` ma `mlx_lm.dpo`; 300–500 par wystarczy, żeby ukrócić konkretne nawyki (liczby słownie, powrót do ceny) skuteczniej niż kolejne 500 przykładów SFT.
 
+Trening na PC z NVIDIA (Bielik 11B, QLoRA): instrukcja i skrypty w `tools/pc/`. Surowy 11B bez treningu wypadł w benchu 8 i 6/80 (format), ale pisze wyraźnie lepszą polszczyzną — dobry kandydat na bazę run 7.
+
 ### Dalej (miesiące)
 5. **Większa baza**: Bielik 11B v2.3 w 4 bitach (LoRA ~9–10 GB pamięci — na styk na 18 GB, trening 3–4× wolniejszy) albo Qwen2.5‑7B/Gemma 3 12B z dobrym polskim. 4,5B nie przeskoczy pewnego pułapu odmiany i składni; każdy „Wędronowy Kupuc” to limit rozmiaru, nie danych. Alternatywa: **GPU w chmurze na 2–3 h** (A100 za kilkanaście dolarów) — pełna LoRA rank 32 na 11B, a lokalnie tylko GGUF q5/q6 do grania.
 6. **Dane z historią**: dziś większość przykładów to jedna wymiana. Zamówić rozmowy 3–5 tur z narastającym kontekstem (targ → zgoda → pogawędka → odesłanie), bo w grze model widzi historię i czasem się nią myli.

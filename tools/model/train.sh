@@ -36,16 +36,8 @@ mkdir -p "$WORK"
 exec > >(tee -a "$WORK/train.log") 2>&1
 
 echo "Zbieram dane..."
-# Paths with spaces (the data folder has one) survive only in an array.
-SOURCES=("$DATA_DIR/talks.jsonl")
-if [ -f "$DATA_DIR/synth-fixed.jsonl" ]; then
-  SOURCES+=("$DATA_DIR/synth-fixed.jsonl")
-elif [ -f "$DATA_DIR/synth.jsonl" ]; then
-  SOURCES+=("$DATA_DIR/synth.jsonl")
-fi
-for extra in "$DATA_DIR"/fireball*.jsonl "$DATA_DIR"/extra*.jsonl "$DATA_DIR"/manual*.jsonl "$(dirname "$0")"/manual*.jsonl; do
-  [ -f "$extra" ] && SOURCES+=("$extra")
-done
+MODEL_TOOLS="$(dirname "$0")"
+. "$MODEL_TOOLS/sources.sh"
 "$VENV/bin/python3" "$(dirname "$0")/prepare.py" "$WORK/data" "${SOURCES[@]}"
 
 # The last adapter is kept aside, so two runs can be compared.
