@@ -62,7 +62,7 @@ def main():
 
     for key in keys:
         if key not in picked:
-            print(f"## {key} | brak w {args.talks}")
+            print(f"## {key} | brak w {os.path.basename(args.talks)}")
             continue
         messages = picked[key]["messages"][:-1]
         hint = messages[-1]["content"].split("Nastrój twojej postaci: ")[-1][:140]

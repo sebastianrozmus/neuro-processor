@@ -1,6 +1,10 @@
 Neuro Processor
 ===============
 
+![Handel](./images/handel.png)
+
+> **In English.** A Polish text RPG for the terminal, written in Go, in the spirit of the 1990s classic *Mózgoprocesor*. Describe a world in a few words and a language model invents its places, monsters, items and people; the code computes the map, stats, prices and every rule, so each world is playable at once. Rules decide, the model only narrates: shopkeepers haggle in free text, a game master describes fights, characters pass on rumours from a knowledge graph — and every line is checked (numbers, names, facts) before the player sees it. It runs fully locally with Ollama: a small model reads intents, and a Polish model fine-tuned for the game ([Bielik](https://huggingface.co/speakleash) 11B, QLoRA) does the talking; the whole training and evaluation pipeline is in `tools/`. Several players can join one world over SSH. The game and its docs are in Polish.
+
 Neuro Processor to gra konsolowa inspirowana klasykiem, jakim jest Mózgoprocesor. To moja osobista zabawa w tworzenie czegoś, co łączy retro klimat z nowoczesnymi możliwościami grafiki w terminalu i programowania. Gra jest napisana w Go.
 
 O Grze
@@ -319,8 +323,9 @@ Trzy źródła danych i jeden skrypt treningu:
 1. `NEURO_LOG_TALKS=1` zapisuje każdą dobrą wymianę z gry do `talks.jsonl` w folderze danych gry.
 2. `go run ./tools/synth -n 200 -fights 20` gra sam ze sobą: losuje świat, sklep i scenariusz rozmowy (pytania, targi, obelgi, hurt, sprzedaż), zasady gry rozstrzygają jak zwykle, a skonfigurowany model (`.env.local`) ubiera odpowiedzi w słowa; zostają tylko odpowiedzi, które przechodzą kontrole gry. `-fights` dokłada narracje Mistrza Gry z automatycznych walk. Wynik: `synth.jsonl`. Jakość danych jest taka jak modelu, który je generuje: lokalna gemma daje poprawny format, model chmurowy ciekawsze kwestie.
 3. `tools/model/PROMPT.md` to prompt do wklejenia w dowolny czat z silnym modelem, gdy chcesz generować dane ręcznie.
-5. `tools/pc/README.md` — trening na PC z kartą NVIDIA (Windows + WSL2, Unsloth): Bielik 11B w QLoRA na 16 GB karty; dane pakuje `tools/model/pack.sh`, wynik wraca przez `tools/model/import.sh`. Opcjonalnie tam też serwer mowy Chatterbox.
-4. `tools/model/HISTORIA.md` opisuje po kolei, jak powstawał model `neuro-npc` (co zadziałało, co odrzucono), jak to powtórzyć od zera krok po kroku i jaki jest plan rozwoju. To samo jako strona: `docs/index.html` (otwórz w przeglądarce albo `python3 -m http.server -d docs`).
+4. `tools/pc/README.md` — trening na PC z kartą NVIDIA (Windows + WSL2, Unsloth): Bielik 11B w QLoRA na 16 GB karty; dane pakuje `tools/model/pack.sh`, wynik wraca przez `tools/model/import.sh`. Opcjonalnie tam też serwer mowy Chatterbox.
+5. `tools/model/HISTORIA.md` opisuje po kolei, jak powstawał model `neuro-npc` (co zadziałało, co odrzucono), jak to powtórzyć od zera krok po kroku i jaki jest plan rozwoju. To samo jako strona: `docs/index.html` (otwórz w przeglądarce albo `python3 -m http.server -d docs`).
+6. `tools/bench/README.md` — pomiar każdej wersji modelu: bench 80 przypadków, odtworzenia prawdziwych rozmów z gry i walidator nowych paczek danych.
 
 Odpowiedzi małego modelu bywają poprawne, ale nijakie; dane można poprawić silniejszym modelem (albo ręcznie) bez ruszania promptów, które są prawdziwymi sytuacjami z gry: `tools/model/digest.py synth.jsonl digest.jsonl` skraca każdą wymianę do charakteru gospodarza, ostatnich kwestii, słów gracza i bloku `[GRA]`; na tej podstawie pisze się nowe kwestie jako linie `{"id": N, "reply": "[nastrój] ..."}`, a `tools/model/apply.py synth.jsonl poprawki.jsonl synth-fixed.jsonl` wstawia je w miejsce starych (kwestie bez znacznika nastroju odrzuca).
 
@@ -352,11 +357,21 @@ Interfejs korzysta z biblioteki Bubble Tea, a serwer dla kolejnych graczy z bibl
 go test ./...
 ```
 
-Screenshots
-===========
+Zrzuty ekranu
+=============
 
-Zrzuty ekranu pochodzą z pierwszej wersji projektu.
+Rozmowa z gospodarzem zbrojowni (targowanie zwykłym tekstem):
 
-![forest](./images/screen1.png)
-![dragon](./images/screen2.png)
-![npc](./images/screen3.png)
+![Handel](./images/handel.png)
+
+Walka w trybie D&D z towarzyszem:
+
+![Walka](./images/walka.png)
+
+Tryb przygodowy (Hipokamp):
+
+![Przygoda](./images/przygoda.png)
+
+Podgląd świata w przeglądarce (`NEURO_DEBUG=on`), bestiariusz:
+
+![Podgląd](./images/podglad.png)

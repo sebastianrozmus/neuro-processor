@@ -54,8 +54,8 @@
   run7 0: [spokój] Piwo dają, a ja je piję; to dobre połączenie. Masz dokąd wrócić czy droga przed tobą?
   run7 1: [spokój] Piwo jest kwaśne, ale za to tanioje, więc można przeboleć. Po co tu jesteś?
   run7 2: [spokój] Piwo dają, a ja je piję; smak nie mówi mi o szlaku. Masz dokąd wracać?
-## skad te piwo | brak w /Users/sebastianrozmus/Library/Application Support/neuro-processor/talks.jsonl
-## skad maja tu piwo | brak w /Users/sebastianrozmus/Library/Application Support/neuro-processor/talks.jsonl
+## skad te piwo | brak w talks.jsonl
+## skad maja tu piwo | brak w talks.jsonl
 ## co mi powiesz o polowaniu | spokojna. Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po 
   gra powiedziała: [radość] Nie wiem niczego poza tym, że za ladą handluje Karwin i piwo stoi w beczkach przy stołach, o ile nie jest inaczej wybite przez gości.
   run6 0: [spokój] Poszukaj czegoś do noszenia, bo moje łachy nie lubią wilgoci; skąd idziesz i gdzie chcesz dalej iść?

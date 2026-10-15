@@ -2,7 +2,7 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "open-source" ]
   pull_request:
     branches: [ "main" ]
 
@@ -20,8 +20,14 @@ jobs:
       with:
         go-version-file: go.mod
 
+    - name: Format
+      run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+
     - name: Vet
       run: go vet ./...
 
     - name: Test
       run: go test ./...
+
+    - name: Bench tools
+      run: cd tools/bench && python3 -m unittest test_tools
