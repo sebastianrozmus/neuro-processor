@@ -692,6 +692,12 @@ func TestOllamaIsAskedForTheWindowOnItsOwnAPI(t *testing.T) {
 		t.Errorf("warm-up request = %v", seen[1])
 	}
 
+	for i, request := range seen {
+		if request["keep_alive"] != keepAlive {
+			t.Errorf("request %d keeps the model for %v, want %s", i, request["keep_alive"], keepAlive)
+		}
+	}
+
 	if seen[2]["stream"] != true || seen[2]["format"] != nil {
 		t.Errorf("stream request = %v", seen[2])
 	}

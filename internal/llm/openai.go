@@ -84,7 +84,14 @@ type ollamaRequest struct {
 	Format   any            `json:"format,omitempty"`
 	Options  map[string]any `json:"options,omitempty"`
 	Stream   bool           `json:"stream"`
+	// KeepAlive is how long Ollama holds the model in memory after the
+	// answer; its own default of 5 minutes drops it between two talks, and
+	// loading an 11B model again costs some 20 seconds.
+	KeepAlive string `json:"keep_alive,omitempty"`
 }
+
+// keepAlive is how long a local model stays loaded between requests.
+const keepAlive = "30m"
 
 // reply is an answer, or one streamed piece of it, in either the OpenAI
 // shape (choices) or Ollama's own (message, done_reason).
@@ -472,10 +479,11 @@ func (c *Client) versioned(ctx context.Context) bool {
 // answer as the number of tokens to predict.
 func native(payload chatRequest, window int) ollamaRequest {
 	request := ollamaRequest{
-		Model:    payload.Model,
-		Messages: payload.Messages,
-		Options:  map[string]any{"num_ctx": window},
-		Stream:   payload.Stream,
+		Model:     payload.Model,
+		Messages:  payload.Messages,
+		Options:   map[string]any{"num_ctx": window},
+		Stream:    payload.Stream,
+		KeepAlive: keepAlive,
 	}
 
 	if payload.MaxTokens > 0 {
