@@ -16,6 +16,8 @@ import argparse
 import io
 import json
 import os
+import select
+import socket
 import sys
 import threading
 import time
@@ -66,7 +68,21 @@ def load(wanted):
     log(f"model ready on {device} in {time.time() - started:.0f}s")
 
 
-def synthesize(body):
+class Abandoned(Exception):
+    """The game stopped waiting for this line before its turn came."""
+
+
+def connected(sock):
+    """Whether the game still waits on this socket. The request has been
+    read whole, so anything readable now is the game hanging up."""
+    try:
+        readable, _, _ = select.select([sock], [], [], 0)
+        return not readable or bool(sock.recv(1, socket.MSG_PEEK))
+    except OSError:
+        return False
+
+
+def synthesize(body, alive=None):
     import torch
     import torchaudio
     text = (body.get("text") or "").strip()
@@ -88,6 +104,10 @@ def synthesize(body):
     if prompt:
         kwargs["audio_prompt_path"] = prompt
     with model_lock:
+        # Sentences of a line the game cut short still queue for the lock;
+        # making them anyway keeps the next line waiting for nothing.
+        if alive is not None and not alive():
+            raise Abandoned()
         started = time.time()
         wav = model.generate(text, **kwargs)
         log(f"{len(text)} chars -> {wav.shape[-1] / model.sr:.1f}s audio in {time.time() - started:.1f}s (voice {voice or 'default'})")
@@ -127,7 +147,10 @@ class Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length") or 0)
         try:
             body = json.loads(self.rfile.read(length) or b"{}")
-            data = synthesize(body)
+            data = synthesize(body, lambda: connected(self.connection))
+        except Abandoned:
+            log(f"skipped {len((body.get('text') or ''))} chars: the game no longer waits")
+            return
         except Exception as error:  # noqa: BLE001 - every failure is reported to the game
             log("speak failed:", error)
             self.send_json(400, {"error": str(error)})
