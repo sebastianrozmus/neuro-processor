@@ -8,3 +8,4 @@ tools/model/manual*.jsonl
 # Pliki pośrednie Pythona
 __pycache__/
 tools/bench/eval/regression-80-game.jsonl
+/dist/
