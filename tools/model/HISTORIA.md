@@ -81,11 +81,21 @@ Gotowe modele robiły to źle: albo mówiły drewnianie (gemma), albo nie trzyma
 ### Krok 8 — temperatura 0,6 zamiast 0,8 ❌ odrzucone
 - Bench 75/80 vs 78/80; słownikowa miara „nie-słów” nie była lepsza. Zostało 0,8.
 
-### Krok 9 — run 5: luki z gry (10 X) ✅ obecny model
+### Krok 9 — run 5: luki z gry (10 X) ✅
 - Zamówienie z tego, czego brakowało *w logach gry*: 160 powitań, 120 zaczepek, 100 potwierdzeń najmu (model mylił kierunek zapłaty: „wypłaciłem **ci** 85”), 60 pytań o rodzaj towaru, 60 odesłań, 50 odmów towarzyszy; potoczne wejścia bez polskich znaków. GPT na ustawieniu „bardzo wysoki” — czystsze niż poprzednie paczki (0 błędów kierunku zapłaty).
 - Kontynuacja od run 4, 800 kroków, lr 5e-5, 3070/171/64. Val 1,22 → 1,09, test ppl 2,99.
 - Bench w dwóch seedach: run 4 **78, 79**; run 5 **72, 78** — różnica w szumie. Replay prawdziwych rozmów: powitanie 3/3 (było 0/3), odesłanie 3/3 (było 1/3), kierunek zapłaty **12/12** (było ~połowa źle). Przełączony.
 - Wpadka: przy wtapianiu adaptera zabrakło pamięci (proces ubity). Trening był skończony; końcówkę robi osobno `publish.sh`. Przed fuse zamknij przeglądarkę.
+
+### Krok 10 — run 6: tropy i dopytania (11 X) ✅
+- 320 wierszy GPT: odesłania z okruchem wiedzy i imieniem znawcy, dopytania „to wszystko, więcej wie X”, zaczepki bez liczb, plotki na fakcie. Od run 5, 600 kroków, lr 4e‑5; test ppl 3,18.
+- Bench **76, 78**. Replay: trop 3/3, dopytanie 3/3, plotki na fakcie 2/3. Słabe: odmiana nietypowych imion („Kupcz”, „Agness”) — limit bazy 4,5B.
+
+### Krok 11 — run 7: Bielik 11B na PC (15 X) ✅ obecny model
+- Pierwszy trening poza Makiem: PC z RTX 4060 Ti 16 GB, WSL2 + Unsloth, QLoRA na `speakleash/Bielik-11B-v2.3-Instruct` w 4 bitach, **od zera** (adaptery 4,5B do 11B nie pasują), ten sam zbiór co run 6 (3369/185/71), 2 epoki, lr 1e‑4, rank 16 (`tools/pc/`). Wynik jako jeden GGUF Q5_K_M (7,9 GB) zarejestrowany `tools/model/import.sh`.
+- Bench **80, 80** — pierwszy raz bez jednego błędu formatu (surowy 11B: 8 i 6). Replay (`tools/bench/results/replays/replay-run7.out`): okruch wiedzy cytowany wiernie, imiona znawców bez przekręceń („Siostra Agnes w Aptece” 3/3; run 6: „Agness”, „Kupcz”), zaczepki o piwo odpowiadają i wracają do tropu, powitania mają charakter („Elo, bratku, po co mnie zaczepiasz?”), odmowa „dołącz za darmo” poprawna (run 6 posłusznie „Napisałem, że dołączam za darmo”).
+- Koszt: odpowiedź ok. **3× wolniej** (mediana 5,2 s vs 1,8 s w benchu) i 7,9 GB zamiast 5,1 GB w pamięci. Na 18 GB razem z gemmą mieści się, ale bez przeglądarki z dużą liczbą kart.
+- Słabe: czasem zdanie trochę za długie i drobne potknięcia („tanioje”, „Szkielet Wojownik”). Run 6 zostaje w Ollamie jako powrót.
 
 ### Równolegle — poprawki gry, które dały więcej niż niejeden trening ✅
 Podpowiedzi w `[GRA]` (fakt, towar wg rodzaju, powitanie, zaczepka), **trop** z okruchem i imieniem znawcy, sprawdzanie liczb (tylko z bloku `[GRA]`, cyframi) i imion (po rdzeniu, z odmianą) z jedną poprawką, cena służby jako liczba zakazana w pogawędce, blokada wymyślania przedmiotów u najemników, odrzucone kwestie **z powodem** (zakładka Model w podglądzie). Zasada: **zanim douczysz model, sprawdź w logu, co dokładnie dostał** — w większości „bełkotów” winny był prompt.
@@ -144,15 +154,15 @@ Patrz na trzy rzeczy: liczba OK/80 w dwóch seedach, replay oczami, i to, czy b�
 ## 4. Plan rozwoju
 
 ### Najbliżej (tygodnie)
-1. **Run 6** z zamówienia w PROMPT.md: tropy, dopytania, zmiany tematu, zaczepki bez liczb, powitania z nastrojem, plotki na fakcie.
+1. **Run 8 na 11B** (PC): douczanie od adaptera run 7 nowymi danymi (`--resume … --epochs 1 --rate 4e-5`), np. narracje Mistrza Gry z zamówienia w PROMPT.md.
 2. **Zasady liczb w pogawędce** — po zebraniu odrzuceń z zakładki Model zdecydować, czy cyfry 1–9 bez waluty puszczać (dziś każda cyfra = odrzucenie).
 3. **Większy bench** (200–300 przypadków z gry, nie od GPT) + **sędzia**: Umysł ocenia „czy odpowiedź jest na temat i po polsku” w skali 1–3; dziś mierzymy tylko format.
 4. **Pary dobre/złe z odrzuceń** — gra już zapisuje, co model napisał i co było źle. To gotowy materiał do *uczenia preferencji* (DPO): „ta odpowiedź lepsza od tamtej”. `mlx-lm` ma `mlx_lm.dpo`; 300–500 par wystarczy, żeby ukrócić konkretne nawyki (liczby słownie, powrót do ceny) skuteczniej niż kolejne 500 przykładów SFT.
 
-Trening na PC z NVIDIA (Bielik 11B, QLoRA): instrukcja i skrypty w `tools/pc/`. Surowy 11B bez treningu wypadł w benchu 8 i 6/80 (format), ale pisze wyraźnie lepszą polszczyzną — dobry kandydat na bazę run 7.
+Trening na PC z NVIDIA (Bielik 11B, QLoRA): instrukcja i skrypty w `tools/pc/`, pomiar w `tools/bench/`. Run 7 potwierdził: surowy 11B 8 i 6/80, po treningu 80 i 80.
 
 ### Dalej (miesiące)
-5. **Większa baza**: Bielik 11B v2.3 w 4 bitach (LoRA ~9–10 GB pamięci — na styk na 18 GB, trening 3–4× wolniejszy) albo Qwen2.5‑7B/Gemma 3 12B z dobrym polskim. 4,5B nie przeskoczy pewnego pułapu odmiany i składni; każdy „Wędronowy Kupuc” to limit rozmiaru, nie danych. Alternatywa: **GPU w chmurze na 2–3 h** (A100 za kilkanaście dolarów) — pełna LoRA rank 32 na 11B, a lokalnie tylko GGUF q5/q6 do grania.
+5. ✅ zrobione w run 7 (PC). **Większa baza**: Bielik 11B v2.3 w 4 bitach (LoRA ~9–10 GB pamięci — na styk na 18 GB, trening 3–4× wolniejszy) albo Qwen2.5‑7B/Gemma 3 12B z dobrym polskim. 4,5B nie przeskoczy pewnego pułapu odmiany i składni; każdy „Wędronowy Kupuc” to limit rozmiaru, nie danych. Alternatywa: **GPU w chmurze na 2–3 h** (A100 za kilkanaście dolarów) — pełna LoRA rank 32 na 11B, a lokalnie tylko GGUF q5/q6 do grania.
 6. **Dane z historią**: dziś większość przykładów to jedna wymiana. Zamówić rozmowy 3–5 tur z narastającym kontekstem (targ → zgoda → pogawędka → odesłanie), bo w grze model widzi historię i czasem się nią myli.
 7. **Modele per rola?** Nie. Jeden Głos z briefami ról wystarcza; za to osobny mały adapter dla **Mistrza Gry** (narracja walk) ma sens — inny styl, inny format.
 

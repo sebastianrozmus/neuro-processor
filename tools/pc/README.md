@@ -110,7 +110,7 @@ Adapter trenowany na bazie 4-bitowej nakłada się na kwantyzowaną bazę Ollamy
 
 ## Krok 6 — ocena i przełączenie (na Macu, jak zawsze)
 
-Bench 80 przypadków w dwóch seedach i odtworzenie prawdziwych rozmów z gry (opis w `tools/model/HISTORIA.md`, „Tutorial”, krok 4), porównanie z `neuro-npc-run6`. Dopiero gdy wygrywa: w `.env.local` `NEURO_TALK_MODEL=neuro-npc-run7`. 11B odpowiada ok. 2× wolniej niż 4,5B.
+`tools/bench/bench.sh neuro-npc-run7` (80 przypadków w dwóch seedach) i `python3 tools/bench/replay.py neuro-npc-run6,neuro-npc-run7` (prawdziwe rozmowy z gry); opis w `tools/bench/README.md`. Dopiero gdy wygrywa: w `.env.local` `NEURO_TALK_MODEL=neuro-npc-run7`. 11B odpowiada ok. 2× wolniej niż 4,5B.
 
 Kolejne runy: nowe dane → `pack.sh` → na PC trening od poprzedniego adaptera:
 

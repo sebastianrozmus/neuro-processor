@@ -1,0 +1,15 @@
+{
+  "model": "neuro-npc-run7",
+  "url": "http://localhost:11434",
+  "options": {
+    "temperature": 0.8,
+    "seed": 7,
+    "num_ctx": 4096,
+    "num_predict": 220
+  },
+  "case_file_sha256": "b55d29002c7384d8908f6bd35bc98492cb45d4aa28ca70828fe3d029e4a05853",
+  "requested_cases": 80,
+  "references_sent_to_model": false,
+  "scope": "Ollama API only; not an in-game test",
+  "semantics_automatically_scored": false
+}

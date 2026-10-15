@@ -208,11 +208,28 @@
 </div>
 
 <div class="step ok">
-  <h3>Krok 9 — run 5: luki z gry <span class="when">10 X · obecny model</span></h3>
+  <h3>Krok 9 — run 5: luki z gry <span class="when">10 X</span></h3>
   <ul>
     <li><span class="badge ok">✓</span>Zamówienie z tego, czego brakowało <em>w logach gry</em>: 160 powitań, 120 zaczepek, 100 potwierdzeń najmu (model mylił kierunek zapłaty), 60 pytań o rodzaj towaru, 60 odesłań, 50 odmów; potoczne wejścia. GPT „bardzo wysoki” — czystsze niż poprzednie paczki.</li>
     <li><span class="badge ok">✓</span>Od run 4, 800 kroków, test ppl 2,99. Bench w dwóch seedach: run 4 <strong>78, 79</strong>; run 5 <strong>72, 78</strong> — różnica w szumie. Replay: powitania 3/3 (było 0/3), odesłanie 3/3 (1/3), kierunek zapłaty <strong>12/12</strong> (~połowa źle).</li>
     <li><span class="badge meh">~</span>Przy wtapianiu adaptera zabrakło pamięci. Trening był skończony; końcówkę robi osobno <code>publish.sh</code>. Przed fuse zamknij przeglądarkę.</li>
+  </ul>
+</div>
+
+<div class="step ok">
+  <h3>Krok 10 — run 6: tropy i dopytania <span class="when">11 X</span></h3>
+  <ul>
+    <li><span class="badge ok">✓</span>320 wierszy GPT: odesłania z okruchem wiedzy i imieniem znawcy, dopytania, zaczepki bez liczb, plotki na fakcie. Bench <strong>76, 78</strong>; trop 3/3, dopytanie 3/3.</li>
+    <li><span class="badge meh">~</span>Odmiana nietypowych imion („Kupcz”, „Agness”) — limit bazy 4,5B.</li>
+  </ul>
+</div>
+
+<div class="step ok">
+  <h3>Krok 11 — run 7: Bielik 11B na PC <span class="when">15 X · obecny model</span></h3>
+  <ul>
+    <li><span class="badge ok">✓</span>PC z RTX 4060 Ti 16 GB, WSL2 + Unsloth, QLoRA na Bieliku 11B od zera, ten sam zbiór co run 6 (<code>tools/pc/</code>). GGUF Q5_K_M 7,9 GB.</li>
+    <li><span class="badge ok">✓</span>Bench <strong>80, 80</strong> — pierwszy raz bez błędu formatu (surowy 11B: 8 i 6). Imiona znawców i okruchy wiedzy wierne, zaczepki na temat, powitania z charakterem.</li>
+    <li><span class="badge meh">~</span>Odpowiedź ok. 3× wolniej (5,2 s vs 1,8 s) i 7,9 GB w pamięci zamiast 5,1 GB.</li>
   </ul>
 </div>
 

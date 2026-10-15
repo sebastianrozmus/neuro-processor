@@ -179,6 +179,8 @@ Rozkład nastrojów w całym zamówieniu: spokój 35 %, kpina 25 %, radość 15 
 
 Wynik run 6 (11 X 2026): 320 wierszy GPT („bardzo wysoki”, walidacja czysta: szablony identyczne z run 5, 100 % potocznych wejść, 60/60 imion znawców, 0 cyfr w zaczepkach), zbiór 3369/185/71, od adaptera run 5, 600 kroków, lr 4e‑5; val 1,14 → 1,12, test loss 1,156 / ppl 3,18 (nowy podział). Bench w dwóch seedach: run 4 78/79, run 5 72/78, **run 6 76/78**. Odtworzenie rozmów z gry: trop z okruchem i imieniem 3/3 („Słyszałem o Kurhanach Królów…; Siostra Agnes w Aptece”), dopytanie 3/3 w formie „to wszystko, więcej wie X”, zaczepki o piwo/polowanie odpowiadają na temat i same dopytują (run 5 plotło), „plotki” wreszcie oparte na fakcie z podpowiedzi 2/3 (run 5: 0/3). Słabe nadal: odmiana nietypowych imion („Kupcz”, „Agness”, „Wędrony”) i pisownia nazw towaru („Kokczuga”) — limit bazy 4,5B, nie danych. Gra przełączona na `neuro-npc-run6`; adapter `model/run6-final.safetensors`.
 
+Wynik run 7 (15 X 2026): Bielik 11B v2.3, QLoRA na PC (RTX 4060 Ti 16 GB, `tools/pc/`), od zera na zbiorze run 6, 2 epoki, lr 1e‑4, rank 16; GGUF Q5_K_M 7,9 GB. Bench w dwóch seedach: run 6 76/78, **run 7 80/80**. Odtworzenie rozmów: imiona znawców i okruchy wiedzy wierne 3/3, zaczepki na temat, powitania z charakterem; odpowiedź ok. 3× wolniej (5,2 s vs 1,8 s). Gra przełączona na `neuro-npc-run7`; powrót: `neuro-npc-run6`.
+
 Zamówienie dla Mistrza Gry (11 X 2026): ~400 narracji rund walki
 ----------------------------------------------------------------
 

@@ -1,0 +1,74 @@
+## siema mordo | spokojna. Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej. Odpowi
+  gra powiedziała: [spokój] Siema, o czym tu chcesz pogadać?
+  run6 0: [spokój] Siema, co mogę ci zaoferować?
+  run6 1: [spokój] Siema, co chcesz zrobić w mojej karczmie?
+  run6 2: [spokój] Siema, co mogę ci zaoferować?
+  run7 0: [spokój] Siema, kompanie, co masz mi do powiedzenia?
+  run7 1: [spokój] Siema, po co przyszedłeś? Mam robotę, ale też czas na rozmowę.
+  run7 2: [spokój] Siema, o co chcesz zapytać wojownika?
+## elo mordo | spokojna. Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej. Odpowi
+  gra powiedziała: [kpina] Witaj, o czym mówisz?
+  run6 0: [spokój] Witaj, co mogę ci zaoferować?
+  run6 1: [spokój] Witaj, o czym rozmawiasz?
+  run6 2: [spokój] Witaj, o co pytasz najemnika?
+  run7 0: [spokój] Elo, o co chcesz pytać wojownika?
+  run7 1: [spokój] Elo, co masz na myśli? Chcesz iść ze mną czy tylko pogadać?
+  run7 2: [spokój] Elo, bratku, po co mnie zaczepiasz? Czego chcesz ode mnie?
+## co wiesz o krolu | spokojna. Gracz pyta o coś, czego nie znasz: Kurhany Królów. Słyszałeś tylko tyle: „Omszałe kopce dawnych władców doliny”. Powiedz to jak za
+  gra powiedziała: [kpina] Kurhanów nie zbadano; siostrą Agnetą w aptece o tym rozmawiaj
+  run6 0: [spokój] Słyszałem o Kurhanach Królów, nie znam ich z autopsji; Siostra Agnes w Aptece zagląda na cmentarz.
+  run6 1: [spokój] Słyszałem o Kurhanach Królów, choć sam nie mam tam żadnego interesu; sprawdz u Siostry Agnes w Aptece w Karwinie.
+  run6 2: [spokój] Słyszałem o Kurhanach Królów, ale nie znam przyczyny ich powstania; pytaj siostrę Agness na Aptece Siostry w Karwinie.
+  run7 0: [spokój] Słyszałem, że w Kurhanach Królów leżą omszałe kopce dawnych władców doliny. Więcej nie wiem; Siostra Agnes z Apteki Siostry Agnes może ci coś powiedzieć.
+  run7 1: [spokój] Słyszałem tylko, że omszałe kopce na wschodzie to Kurhany Królów; dawnych władców doliny, powiadają. Więcej nie wiem, idź do Siostry Agnes w Aptece.
+  run7 2: [spokój] Słyszałem o Kurhanach Królów, że to omszałe kopce dawnych władców doliny; nic więcej. Siostra Agnes pracuje w Aptece Siostry Agnes w każdej osadzie i wie więcej o takich rzeczach.
+## plotki | spokojna. Możesz wpleść jedną rzecz, którą wiesz: Pola Karw. Łąki i zagrody, z których chłopi uciekli przed goblinami. W zbożu coś szeleści.
+  gra powiedziała: [spokój] Słychać to tu, gdzie stal stoi. Chłopi z Karwu uciekają na pola przed gradami i goblinami. W zbożu szeleści coś czasem; to chyba nie trzeba daleko patrzeć. Niebezpieczeństwo jest takie, jak napis za drzwiami.
+  run6 0: [spokój] Ploteczka o Polach Karw mówi, że chłopy uciekli stąd przed goblinami i cicho stoją pod lasem. Małe niebezpieczeństwo.
+  run6 1: [spokój] Ploteczka mówi, że gobliny weszły w cudze obory i robią z nich pastwiska. Idź tam wieczorem bez miecza; przy płocie czeka na ciebie młody goblin, który nie lubi obcych.
+  run6 2: [spokój] Ploteczka mówi o Polach Karw. Łąki i zagrody, z których chłopi uciekli przed goblinami. W zbożu coś szeleści; samotne pisklę bez matki jest łatwe do przeoczenia. Ale to nie czyni tej oferty dobrą decyzją.
+  run7 0: [spokój] Na Polach Karw szeleszczą łany zboża, a chłopi mówią, że to gobliny. Zielone, krzywe i szybkie; nie zabijają od razu, ale gdy idziesz przez pole, pilnuj pleców.
+  run7 1: [spokój] Na Polach Karw, gdzie zostało tylko zboże i coś, co w nim szeleści, mówią, że gobliny liczą teraz w setkach. Małe niebezpieczeństwo dla kogoś z mieczem.
+  run7 2: [kpina] Na Polach Karw szeleszczą łany, w których chłopi ukryli przed goblinami to, czego ci nie zdołali wynieść. Nie idź tam po zmroku; mówią, że szeleści też coś innego.
+## jaka masz najlepsza zbroje | spokojna. Gracz wspomina o: Szkielet Wojownika. Co o tym wiesz: Pochowany z mieczem, wstał z mieczem. Zbroja trzyma się na rdzy. Cecha: Nieu
+  gra powiedziała: [spokój] Na pierwszy rzut oka nic nie widać pod łatami. Strzałka w rękę jeszcze nie jest ozdobą; to miecz, który wstał z pokładu z wojownikiem bez ręki i stracił ją w walce. Z czasem rdza go ujarzy do cna: na początku każdej rundy zrasta się i traci o połowę mniej. Najdoskonalszy najemnik nie ma zdrowej dłoni na obietii.
+  run6 0: [spokój] Szkielet Wojownika. Płonie w nim ogień młodości, dopóki nie złamie się miecz. Skórzana zbroja trzyma się na rdzy; po śmierci rycerze często ją noszą.
+  run6 1: [spokój] Szkielet Wojownika stoi tu na stolę przy mojej ręce, bo jest dobry z wyglądu, ale z rdzawych nóg nie lubić próbować.
+  run6 2: [spokój] Szkielet Wojownika. Ubrany w zbroję z żelaza, co trzeci cios broni odbija tarcza i traci od niego o połowę mniej; nie umiera, a na początku każdej rundy zrasta się i odzyskuje zdrowie. Nie taka zła ta żelazna skóra jak się wydaje.
+  run7 0: [spokój] Najlepsza? Kolczuga, jeśli idzie o stal i szkieletów nie ma w pobliżu; Szkielet Wojownik pochowany był z mieczem i rdzą na kościach.
+  run7 1: [spokój] Na Szkielet Wojownika nie trzeba cudów, tylko mocnej stali. Skórzany Kaftan wytrzyma jego miecz, a na kolana nawet nie spojrzy.
+  run7 2: [spokój] Na Szkieleta Wojownika kolczuga, bo nieumarły zrasta się na początku każdej rundy i odzyskuje zdrowie, a rdza trzyma się lepiej niż ciało. 95 sztuk złota i nie dotykaj miecza.
+## dobre maja piwo | spokojna. Gracz dopytuje o to samo: Kurhany Królów. Nic więcej nie wiesz poza tym, co słyszałeś: „Omszałe kopce dawnych władców doliny”. Nie
+  gra powiedziała: [spokój] O kurhanch pytaj Siostrę Agnes u Apteky, bo ja o nie informacje nie masz.
+  run6 0: [spokój] O starych kurhanach, nie o świeżo upieczonych królach; po to są tu pielgrzymki. Jeśli szukasz kogoś do roboty, to pogadaj z Siostrą Agnes w Aptece przy Apachie Górnej.
+  run6 1: [spokój] O kurhannach zgaduję tylko, że są stare; idź do Siostry Agnes w Aptece.
+  run6 2: [spokój] O tym mówią: o kurhanach, nie o smaku piwa, więc wybierz sobie lepiej miejsce na nocleg.
+  run7 0: [spokój] Nie znam się na piwie, wiem tylko, że gorzkie bywa dobre. Kurhany Królów to omszałe kopce dawnych władców doliny; jeśli chcesz poznać historię, pytaj Siostrę Agnes w Aptece.
+  run7 1: [spokój] Piwo ma mocną głowę, a ja lubię mocne piwo. Więcej o Kurhanach nie wiem; Siostra Agnes w Aptece zna historię.
+  run7 2: [spokój] Nie znam się na piwie, ale słyszałem, że w Karwinie leją przednie. O Kurhanach Królów nie mam nic ponad legendę o omszałych kopcach dawnych władców doliny; zapytaj Siostrę Agnes w Aptece.
+## czy dobre piwo | spokojna. Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po 
+  gra powiedziała: [kupujący) Dobry, ale nie lepszy od innych, które się tu pije; jeśli chcesz spróbować czegoś innego, idź do karczmy w Przystanii.
+  run6 0: [spokój] Dobre piwo jest w tej karczmie, tylko ty nie lubisz go pić. Dokąd idziesz teraz?
+  run6 1: [spokój] Nie znam dobrego piwa, przynajmniej takiego bez goryczy w języku, ale do picia się nadaje. Dokąd chcesz iść?
+  run6 2: [spokój] Dobre piwo nie jest tu problemem, gorzej z uczciwym zagadaniem najemnika. A ty masz czym walczyć?
+  run7 0: [spokój] Piwo dają, a ja je piję; to dobre połączenie. Masz dokąd wrócić czy droga przed tobą?
+  run7 1: [spokój] Piwo jest kwaśne, ale za to tanioje, więc można przeboleć. Po co tu jesteś?
+  run7 2: [spokój] Piwo dają, a ja je piję; smak nie mówi mi o szlaku. Masz dokąd wracać?
+## skad te piwo | brak w /Users/sebastianrozmus/Library/Application Support/neuro-processor/talks.jsonl
+## skad maja tu piwo | brak w /Users/sebastianrozmus/Library/Application Support/neuro-processor/talks.jsonl
+## co mi powiesz o polowaniu | spokojna. Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po 
+  gra powiedziała: [radość] Nie wiem niczego poza tym, że za ladą handluje Karwin i piwo stoi w beczkach przy stołach, o ile nie jest inaczej wybite przez gości.
+  run6 0: [spokój] Poszukaj czegoś do noszenia, bo moje łachy nie lubią wilgoci; skąd idziesz i gdzie chcesz dalej iść?
+  run6 1: [spokój] Potrafię wskoczyć za tobą do rowu. Dokąd się wybierasz?
+  run6 2: [spokój] Poluję w Polach Karw, a ty masz gdzie się zaczepić?
+  run7 0: [spokój] Polowanie to głupota bez broni, a piwo po nim jeszcze większa. Ty masz czym walczyć?
+  run7 1: [spokój] Polowanie to rzemiosło, nie widok; idź na pola Karw, jeśli masz czym zabić goblina. A ty czym walczysz?
+  run7 2: [spokój] Polowanie to droga przez ciemność, a ja widzę w mroku lepiej niż ty. Masz czym walczyć?
+## siema dziadu | spokojna. Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po 
+  gra powiedziała: [kpina] Piwo stoi w kustrach przy stole; jeśli chcesz iść na polowanie, też pytaj.
+  run6 0: [spokój] Piwa nie lubię, ale ciebie przynajmniej mogę pilnować. A ty masz coś do broni?
+  run6 1: [spokój] Piwo stoi tutaj pod stołem; do wyboru masz Szwagierkę i coś jeszcze, mniej gadatliwe. A ty gdzie zmierzasz?
+  run6 2: [spokój] Piwko jest dobre, choć samo siemane może nie będzie zbyt wygodne. A ty masz czym walczyć?
+  run7 0: [spokój] Piwo jest, jak na karczmę. Ty masz dokąd wrócić?
+  run7 1: [spokój] Piwo jak piwo, nawet uczciwy karczmarz musi z czegoś żyć. Ty po co przyszedłeś?
+  run7 2: [spokój] Piwo jest jak ta osada: niezłe, byle do końca dnia przetrwać. Masz dokąd wracać?
