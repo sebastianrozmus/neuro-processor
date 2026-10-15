@@ -245,7 +245,7 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 		case !namesOK(text, request.Required) || !namesIntact(text, request.Guarded):
 			reason = reasonNames
 		default:
-			return text, nil
+			return fitMood(text, request.Decision.Mood), nil
 		}
 
 		refused = append(refused, Attempt{Text: text, Reason: reason})
@@ -260,7 +260,7 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 		if len(refused) > 0 && namesOnly(refused) {
 			rejection.Kept = true
 
-			return refused[0].Text, rejection
+			return fitMood(refused[0].Text, request.Decision.Mood), rejection
 		}
 
 		problem = rejection

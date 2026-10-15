@@ -4,7 +4,12 @@
 // merchant's reply.
 package game
 
-import "github.com/sebastianrozmus/neuro-processor/internal/world"
+import (
+	"slices"
+	"strings"
+
+	"github.com/sebastianrozmus/neuro-processor/internal/world"
+)
 
 // Item is a single ware offered by a merchant, or brought to one.
 type Item struct {
@@ -104,6 +109,50 @@ const (
 	MoodAnnoyed   Mood = "poirytowana"
 	MoodOffended  Mood = "obrażona"
 )
+
+// moodTags are, for each mood, the voice tags that would contradict it and
+// the tag that stands in for them. Mockery fits a calm smith; anger does
+// not, nor does joy an offended one.
+var moodTags = map[Mood]struct {
+	wrong []string
+	fit   string
+}{
+	MoodPleased:   {[]string{"gniew", "smutek", "strach"}, "radość"},
+	MoodCalm:      {[]string{"gniew", "strach"}, "spokój"},
+	MoodImpatient: {[]string{"radość", "czułość"}, "kpina"},
+	MoodAnnoyed:   {[]string{"radość", "czułość"}, "gniew"},
+	MoodOffended:  {[]string{"radość", "czułość", "spokój"}, "gniew"},
+}
+
+// FitTag returns the voice tag a line spoken in this mood should carry:
+// the model's own, unless it contradicts the mood the game asked for.
+func (m Mood) FitTag(tag string) string {
+	if rule, ok := moodTags[m]; ok && slices.Contains(rule.wrong, tag) {
+		return rule.fit
+	}
+
+	return tag
+}
+
+// fitMood puts the right tag in front of a line: "[gniew] …" from a calm
+// keeper becomes "[spokój] …". Lines without a tag stay as they are.
+func fitMood(text string, mood Mood) string {
+	if !strings.HasPrefix(text, "[") {
+		return text
+	}
+
+	end := strings.Index(text, "]")
+	if end < 0 {
+		return text
+	}
+
+	tag := strings.ToLower(strings.TrimSpace(text[1:end]))
+	if fit := mood.FitTag(tag); fit != tag {
+		return "[" + fit + "]" + text[end+1:]
+	}
+
+	return text
+}
 
 // Ware is the public view of an item: what the player (and the model) may see.
 type Ware struct {

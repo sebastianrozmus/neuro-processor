@@ -22,3 +22,24 @@ func TestOffered(t *testing.T) {
 		}
 	}
 }
+
+func TestFitMood(t *testing.T) {
+	cases := []struct {
+		text string
+		mood Mood
+		want string
+	}{
+		{"[gniew] Czego?", MoodCalm, "[spokój] Czego?"},
+		{"[kpina] Jagody? Krasnoludowi?", MoodCalm, "[kpina] Jagody? Krasnoludowi?"},
+		{"[radość] Miło cię widzieć.", MoodOffended, "[gniew] Miło cię widzieć."},
+		{"[smutek] Szkoda.", MoodPleased, "[radość] Szkoda."},
+		{"Bez znacznika.", MoodCalm, "Bez znacznika."},
+		{"[gniew] Mów.", "", "[gniew] Mów."},
+	}
+
+	for _, test := range cases {
+		if got := fitMood(test.text, test.mood); got != test.want {
+			t.Errorf("fitMood(%q, %q) = %q, want %q", test.text, test.mood, got, test.want)
+		}
+	}
+}

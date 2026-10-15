@@ -229,6 +229,10 @@ func (g Game) haggle(msg intentMsg) (tea.Model, tea.Cmd) {
 	idle := decision.Outcome == game.OutcomeChat || decision.Outcome == game.OutcomeWares || decision.Outcome == game.OutcomeUnclear
 	g.shop.partial, g.shop.stream = "", make(chan tea.Msg, 64)
 	g.shop.speaking = g.speakLive()
+	if g.shop.speaking != nil {
+		mood := request.Decision.Mood
+		g.shop.speaking.Fit = func(tag speech.Emotion) speech.Emotion { return speech.Emotion(mood.FitTag(string(tag))) }
+	}
 
 	return g, narrate(g.brain, request, idle, g.shop.stream)
 }

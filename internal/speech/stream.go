@@ -29,6 +29,10 @@ type Stream struct {
 	// is how much of the line after its mood tag they cover.
 	queued []string
 	used   int
+
+	// Fit, when set, corrects the mood the model wrote before the voice
+	// takes it: the game knows how the speaker feels better than the model.
+	Fit func(Emotion) Emotion
 }
 
 // StreamAs starts a line spoken as it is written, as a named character of
@@ -71,6 +75,10 @@ func (st *Stream) Write(piece string) {
 	}
 
 	mood, rest := SplitMood(text)
+	if st.Fit != nil {
+		mood = st.Fit(mood)
+	}
+
 	// The game takes a "Name:" in front of a line away; so does the voice.
 	rest = strings.TrimSpace(strings.TrimPrefix(rest, st.name+":"))
 	// A space after the last stop is what tells a finished sentence.
