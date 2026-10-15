@@ -60,7 +60,7 @@ Dla każdego otwarcia z listy (`--keys`, np. „co wiesz o krolu”, „plotki�
 
 **3. Decyzja**
 
-Jeśli nowy wygrywa, w `.env.local` ustaw `NEURO_TALK_MODEL=neuro-npc-run7`. Poprzedni zostaje w Ollamie jako punkt powrotu. Wynik dopisz w `tools/model/PROMPT.md` (sekcja wyników danego runu) i w `tools/model/HISTORIA.md`.
+Jeśli nowy wygrywa, w `.env.local` ustaw `NEURO_TALK_MODEL=neuro-npc-run7`. Poprzedni zostaje w Ollamie jako punkt powrotu. Wynik dopisz w `tools/model/PROMPT.md` (sekcja wyników danego runu) w `tools/model/HISTORIA.md` i w karcie wersji `tools/model/MODELE.md`.
 
 ## Co znaczą błędy
 

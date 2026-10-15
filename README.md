@@ -102,7 +102,7 @@ Everything needed to reproduce or improve it:
 
 | path | what it does |
 |---|---|
-| `tools/model/` | data preparation, LoRA training on Apple Silicon (MLX), GGUF export to Ollama, the data specification used to order training data (`PROMPT.md`) and the full history of all runs — what worked and what was rejected (`HISTORIA.md`, Polish; also as a page in `docs/`) |
+| `tools/model/` | data preparation, LoRA training on Apple Silicon (MLX), GGUF export to Ollama, the data specification used to order training data (`PROMPT.md`) and the full history of all runs — what worked and what was rejected (`HISTORIA.md`, Polish; also as a page in `docs/`), with a one-page summary of every version and its bench results (`MODELE.md`) |
 | `tools/pc/` | QLoRA training on a Windows PC with an NVIDIA card (WSL2 + Unsloth) |
 | `tools/bench/` | the regression bench, replays of real game conversations on several models, and a validator for new training data |
 | `tools/hf/` | the model card and the upload script for Hugging Face |

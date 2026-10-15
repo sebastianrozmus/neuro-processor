@@ -2,6 +2,8 @@
 
 Ten dokument opisuje po kolei, jak z gotowego polskiego modelu językowego zrobiliśmy własny „głos” postaci gry, co po drodze nie wyszło, jak to powtórzyć od zera krok po kroku bez wiedzy o uczeniu maszynowym, i co zrobić dalej (także gdyby zaczynać jeszcze raz).
 
+Zwięzła tabela wszystkich wersji z wynikami jest w [MODELE.md](MODELE.md).
+
 Oznaczenia przy krokach: **✅ działa i zostało**, **⚠️ słabe, ale częściowo użyteczne**, **❌ słabe, odrzucone**.
 
 ---
