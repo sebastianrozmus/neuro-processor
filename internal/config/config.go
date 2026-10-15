@@ -4,6 +4,7 @@ package config
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -82,9 +83,18 @@ func (c Config) Offline() bool {
 }
 
 // Load reads the settings from the environment. Variables missing from the
-// environment are taken from .env.local in the working directory, if any.
+// environment are taken from .env.local in the working directory, if any,
+// and then from .env.local in the game's data directory, where a game
+// downloaded as a ready binary keeps its settings.
 func Load() Config {
 	local := readEnvFile(localEnvFile)
+	if dir, err := os.UserConfigDir(); err == nil {
+		for key, value := range readEnvFile(filepath.Join(dir, "neuro-processor", localEnvFile)) {
+			if _, ok := local[key]; !ok {
+				local[key] = value
+			}
+		}
+	}
 
 	get := func(key, fallback string) string {
 		if value, ok := os.LookupEnv(key); ok {

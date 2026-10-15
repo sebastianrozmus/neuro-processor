@@ -29,10 +29,19 @@ import (
 
 const dataDirName = "neuro-processor"
 
+// version is set at release build time (-ldflags "-X main.version=...").
+var version = "dev"
+
 func main() {
 	listen := flag.String("listen", "", "udostępnij świat innym graczom przez SSH pod tym adresem, np. :2222")
 	name := flag.String("name", os.Getenv("USER"), "proponowane imię twojej postaci")
+	showVersion := flag.Bool("version", false, "wypisz wersję gry i zakończ")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Println("neuro", version)
+		return
+	}
 
 	if err := run(*listen, *name); err != nil {
 		fmt.Fprintln(os.Stderr, err)

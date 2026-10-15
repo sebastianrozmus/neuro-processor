@@ -1,0 +1,54 @@
+# Release build: a tag v* pushed to GitHub runs .github/workflows/release.yml,
+# which runs GoReleaser with this file. Locally: goreleaser release --snapshot --clean
+version: 2
+
+project_name: neuro
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: neuro
+    main: ./cmd/neuro
+    binary: neuro
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux, windows]
+    goarch: [amd64, arm64]
+    ignore:
+      - goos: windows
+        goarch: arm64
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - id: neuro
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "neuro_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - README.pl.md
+      - LICENSE
+      - tools/avatar/setup.sh
+      - tools/speech/setup-tts.sh
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs"
+      - "^test"
+
+release:
+  draft: true
+  footer: |
+    Model rozmów (opcjonalnie, przez Ollamę): `ollama pull hf.co/sebastianrozmus/neuro-npc-bielik-11b-GGUF:Q5_K_M` — szczegóły w README.
