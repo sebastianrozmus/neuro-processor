@@ -192,9 +192,20 @@ func (s *Speaker) SayAs(name, kind, text string, mood Emotion) {
 func Clean(text string) string {
 	text = ansi.ReplaceAllString(text, "")
 	text = strings.NewReplacer("«", "", "»", "", "„", "", "”", "", "\"", "", "*", "", "·", ",", "—", ",", "–", ",", "[", "", "]", "").Replace(text)
+	text = abbreviations.ReplaceAllStringFunc(text, func(found string) string {
+		return spelled[strings.ToLower(found)]
+	})
 
 	return strings.Join(strings.Fields(text), " ")
 }
+
+// spelled are the abbreviations of the game's lines as they are said: the
+// voice reads "szt." letter by letter and takes its stop for a sentence end.
+var spelled = map[string]string{
+	"szt.": "sztuk", "np.": "na przykład", "tzw.": "tak zwany", "itd.": "i tak dalej", "itp.": "i tym podobne", "wg": "według",
+}
+
+var abbreviations = regexp.MustCompile(`(?i)\b(szt\.|np\.|tzw\.|itd\.|itp\.|wg\b)`)
 
 // SplitMood takes the mood tag a narrator puts in front of a line, such as
 // "[kpina] Tyle za rurę?", off the line. Lines without one are calm.

@@ -56,6 +56,8 @@ func TestSentencesWaitForTheEndOfASentence(t *testing.T) {
 		{"Schron 7.5 jest daleko stąd, za rzeką. Idź", false, []string{"Schron 7.5 jest daleko stąd, za rzeką."}},
 		{"Hm.", true, []string{"Hm."}},
 		{"Hm... no dobrze, niech będzie trzydzieści. A", false, []string{"Hm... no dobrze, niech będzie trzydzieści."}},
+		// An abbreviation before a small letter is no end either.
+		{"Za 40 szt. złota oddam ci ten topór. Bierz", false, []string{"Za 40 szt. złota oddam ci ten topór."}},
 	} {
 		got, used := Sentences(tc.text, tc.final)
 		if !slices.Equal(got, tc.want) {
@@ -174,4 +176,10 @@ func (f *fakeBox) texts() []string {
 	}
 
 	return texts
+}
+
+func TestCleanSpellsAbbreviations(t *testing.T) {
+	if got := Clean("Za 40 szt. złota, np. «Topór»."); got != "Za 40 sztuk złota, na przykład Topór." {
+		t.Errorf("Clean = %q", got)
+	}
 }

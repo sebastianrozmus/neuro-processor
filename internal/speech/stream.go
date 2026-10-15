@@ -190,6 +190,15 @@ func Sentences(text string, final bool) ([]string, int) {
 			continue
 		}
 
+		// A stop before a small letter ends an abbreviation, not a
+		// sentence: "40 szt. złota", "np. miecz". Cut there and the voice
+		// reads half a phrase as a whole sentence.
+		if after := strings.TrimLeftFunc(text[end:], unicode.IsSpace); after != "" {
+			if first, _ := utf8.DecodeRuneInString(after); unicode.IsLower(first) {
+				continue
+			}
+		}
+
 		if utf8.RuneCountInString(strings.TrimSpace(text[start:end])) < shortest {
 			continue
 		}
