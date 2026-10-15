@@ -27,7 +27,9 @@ function Install([string[]]$packages) {
     if ($LASTEXITCODE) { throw "instalacja nie powiodła się: $packages" }
 }
 
-Install "chatterbox-tts"
+# perth (the watermark chatterbox stamps on its audio) imports pkg_resources,
+# which setuptools 81 dropped and which uv environments lack altogether.
+Install @("chatterbox-tts", "setuptools<81")
 # chatterbox-tts pulls the CPU torch on Windows; the CUDA one of the same
 # version makes a line take seconds instead of minutes.
 $reinstall = if ($uv) { "--reinstall-package" } else { "--force-reinstall" }
