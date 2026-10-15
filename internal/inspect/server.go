@@ -38,7 +38,10 @@ type Server struct {
 	mu       sync.Mutex
 	realm    *game.Realm
 	rewriter game.Rewriter
-	addr     net.Addr
+	// picker, when the brain has one, lets the refresh button rewrite with
+	// another model of the same server.
+	picker modelPicker
+	addr   net.Addr
 	// Feedback is the JSON Lines file the marks a person leaves are
 	// appended to, with everything behind what they marked; empty keeps
 	// them in the realm alone.
@@ -79,6 +82,39 @@ func (s *Server) Watch(realm *game.Realm, brain any) {
 
 	s.realm = realm
 	s.rewriter, _ = brain.(game.Rewriter)
+	s.picker, _ = brain.(modelPicker)
+}
+
+// modelPicker is a brain that can name and switch the model it rewrites
+// descriptions with.
+type modelPicker interface {
+	Models(ctx context.Context) ([]string, error)
+	RewriteModel() string
+	RewriterWith(model string) game.Rewriter
+}
+
+// models lists what the refresh button can rewrite with, and which one it
+// uses unless told otherwise.
+func (s *Server) models(w http.ResponseWriter, r *http.Request) {
+	s.mu.Lock()
+	picker := s.picker
+	s.mu.Unlock()
+
+	if picker == nil {
+		reply(w, map[string]any{"models": []string{}, "default": ""})
+
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	names, err := picker.Models(ctx)
+	if err != nil {
+		names = []string{}
+	}
+
+	reply(w, map[string]any{"models": names, "default": picker.RewriteModel()})
 }
 
 // URL is where the inspector is in a browser.
@@ -103,6 +139,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("DELETE /api/fact", s.dropFact)
 	mux.HandleFunc("POST /api/describe", s.describe)
 	mux.HandleFunc("POST /api/rewrite", s.rewrite)
+	mux.HandleFunc("GET /api/models", s.models)
 	mux.HandleFunc("POST /api/player", s.player)
 	mux.HandleFunc("POST /api/mark", s.mark)
 	mux.HandleFunc("GET /api/picture", s.picture)
@@ -258,10 +295,25 @@ func (s *Server) rewrite(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Kind  string `json:"kind"`
 		Index int    `json:"index"`
+		// Model, when given, is the model to rewrite with instead of the
+		// brain's own.
+		Model string `json:"model"`
 	}
 
 	if !decode(w, r, &body) {
 		return
+	}
+
+	s.mu.Lock()
+	picker := s.picker
+	s.mu.Unlock()
+
+	model := ""
+	if picker != nil {
+		model = picker.RewriteModel()
+		if body.Model != "" && body.Model != model {
+			rewriter, model = picker.RewriterWith(body.Model), body.Model
+		}
 	}
 
 	name, text, ok := realm.Description(body.Kind, body.Index)
@@ -283,13 +335,18 @@ func (s *Server) rewrite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !realm.Describe(body.Kind, body.Index, fresh, game.HowRewritten, llm.RewritePrompt(request)) {
+	how := game.HowRewritten
+	if model != "" {
+		how += " · " + model
+	}
+
+	if !realm.Describe(body.Kind, body.Index, fresh, how, llm.RewritePrompt(request)) {
 		http.Error(w, "nie udało się zapisać", http.StatusInternalServerError)
 
 		return
 	}
 
-	reply(w, map[string]string{"text": fresh, "was": text})
+	reply(w, map[string]string{"text": fresh, "was": text, "model": model})
 }
 
 func (s *Server) player(w http.ResponseWriter, r *http.Request) {

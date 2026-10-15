@@ -11,10 +11,12 @@ import (
 // and facts and generates worlds, all of which needs JSON kept to a
 // schema; Voice words the characters' lines, which is what the game's own
 // fine-tuned model is trained for. Servers that cannot enforce a schema
-// (mlx_lm.server among them) are fine as a Voice.
+// (mlx_lm.server among them) are fine as a Voice. World, when set, takes
+// generating worlds over from the Mind.
 type Split struct {
 	Mind  *Client
 	Voice *Client
+	World *Client
 }
 
 // Interpret reads a player message with the Mind.
@@ -42,9 +44,38 @@ func (s Split) Invent(ctx context.Context, request game.InventRequest) (world.It
 	return s.Mind.Invent(ctx, request)
 }
 
-// GenerateWorld makes a world with the Mind.
+// GenerateWorld makes a world with the World model, or the Mind when
+// there is none.
 func (s Split) GenerateWorld(ctx context.Context, mode world.Mode, theme string) (world.Spec, error) {
-	return s.Mind.GenerateWorld(ctx, mode, theme)
+	return s.maker().GenerateWorld(ctx, mode, theme)
+}
+
+func (s Split) maker() *Client {
+	if s.World != nil {
+		return s.World
+	}
+
+	return s.Mind
+}
+
+// VoiceModel names the model that words the lines.
+func (s Split) VoiceModel() string {
+	return s.Voice.Model
+}
+
+// RewriteModel names the model the inspector rewrites with by default.
+func (s Split) RewriteModel() string {
+	return s.Mind.Model
+}
+
+// RewriterWith rewrites with the named model on the Mind's server.
+func (s Split) RewriterWith(model string) game.Rewriter {
+	return s.Mind.WithModel(model)
+}
+
+// Models lists what the Mind's server can run.
+func (s Split) Models(ctx context.Context) ([]string, error) {
+	return s.Mind.Models(ctx)
 }
 
 // Narrate words a reply with the Voice.
@@ -57,13 +88,19 @@ func (s Split) Stream(ctx context.Context, request game.NarrateRequest, deliver 
 	return s.Voice.Stream(ctx, request, deliver)
 }
 
-// Local reports whether either model runs on this machine.
+// Local reports whether any of the models runs on this machine.
 func (s Split) Local() bool {
-	return s.Mind.Local() || s.Voice.Local()
+	return s.Mind.Local() || s.Voice.Local() || s.maker().Local()
 }
 
-// Warm loads both models.
+// Warm loads the models, each once.
 func (s Split) Warm(ctx context.Context) {
 	s.Mind.Warm(ctx)
-	s.Voice.Warm(ctx)
+
+	if s.Voice.Model != s.Mind.Model {
+		s.Voice.Warm(ctx)
+	}
+
+	// Worlds are made rarely, at the start; loading a third model only
+	// for that would push the others out of memory.
 }

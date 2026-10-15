@@ -216,6 +216,7 @@ Gra łączy się z dowolnym serwerem zgodnym z API OpenAI (`/chat/completions`),
 | `NEURO_LLM_MAX_TOKENS` | limit długości kwestii; przyspiesza małe modele lokalne, np. `220` |
 | `NEURO_LLM_CONTEXT` | okno kontekstu w tokenach, o które gra prosi Ollamę dla głównego modelu; domyślnie `8192`, `0` zostawia ustawienie serwera. Inne serwery nie są o nie pytane |
 | `NEURO_TALK_CONTEXT` | to samo dla drugiego modelu (`NEURO_TALK_MODEL`); domyślnie ustawienie serwera, bo kwestie mieszczą się w nim z zapasem |
+| `NEURO_WORLD_MODEL` | osobny model tylko do generowania światów (np. `neuro-npc-run7`); polecenia dalej czyta główny model. Pusty: światy robi główny model. Opcjonalnie `NEURO_WORLD_BASE_URL`, `NEURO_WORLD_API_KEY` (domyślnie jak główny) i `NEURO_WORLD_CONTEXT` (domyślnie jak `NEURO_LLM_CONTEXT`) |
 | `NEURO_TTS` | `1` włącza czytanie kwestii na głos głosem systemowym; `chatterbox` — syntezą Chatterbox z klonowanym głosem i słyszalnymi nastrojami (środowisko: `tools/speech/setup-tts.sh`); domyślnie wyłączone |
 | `NEURO_TTS_URL` | adres serwera Chatterbox, który gra sama uruchamia; domyślnie `http://127.0.0.1:7790` |
 | `NEURO_TTS_VOICE` | nazwa głosu systemowego (macOS `say`); domyślnie polski głos „Zosia”, jeśli jest zainstalowany |

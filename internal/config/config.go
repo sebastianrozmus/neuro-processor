@@ -27,6 +27,13 @@ type Config struct {
 	TalkBaseURL string
 	TalkAPIKey  string
 	TalkModel   string
+	// WorldBaseURL, WorldAPIKey and WorldModel name a model that only
+	// generates worlds, run in WorldContext tokens; empty WorldModel leaves
+	// that to the main model.
+	WorldBaseURL string
+	WorldAPIKey  string
+	WorldModel   string
+	WorldContext int
 	// Context is the window, in tokens, a local Ollama is asked to run the
 	// main model in, which it otherwise does in 4096, too few to design a
 	// world; TalkContext the same for the talking model. 0 keeps the
@@ -95,6 +102,7 @@ func Load() Config {
 	maxTokens, _ := strconv.Atoi(get("NEURO_LLM_MAX_TOKENS", ""))
 	window, _ := strconv.Atoi(get("NEURO_LLM_CONTEXT", "8192"))
 	talkWindow, _ := strconv.Atoi(get("NEURO_TALK_CONTEXT", ""))
+	worldWindow, _ := strconv.Atoi(get("NEURO_WORLD_CONTEXT", strconv.Itoa(max(window, 0))))
 
 	return Config{
 		BaseURL:       get("NEURO_LLM_BASE_URL", defaultBaseURL),
@@ -104,6 +112,10 @@ func Load() Config {
 		TalkBaseURL:   get("NEURO_TALK_BASE_URL", get("NEURO_LLM_BASE_URL", defaultBaseURL)),
 		TalkAPIKey:    get("NEURO_TALK_API_KEY", get("NEURO_LLM_API_KEY", "")),
 		TalkModel:     get("NEURO_TALK_MODEL", ""),
+		WorldBaseURL:  get("NEURO_WORLD_BASE_URL", get("NEURO_LLM_BASE_URL", defaultBaseURL)),
+		WorldAPIKey:   get("NEURO_WORLD_API_KEY", get("NEURO_LLM_API_KEY", "")),
+		WorldModel:    get("NEURO_WORLD_MODEL", ""),
+		WorldContext:  max(worldWindow, 0),
 		Context:       max(window, 0),
 		TalkContext:   max(talkWindow, 0),
 		Speech:        isOn(get("NEURO_TTS", "")) || strings.EqualFold(strings.TrimSpace(get("NEURO_TTS", "")), "chatterbox"),

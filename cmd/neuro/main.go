@@ -58,11 +58,23 @@ func run(listen, name string) error {
 		client = &llm.Client{BaseURL: cfg.BaseURL, APIKey: cfg.APIKey, Model: cfg.Model, MaxTokens: cfg.MaxTokens, Context: cfg.Context}
 		brain, generator, backend = client, client, cfg.Model
 
-		// A second model may do the talking while the first keeps reading.
-		if cfg.TalkModel != "" {
-			voice := &llm.Client{BaseURL: cfg.TalkBaseURL, APIKey: cfg.TalkAPIKey, Model: cfg.TalkModel, MaxTokens: cfg.MaxTokens, Context: cfg.TalkContext}
-			split := llm.Split{Mind: client, Voice: voice}
-			brain, generator, backend = split, split, cfg.Model+" + "+cfg.TalkModel
+		// A second model may do the talking while the first keeps reading,
+		// and a third may make the worlds.
+		if cfg.TalkModel != "" || cfg.WorldModel != "" {
+			split := llm.Split{Mind: client, Voice: client}
+			backend = cfg.Model
+
+			if cfg.TalkModel != "" {
+				split.Voice = &llm.Client{BaseURL: cfg.TalkBaseURL, APIKey: cfg.TalkAPIKey, Model: cfg.TalkModel, MaxTokens: cfg.MaxTokens, Context: cfg.TalkContext}
+				backend += " + " + cfg.TalkModel
+			}
+
+			if cfg.WorldModel != "" {
+				split.World = &llm.Client{BaseURL: cfg.WorldBaseURL, APIKey: cfg.WorldAPIKey, Model: cfg.WorldModel, MaxTokens: cfg.MaxTokens, Context: cfg.WorldContext}
+				backend += " · światy: " + cfg.WorldModel
+			}
+
+			brain, generator = split, split
 		}
 
 		if warm, ok := brain.(interface {
@@ -117,7 +129,7 @@ func run(listen, name string) error {
 	}
 
 	if cfg.Talks {
-		host.record = recorder(filepath.Join(dataDir, "talks.jsonl"))
+		host.record = recorder(filepath.Join(dataDir, "talks.jsonl"), game.VoiceModel(brain))
 	}
 
 	// The inspector shows the world being played in a browser.
@@ -320,7 +332,7 @@ func (h *host) open(realm *game.Realm) (string, error) {
 // recorder appends every well-answered exchange to a JSON Lines file, one
 // conversation per line in the shape the model was prompted with. Failures
 // to write are ignored: a lost record must never stop a game.
-func recorder(path string) ui.Record {
+func recorder(path, model string) ui.Record {
 	var mu sync.Mutex
 
 	return func(request game.NarrateRequest, reply string) {
@@ -329,6 +341,7 @@ func recorder(path string) ui.Record {
 
 		line, err := json.Marshal(map[string]any{
 			"time":     time.Now().Format(time.RFC3339),
+			"model":    model,
 			"keeper":   request.Merchant.Name,
 			"outcome":  request.Decision.Outcome,
 			"messages": llm.Transcript(request, reply),

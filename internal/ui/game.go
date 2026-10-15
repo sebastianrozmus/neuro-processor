@@ -216,7 +216,12 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// when it is debugging.
 		var rejection *game.Rejection
 		errors.As(msg.problem, &rejection)
-		g.realm.Exchange(g.name, msg.request, msg.text, rejection)
+		model := game.VoiceModel(g.brain)
+		if rejection != nil && !rejection.Kept {
+			model = "" // the game's own line, not the model's
+		}
+
+		g.realm.ExchangeBy(g.name, model, msg.request, msg.text, rejection)
 
 		if rejection != nil {
 			if g.debug {

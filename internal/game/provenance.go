@@ -46,6 +46,19 @@ type Exchange struct {
 	Canned   bool      `json:"canned,omitempty"`
 	// Marks are the comments a person left on this exchange.
 	Marks []string `json:"marks,omitempty"`
+	// Model is the model that wrote Reply; empty when unknown or when the
+	// reply is the game's own line.
+	Model string `json:"model,omitempty"`
+}
+
+// VoiceModel names the model a brain words its lines with, or "" when the
+// brain cannot tell (the offline one has none).
+func VoiceModel(brain any) string {
+	if named, ok := brain.(interface{ VoiceModel() string }); ok {
+		return named.VoiceModel()
+	}
+
+	return ""
 }
 
 // Note is a comment a person left on something in the world.
@@ -85,13 +98,18 @@ func (r *Realm) trace(kind string, key any, step Trace) {
 // Exchange records a line of talk as it was spoken: the request behind
 // it, the reply, and what the rules refused on the way.
 func (r *Realm) Exchange(name string, request NarrateRequest, reply string, rejection *Rejection) {
+	r.ExchangeBy(name, "", request, reply, rejection)
+}
+
+// ExchangeBy is Exchange with the name of the model that wrote the reply.
+func (r *Realm) ExchangeBy(name, model string, request NarrateRequest, reply string, rejection *Rejection) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	r.exchangeSerial++
 	entry := Exchange{
 		ID: r.exchangeSerial, Day: r.day, Player: name, Keeper: request.Merchant.Name, Role: request.Role,
-		Said: request.Text, Reply: reply, Brief: request.Decision.BriefFor(request.Role), Hint: request.Hint,
+		Said: request.Text, Reply: reply, Brief: request.Decision.BriefFor(request.Role), Hint: request.Hint, Model: model,
 	}
 
 	if rejection != nil {

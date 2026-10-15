@@ -86,6 +86,7 @@
 <header>
   <h1>NEURO PROCESSOR · podgląd</h1>
   <div class="meta" id="meta">łączę się…</div>
+  <label class="meta" id="pick" hidden>↻ modelem <select id="rewriteModel" onchange="rewriteModel = this.value"></select></label>
   <nav id="nav">
     <button data-tab="world" class="on">Świat</button>
     <button data-tab="graph">Graf wiedzy</button>
@@ -119,7 +120,7 @@ const terrainColours = {
 };
 const kindNames = { weapon: "broń", armor: "pancerz", potion: "mikstura", spell: "zwój", charm: "amulet" };
 const effectNames = { none: "—", heal: "leczenie", mana: "mana", bolt: "pocisk", blast: "wybuch", power: "siła", ward: "ochrona", vigor: "wigor", focus: "skupienie" };
-let state = null, tab = "world", editing = 0, hot = null;
+let state = null, tab = "world", editing = 0, hot = null, rewriteModel = "";
 
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const toast = (text, bad) => { const t = document.getElementById("toast"); t.textContent = text; t.style.borderColor = bad ? "var(--red)" : "var(--gold)"; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 3200); };
@@ -128,6 +129,19 @@ async function api(method, path, body) {
   const r = await fetch(path, { method, headers: body ? { "Content-Type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
+}
+
+// The models the refresh button can rewrite with; the brain's own first.
+async function loadModels() {
+  try {
+    const r = await api("GET", "/api/models");
+    const names = [...new Set([r.default, ...(r.models || [])].filter(Boolean))];
+    if (names.length < 2) return;
+    rewriteModel = r.default;
+    const select = document.getElementById("rewriteModel");
+    select.innerHTML = names.map(n => `<option value="${esc(n)}">${esc(n)}${n === r.default ? " (domyślny)" : ""}</option>`).join("");
+    document.getElementById("pick").hidden = false;
+  } catch (e) { /* no models listed: the button uses the brain's own */ }
 }
 
 async function load() {
@@ -260,8 +274,8 @@ function findText(kind, index) {
 async function rewrite(button, kind, index) {
   button.classList.add("spin"); button.textContent = "…";
   try {
-    const r = await api("POST", "/api/rewrite", { kind, index });
-    toast("Przepisane: " + r.text);
+    const r = await api("POST", "/api/rewrite", { kind, index, model: rewriteModel });
+    toast(`Przepisane${r.model ? " (" + r.model + ")" : ""}: ` + r.text);
     await load();
   } catch (e) { toast(e.message, true); }
   button.classList.remove("spin"); button.textContent = "↻";
@@ -419,7 +433,7 @@ function talksView() {
   list.forEach(e => {
     const checked = picked.has(e.id) ? "checked" : "";
     html += `<div class="xch"><input type="checkbox" ${checked} onchange="this.checked ? picked.add(${e.id}) : picked.delete(${e.id}); render()">`;
-    html += `<div><div class="who">#${e.id} · dzień ${e.day} · <b>${esc(e.player)}</b> → ${esc(e.keeper)}${e.role ? ` <span class="tag">${esc(e.role)}</span>` : ""}</div>`;
+    html += `<div><div class="who">#${e.id} · dzień ${e.day} · <b>${esc(e.player)}</b> → ${esc(e.keeper)}${e.role ? ` <span class="tag">${esc(e.role)}</span>` : ""}${e.model ? ` <span class="dim">· ${esc(e.model)}</span>` : ""}</div>`;
     html += `<div class="said">${esc(e.said)}</div>`;
     html += `<div class="reply${e.canned ? " canned" : ""}">${esc(e.reply)}${e.canned ? ' <span class="tag">gotowa kwestia gry</span>' : ""}${e.kept ? ' <span class="tag p">przyjęte mimo imienia</span>' : ""}</div>`;
     e.attempts.forEach(a => html += `<div class="meta"><span class="red">odrzucone (${esc(a.reason)})</span>: „${esc(a.text)}”</div>`);
@@ -553,6 +567,7 @@ function switchTab() {
 document.querySelectorAll("#nav button").forEach(b => b.onclick = () => { tab = b.dataset.tab; hot = null; switchTab(); });
 if (location.hash) { tab = location.hash.slice(1) || "world"; switchTab(); }
 load();
+loadModels();
 setInterval(load, 2000);
 </script>
 </body>

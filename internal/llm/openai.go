@@ -134,6 +134,72 @@ func (c *Client) Warm(ctx context.Context) {
 	_, _ = c.chat(ctx, chatRequest{Model: c.Model, Messages: []message{{Role: "user", Content: "ok"}}, MaxTokens: 1})
 }
 
+// VoiceModel names the model that words the lines: with one client, this one.
+func (c *Client) VoiceModel() string {
+	return c.Model
+}
+
+// RewriteModel names the model the inspector rewrites with by default.
+func (c *Client) RewriteModel() string {
+	return c.Model
+}
+
+// RewriterWith rewrites with the named model on the same server.
+func (c *Client) RewriterWith(model string) game.Rewriter {
+	return c.WithModel(model)
+}
+
+// WithModel is a client of the same server running another model. What
+// the server turned out to be is found out again.
+func (c *Client) WithModel(model string) *Client {
+	return &Client{BaseURL: c.BaseURL, APIKey: c.APIKey, Model: model, MaxTokens: c.MaxTokens, HTTP: c.HTTP, Context: c.Context}
+}
+
+// Models lists the models the server offers (GET /models, which Ollama
+// serves too).
+func (c *Client) Models(ctx context.Context) ([]string, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimRight(c.BaseURL, "/")+"/models", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if c.APIKey != "" {
+		request.Header.Set("Authorization", "Bearer "+c.APIKey)
+	}
+
+	client := c.HTTP
+	if client == nil {
+		client = http.DefaultClient
+	}
+
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("models: %s", response.Status)
+	}
+
+	var listing struct {
+		Data []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(response.Body).Decode(&listing); err != nil {
+		return nil, err
+	}
+
+	names := make([]string, 0, len(listing.Data))
+	for _, model := range listing.Data {
+		names = append(names, model.ID)
+	}
+
+	return names, nil
+}
+
 // Interpret reads what the player told a shopkeeper. The game's rules read
 // the message first. The model is asked only when its opinion could matter:
 // to tell whether a bare number is an offer, or to judge the argument in a
