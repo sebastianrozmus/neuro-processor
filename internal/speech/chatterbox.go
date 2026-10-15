@@ -14,10 +14,15 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
 )
+
+// windowsPlayer plays a WAV through .NET's SoundPlayer: Windows has no
+// afplay, and PowerShell is always there. Killing it stops the sound.
+const windowsPlayer = "powershell"
 
 // Chatterbox (Resemble AI, MIT) speaks Polish with a cloned voice and a
 // dial for how expressive it is, so the moods a narrator tags its lines
@@ -237,7 +242,9 @@ func NewChatterbox(base, settings string) *Speaker {
 	}
 
 	player := "afplay"
-	if _, err := exec.LookPath(player); err != nil {
+	if runtime.GOOS == "windows" {
+		player = windowsPlayer
+	} else if _, err := exec.LookPath(player); err != nil {
 		player = "aplay"
 	}
 
@@ -279,7 +286,7 @@ func (b *Chatterbox) start(name, kind, text string, mood Emotion) func() {
 
 		mu.Lock()
 		if ctx.Err() == nil {
-			cmd = exec.CommandContext(ctx, b.Player, path)
+			cmd = b.play(ctx, path)
 			_ = cmd.Start()
 		}
 		mu.Unlock()
@@ -300,6 +307,27 @@ func (b *Chatterbox) start(name, kind, text string, mood Emotion) func() {
 			_ = cmd.Process.Kill()
 		}
 	}
+}
+
+// play is the command that plays the WAV at path.
+func (b *Chatterbox) play(ctx context.Context, path string) *exec.Cmd {
+	if b.Player == windowsPlayer {
+		script := "(New-Object Media.SoundPlayer '" + strings.ReplaceAll(path, "'", "''") + "').PlaySync()"
+
+		return exec.CommandContext(ctx, b.Player, "-NoProfile", "-NonInteractive", "-Command", script)
+	}
+
+	return exec.CommandContext(ctx, b.Player, path)
+}
+
+// VenvPython is the interpreter of the Python environment in dir:
+// Scripts\python.exe on Windows, bin/python3 elsewhere.
+func VenvPython(dir string) string {
+	if runtime.GOOS == "windows" {
+		return filepath.Join(dir, "Scripts", "python.exe")
+	}
+
+	return filepath.Join(dir, "bin", "python3")
 }
 
 // Server runs the embedded Chatterbox server in the TTS environment.

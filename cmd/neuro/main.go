@@ -106,7 +106,7 @@ func run(listen, name string) error {
 		// game runs its server from the TTS environment, if there is one.
 		if cfg.Chatterbox {
 			tts := &speech.Server{
-				Python: filepath.Join(dataDir, "venv-tts", "bin", "python3"), Voices: filepath.Join(dataDir, "voices"),
+				Python: speech.VenvPython(filepath.Join(dataDir, "venv-tts")), Voices: filepath.Join(dataDir, "voices"),
 				URL: cfg.TTSURL, Log: filepath.Join(dataDir, "tts.log"),
 			}
 
@@ -149,7 +149,7 @@ func run(listen, name string) error {
 
 	python := cfg.Python
 	if python == "" {
-		python = filepath.Join(dataDir, "venv", "bin", "python3")
+		python = speech.VenvPython(filepath.Join(dataDir, "venv"))
 	}
 
 	painter := avatars.Painter{Python: python, Dir: filepath.Join(dataDir, "avatars")}
