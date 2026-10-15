@@ -99,6 +99,12 @@ Mediana odpowiedzi to czas jednej kwestii w benchu na Macu M3 Pro (18 GB), z mod
   - zdarzyło mu się wymyślić miejsce („wieża maga Ozryka”) i przekręcić fakt o Kopalni Durgara;
   - własne zwroty potrafi powtarzać w kolejnych kwestiach, bo widzi je w historii rozmowy. Przykład: „między kolanami nosi coś ostrego”; w danych treningowych tego nie ma.
   - Złe kwestie warto oznaczać w podglądzie, bo to materiał na pary do DPO.
+- **Co pokazała gra na PC (15.10.2026, uwagi z podglądu):**
+  - na „tak, jagody” kowal odesłał po jagody do Kopalni Durgara, „tylko wróć z językiem”. Na „z jezykiem ???” brnął dalej, zamiast wyjaśnić. Fakt z podpowiedzi („Możesz wpleść…”) wciska na siłę, nawet gdy nie pasuje, a zwrot „zdobyć języka” przekręca;
+  - znacznik bywa sprzeczny z nastrojem z `[GRA]`; tu akurat kpina u spokojnego, co do krasnoluda pasuje;
+  - mały model (gemma3:4b) wziął „jeśli chcesz jagody, idź po nie” za ofertę, więc jagody wpadły do towaru.
+  - **Poprawki w grze:** nowy przedmiot trafia do świata tylko z kwestii, która go sprzedaje (`game.Offered`). Podpowiedź kończy się „Jeśli nie pasuje do tego, co mówi gracz, pomiń ją.” Znacznik sprzeczny z nastrojem gra podmienia (`Mood.FitTag`). Lekcje dla modelu są w `run8_cases.py` (niżej).
+  - **Pamięć na PC:** run 7 (ok. 7 GB), gemma (ok. 4 GB) i Chatterbox (ok. 4 GB) zajmują całe 16 GB karty. Gdy model pisze kwestię, a głos w tym samym czasie syntezuje zdanie, część trafia do RAM i synteza zwalnia do 20–47 s na zdanie. Pomaga `OLLAMA_KV_CACHE_TYPE=q8_0` z `OLLAMA_FLASH_ATTENTION=1`; mniejszy Głos pomógłby bardziej.
 - **Koszt:**
   - odpowiedź ok. 3× wolniej (mediana 5,2 s wobec 1,8 s run 6);
   - 7,9 GB w pamięci zamiast 5,1 GB;
@@ -130,6 +136,10 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
 
 ## Dalej
 
+- **run 8 na Bielik-Minitron-7B v3.0** (`speakleash/Bielik-Minitron-7B-v3.0-Instruct`, 7,35B, przycięty i destylowany z Bielika 11B v3; repozytorium wymaga zaakceptowania warunków i tokena HF). Powód: na PC 16 GB run 7 z gemmą i Chatterboxem nie mieści się w karcie, a 7B zajmuje ok. 5 GB zamiast ok. 7,9 GB i powinien pisać ok. 1,5× szybciej. Plan:
+  1. Minitron bez treningu w roli Umysłu zamiast gemmy3:4b (polecenia, `Invent`, `Note`). Jeśli wypadnie co najmniej tak dobrze, wystarczy jeden model w pamięci.
+  2. QLoRA od zera na zbiorze run 7 plus `manual-run8.jsonl`: 64 ręczne lekcje z błędów z gry, z generatora `tools/model/run8_cases.py` (brak towaru bez wymyślania miejsc, podpowiedź użyta albo pominięta, wyjaśnienie niezrozumianej kwestii, znacznik zgodny z nastrojem, przyznanie się do niewiedzy).
+  3. Bench w dwóch seedach i odtworzenia wobec run 7. Przełączenie tylko wtedy, gdy wyniki są w szumie od 80/80, a odtworzenia nie gorsze.
 - **run 8 na 11B:** douczanie od adaptera run 7 (`--resume`, 1 epoka, lr 4e-5) nowymi danymi: narracje Mistrza Gry, rozmowy wielotur, kwestie bez nastroju jako przykłady do poprawy.
 - **DPO z odrzuceń:** pary „dobra / zła kwestia” z podglądu i z odrzuceń gry, na zmyślone miejsca i powtarzanie zwrotów.
 - **Destylacja run 7 → 4.5B:** run 7 pisze odpowiedzi na prompty gry, walidator je filtruje, a szybki model 4,5B uczy się na nich od adaptera run 6. Cel: jakość bliższa 11B przy 1,8 s na kwestię.
