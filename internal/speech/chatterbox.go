@@ -221,8 +221,8 @@ func Voices(ctx context.Context, base string) ([]string, error) {
 	return listed.Voices, nil
 }
 
-// Chatterbox is a Speaker on a Chatterbox server: each line is fetched as
-// WAV in the mood's expression with the speaker's sample, and played.
+// Chatterbox is a Speaker on a Chatterbox server: each sentence is fetched
+// as WAV in the mood's expression with the speaker's sample, and played.
 type Chatterbox struct {
 	URL string
 	// Settings is the path of voices.json, read before every line so that
@@ -253,60 +253,132 @@ func NewChatterbox(base, settings string) *Speaker {
 	return &Speaker{
 		start:   func(text string, mood Emotion) func() { return box.start("", "", text, mood) },
 		startAs: box.start,
+		queueAs: box.queue,
 	}
 }
 
-// start fetches and plays one line in the background and returns what
-// stops it: the fetch is abandoned, or the player killed.
+// start speaks one whole line, sentence by sentence, and returns what
+// stops it.
 func (b *Chatterbox) start(name, kind, text string, mood Emotion) func() {
-	ctx, cancel := context.WithTimeout(context.Background(), ttsTimeout)
+	add, stop := b.queue(name, kind)
+
+	chunks, _ := Sentences(text, true)
+	for _, chunk := range chunks {
+		add(chunk, mood)
+	}
+
+	return stop
+}
+
+// queued is a sentence waiting for the voice.
+type queued struct {
+	text string
+	mood Emotion
+}
+
+// queue starts a line whose sentences come one by one: each is fetched as
+// soon as the one before it is, and played when the one before it ends, so
+// the next sentence is being synthesized while the previous one is heard.
+// It returns what adds a sentence and what stops it all: the fetches are
+// abandoned and the player killed.
+func (b *Chatterbox) queue(name, kind string) (func(text string, mood Emotion), func()) {
+	ctx, cancel := context.WithCancel(context.Background())
+	lines := make(chan queued, 32)
+	sounds := make(chan string, 32)
 
 	var (
-		mu  sync.Mutex
-		cmd *exec.Cmd
+		mu     sync.Mutex
+		cmd    *exec.Cmd
+		closed bool
 	)
 
 	go func() {
-		defer cancel()
+		defer close(sounds)
 
-		settings := LoadVoiceSettings(b.Settings)
-		how := settings.Expression(mood)
-		data, err := Synthesize(ctx, b.URL, SpeakRequest{
-			Text: text, Language: settings.Language, Voice: settings.VoiceFor(name, kind),
-			Exaggeration: how.Exaggeration, CFG: how.CFG, Temperature: how.Temperature,
-		})
-		if err != nil || ctx.Err() != nil {
-			return
+		for line := range lines {
+			if ctx.Err() != nil {
+				return
+			}
+
+			path, err := b.fetch(ctx, name, kind, line)
+			if err != nil {
+				continue
+			}
+
+			sounds <- path
 		}
-
-		path := filepath.Join(b.Dir, fmt.Sprintf("neuro-line-%d.wav", time.Now().UnixNano()))
-		if err := os.WriteFile(path, data, 0o644); err != nil {
-			return
-		}
-
-		mu.Lock()
-		if ctx.Err() == nil {
-			cmd = b.play(ctx, path)
-			_ = cmd.Start()
-		}
-		mu.Unlock()
-
-		if cmd != nil {
-			_ = cmd.Wait()
-		}
-
-		_ = os.Remove(path)
 	}()
 
-	return func() {
+	go func() {
+		for path := range sounds {
+			mu.Lock()
+			if ctx.Err() == nil {
+				cmd = b.play(ctx, path)
+				if cmd.Start() != nil {
+					cmd = nil
+				}
+			}
+			playing := cmd
+			mu.Unlock()
+
+			if playing != nil {
+				_ = playing.Wait()
+			}
+
+			_ = os.Remove(path)
+		}
+	}()
+
+	add := func(text string, mood Emotion) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		if closed {
+			return
+		}
+
+		select {
+		case lines <- queued{text, mood}:
+		default: // a line this long is not worth hearing to the end
+		}
+	}
+
+	stop := func() {
 		mu.Lock()
 		defer mu.Unlock()
 
 		cancel()
+		if !closed {
+			closed = true
+			close(lines)
+		}
+
 		if cmd != nil && cmd.Process != nil {
 			_ = cmd.Process.Kill()
 		}
 	}
+
+	return add, stop
+}
+
+// fetch synthesizes one sentence into a WAV file and returns its path.
+func (b *Chatterbox) fetch(ctx context.Context, name, kind string, line queued) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, ttsTimeout)
+	defer cancel()
+
+	settings := LoadVoiceSettings(b.Settings)
+	how := settings.Expression(line.mood)
+	data, err := Synthesize(ctx, b.URL, SpeakRequest{
+		Text: line.text, Language: settings.Language, Voice: settings.VoiceFor(name, kind),
+		Exaggeration: how.Exaggeration, CFG: how.CFG, Temperature: how.Temperature,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	path := filepath.Join(b.Dir, fmt.Sprintf("neuro-line-%d.wav", time.Now().UnixNano()))
+
+	return path, os.WriteFile(path, data, 0o644)
 }
 
 // play is the command that plays the WAV at path.

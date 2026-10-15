@@ -57,6 +57,9 @@ type Speaker struct {
 	// startAs, when set, speaks as a named character of a kind: a voice
 	// that can tell speakers apart uses it.
 	startAs func(name, kind, text string, mood Emotion) (stop func())
+	// queueAs, when set, starts a line whose sentences come one by one, as
+	// the model writes them (see Stream).
+	queueAs func(name, kind string) (add func(text string, mood Emotion), stop func())
 
 	mu   sync.Mutex
 	stop func()

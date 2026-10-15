@@ -29,6 +29,11 @@ type namedVoice interface {
 	SayAs(name, kind, text string, mood speech.Emotion)
 }
 
+// streamingVoice is a voice that can speak a line while it is written.
+type streamingVoice interface {
+	StreamAs(name, kind string) *speech.Stream
+}
+
 // Ear records the player's voice and turns it into text.
 type Ear interface {
 	Start() error
@@ -186,6 +191,7 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return g.haggle(msg)
 	case pieceMsg:
 		g.shop.partial += msg.piece
+		g.shop.speaking.Write(msg.piece)
 		g.shop.render()
 
 		return g, next(g.shop.stream)
@@ -206,7 +212,12 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		g.realm.HaggleRemember(g.name, msg.said, line)
 		g.shop.waiting, g.shop.partial = false, ""
 		g.shop.say(speakerMerchant, withMood(line, mood))
-		g.speak(msg.text)
+		if g.shop.speaking != nil {
+			g.shop.speaking.Close(msg.text)
+			g.shop.speaking = nil
+		} else {
+			g.speak(msg.text)
+		}
 
 		if g.record != nil && msg.problem == nil {
 			g.record(msg.request, msg.text)
@@ -400,13 +411,7 @@ func (g Game) speak(text string) {
 	}
 
 	mood, line := speech.SplitMood(text)
-	name, kind := "", "narrator"
-	if g.view.Shop != nil {
-		name, kind = g.view.Shop.Keeper, string(g.view.Shop.Kind)
-		if kind == "" {
-			kind = "towarzysz"
-		}
-	}
+	name, kind := g.speaker()
 
 	if named, ok := g.voice.(namedVoice); ok {
 		named.SayAs(name, kind, line, mood)
@@ -415,6 +420,32 @@ func (g Game) speak(text string) {
 	}
 
 	g.voice.Say(line, mood)
+}
+
+// speakLive starts reading a character's line aloud while the model is
+// still writing it, if the voice can; otherwise the line is read when it
+// is finished.
+func (g Game) speakLive() *speech.Stream {
+	live, ok := g.voice.(streamingVoice)
+	if !ok {
+		return nil
+	}
+
+	return live.StreamAs(g.speaker())
+}
+
+// speaker is who is talking: the keeper of the open shop, or the narrator.
+func (g Game) speaker() (string, string) {
+	if g.view.Shop == nil {
+		return "", "narrator"
+	}
+
+	kind := string(g.view.Shop.Kind)
+	if kind == "" {
+		kind = "towarzysz"
+	}
+
+	return g.view.Shop.Keeper, kind
 }
 
 // withMood shows the mood a line was said in, when it was not a calm one.

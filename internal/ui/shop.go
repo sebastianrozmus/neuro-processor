@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -88,8 +89,10 @@ type shop struct {
 	// partial is the reply so far, while it is being written.
 	partial string
 	stream  chan tea.Msg
-	width   int
-	height  int
+	// speaking reads the reply aloud as it is written.
+	speaking *speech.Stream
+	width    int
+	height   int
 }
 
 func newShop() shop {
@@ -223,6 +226,7 @@ func (g Game) haggle(msg intentMsg) (tea.Model, tea.Cmd) {
 	// Only idle talk invents things; a deal is about what is on the shelf.
 	idle := decision.Outcome == game.OutcomeChat || decision.Outcome == game.OutcomeWares || decision.Outcome == game.OutcomeUnclear
 	g.shop.partial, g.shop.stream = "", make(chan tea.Msg, 64)
+	g.shop.speaking = g.speakLive()
 
 	return g, narrate(g.brain, request, idle, g.shop.stream)
 }
