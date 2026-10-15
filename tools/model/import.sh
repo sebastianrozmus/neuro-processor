@@ -33,4 +33,4 @@ PARAMETER num_ctx 4096
 MODELFILE
 
 ollama create "$NAME" -f "$WORK/Modelfile-$NAME"
-echo "Gotowe. Sprawdź modelem: bench i odtworzenie rozmów (tools/model/HISTORIA.md, krok 5), potem w .env.local: NEURO_TALK_MODEL=$NAME"
+echo "Gotowe. Sprawdź modelem: tools/bench/bench.sh $NAME i tools/bench/replay.py (tools/bench/README.md), potem w .env.local: NEURO_TALK_MODEL=$NAME"

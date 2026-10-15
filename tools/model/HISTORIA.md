@@ -74,7 +74,7 @@ Gotowe modele robiły to źle: albo mówiły drewnianie (gemma), albo nie trzyma
 
 ### Krok 7 — run 4: dane celowane + bench (10 X) ✅
 - Najpierw **poprawka w grze**: najemnik i towarzysz dostawali brief kupca („poleć coś ze swojego towaru”) — stąd dziwne odpowiedzi. `Decision.BriefFor(role)`; stare dane przepisane skryptem `rebrief.py`.
-- GPT: 400 wierszy skupionych (200 najemnik / 120 towarzysz / 80 kupiec) + **80 przypadków regresji, których nie uczymy** — to nasz stały bench (`bench_ollama.py`, sprawdza liczby, zdania, nastrój).
+- GPT: 400 wierszy skupionych (200 najemnik / 120 towarzysz / 80 kupiec) + **80 przypadków regresji, których nie uczymy** — to nasz stały bench (`tools/bench/`, sprawdza liczby, zdania, nastrój).
 - Run 4 = **kontynuacja od adaptera run 3** (nie od zera), 700 kroków, lr 5e-5 (o połowę mniejszy, żeby nie zepsuć tego, co już umie), ~70 min. Bench: **71 → 78/80**.
 - Lekcja: bench nie łapie wszystkiego. W grze na żywo „siema mordo” dawało bełkot, a pytanie o zbroję — przemowę o szkielecie. Przyczyny po stronie gry (brief bez nastroju, podpowiedź z jednego słowa w opisie potwora, zero powitań w danych) — naprawione w kodzie; logi pełnych promptów (`NEURO_LOG_TALKS=1`) i skrypty replay stały się podstawowym narzędziem.
 
@@ -113,7 +113,7 @@ Czas: przygotowanie ~1 h, każdy trening 1–4 h, w trakcie gra wyłączona. Mie
 - `extra-gpt-npc*.jsonl` — rozmowy zamówione u silnego modelu według `tools/model/PROMPT.md` (to jest serce zbioru; zamawiaj po 300–600 na raz, z listą braków, każ pisać potoczne wejścia gracza);
 - `synth-fixed.jsonl`, `manual*.jsonl` — ręcznie poprawione i własne;
 - `talks.jsonl` — logi z gry; **domyślnie pomijane** (wchodzą tylko z `NEURO_RAW_TALKS=1`), bo to zapis obecnego modelu, nie wzorzec.
-Każdą nową paczkę przepuść przez walidator (`scratchpad`/`check_new.py` z kompilacji szablonów z `internal/llm/prompt.go`) i przeczytaj losowe 30 linii oczami: kierunek zapłaty, liczby, polszczyzna.
+Każdą nową paczkę przepuść przez walidator (`python3 tools/bench/check_data.py PLIK.jsonl`) i przeczytaj losowe 30 linii oczami: kierunek zapłaty, liczby, polszczyzna.
 
 **2. Złóż zbiór.** `python3 tools/model/prepare.py` → `model/data/{train,valid,test}.jsonl`. Podział po haszu wiersza jest stały, więc kolejne runy są porównywalne między sobą. Spójrz na wypis „train/valid/test” i na liczbę przykładów na rodzaj decyzji.
 
@@ -127,12 +127,11 @@ NEURO_RESUME="$M/run5-final.safetensors" NEURO_MODEL_NAME=neuro-npc-run6 NEURO_R
 ```
 W logu co 100 kroków jest `val` — powinien spadać (z szumem). Na końcu `Test loss … ppl …`, potem fuse, GGUF i `ollama create`. Po treningu **skopiuj adapter**: `cp "$M/adapters/adapters.safetensors" "$M/run6-final.safetensors"` — to Twój punkt powrotu. Jeśli maszynie zabraknie pamięci przy wtapianiu: `NEURO_MODEL_NAME=neuro-npc-run6 tools/model/publish.sh`.
 
-**4. Zmierz, zanim przełączysz.**
+**4. Zmierz, zanim przełączysz.** (szczegóły: `tools/bench/README.md`)
 ```
-cd scratchpad/run4/zip/neuro_run4_focus   # (bez python3 -I)
-python3 tools/bench_ollama.py --model neuro-npc-run6 --cases ../../bench/regression-80-game.jsonl --out ../../bench/run6 --temperature 0.8 --num-predict 220 --num-ctx 4096 --timeout 300
-python3 tools/bench_ollama.py ... --seed 7 --out ../../bench/run6-s7
-python3 scratchpad/replay4.py "$DATA/talks.jsonl" neuro-npc-run5,neuro-npc-run6   # Twoje prawdziwe rozmowy na obu modelach
+tools/bench/bench.sh neuro-npc-run6                                   # 80 przypadków, seedy 42 i 7
+python3 tools/bench/compare.py run5 run6                              # tabela obok poprzedniego
+python3 tools/bench/replay.py neuro-npc-run5,neuro-npc-run6           # Twoje prawdziwe rozmowy na obu modelach
 ```
 Patrz na trzy rzeczy: liczba OK/80 w dwóch seedach, replay oczami, i to, czy błędy z poprzedniej wersji zniknęły. Lepszy model = taki, który naprawia to, co widziałeś w grze, bez psucia benchu o więcej niż szum (±3).
 

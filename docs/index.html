@@ -312,11 +312,10 @@ NEURO_MODEL_NAME=neuro-npc-run6 tools/model/publish.sh</code></pre>
     W logu co 100 kroków jest <code>val</code> — powinien spadać (z szumem). Na końcu <code>Test loss … ppl …</code>, fuse, GGUF i <code>ollama create</code>.</li>
 
   <li><strong>Zmierz, zanim przełączysz.</strong>
-<pre><code>cd scratchpad/run4/zip/neuro_run4_focus        # bez python3 -I
-python3 tools/bench_ollama.py --model neuro-npc-run6 --cases ../../bench/regression-80-game.jsonl \
-  --out ../../bench/run6 --temperature 0.8 --num-predict 220 --num-ctx 4096 --timeout 300
-python3 tools/bench_ollama.py … --seed 7 --out ../../bench/run6-s7
-python3 scratchpad/replay4.py "$DATA/talks.jsonl" neuro-npc-run5,neuro-npc-run6</code></pre>
+<pre><code>tools/bench/bench.sh neuro-npc-run6                          # 80 przypadków, seedy 42 i 7
+python3 tools/bench/compare.py run5 run6                     # tabela obok poprzedniego
+python3 tools/bench/replay.py neuro-npc-run5,neuro-npc-run6  # Twoje rozmowy z talks.jsonl</code></pre>
+    Wszystko o pomiarze: <code>tools/bench/README.md</code>.
     Patrz na trzy rzeczy: OK/80 w dwóch seedach, replay oczami, i czy błędy z poprzedniej wersji zniknęły. Lepszy model naprawia to, co widziałeś w grze, nie psując benchu o więcej niż szum.</li>
 
   <li><strong>Przełącz.</strong> W <code>.env.local</code>: <code>NEURO_TALK_MODEL=neuro-npc-run6</code>. Powrót to jedna linijka. Graj z <code>NEURO_DEBUG=on</code> i patrz na zakładkę <strong>Model</strong> w podglądzie: każda odrzucona kwestia to albo błąd modelu (materiał na następne zamówienie), albo za ostra zasada w grze.</li>

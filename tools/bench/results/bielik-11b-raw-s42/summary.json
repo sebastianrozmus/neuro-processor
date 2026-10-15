@@ -1,0 +1,68 @@
+{
+  "model": "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M",
+  "url": "http://localhost:11434",
+  "options": {
+    "temperature": 0.8,
+    "seed": 42,
+    "num_ctx": 4096,
+    "num_predict": 220
+  },
+  "case_file_sha256": "b55d29002c7384d8908f6bd35bc98492cb45d4aa28ca70828fe3d029e4a05853",
+  "requested_cases": 80,
+  "references_sent_to_model": false,
+  "scope": "Ollama API only; not an in-game test",
+  "semantics_automatically_scored": false,
+  "completed_cases": 80,
+  "automatic_format_pass": 8,
+  "automatic_fail": 72,
+  "error_counts": {
+    "markup_or_quotes_in_speech": 36,
+    "sentence_count": 70,
+    "generation_truncated": 29,
+    "missing_required_numbers:85": 1,
+    "forbidden_numbers:10": 1,
+    "numbers_in_non_numeric_case": 9,
+    "forbidden_numbers:5": 1,
+    "spelled_numerals:trzema": 5,
+    "missing_or_invalid_mood": 4,
+    "missing_required_numbers:19": 1,
+    "missing_required_numbers:12": 1,
+    "missing_required_numbers:14": 1,
+    "spelled_numerals:jeden": 1,
+    "forbidden_numbers:20": 1,
+    "spelled_numerals:dwie": 1,
+    "forbidden_numbers:12": 1,
+    "missing_required_numbers:25": 1,
+    "spelled_numerals:dwadzieścia,osiem": 1,
+    "missing_required_numbers:28": 2,
+    "forbidden_numbers:2": 1,
+    "spelled_numerals:jednej": 1,
+    "forbidden_numbers:1,2": 1,
+    "spelled_numerals:dwoma": 1,
+    "spelled_numerals:dwa,dwoma,jedno": 1,
+    "missing_required_numbers:110": 2,
+    "spelled_numerals:dziesięć,sto": 1,
+    "spelled_numerals:jednej,trzy": 1,
+    "forbidden_numbers:10,17,28,50": 1,
+    "spelled_numerals:jednego": 1,
+    "missing_required_numbers:73": 2,
+    "spelled_numerals:dwa,dwie,trzy": 1
+  },
+  "by_role": {
+    "comp": {
+      "completed": 24,
+      "automatic_format_pass": 3
+    },
+    "merc": {
+      "completed": 40,
+      "automatic_format_pass": 2
+    },
+    "shop": {
+      "completed": 16,
+      "automatic_format_pass": 3
+    }
+  },
+  "transport_error": null,
+  "conclusion": "Format/number checks only. Review relevance, payment direction, joining, healing and lore manually.",
+  "full_suite_completed": true
+}
