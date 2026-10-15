@@ -11,6 +11,7 @@ import (
 	"github.com/sebastianrozmus/neuro-processor/internal/avatars"
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
 	"github.com/sebastianrozmus/neuro-processor/internal/speech"
+	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
 // worldMsg tells the interface that the shared world changed.
@@ -66,7 +67,11 @@ type Game struct {
 	// hearing is what the help line says about the microphone.
 	hearing string
 
-	view   game.View
+	view game.View
+	// names paints the names of the world in the transcripts; it is made
+	// again when the world changes.
+	names  *namer
+	named  *world.World
 	input  textinput.Model
 	last   string
 	bag    bool
@@ -276,7 +281,13 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return g, nil
 	case inventedMsg:
-		if item, ok := g.realm.Invent(g.name, msg.item, msg.line); msg.offered && ok {
+		// The small model hears an offer in any mention, so the line itself
+		// has to sell the thing as well.
+		if !msg.offered || !game.Offered(msg.line, msg.item.Name) {
+			return g, nil
+		}
+
+		if item, ok := g.realm.Invent(g.name, msg.item, msg.line); ok {
 			g.shop.say(speakerSystem, fmt.Sprintf("Do świata wpada: %s (%d %s). %s", item.Name, item.Price(), g.view.World.Currency, game.Effect(item)))
 			g.refresh()
 		}
@@ -333,6 +344,10 @@ func (g *Game) refresh() {
 	g.view = g.realm.View(g.name)
 	g.collect()
 
+	if g.named != g.view.World {
+		g.names, g.named = newNamer(g.view.World), g.view.World
+	}
+
 	// New lines of the game master are read aloud as they come in.
 	for _, line := range g.view.Log[min(heard, len(g.view.Log)):] {
 		if strings.HasPrefix(line, game.MasterMark) {
@@ -382,6 +397,7 @@ func (g *Game) refresh() {
 			}
 		}
 
+		g.shop.names = g.names
 		g.shop.open(*g.view.Shop, portrait)
 		g.speak(g.view.Shop.Greeting)
 	}

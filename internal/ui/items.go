@@ -270,7 +270,7 @@ var effectColours = map[world.Effect]rune{
 
 // kindGlyphs mark an item's kind in a list, before its name.
 var kindGlyphs = map[world.Kind]string{
-	world.KindWeapon: "⚔", world.KindArmor: "◈", world.KindPotion: "⚗", world.KindSpell: "✧", world.KindCharm: "◉",
+	world.KindWeapon: "†", world.KindArmor: "◈", world.KindPotion: "δ", world.KindSpell: "✧", world.KindCharm: "◉",
 }
 
 var icons sync.Map

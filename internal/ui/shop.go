@@ -93,6 +93,8 @@ type shop struct {
 	speaking *speech.Stream
 	width    int
 	height   int
+	// names paints the names of the world in what is said.
+	names *namer
 }
 
 func newShop() shop {
@@ -148,9 +150,9 @@ func (s *shop) render() {
 	for _, line := range s.lines {
 		switch line.speaker {
 		case speakerPlayer:
-			blocks = append(blocks, wrap.Render(playerStyle.Render("Ty: ")+line.text))
+			blocks = append(blocks, wrap.Render(playerStyle.Render("Ty: ")+s.names.paint(line.text)))
 		case speakerMerchant:
-			blocks = append(blocks, wrap.Render(titleStyle.Render(s.merchant+": ")+line.text))
+			blocks = append(blocks, wrap.Render(titleStyle.Render(s.merchant+": ")+s.names.paint(line.text)))
 		default:
 			blocks = append(blocks, wrap.Render(dimStyle.Render(line.text)))
 		}

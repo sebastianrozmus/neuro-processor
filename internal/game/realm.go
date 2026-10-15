@@ -449,7 +449,7 @@ func (r *Realm) arrive(visitor *player, before int) {
 
 	if tile.Town >= 0 {
 		visitor.home = tile.Town
-		r.tell(visitor, "Możesz tu odwiedzić: "+join(r.buildings())+". Odpoczynek jest za darmo.")
+		r.tell(visitor, "Możesz tu odwiedzić (odpoczynek jest za darmo):"+bullets(r.buildings()))
 
 		if len(r.world.Companions) > 0 {
 			r.tell(visitor, r.innLine(tile.Town))

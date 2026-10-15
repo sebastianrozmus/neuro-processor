@@ -352,7 +352,9 @@ func (g Game) logView() string {
 		case strings.HasPrefix(line, "> "):
 			line = dimStyle.Render(line)
 		case strings.HasPrefix(line, game.MasterMark):
-			line = titleStyle.Render(game.MasterMark) + strings.TrimPrefix(line, game.MasterMark)
+			line = titleStyle.Render(game.MasterMark) + g.names.paint(strings.TrimPrefix(line, game.MasterMark))
+		default:
+			line = g.names.paint(line)
 		}
 
 		lines = append(lines, line)
@@ -532,7 +534,7 @@ func (g Game) helpView() string {
 
 	switch {
 	case g.view.Lost:
-		help = badStyle.Render("✖ Przegrana ✖ ") + help
+		help = badStyle.Render("× Przegrana × ") + help
 	case g.view.Won && g.view.Investigation():
 		help = goldStyle.Render("★ Sprawa rozwiązana ★ ") + help
 	case g.view.Won && g.view.Rooms():

@@ -226,7 +226,7 @@ func (r *Realm) look(viewer *player) {
 	}
 
 	if tile.Town >= 0 {
-		r.tell(viewer, "Możesz tu odwiedzić: "+join(r.buildings())+". Odpoczynek jest za darmo.")
+		r.tell(viewer, "Możesz tu odwiedzić (odpoczynek jest za darmo):"+bullets(r.buildings()))
 
 		if len(r.world.Companions) > 0 {
 			r.tell(viewer, r.innLine(tile.Town))

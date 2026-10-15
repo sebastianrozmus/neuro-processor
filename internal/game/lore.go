@@ -262,7 +262,9 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		fact := known[r.rng.Intn(len(known))]
 		r.learn(customer, fact)
 
-		return fmt.Sprintf("Możesz wpleść jedną rzecz, którą wiesz: %s. %s", fact.Subject, fact.Text), nil
+		// The model was taught to always use the fact; told it may drop one
+		// that does not fit, it stops sending a buyer of berries to a mine.
+		return fmt.Sprintf("Możesz wpleść jedną rzecz, którą wiesz: %s. %s Jeśli nie pasuje do tego, co mówi gracz, pomiń ją.", fact.Subject, fact.Text), nil
 	}
 
 	// A greeting or banter with nothing to hang on: without a direction a

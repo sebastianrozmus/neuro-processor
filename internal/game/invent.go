@@ -3,6 +3,7 @@ package game
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
@@ -59,6 +60,57 @@ func (r *Realm) Invent(name string, item world.ItemSpec, line string) (world.Ite
 	r.tell(customer, fmt.Sprintf("Do świata wpada: %s (%d %s). %s", item.Name, item.Price(), r.world.Currency, Effect(item)))
 
 	return item, true
+}
+
+// Offered checks a keeper's line against the small model's verdict: the
+// item counts as offered only in a sentence that names it and sells it,
+// with a price or a word like "mam" or "polecam", and does not turn it
+// away. "Jeśli chcesz jagody, idź po nie w kopalni" once put berries on a
+// smith's shelf.
+func Offered(line, name string) bool {
+	if _, rest, tagged := strings.Cut(line, "] "); tagged && strings.HasPrefix(line, "[") {
+		line = rest
+	}
+
+	for _, sentence := range strings.FieldsFunc(line, func(char rune) bool { return strings.ContainsRune(".!?;", char) }) {
+		if !Matches(sentence, name) {
+			continue
+		}
+
+		folded := " " + strings.Join(strings.Fields(Fold(sentence)), " ") + " "
+		if containsAny(folded, refusalCues) {
+			return false
+		}
+
+		if containsAny(folded, offerCues) || strings.ContainsAny(folded, "0123456789") {
+			return true
+		}
+	}
+
+	return false
+}
+
+// offerCues and refusalCues are folded words that begin with a space, so
+// that "mam" does not match inside "mamy" only by accident of a suffix.
+var (
+	offerCues = []string{
+		" mam ", " mamy ", " sprzeda", " oferu", " polec", " kup ", " kupisz ", " kupic ", " wez ", " wezcie ", " dam ", " dostaniesz ",
+		" znajdzie sie ", " moge dac ", " moge sprzedac ", " trzymam ", " na polce ", " w cenie ", " kosztuje ",
+	}
+	refusalCues = []string{
+		" nie mam ", " nie mamy ", " nie sprzeda", " nie trzymam ", " nie handluj", " nie prowadz", " nie znajdziesz ",
+		" nie ma ", " brak ", " idz po ", " szukaj ", " poszukaj ", " zbierz ",
+	}
+)
+
+func containsAny(text string, cues []string) bool {
+	for _, cue := range cues {
+		if strings.Contains(text, cue) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // known reports whether the world already has an item of this or a

@@ -157,7 +157,13 @@ func TestExploreAndFightByCommands(t *testing.T) {
 		assertFits(t, model, size, "start")
 
 		model = enter(model, "rozejrzyj się")
-		assertShows(t, model, "look", "> rozejrzyj się", "Drogi: północ:")
+		assertShows(t, model, "look", "Drogi: północ:")
+
+		// In a settlement the look lists the buildings and the inn one
+		// under another, which pushes the command off the smallest screen.
+		if size[1] > MinHeight {
+			assertShows(t, model, "look", "> rozejrzyj się")
+		}
 
 		model = walkIntoFight(t, model)
 		assertShows(t, model, "fight", "Walka, runda 1", "Walka! Przeciwnicy:", "Atak", "Moc", "Przedmiot", "Ucieczka", "Enter dalej")
@@ -341,7 +347,7 @@ func TestShopBuyAndEquip(t *testing.T) {
 		assertFits(t, model, size, "shop after a purchase")
 
 		model = press(model, tea.KeyEsc, tea.KeyTab)
-		assertShows(t, model, "sheet", "Zardzewiały Kord", "atak +3", "⚔")
+		assertShows(t, model, "sheet", "Zardzewiały Kord", "atak +3", "†")
 		assertFits(t, model, size, "sheet with an icon")
 
 		// The chosen thing is drawn: a sword is a diagonal of steel.
@@ -708,6 +714,16 @@ type inventingBrain struct {
 	recorded []string
 }
 
+// Narrate offers the helmet in idle talk: the small model's "offered" is
+// not enough without a line that sells the thing.
+func (b *inventingBrain) Narrate(ctx context.Context, request game.NarrateRequest) (string, error) {
+	if request.Decision.Outcome == game.OutcomeChat {
+		return "Mam też hełm z rondem, nada się.", nil
+	}
+
+	return b.Mock.Narrate(ctx, request)
+}
+
 func (b *inventingBrain) Invent(context.Context, game.InventRequest) (world.ItemSpec, bool, error) {
 	return world.ItemSpec{Name: "Hełm z Rondem", Description: "Garnek z daszkiem.", Kind: world.KindArmor, Tier: 1}, true, nil
 }
@@ -1040,7 +1056,7 @@ func TestLinesAddressedToCompanionsAreOrders(t *testing.T) {
 	// Whoever waits in the inn here is hired and addressed by first name.
 	hired := ""
 	for _, line := range model.(Game).view.Log {
-		if _, names, ok := strings.Cut(line, "W karczmie czeka do wynajęcia: "); ok {
+		if _, names, ok := strings.Cut(line, "W karczmie czeka do wynajęcia:\n  • "); ok {
 			hired, _, _ = strings.Cut(names, " (")
 		}
 	}

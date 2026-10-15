@@ -78,3 +78,9 @@ func Stem(word string) string {
 func join(names []string) string {
 	return strings.Join(names, ", ")
 }
+
+// bullets lists names one under another, each after a dot, the way a
+// list is easier to read than a long sentence.
+func bullets(names []string) string {
+	return "\n  • " + strings.Join(names, "\n  • ")
+}

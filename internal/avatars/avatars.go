@@ -128,7 +128,7 @@ func (l *Library) Portrait(id string) string {
 
 func (l *Library) read(id, suffix string) string {
 	if data, err := builtin.ReadFile("builtin/" + id + suffix + ".txt"); err == nil {
-		return strings.TrimRight(string(data), "\n")
+		return art(data)
 	}
 
 	if l.dir == "" || id == "" || id != world.Slug(id) {
@@ -140,7 +140,14 @@ func (l *Library) read(id, suffix string) string {
 		return ""
 	}
 
-	return strings.TrimRight(string(data), "\n")
+	return art(data)
+}
+
+// art is a drawing without its last newline and without the carriage
+// returns of a Windows checkout, each of which would send the cursor back
+// to the start of the row.
+func art(data []byte) string {
+	return strings.TrimRight(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n")
 }
 
 // Add stores a portrait under a name and returns its ID. A name already in

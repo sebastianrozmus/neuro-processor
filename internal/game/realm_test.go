@@ -171,7 +171,7 @@ func TestJoinGivesUniqueNamesAndSharedView(t *testing.T) {
 		t.Errorf("view = %+v", me)
 	}
 
-	if !logged(realm, first, "Zbrojownia (Kowal), Chata Zielarki (Jagna)") {
+	if !logged(realm, first, "  • Zbrojownia (Kowal)\n  • Chata Zielarki (Jagna)") {
 		t.Errorf("no buildings in the arrival text: %v", view.Log)
 	}
 
@@ -1251,7 +1251,7 @@ func TestHiringCompanions(t *testing.T) {
 
 	// Companions are spread across the settlements: the first and third
 	// wait here, the second in the outpost.
-	if !logged(realm, ala, "W karczmie czeka do wynajęcia: Bogna Topór (wojownik, 60 kapsli), Wiesza (mag, 70 kapsli).") {
+	if !logged(realm, ala, "W karczmie czeka do wynajęcia:\n  • Bogna Topór (wojownik, 60 kapsli)\n  • Wiesza (mag, 70 kapsli)\n") {
 		t.Fatalf("inn line missing: %v", realm.View(ala).Log)
 	}
 

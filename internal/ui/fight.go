@@ -259,7 +259,7 @@ func (g Game) fightView(width int) string {
 	}
 
 	if g.view.Me.Poison > 0 {
-		title += "   " + badStyle.Render(fmt.Sprintf("☠ jad: %d rund", g.view.Me.Poison))
+		title += "   " + badStyle.Render(fmt.Sprintf("Jad: %d rund", g.view.Me.Poison))
 	}
 
 	order := make([]string, 0, len(fight.Order))

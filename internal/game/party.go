@@ -197,7 +197,7 @@ func (r *Realm) innLine(town int) string {
 		}
 	}
 
-	return "W karczmie czeka do wynajęcia: " + join(names) + ". Wynajmiesz poleceniem «najmij», a potargujesz się przez «rozmawiaj z X»."
+	return "W karczmie czeka do wynajęcia:" + bullets(names) + "\nWynajmiesz poleceniem «najmij», a potargujesz się przez «rozmawiaj z X»."
 }
 
 func (r *Realm) hire(leader *player, what string) {

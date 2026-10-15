@@ -16,7 +16,9 @@ func Art(name string) (string, error) {
 		return "", err
 	}
 
-	return strings.TrimRight(string(data), "\n"), nil
+	// A checkout with Windows line endings must not leave a carriage return
+	// at the end of every row of art.
+	return strings.TrimRight(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n"), nil
 }
 
 // Pixels returns the raw pixel art stored under the given name: a width
