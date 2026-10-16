@@ -9,3 +9,6 @@ tools/model/manual*.jsonl
 __pycache__/
 tools/bench/eval/regression-80-game.jsonl
 /dist/
+
+# Paczki danych od GPT (trzymane poza repo, kopia w D:\neuro-train\gpt)
+tools/model/extra-*.jsonl
