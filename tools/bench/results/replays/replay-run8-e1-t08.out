@@ -1,0 +1,74 @@
+## siema mordo | spokojna. Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej. Odpowi
+  gra powiedziała: [spokój] Siema, o czym tu chcesz pogadać?
+  run8-7b 0: [spokój] Siema, mordo, czego ode mnie chcesz?
+  run8-7b 1: [spokój] Siema, po co przyszedłeś?
+  run8-7b 2: [spokój] Siema, wielkoludzie, po co przyszedłeś?
+  run8-e1 0: [spokój] Siema, co cię sprowadza do starego Borina?
+  run8-e1 1: [spokój] Siema, ziomku, o co chcesz zagadać?
+  run8-e1 2: [spokój] Siema, nieznajomy, z czym przychodzisz?
+## elo mordo | spokojna. Gracz pyta o twój towar. Pasuje: «Zwój Kuli Ognia» 135 (Zwój z pieczęcią Akademii. Ogień, który nie pyta o imię. Do nauczenia. Ran
+  gra powiedziała: [spokój] Wiesz, można by rzec, że ogień ma własny rozum; nawet Akademia nie potrafiła go okiełznać do końca. Może zainteresuje cię Zwój Kuli Ognia za 135 sztuk złota, bo kiedy go odczytasz, wrogom odbierze część ich życia i twojej troski o paliwo?
+  run8-7b 0: [spokój] O królu? A którym? Ten, którego kopiec stoi na Kurhanach, ma błędne ognie u stóp. Ten w Krasnoludzkiej Przystani ma Borina na warcie. Ten, którego zwój trzymam, ma napisane, że ognia należy uczyć się odważnie. Chcesz Zwój Kuli Ognia? 135 sztuk złota.
+  run8-7b 1: [spokój] Królu? Doliny, znaczy się, bo na imię ma Karwin. Mówią, że w kopalni pod górą pali się czerwone światło. To nie ogień, to coś, co w nim mieszka. Weź Zwój Kuli Ognia za 135 i mów cześć każdemu, kto na ciebie patrzy.
+  run8-7b 2: [spokój] O królu? Wiem tyle, że wisi na tablicy jako nagroda. Chcesz o nim czy o ogniu? Jeśli o ogniu, Zwój Kuli Ognia z Akademii, rani wszystkich wrogów za 10, kosztuje 135 sztuk złota. Pamięć ma, lecz tylko na papierze.
+  run8-e1 0: [spokój] Król to król, więc nie pytaj o niego w księdze ognia. Zwój Kuli Ognia za 135 jest jednak dobry na goblinów, a nie na rozmowy.
+  run8-e1 1: [spokój] Kuli Ognia nie znam osobiście, ale Zwój Kuli Ognia znam dobrze: rani wszystkich za 10, kosztuje 9 punktów mocy. Akademia wysyłała go na gobliny, nie na pamięć. Cena: 135 sztuk złota.
+  run8-e1 2: [spokój] Król? Królowie gór nie liczą, oni rządzą. Zwój Kuli Ognia kosztuje 135 sztuk złota, rani wszystkich za 10 i zadaje 9 mocy. Akademia nie chciała go złamać, chciała go złamać.
+## co wiesz o krolu | spokojna. Gracz pyta o coś, czego nie znasz: Kurhany Królów. Słyszałeś tylko tyle: „Omszałe kopce dawnych władców doliny”. Powiedz to jak za
+  gra powiedziała: [kpina] Kurhanów nie zbadano; siostrą Agnetą w aptece o tym rozmawiaj
+  run8-7b 0: [spokój] O Kurhanach Królów słyszałem tylko, że to omszałe kopce dawnych władców doliny. Więcej wie Siostra Agnes w aptece, zapytaj ją.
+  run8-7b 1: [spokój] Krążą pogłoski o Kurhanach Królów, mokrych od kurzu i mchu. Więcej nie wiem; Siostra Agnes z apteki zna tę historię.
+  run8-7b 2: [spokój] O Kurhanach Królów mówią, że to kopce dawnych władców doliny, a ich głowy jeszcze nie zbutwiały. Ja tam nie byłem, więc zapytaj Siostrę Agnes w aptece.
+  run8-e1 0: [spokój] Mówią, że w Kurhanach Królów spoczywają dawni władcy doliny. Ja ich nie widziałem, więc nie znam szczegółów. Siostra Agnes z Apteki powie ci więcej.
+  run8-e1 1: [spokój] Krąży wieść o Kurhanach Królów, omszałych kopcach dawnych władców doliny. Nie znam jednak więcej, więc Siostra Agnes z Apteki w Karwinie powie ci więcej.
+  run8-e1 2: [spokój] Mówią, że Kurhany Królów są omszałe, ale nie znam kogoś, kto wrócił z nich żywy. Siostra Agnes w aptece powie ci więcej.
+## plotki | spokojna. Możesz wpleść jedną rzecz, którą wiesz: Pola Karw. Łąki i zagrody, z których chłopi uciekli przed goblinami. W zbożu coś szeleści.
+  gra powiedziała: [spokój] Słychać to tu, gdzie stal stoi. Chłopi z Karwu uciekają na pola przed gradami i goblinami. W zbożu szeleści coś czasem; to chyba nie trzeba daleko patrzeć. Niebezpieczeństwo jest takie, jak napis za drzwiami.
+  run8-7b 0: [spokój] Chłopi uciekli z pól przed goblinami, ale nikt nie wie, co szeleści w zbożu. Niebezpieczeństwo małe, chłopi uciekli bez broni.
+  run8-7b 1: [spokój] W kopalni ponoć miga czerwone światło, a gobliny wychodzą z góry, jakby miały ogniwo w nogach. Chłopi z pól Karw uciekli, zanim zobaczyli cokolwiek oprócz zboża i cieni, a cienie nie gryzą.
+  run8-7b 2: [spokój] Chłopi z pól uciekli przed goblinami, i słusznie; w zbożu coś szeleści, ale na razie to tylko zboże. Niebezpieczeństwo: małe, dopóki nie zbierzesz goblina z łopatą.
+  run8-e1 0: [spokój] Pola Karw, gdzie chłopi uciekli przed goblinami, wciąż szeleści zbożem. Niebezpieczeństwo małe, ale idź z psem, bo pies słyszy, czego człowiek nie usłyszy.
+  run8-e1 1: [spokój] W Karwinie gadają o czymś, co szeleści w zbożu na Polach Karw. Chłopi uciekli stamtąd przed goblinami, ale teraz niebezpieczeństwo jest małe.
+  run8-e1 2: [spokój] Pola Karw, z których chłopi uciekli przed goblinami, stoją nienaruszone. W zbożu coś szeleści, ale niebezpieczeństwo jest małe.
+## jaka masz najlepsza zbroje | spokojna. Gracz wspomina o: Szkielet Wojownika. Co o tym wiesz: Pochowany z mieczem, wstał z mieczem. Zbroja trzyma się na rdzy. Cecha: Nieu
+  gra powiedziała: [spokój] Na pierwszy rzut oka nic nie widać pod łatami. Strzałka w rękę jeszcze nie jest ozdobą; to miecz, który wstał z pokładu z wojownikiem bez ręki i stracił ją w walce. Z czasem rdza go ujarzy do cna: na początku każdej rundy zrasta się i traci o połowę mniej. Najdoskonalszy najemnik nie ma zdrowej dłoni na obietii.
+  run8-7b 0: [spokój] Szkielet Wojownika, rdza mu trzyma zbroję, ale na początku każdej rundy zrasta się i odzyskuje zdrowie. Nie lubi słońca, krasnoludów i ktoś go kiedyś musiał pochować.
+  run8-7b 1: [spokój] Na szkielet nie ma dobrej zbroi, bo zbroja trzyma się na rdzy, a on sam odzyskuje zdrowie na początku każdej rundy.
+  run8-7b 2: [spokój] Szkielet Wojownika nosił zbroję na rdzy. Na początku każdej rundy zrasta się i odzyskuje zdrowie. Miecz ma, i to z grobu, więc nie lubi, jak ktoś mu przeszkadza.
+  run8-e1 0: [spokój] Szkielet Wojownika? Rdza w zbroi i zrastanie na początku rundy, to zmarły, który wstał. Na gobliny wystarczy, jeśli w ogóle nie wstanie.
+  run8-e1 1: [spokój] Kolczuga, 95, więcej nie mam. Na szkieleta nie wystarczy, ale na goblina z łupaną głową jak znalazł.
+  run8-e1 2: [spokój] Szkielet Wojownika wstał z mieczem i na początku każdej rundy zrasta się z rdzy. Kolczuga za 95 sztuk złota uchroni przed nim.
+## dobre maja piwo | spokojna. Gracz dopytuje o to samo: Kurhany Królów. Nic więcej nie wiesz poza tym, co słyszałeś: „Omszałe kopce dawnych władców doliny”. Nie
+  gra powiedziała: [spokój] O kurhanch pytaj Siostrę Agnes u Apteky, bo ja o nie informacje nie masz.
+  run8-7b 0: [spokój] Nie wiem, co w nich jest, słyszałem tylko o kopcach dawnych władców; Siostra Agnes z Apteki wie więcej.
+  run8-7b 1: [spokój] Dobrego, póki jeszcze stoi. Pytaj mnie o drogę albo o gobliny, o Kurhanach Królów słyszałem tylko, że są omszałe i nikt nie wie, po co stoją. Siostra Agnes w Aptece zna resztę.
+  run8-7b 2: [spokój] Nie wiem, jakie trunek jest, bo piję tylko wtedy, gdy osłona nie stoi na straży. O Kurhanach Królów słyszałem tyle, że to kopce dawnych władców. Siostra Agnes z Apteki zna resztę.
+  run8-e1 0: [spokój] Nie wiem, czy jest dobre, ale chcesz słuchać o piwie czy o Kurhanach Królów?
+  run8-e1 1: [spokój] Dobre, dopóki płacisz. O Kurhanach Królów słyszałem tylko, że są omszałe, zapytaj Siostrę Agnes w Aptece.
+  run8-e1 2: [spokój] Nie wiem, kto rządzi, tylko że Kurhany Królów stoją od wieków. O historii pytaj Siostrę Agnes u Apteki.
+## czy dobre piwo | spokojna. Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po 
+  gra powiedziała: [kupujący) Dobry, ale nie lepszy od innych, które się tu pije; jeśli chcesz spróbować czegoś innego, idź do karczmy w Przystanii.
+  run8-7b 0: [spokój] Nie znam smaku piwa, znam smak kurzu i krwi po dobrym rachunku. Czego chcesz się dowiedzieć o drodze?
+  run8-7b 1: [spokój] Nie wiem, jakie piwo podają, bo wolę wodę. A ty po co siedzisz?
+  run8-7b 2: [spokój] Nie znam smaku piwa, znam smak siarki z pysków smoków; wódki nie piję, bo nie trzymam jej w rękach. Po co mnie zagadujesz?
+  run8-e1 0: [spokój] Nie znam smaku piwa, znam smak miedzi z rany. Ty masz czym zapłacić?
+  run8-e1 1: [spokój] Dobrze mówisz, dobrym piwem zawsze nie pogardzę, choć nie piję przed walką. Po co się tu zatrzymałeś?
+  run8-e1 2: [spokój] Nie wiem, czy dobre, nie próbowałem. A ty z czym pijesz?
+## skad te piwo | brak w talks-mac.jsonl
+## skad maja tu piwo | brak w talks-mac.jsonl
+## co mi powiesz o polowaniu | spokojna. Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po 
+  gra powiedziała: [radość] Nie wiem niczego poza tym, że za ladą handluje Karwin i piwo stoi w beczkach przy stołach, o ile nie jest inaczej wybite przez gości.
+  run8-7b 0: [spokój] Polowanie to nie wyścig, więc pytasz niewłaściwą osobę. Co zamierzasz ze sobą zrobić?
+  run8-7b 1: [spokój] Jeśli szukasz zwierza, to w Starym Borze są gobliny, ale Olbrzymi Szczur też tam czeka, a on nie czeka na zaproszenie. Po co pytasz?
+  run8-7b 2: [spokój] Polowanie to polowanie; jeśli idziesz bez broni, to głupota, jeśli bez głowy, to jeszcze większa. Masz coś na ręku?
+  run8-e1 0: [spokój] Polowanie to nie ta robota, którą robię, więc nie opowiem ci o nim za darmo. Ty po co przyszedłeś?
+  run8-e1 1: [spokój] Dobrze. Dziś wieczorem. A ty po co tu przychodzisz?
+  run8-e1 2: [spokój] Polowanie to polowanie; jeśli idziesz na nie z jednym mieczem i w biały dzień, to nie moje zmartwienie. Po co tu jesteś?
+## siema dziadu | spokojna. Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po 
+  gra powiedziała: [kpina] Piwo stoi w kustrach przy stole; jeśli chcesz iść na polowanie, też pytaj.
+  run8-7b 0: [spokój] Piwo mają, jak każda karczma, choć mnie do szczęścia wystarcza sama gorzałka. Ty po co tu siedzisz?
+  run8-7b 1: [spokój] W Karwinie piwo jest tak dobre, jak dobrzy są kupcy, którzy je tu przywożą. A ty po co przyszedłeś?
+  run8-7b 2: [spokój] Piwo jest, ale nie tak mocne, jak mówią. A ty po co tu siedzisz?
+  run8-e1 0: [spokój] Piwo bywa, ale na moje ucho płynie za szybko. Ty też masz już plan, gdzie się zabrać?
+  run8-e1 1: [spokój] Dobrego, czyli nieprzeklętego. Piwo zostawię dla mędrców, a sam usiądę przy stole i czegoś się dowiem. Ty też masz na czym usiąść?
+  run8-e1 2: [spokój] Piwo jest, jakieś dziwne, ale piję, dopóki nie zepsuje smaku walki. A ty po co tu siedzisz?

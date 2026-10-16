@@ -1,0 +1,25 @@
+## tak | spokojna. Możesz wpleść jedną rzecz, którą wiesz: Kopalnia Durgara. Opuszczone krasnoludzkie sztolnie, z których bije czerwona łuna i zapach
+  gra powiedziała: [spokój] Jagody? Krasnoludowi tego nie nałożę na widelec. Jeśli chcesz jagody, idź po nie w Kopalni Durgara, tylko wróć z językiem, bo tam bije czerwona łuna i pachnie siarką.
+  run8-7b 0: [kpina] Jagód nie mam, zbieraj sobie na Mokradłach Czarnej Wody. Kładki tam zapadają się pod stopami, ale kto by się przejmował.
+  run8-7b 1: [kpina] Jagody? Jagody rosną za płotem, u gospodyni, i nie ma na nie ceny. Stal mówi sama za siebie. Czego trzeba?
+  run8-7b 2: [kpina] Jagód? W moim kramie nie ma jagód, są miecze i tarcze, i właśnie po nie powinieneś przyjść.
+  run8-7b 3: [kpina] Jagód tu nie ma, mordo, kuję stal, nie zbieram owoców. Idź do kramu z jedzeniem.
+  run8-7b 4: [kpina] Jagody? Nie mam jagód, mam stal i skóry. Chcesz przeżyć? Bierz Skórzany Kaftan za 35 i idź.
+  run8-e1 0: [kpina] Jagody? U mnie w kuźni stal, nie jagody. Idź do apteki, tam je sprzedają.
+  run8-e1 1: [kpina] Jagód? Przynieś no krasnoludzki topór, a potem gadaj o jagodach.
+  run8-e1 2: [kpina] Jagody? U mnie jest tylko stal. Krasnoludzki Topór 110, Krótki Miecz 40. Reszta na półkach to kaftan za 35 albo kolczuga za 95.
+  run8-e1 3: [kpina] Jagody? Tu nie ma jagód. Topór albo miecz. Topór krasnoludzki za 110 sztuk złota.
+  run8-e1 4: [kpina] Jagód nie skuję, ale stalowa tarcza kosztuje 95. Po co mi jagody?
+## jagody | brak w talks-pc.jsonl
+## z jezykiem | spokojna. Możesz wpleść jedną rzecz, którą wiesz: Czerwony Smok Vexarax. Młody czerwony smok, który obrał kopalnię za leże i goblinów za słu
+  gra powiedziała: [kpina] Z językiem, bo w Kopalni Durgara siedzi Czerwony Smok Vexarax i pożera złoto razem z właścicielami. Wracaj bez ran, z językiem i bez jagód, bo zielska nie trzymam na swojej półce.
+  run8-7b 0: [spokój] Język na pokaz, bo w kopalni bije czerwona łuna i pachnie siarką. Idź na północny zachód, tam leży Vexarax, młody czerwony smok, który pożera złoto razem z właścicielami, a gobliny służy mu za sługi.
+  run8-7b 1: [spokój] Krasnoludy nie chodzą na jagody, krasnoludy biorą z nich języki. Kopalnia Durgara jest śmiertelnie niebezpieczna, ale jagody smakują jak jagody.
+  run8-7b 2: [spokój] Język z kopalni wróci w sakiewce kogoś, kto przeżył. Jagód tu nie ma, idź na Mokradła Czarnej Wody albo do krasnoluda. I wróć.
+  run8-7b 3: [spokój] Język to dowód, że jagody były świeże. Kopalnia Durgara jest niebezpieczna, młody czerwony smok siedzi tam na północnym zachodzie i pożera złoto razem z właścicielami, ale jagód nie rusza, bo krasnoludzkie.
+  run8-7b 4: [spokój] Język to język, czyli dowód, że byłeś tam, gdzie chcesz udowodnić obecność. Jagód w Kopalni Durgara nie zbiera się, tylko zbiera z niej głowę.
+  run8-e1 0: [spokój] Z językiem albo bez, tam po jagody idzie się po złoto, nie po zęby.
+  run8-e1 1: [spokój] Jeśli nie z językiem, to z życiem. Kopalnia Durgara to czerwona łuna, siarka i gobliny. Idź po jagody, wróć z językiem.
+  run8-e1 2: [spokój] Z językiem wrócisz z językiem, to znaczy, że przeżyjesz. Nie z jagodami, tylko z językiem.
+  run8-e1 3: [spokój] Z językiem, bo smok go pożera razem z właścicielem. Kopalnia Durgara leży po północno-zachodniej stronie, czerwona łuna i zapach siarki. Weź topór i wracaj żywy.
+  run8-e1 4: [spokój] Z językiem znaczy, że wrócisz z językiem, a nie w worku. Kopalnia Durgara pachnie siarką i bije czerwoną łuną. Smok Vexarax nie zwraca złota, więc zastanów się, czy wrócisz.

@@ -18,7 +18,7 @@ Zestawienie wszystkich wersji Głosu, czyli modelu, który pisze kwestie postaci
 | run 6 | Bielik 4.5B v3.0 | Mac, LoRA, od run 5 | 3369 (+320 tropów) | 76 / 78 | 1,8–1,9 s | ✅ powrót |
 | Bielik 11B bez treningu | Bielik 11B v2.3 (Q4_K_M) | — | — | 8 / 6 | 13,2–13,6 s | ❌ nie zna formatu gry |
 | **run 7** | **Bielik 11B v2.3** | **PC RTX 4060 Ti, QLoRA, od zera** | **3369 (jak run 6)** | **80 / 80** | **5,1–5,2 s** | **✅ obecny** |
-| run 8 | Bielik-Minitron-7B v3.0 | PC, QLoRA, od zera | 3117 (zbiór run 7 + 64 ręczne lekcje) | 79 / 78 (run 7 na tym pliku: 78 / 75) | 1,2 s na PC (run 7: 1,6–1,8 s) | ⚠️ kandydat na PC |
+| run 8 (i run 8-e1 po 1. epoce) | Bielik-Minitron-7B v3.0 | PC, QLoRA, od zera | 3117 (zbiór run 7 + 64 ręczne lekcje) | 79 / 78, e1: 79 / 77 (run 7 na tym pliku: 78 / 75) | 1,2 s na PC (run 7: 1,6–1,8 s) | ⚠️ kandydat na PC |
 
 Bench to 80 przypadków, których model nie widział w treningu (`tools/bench/eval/regression-80.jsonl`): 24 rozmowy towarzysza, 40 najemnika i 16 kupca. Wszystkie runy od 4 wzwyż mierzone na tym samym pliku przypadków (sha `b55d2900`), temperatura 0,8, seedy 42 i 7. Różnica ±3 punkty między seedami to szum. Run 3 i run 4 seed 42 to liczby z historii; ich pliki wyników przepadły.
 
@@ -128,6 +128,11 @@ Mediana odpowiedzi to czas jednej kwestii w benchu na Macu M3 Pro (18 GB), z mod
   - znawcy z imieniem („Siostra Agnes w Aptece”) 3/3 bez przekręceń; raz skraca okruch wiedzy do „stare kopce”.
   - drobne zmyślenia: raz cena piwa (10 sztuk złota), raz opowieść o królu bez pokrycia w świecie.
 - **Ocena:** w formacie i szybkości lepszy od run 7, w jagodach wyraźnie lepszy, w wierności faktom z podpowiedzi trochę słabszy. Rozstrzygnąć w grze na PC, gdzie run 7 nie mieści się w karcie z głosem.
+- **Warianty (16.10):**
+  - `neuro-npc-run8-e1`, zapis po 1. epoce (najniższe eval_loss): bench 79 / 77, czyli w szumie od run 8. W odtworzeniach wierniejszy: trop z okruchem i imieniem 2/2, „z językiem” częściej przy smoku i kopalni z faktu, mniej obcych nazw; raz zmyślona liczba przy temp. 0,7. Pliki: `replays/replay-run8-e1-*.out`.
+  - temperatura 0,7 zamiast 0,8: bez wyraźnej poprawy, zmyślenia zostają (`replay-run8-e1-t07.out`).
+  - nowa podpowiedź „Gracz nie zrozumiał…” (`replay-run8-puzzled.out`): run 7, run 8 i run 8-e1 tłumaczą zwrot („z językiem, czyli żywy”), choć żaden nie był tego uczony poza 64 lekcjami. Najprościej robi to run 8-e1, run 8 częściej plącze się dalej. Wszystkie powtarzają przy tym fakt z poprzedniej kwestii.
+  - Do gry na PC polecam `neuro-npc-run8-e1`.
 
 ## Co testy wykazały ogólnie
 
