@@ -103,7 +103,8 @@ Decyzje (`Decision.Brief`), kwoty zawsze z walutą („44 szt. złota”, „30 
 Podpowiedzi, które gra dokleja po nastroju (w pogawędce, pytaniu o towar, pożegnaniu):
 
 - `Gracz wspomina o: <temat>. Co o tym wiesz: <fakt>` — gdy słowa gracza trafiają w fakt z „Wiesz:”;
-- `Możesz wpleść jedną rzecz, którą wiesz: <temat>. <fakt>`;
+- `Możesz wpleść jedną rzecz, którą wiesz: <temat>. <fakt> Jeśli nie pasuje do tego, co mówi gracz, pomiń ją.` (od 15 X 2026 z tym dopiskiem; wcześniejsze dane go nie mają);
+- `Gracz nie zrozumiał twojej poprzedniej kwestii: „<poprzednia kwestia postaci bez znacznika>”. Wyjaśnij prostymi słowami, co miałeś na myśli, najwyżej dwoma zdaniami. Nie dodawaj nowych nazw ani faktów.` — od 16 X 2026, gdy gracz po kwestii postaci pisze „co?”, „nie rozumiem”, „w sensie?” albo pyta jej własnymi słowami („z jezykiem ???”);
 - odesłanie (trop): `Gracz pyta o coś, czego nie znasz: <temat>. Słyszałeś tylko tyle: „<pierwsze zdanie faktu, do 12 słów>”. Powiedz to jak zasłyszaną plotkę, przyznaj, że więcej nie wiesz, i odeślij go do osoby, która zna sprawę: <imię> (<gdzie: kuźnia w każdej osadzie / karczma w osadzie X / karawana na trakcie, dziś w miejscu: Y>). Imię podaj dokładnie tak.` — gra sprawdza, czy imię padło (po rdzeniu, z odmianą; przekręcone daje drugą próbę), zapisuje w dzienniku „Trop: <temat> → <imię>” i nie wyciąga z tej kwestii nowych faktów; wcześniejsza wersja `Gracz pyta o coś, o czym nie wiesz: <temat> (wie o tym <imię>). Powiedz, że nie wiesz, i odeślij go tam.` jest w danych run 5;
 - dopytanie o trop: `Gracz dopytuje o to samo: <temat>. Nic więcej nie wiesz poza tym, co słyszałeś: „<okruch>”. Nie zmyślaj: powtórz krótko, że to wszystko, i że więcej wie <imię> (<gdzie>). Imię podaj dokładnie tak.` — gdy po odesłaniu kolejna kwestia gracza nie trafia w nic innego („a co słyszałeś?”, „opowiedz”);
 - `W karczmie usłyszałeś od sąsiada i możesz powtórzyć: <temat>. <fakt>` (wieczorem);

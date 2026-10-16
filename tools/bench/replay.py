@@ -43,11 +43,12 @@ def main():
     parser.add_argument("--keys", default=",".join(KEYS), help="comma-separated openings of the player's line")
     parser.add_argument("--samples", type=int, default=3)
     parser.add_argument("--url", default="http://localhost:11434")
+    parser.add_argument("--temperature", type=float, default=0.8)
     args = parser.parse_args()
 
     models = args.models.split(",")
     keys = [key.strip().lower() for key in args.keys.split(",") if key.strip()]
-    options = {"temperature": 0.8, "num_ctx": 4096, "num_predict": 220}
+    options = {"temperature": args.temperature, "num_ctx": 4096, "num_predict": 220}
 
     picked = {}
     with open(args.talks, encoding="utf-8") as handle:
