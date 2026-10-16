@@ -18,6 +18,7 @@ Zestawienie wszystkich wersji Głosu, czyli modelu, który pisze kwestie postaci
 | run 6 | Bielik 4.5B v3.0 | Mac, LoRA, od run 5 | 3369 (+320 tropów) | 76 / 78 | 1,8–1,9 s | ✅ powrót |
 | Bielik 11B bez treningu | Bielik 11B v2.3 (Q4_K_M) | — | — | 8 / 6 | 13,2–13,6 s | ❌ nie zna formatu gry |
 | **run 7** | **Bielik 11B v2.3** | **PC RTX 4060 Ti, QLoRA, od zera** | **3369 (jak run 6)** | **80 / 80** | **5,1–5,2 s** | **✅ obecny** |
+| run 8 | Bielik-Minitron-7B v3.0 | PC, QLoRA, od zera | 3117 (zbiór run 7 + 64 ręczne lekcje) | 79 / 78 (run 7 na tym pliku: 78 / 75) | 1,2 s na PC (run 7: 1,6–1,8 s) | ⚠️ kandydat na PC |
 
 Bench to 80 przypadków, których model nie widział w treningu (`tools/bench/eval/regression-80.jsonl`): 24 rozmowy towarzysza, 40 najemnika i 16 kupca. Wszystkie runy od 4 wzwyż mierzone na tym samym pliku przypadków (sha `b55d2900`), temperatura 0,8, seedy 42 i 7. Różnica ±3 punkty między seedami to szum. Run 3 i run 4 seed 42 to liczby z historii; ich pliki wyników przepadły.
 
@@ -112,6 +113,22 @@ Mediana odpowiedzi to czas jednej kwestii w benchu na Macu M3 Pro (18 GB), z mod
   - Pierwsza kwestia po wczytaniu modelu trwa ok. 20 s, więc gra prosi Ollamę, żeby trzymała model w pamięci 30 min (`keep_alive`).
 - **Słabe drobiazgi:** czasem zdanie trochę za długie, pojedyncze potknięcia („tanioje”, „Szkielet Wojownik”).
 
+### run 8 ⚠️ kandydat na PC
+- **Baza:** `speakleash/Bielik-Minitron-7B-v3.0-Instruct` (7,35B, przycięty i destylowany z Bielika 11B v3). Tokenizer ma `<|im_start|>`/`<|im_end|>` jako osobne tokeny, więc szablon gry pasuje bez zmian.
+- **Dane:** zbiór run 7 plus 64 ręczne lekcje z `run8_cases.py` (3117/169/64 po `prepare.py`; 12 przykładów za długich pominiętych).
+- **Trening:** QLoRA od zera na PC, ustawienia jak run 7 (2 epoki, lr 1e-4, rank 16), 778 kroków po ok. 18 s, razem ok. 4 h. GGUF Q5_K_M 5,3 GB.
+  - Pierwsza próba padła na starcie: `transformers` 5.17 nie zna już `warmup_ratio`; `train.py` liczy teraz `warmup_steps` (3% kroków).
+  - eval_loss: 0,885 → 0,815 → 0,782 → **0,753 po 1. epoce** → 0,772 → 0,771 → 0,761 → 0,760 po 2. epoce. Druga epoka prawie nic nie dała; zapis po 1. epoce leży w `D:\neuro-train\run8-epoka1` (run 7: 0,682 / 0,692).
+- **Bench:** 79 / 78 na nowym pliku przypadków (sha `fb5ca071`, przepisany `rebrief.py` pod obecne brzmienie gry). Run 7 zmierzony tego samego dnia na PC na tym samym pliku: 78 / 75. Błędy run 8: po jednej liczbie w rozmowie bez liczb na seed i jedno za długie zdanie.
+- **Czas na PC (RTX 4060 Ti):** mediana 1,2 s na kwestię wobec 1,6–1,8 s run 7; w pamięci 5,3 GB zamiast 7,9 GB, więc z gemmą i Chatterboxem mieści się w 16 GB karty.
+- **Co pokazały odtworzenia** (`replays/replay-run8.out`, `replay-run8-jagody.out`, 3–5 prób na model):
+  - „tak, jagody”: run 8 5/5 odmawia po kowalsku („Jagód tu nie ma, mordo, kowal nosi żelazo”); run 7 w 3/5 nadal sadzi jagody w Kopalni Durgara albo na Mokradłach. Lekcje z `run8_cases.py` zadziałały.
+  - „z jezykiem”: gorzej niż run 7. Run 7 wiernie podaje fakt z podpowiedzi (Vexarax pożera złoto). Run 8 gubi smoka i zmyśla („Smocza Góra”, „Krasnolud Jagód”).
+  - powitania, zaczepki o piwo i polowanie: oba dobre; run 8 żywszy i mniej powtarzalny („Nie znam smaku piwa, znam smak spalonej skóry po walce z goblinami”).
+  - znawcy z imieniem („Siostra Agnes w Aptece”) 3/3 bez przekręceń; raz skraca okruch wiedzy do „stare kopce”.
+  - drobne zmyślenia: raz cena piwa (10 sztuk złota), raz opowieść o królu bez pokrycia w świecie.
+- **Ocena:** w formacie i szybkości lepszy od run 7, w jagodach wyraźnie lepszy, w wierności faktom z podpowiedzi trochę słabszy. Rozstrzygnąć w grze na PC, gdzie run 7 nie mieści się w karcie z głosem.
+
 ## Co testy wykazały ogólnie
 
 1. **Dane są ważniejsze niż kroki.** Największe skoki dały zamówione, sprawdzone walidatorem dane (run 3) i dane celowane w luki widoczne w logach (run 4–6). Dłuższy trening na złych danych nie pomagał.
@@ -125,12 +142,14 @@ Mediana odpowiedzi to czas jednej kwestii w benchu na Macu M3 Pro (18 GB), z mod
 
 | katalog w `tools/bench/results/` | co zawiera |
 |---|---|
+| `neuro-npc-run8-7b-s42`, `-s7` | run 8 na nowym pliku przypadków (`fb5ca071`) |
+| `neuro-npc-run7-pc-s42`, `-s7` | run 7 jeszcze raz, na PC, na tym samym pliku co run 8 |
 | `neuro-npc-run7-s42`, `-s7` | run 7, oba seedy: odpowiedzi, podsumowanie, arkusz do oceny ręcznej |
 | `neuro-npc-run6-s42`, `-s7` | run 6, oba seedy |
 | `neuro-npc-run5-s7`, `neuro-npc-run4-s7`, `neuro-npc-run4-t0.6-s42` | run 4 i 5 |
 | `neuro-npc-run3-s42` | tylko arkusz oceny ręcznej |
 | `bielik-11b-raw-s42`, `-s7` | Bielik 11B bez treningu |
-| `replays/` | odtworzenia prawdziwych rozmów: run 5, run 6, 11B, run 7 |
+| `replays/` | odtworzenia prawdziwych rozmów: run 5, run 6, 11B, run 7, run 8 |
 
 Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
 
@@ -140,6 +159,7 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
   1. Minitron bez treningu w roli Umysłu zamiast gemmy3:4b (polecenia, `Invent`, `Note`). Jeśli wypadnie co najmniej tak dobrze, wystarczy jeden model w pamięci.
   2. QLoRA od zera na zbiorze run 7 plus `manual-run8.jsonl`: 64 ręczne lekcje z błędów z gry, z generatora `tools/model/run8_cases.py` (brak towaru bez wymyślania miejsc, podpowiedź użyta albo pominięta, wyjaśnienie niezrozumianej kwestii, znacznik zgodny z nastrojem, przyznanie się do niewiedzy).
   3. Bench w dwóch seedach i odtworzenia wobec run 7. Przełączenie tylko wtedy, gdy wyniki są w szumie od 80/80, a odtworzenia nie gorsze.
+  - Zrobione 2. i 3. (wyniki wyżej, w „run 8”); 1. jeszcze nie. Dalej: test w grze na PC, a przy słabej wierności faktom porównać zapis po 1. epoce.
 - **run 8 na 11B:** douczanie od adaptera run 7 (`--resume`, 1 epoka, lr 4e-5) nowymi danymi: narracje Mistrza Gry, rozmowy wielotur, kwestie bez nastroju jako przykłady do poprawy.
 - **DPO z odrzuceń:** pary „dobra / zła kwestia” z podglądu i z odrzuceń gry, na zmyślone miejsca i powtarzanie zwrotów.
 - **Destylacja run 7 → 4.5B:** run 7 pisze odpowiedzi na prompty gry, walidator je filtruje, a szybki model 4,5B uczy się na nich od adaptera run 6. Cel: jakość bliższa 11B przy 1,8 s na kwestię.
