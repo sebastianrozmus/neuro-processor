@@ -97,15 +97,20 @@ def main():
         print(prompt[-300:] + reply)
         return
 
+    # Resuming goes through Unsloth too: PeftModel.from_pretrained skips its
+    # gradient checkpointing and a 7B model then runs out of 16 GB.
+    model = FastLanguageModel.get_peft_model(
+        model, r=args.rank, lora_alpha=args.rank, lora_dropout=0, bias="none",
+        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        use_gradient_checkpointing="unsloth", random_state=7,
+    )
     if args.resume:
-        from peft import PeftModel
-        model = PeftModel.from_pretrained(model, args.resume, is_trainable=True)
-    else:
-        model = FastLanguageModel.get_peft_model(
-            model, r=args.rank, lora_alpha=args.rank, lora_dropout=0, bias="none",
-            target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-            use_gradient_checkpointing="unsloth", random_state=7,
-        )
+        from peft import set_peft_model_state_dict
+        from safetensors.torch import load_file
+        result = set_peft_model_state_dict(model, load_file(os.path.join(args.resume, "adapter_model.safetensors")))
+        if result.unexpected_keys:
+            sys.exit(f"adapter z {args.resume} nie pasuje (rank?): {result.unexpected_keys[:3]}")
+        print(f"wczytany adapter: {args.resume}", flush=True)
 
     steps = math.ceil(len(train) * args.epochs / args.accumulate)
     print(f"{steps} kroków po {args.accumulate} przykładów, lr {args.rate}, rank {args.rank}", flush=True)
