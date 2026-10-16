@@ -28,6 +28,10 @@ const VerdictMark = "[GRA]"
 const nameCorrection = "Twoja poprzednia odpowiedź była zła: przekręciła albo pominęła imię osoby, do której odsyłasz gracza. " +
 	"Napisz je dokładnie tak, bez odmiany: "
 
+// strangerCorrection is what a narrator hears after making up names in a
+// line that had a fact to tell.
+const strangerCorrection = "Twoja poprzednia odpowiedź była zła: wymyśliła nazwy, których nie ma w świecie: "
+
 // correction is what a narrator hears after quoting a number it should not.
 const correction = "Twoja poprzednia odpowiedź była zła: podała liczbę słownie albo taką, której nie ma w bloku [GRA]. " +
 	"Napisz ją jeszcze raz. Liczby wolno ci podać tylko te z bloku [GRA] i tylko cyframi."
@@ -80,6 +84,15 @@ type NarrateRequest struct {
 	// Guarded are names that need not be mentioned but must be intact when
 	// they are: the heroes of a fight the master describes.
 	Guarded []string
+	// Anchored is set when the reply was given a fact to tell or a line of
+	// its own to explain. A name it then brings in that nothing it was
+	// told holds is the fact getting lost ("Smocza Góra" for the dragon of
+	// the mine) and earns a second try. Talk without a fact may make
+	// things up: that is how the world grows.
+	Anchored bool
+	// Names are the names of the world, which an anchored reply may use
+	// besides what it was told.
+	Names []string
 	// Lead is the journal line of a referral in this reply ("Trop: …"),
 	// for the screen to show; a reply with a lead teaches the world no
 	// new fact.
@@ -181,10 +194,11 @@ func (r *Rejection) Unwrap() error {
 
 // Reasons a line is refused for.
 const (
-	reasonEmpty   = "pusta odpowiedź"
-	reasonLeak    = "cytuje notę gry"
-	reasonNumbers = "liczba spoza bloku [GRA] albo napisana słownie"
-	reasonNames   = "imię przekręcone albo pominięte"
+	reasonEmpty     = "pusta odpowiedź"
+	reasonLeak      = "cytuje notę gry"
+	reasonNumbers   = "liczba spoza bloku [GRA] albo napisana słownie"
+	reasonNames     = "imię przekręcone albo pominięte"
+	reasonStrangers = "nazwa spoza świata"
 )
 
 // Narrate asks the narrator for a reply and checks it against the decision.
@@ -205,6 +219,18 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 	allowed := append(request.Decision.Numbers(), numbersIn(known)...)
 	allowed = slices.DeleteFunc(allowed, func(number int) bool { return slices.Contains(request.Forbidden, number) })
 	known = Fold(known)
+
+	// An anchored reply may name what it was told and what the world has.
+	var vocabulary []string
+	if request.Anchored {
+		told := []string{request.Lore, request.Merchant.Persona, request.Merchant.Name, request.Hint, request.Text}
+		for _, line := range request.History {
+			told = append(told, line.Text)
+		}
+
+		vocabulary = strings.Fields(Fold(strings.Join(append(append(told, request.Names...), commonCapitals...), " ")))
+	}
+
 	var (
 		problem           error
 		refused           []Attempt
@@ -234,6 +260,11 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 		leaked := strings.Contains(text, VerdictMark)
 		text = tidy(text, request.Merchant.Name, request.Decision.sentences())
 
+		var made []string
+		if request.Anchored {
+			made = strangers(text, vocabulary)
+		}
+
 		reason := ""
 		switch {
 		case text == "":
@@ -244,6 +275,8 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 			reason = reasonNumbers
 		case !namesOK(text, request.Required) || !namesIntact(text, request.Guarded):
 			reason = reasonNames
+		case len(made) > 0:
+			reason = reasonStrangers
 		default:
 			return fitMood(text, request.Decision.Mood), nil
 		}
@@ -253,14 +286,18 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 		if reason == reasonNames {
 			request.Correction = nameCorrection + join(append(append([]string(nil), request.Required...), request.Guarded...)) + "."
 		}
+
+		if reason == reasonStrangers {
+			request.Correction = strangerCorrection + join(made) + ". Trzymaj się tego, co wiesz z bloku [GRA], albo powiedz, że więcej nie wiesz."
+		}
 	}
 
 	if problem == nil || len(refused) > 0 && errors.Is(problem, context.DeadlineExceeded) {
 		rejection := &Rejection{Attempts: refused}
-		if len(refused) > 0 && namesOnly(refused) {
+		if line, ok := kept(refused); ok {
 			rejection.Kept = true
 
-			return fitMood(refused[0].Text, request.Decision.Mood), rejection
+			return fitMood(line, request.Decision.Mood), rejection
 		}
 
 		problem = rejection
@@ -278,6 +315,79 @@ func namesOnly(attempts []Attempt) bool {
 	}
 
 	return true
+}
+
+// kept picks the refused line that is spoken anyway: one that only got a
+// name wrong or made one up is still better than a canned line. A mangled
+// name keeps the first try, since the journal has the name right; a
+// made-up one the last, which heard the correction.
+func kept(attempts []Attempt) (string, bool) {
+	if len(attempts) == 0 {
+		return "", false
+	}
+
+	for _, attempt := range attempts {
+		if attempt.Reason != reasonNames && attempt.Reason != reasonStrangers {
+			return "", false
+		}
+	}
+
+	if namesOnly(attempts) {
+		return attempts[0].Text, true
+	}
+
+	return attempts[len(attempts)-1].Text, true
+}
+
+// commonCapitals are folded words written with a capital letter in the
+// middle of a sentence that are no names: the polite "Pan" and the gods.
+var commonCapitals = []string{"pan", "pani", "panu", "panie", "panstwo", "bog", "boga", "bogu", "bogowie", "bogow", "bogom"}
+
+// strangers lists the capitalised words of a line, not at the start of a
+// sentence, that begin none of the known words and that none of them
+// begins: names the speaker made up. Words shorter than four letters are
+// too ambiguous to judge.
+func strangers(text string, known []string) []string {
+	if _, rest, tagged := strings.Cut(text, "] "); tagged && strings.HasPrefix(text, "[") {
+		text = rest
+	}
+
+	var made []string
+	start := true
+
+	for _, word := range strings.Fields(text) {
+		runes := []rune(strings.TrimLeft(word, "„«\"("))
+		if len(runes) == 0 {
+			continue
+		}
+
+		if len(runes) > 1 && unicode.IsUpper(runes[0]) && !start {
+			for _, folded := range strings.Fields(Fold(string(runes))) {
+				if len([]rune(folded)) >= 4 && !familiar(folded, known) {
+					made = append(made, strings.TrimRight(string(runes), ".,!?;:”»\")"))
+
+					break
+				}
+			}
+		}
+
+		start = strings.ContainsAny(string(runes[len(runes)-1:]), ".!?;:")
+	}
+
+	return made
+}
+
+// familiar reports whether a folded word shares its stem with a known one.
+func familiar(word string, known []string) bool {
+	stem := Stem(word)
+
+	for _, candidate := range known {
+		if strings.HasPrefix(candidate, stem) || strings.HasPrefix(fleeting(candidate), stem) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Noteworthy reports whether a keeper's line could hold a new fact worth

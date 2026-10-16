@@ -430,3 +430,70 @@ func TestChatBriefFollowsTheRole(t *testing.T) {
 		t.Errorf("a farewell briefed by role: %q", farewell.BriefFor(RoleMercenary))
 	}
 }
+
+func TestMadeUpNamesEarnASecondTryWhenAFactIsTold(t *testing.T) {
+	hint := "Możesz wpleść jedną rzecz, którą wiesz: Czerwony Smok Vexarax. Młody czerwony smok, który obrał kopalnię za leże."
+	drifted := "[spokój] Tak, z językiem. To nie jagody, to Smocza Góra, a z niej wychodzą gobliny."
+	faithful := "[spokój] W Kopalni Durgara siedzi Czerwony Smok Vexarax. Wróć z językiem."
+	narrator := &scriptedNarrator{replies: []string{drifted, faithful}}
+	request := NarrateRequest{Decision: Decision{Outcome: OutcomeChat}, Hint: hint, Anchored: true, Names: []string{"Kopalnia Durgara"}}
+
+	text, err := Narrate(context.Background(), narrator, request)
+	if err != nil || text != faithful || narrator.calls != 2 || !strings.HasPrefix(narrator.corrections[1], strangerCorrection+"Smocza, Góra") {
+		t.Errorf("got %q, %v after %d calls (%q)", text, err, narrator.calls, narrator.corrections)
+	}
+
+	// Without a fact to tell the keeper may make things up.
+	narrator = &scriptedNarrator{replies: []string{drifted}}
+	if text, err := Narrate(context.Background(), narrator, NarrateRequest{Decision: Decision{Outcome: OutcomeChat}}); err != nil || text != drifted || narrator.calls != 1 {
+		t.Errorf("unanchored: %q, %v, %d calls", text, err, narrator.calls)
+	}
+
+	// Made up twice, the corrected line is spoken anyway.
+	second := "[spokój] Smocza Góra to kopalnia."
+	narrator = &scriptedNarrator{replies: []string{drifted, second}}
+	text, err = Narrate(context.Background(), narrator, request)
+
+	var rejection *Rejection
+	if !errors.As(err, &rejection) || !rejection.Kept || text != second {
+		t.Errorf("twice: %q, %v", text, err)
+	}
+
+	// Names in other cases, at the start of a sentence, or polite ones are
+	// no strangers.
+	known := strings.Fields(Fold(hint + " Kopalnia Durgara"))
+	for line, want := range map[string]string{
+		"W Kopalni Durgara siedzi Vexarax.":             "",
+		"Smoka Vexaraxa nie budź. Gobliny tam są.":      "",
+		"Pan wybaczy, ale Pani Ozryka nie znam.":        "Ozryka",
+		"Idź do Czerwonej Wieży, tam jest Krasnolud.":   "Wieży, Krasnolud",
+		"„Czerwony Smok” mówią na niego w Kopalni.":     "",
+		"[kpina] Jagody? Na tej półce są miecze, Mordo": "Mordo",
+	} {
+		if got := join(strangers(line, append(known, commonCapitals...))); got != want {
+			t.Errorf("strangers(%q) = %q, want %q", line, got, want)
+		}
+	}
+}
+
+func TestPuzzledAsksWhatTheLineMeant(t *testing.T) {
+	last := "Jeśli chcesz jagody, idź po nie w Kopalni Durgara, tylko wróć z językiem."
+
+	for text, want := range map[string]bool{
+		"z jezykiem ???":             true,
+		"z językiem?":                true,
+		"co?":                        true,
+		"nie rozumiem":               true,
+		"o co ci chodzi z kopalnią":  true,
+		"a ta kopalnia?":             true,
+		"z językiem":                 false,
+		"a co z goblinami?":          false,
+		"ile za topór?":              false,
+		"dobra, to idę do kopalni":   false,
+		"co wiesz o kopalni durgara": false,
+	} {
+		if got := puzzled(text, last); got != want {
+			t.Errorf("puzzled(%q) = %v, want %v", text, got, want)
+		}
+	}
+}

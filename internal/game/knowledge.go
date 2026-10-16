@@ -16,6 +16,59 @@ import (
 // first time join the graph, so the world remembers what was made up in
 // it, and events add facts of their own.
 
+// names lists the names of the world: places, people, monsters, things,
+// the subjects of what is known and the goods keepers talked into it.
+func (r *Realm) names() []string {
+	built := r.world
+	names := []string{built.Name, built.Currency, built.Boss.Name}
+
+	for _, place := range built.Places {
+		names = append(names, place.Name)
+	}
+
+	for _, site := range built.Sites {
+		names = append(names, site.Name)
+	}
+
+	for _, monster := range built.Monsters {
+		names = append(names, monster.Name)
+	}
+
+	for _, item := range built.Items {
+		names = append(names, item.Name)
+	}
+
+	for _, shop := range built.Shops {
+		names = append(names, shop.Keeper, shop.Name)
+	}
+
+	for _, companion := range built.Companions {
+		names = append(names, companion.Name)
+	}
+
+	for _, person := range built.People {
+		names = append(names, person.Name)
+	}
+
+	for _, room := range built.Rooms {
+		names = append(names, room.Name)
+	}
+
+	for _, thing := range built.Things {
+		names = append(names, thing.Name)
+	}
+
+	for _, fact := range r.wisdom.facts {
+		names = append(names, fact.Subject)
+	}
+
+	for _, added := range r.extras {
+		names = append(names, added.item.Name)
+	}
+
+	return names
+}
+
 // Fact is one thing somebody may know.
 type Fact struct {
 	ID      int

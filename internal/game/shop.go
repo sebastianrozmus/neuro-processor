@@ -205,8 +205,11 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 
 	request := session.NarrateRequest(text, decision)
 	request.Lore = r.lore(customer, session.Wares())
-	hint, lead := r.hint(customer, text, decision, session.Wares())
+	hint, lead, anchored := r.hint(customer, text, decision, session.Wares())
 	request.Hint = hint
+	if anchored {
+		request.Anchored, request.Names = true, r.names()
+	}
 
 	// A lead is remembered for the follow-up, must name its keeper
 	// right, and goes to the journal; the chat before it is forgotten

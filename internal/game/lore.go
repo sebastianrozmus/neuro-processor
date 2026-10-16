@@ -195,29 +195,37 @@ var kindWords = map[world.Kind][]string{
 // hint finds the fact the player's words touch among those the keeper
 // knows; when they touch none and only chat, it offers one, so that the
 // talk goes somewhere. Whatever is touched, the player has now heard.
-func (r *Realm) hint(customer *player, text string, decision Decision, wares []Ware) (string, *lead) {
+func (r *Realm) hint(customer *player, text string, decision Decision, wares []Ware) (string, *lead, bool) {
 	switch decision.Outcome {
 	case OutcomeChat, OutcomeInfo, OutcomeWares, OutcomeFarewell, OutcomeUnclear:
 	default:
-		return "", nil
+		return "", nil, false
 	}
 
 	known := r.openTo(customer, customer.shop)
 	words := strings.Fields(Fold(text))
+
+	// "z językiem???" after a keeper's line asks what the line meant: the
+	// keeper explains it instead of pressing on with another fact.
+	if decision.Outcome == OutcomeChat || decision.Outcome == OutcomeUnclear {
+		if last := lastReply(customer); last != "" && puzzled(text, last) {
+			return fmt.Sprintf("Gracz nie zrozumiał twojej poprzedniej kwestii: „%s”. Wyjaśnij prostymi słowami, co miałeś na myśli, najwyżej dwoma zdaniami. Nie dodawaj nowych nazw ani faktów.", last), nil, true
+		}
+	}
 
 	// Talk about the goods goes to the goods before anything else: "jaką
 	// masz zbroję" is about the mail on the shelf, not about the skeleton
 	// whose armour hangs on rust.
 	if decision.Outcome == OutcomeChat || decision.Outcome == OutcomeUnclear {
 		if fitting := waresAsked(words, wares); len(fitting) > 0 {
-			return "Gracz pyta o twój towar. Pasuje: " + join(fitting) + ". Poleć jedną z tych rzeczy, powiedz, do czego jest, i podaj jej cenę z listy.", nil
+			return "Gracz pyta o twój towar. Pasuje: " + join(fitting) + ". Poleć jedną z tych rzeczy, powiedz, do czego jest, i podaj jej cenę z listy.", nil, false
 		}
 	}
 
 	// A bare greeting is answered in one sentence: the model has never seen
 	// one, and given three sentences and a random fact it drifts.
 	if decision.Outcome == OutcomeChat && greeting(words) {
-		return "Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej.", nil
+		return "Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej.", nil, false
 	}
 
 	// The fact the player's words touch most: subject words count double,
@@ -234,19 +242,19 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	if best != nil {
 		r.learn(customer, best)
 
-		return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s", best.Subject, best.Text), nil
+		return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s", best.Subject, best.Text), nil, true
 	}
 
 	// Something the keeper lacks but another has is a lead: the keeper
 	// passes on the little they heard and names who knows the rest.
 	if fact, keeper := r.gapFor(customer, customer.shop, words); fact != nil {
-		return r.referral(fact, keeper, false), &lead{fact: fact, keeper: keeper}
+		return r.referral(fact, keeper, false), &lead{fact: fact, keeper: keeper}, true
 	}
 
 	// "A co słyszałeś?" after a lead stays on that lead instead of
 	// drifting to a random fact; "dobre mają piwo?" is another topic.
 	if last := customer.talks[customer.shop]; last != nil && last.lead != nil && decision.Outcome == OutcomeChat && followUp(words, last.lead) {
-		return r.referral(last.lead, last.leadKeeper, true), &lead{fact: last.lead, keeper: last.leadKeeper}
+		return r.referral(last.lead, last.leadKeeper, true), &lead{fact: last.lead, keeper: last.leadKeeper}, true
 	}
 
 	if customer.inn && decision.Outcome == OutcomeChat {
@@ -254,7 +262,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		if gossip := r.gossip(customer.shop); gossip != nil {
 			r.learn(customer, gossip)
 
-			return fmt.Sprintf("W karczmie usłyszałeś od sąsiada i możesz powtórzyć: %s. %s", gossip.Subject, gossip.Text), nil
+			return fmt.Sprintf("W karczmie usłyszałeś od sąsiada i możesz powtórzyć: %s. %s", gossip.Subject, gossip.Text), nil, true
 		}
 	}
 
@@ -264,17 +272,17 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 		// The model was taught to always use the fact; told it may drop one
 		// that does not fit, it stops sending a buyer of berries to a mine.
-		return fmt.Sprintf("Możesz wpleść jedną rzecz, którą wiesz: %s. %s Jeśli nie pasuje do tego, co mówi gracz, pomiń ją.", fact.Subject, fact.Text), nil
+		return fmt.Sprintf("Możesz wpleść jedną rzecz, którą wiesz: %s. %s Jeśli nie pasuje do tego, co mówi gracz, pomiń ją.", fact.Subject, fact.Text), nil, true
 	}
 
 	// A greeting or banter with nothing to hang on: without a direction a
 	// small model fills the three sentences with noise.
 	if decision.Outcome == OutcomeChat {
 		return "Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, " +
-			"i sam zagadnij go o jedno: po co przyszedł, dokąd idzie albo czy ma czym walczyć.", nil
+			"i sam zagadnij go o jedno: po co przyszedł, dokąd idzie albo czy ma czym walczyć.", nil, false
 	}
 
-	return "", nil
+	return "", nil, false
 }
 
 // followWords are the stems of words a player asks further with: "a co
@@ -336,6 +344,81 @@ func (r *Realm) referral(fact *Fact, keeper int, again bool) string {
 
 	return fmt.Sprintf("Gracz pyta o coś, czego nie znasz: %s. Słyszałeś tylko tyle: „%s”. Powiedz to jak zasłyszaną plotkę, przyznaj, że więcej nie wiesz, i odeślij go do osoby, która zna sprawę: %s. Imię podaj dokładnie tak.",
 		fact.Subject, crumb(fact), who)
+}
+
+// lastReply is the keeper's last line in the talk the customer is in,
+// without its mood tag.
+func lastReply(customer *player) string {
+	talk := customer.talks[customer.shop]
+	if talk == nil || talk.session == nil {
+		return ""
+	}
+
+	history := talk.session.History()
+	for index := len(history) - 1; index >= 0; index-- {
+		if !history[index].Player {
+			line := history[index].Text
+			if _, rest, tagged := strings.Cut(line, "] "); tagged && strings.HasPrefix(line, "[") {
+				line = rest
+			}
+
+			return line
+		}
+	}
+
+	return ""
+}
+
+// puzzledCues are folded phrases a player says when a line lost them.
+var puzzledCues = []string{
+	"nie rozumiem", "nie kumam", "nie lapie", "o co chodzi", "o co ci chodzi", "co to znaczy", "co znaczy", "co masz na mysli",
+	"jak to", "ze co", "w sensie", "co ty gadasz", "co ty mowisz", "slucham",
+}
+
+// echoFillers are the short words a player may put around the keeper's own
+// words when asking what they meant ("z językiem?", "a ta łuna?").
+var echoFillers = []string{"a", "i", "z", "ze", "w", "we", "na", "do", "o", "po", "ta", "ten", "to", "te", "no", "ale"}
+
+// puzzled reports a short message that asks what the keeper's last line
+// meant: one that says so, a bare "co?", or a question made of nothing but
+// the keeper's own words.
+func puzzled(text, last string) bool {
+	words := strings.Fields(Fold(text))
+	if len(words) == 0 || len(words) > 6 {
+		return false
+	}
+
+	joined := " " + strings.Join(words, " ") + " "
+	for _, cue := range puzzledCues {
+		if strings.Contains(joined, " "+cue+" ") {
+			return true
+		}
+	}
+
+	if !strings.Contains(text, "?") || len(words) > 3 {
+		return false
+	}
+
+	if len(words) == 1 && slices.Contains([]string{"co", "he", "hm", "hmm", "ze", "jak"}, words[0]) {
+		return true
+	}
+
+	said := strings.Fields(Fold(last))
+	echoed := false
+
+	for _, word := range words {
+		if slices.Contains(echoFillers, word) {
+			continue
+		}
+
+		if len(word) < minQueryWord+1 || !slices.ContainsFunc(said, func(other string) bool { return strings.HasPrefix(other, Stem(word)) }) {
+			return false
+		}
+
+		echoed = true
+	}
+
+	return echoed
 }
 
 // greetingWords are folded words a greeting is made of, with the fillers
