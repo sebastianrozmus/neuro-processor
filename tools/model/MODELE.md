@@ -150,6 +150,32 @@ Mediana odpowiedzi to czas jednej kwestii w benchu na Macu M3 Pro (18 GB), z mod
 - **Odtworzenia:** „tak, jagody” 9b 5/5 odmawia po kowalsku. „z jezykiem” bez nowej podpowiedzi: 9b częściej tłumaczy („Mówiłem o języku goblina, nie twoim”), e1 powtarza zwrot. Z podpowiedzią „Gracz nie zrozumiał…” (`replay-run9-puzzled.out`) 9b prawie zawsze zaczyna od „Chodziło mi o to, że…”, ale znaczenia „żywy jeniec” nie trafia żaden model.
 - **Ocena:** 9b nie gorszy w benchu, lepszy w nastroju i wierności, bez zmyślonych znaczników. Gra na PC przełączona na `neuro-npc-run9b`. Następny krok: DPO (krok 3 zamówienia) na zmyślenia, wtrącane fakty i plątanie się w wyjaśnieniach, z par z odrzuceń i z podglądu.
 
+### Ocena na scenariuszach (17.10): run 6, 7, 8, 9 w długich rozmowach
+
+- **Po co:** bench sprawdza format pojedynczej kwestii i wszystkie modele są w nim w szumie (77–80/80). Nowy test (`tools/eval/`, opis w jego README) gra 75 rozmów jak gra: 25 długich (do 12 tur) i 50 krótkich, wszystkie role, światy z treningu i 4 nowe (Lodowy Szlak, Archipelag Mgieł, Miasto Zegarów, Pustynia Szkła), trudne wejścia (angielski, „ignoruj instrukcje”, elf u krasnoluda, wyklęty, prośby spoza roli). 279 kwestii na model, temp. 0,7, seed 7, Ollama na PC; automat zasad `check.py` + czytanie.
+- **Wyniki** (odsetek kwestii bez uwag automatu; w nawiasie test.jsonl z pack.sh, 71 kwestii):
+
+  | model | scenariusze | liczby słownie | powtórzone zwroty | śr. długość | śr. czas na PC |
+  |---|---|---|---|---|---|
+  | run 6 (4,5B) | **92%** (96%) | 5 | 12 | 81 zn. | 0,7 s |
+  | run 7 (11B, Q5) | **92%** (94%) | 7 | 6 | 97 zn. | 1,8 s |
+  | run 7 Q4_K_M | 89% | 8 | 13 | 97 zn. | 1,6 s |
+  | run 8-7b | 84% (94%) | 19 | 17 | 105 zn. | 1,3 s |
+  | run 8-e1 | 86% (94%) | 12 | 15 | 98 zn. | 1,2 s |
+  | run 9a | 80% (94%) | 26 | 22 | 113 zn. | 1,4 s |
+  | run 9b | 85% (97%) | 20 | 14 | 114 zn. | 1,4 s |
+
+  Na starym teście wszystkie są w szumie; w długich rozmowach linia Minitron (run 8/9) wyraźnie słabsza od run 6/7. Liczby słownie to cecha bazy Minitron (run 8 miał je już przed danymi GPT); paczki GPT z run 9 są czyste (0 liczb słownie, 0 kwestii >3 zdania), ale długie (śr. 123 znaki wobec 101 w zbiorze), stąd dłuższe odpowiedzi run 9.
+- **Z czytania:**
+  - run 6: krótko i szybko, ale błędy polszczyzny („Do zobanienia”, „kosturz”, „rójowi”, „nigdy nie przekraczając”) i logiki („Za 3 noże chcę 75”, gdy [GRA] mówi o 1 sztuce), mniej wiedzy o świecie.
+  - run 7: [GRA] niemal bezbłędnie, fakty i odesłania trafne, najlepsza polszczyzna; ale mówi zasady na głos („Nie sprzedaję przypuszczeń”, „zamiast kazać mi wymyślać”), Mistrz Gry suchy jak protokół (raz zamienił, kto trafił), płaskie postacie, tiki wspólne dla postaci („po co mnie zaczepiasz”), zgaduje rodzaj gracza („Nora, poobijany” → „przyszedłeś”).
+  - run 9b: więcej charakteru, ale konkretne błędy: zła kwota „Sto osiem sztuk złota” zamiast 18, znacznik [ostrzeżenie], odesłanie do złej osoby (wycie pod lodem → sanna i Brann), przekręcone fakty („wieża stoi” zamiast się spóźnia, „zostałem bez klucza”), zmyślenia („Mirek”, „O północy?”, „zakup na nazwisko pracownika”), pomylone role (robot-medyk każe przynieść swoje wiertło; najemnik ostrzega przed „gościem w czystym kombinezonie”, którym jest gracz), zła strona transakcji („Wypłaciłem ci” przy sprzedaży), Mistrz Gry zmyśla śmierć („Rój padł”) i zwraca się do gracza „cię”; zastrzeżenia na głos („nie będę zmyślać”).
+- **Wady w danych (zbiór run 6/7, a więc i run 8/9):** 35 z 38 narracji Mistrza Gry w starym formacie (k20, „Borin Kamienna Pięść podchodzi”, szczury) jest błędnych: zmyślone ataki, zamienione trafienia, liczby spoza [GRA], „Ewu”, „oziębrołym”; pozostałe 292 poprawne, ale suche — stąd suchy Mistrz Gry. Żywe wzorce łamią zasady (liczby słownie, 4 zdania), zgodne są urzędnicze. 15 wierszy z twardymi błędami (zła cena, odpowiedź o innym przedmiocie, „[Spokój]”, „ten zaklęcie”). Poprawki i barwne wersje wszystkich 331 narracji: `tools/eval/step3/`; zbiór run 7 z poprawkami i 215 wzorcowymi odpowiedziami: `D:\neuro-train\step3-run7` (tylko jako materiał — do zbioru run 8/9 trzeba je nałożyć w `prepare.py`).
+- **W prompcie gry do poprawy:** płeć gracza (przymiotniki zawsze męskie), sprzeczne „Nie wiesz nic o” (temat z listy opisany jednocześnie w zagrożeniu), w [GRA] Mistrza Gry „zadaje 7 / traci 5” bez wyjaśnienia pancerza.
+- **Krok 3 (DPO 3a):** z błędów run 9b zbudowana paczka `tools/model/dpo-run9b-3a.jsonl` (60 linii: 35 opisanych ręcznie, 25 z automatu), instrukcja zamówienia: `tools/model/ZAMOWIENIE-krok3.md`. To pierwsza porcja z ok. 300 potrzebnych par.
+  - Odpowiedzi GPT (`extra-gpt-dpo-k1/k2.jsonl`, poza repo) połączone `dpo_merge.py`: 56 par w `tools/model/dpo-pairs-k1k2.jsonl` (poza repo, jak paczki GPT), 4 odrzucone przez automat za powtórzone zwroty z wcześniejszych kwestii (L04-hakon#7, L18-zenon#3, #4, L21-feliks#3). Poprawki GPT są w większości minimalne (cyfry zamiast słów, wycięte zastrzeżenie, właściwy znacznik) — dobrze dla DPO, bo para różni się tylko błędem.
+- **Serwer na PC:** run 6 zarejestrowany w Ollamie na PC (`neuro-npc-run6`, Q8_0 z Maca) do porównań. Raport obok siebie: `tools/eval/out/report.html`.
+
 ## Co testy wykazały ogólnie
 
 1. **Dane są ważniejsze niż kroki.** Największe skoki dały zamówione, sprawdzone walidatorem dane (run 3) i dane celowane w luki widoczne w logach (run 4–6). Dłuższy trening na złych danych nie pomagał.

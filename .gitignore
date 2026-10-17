@@ -12,3 +12,4 @@ tools/bench/eval/regression-80-game.jsonl
 
 # Paczki danych od GPT (trzymane poza repo, kopia w D:\neuro-train\gpt)
 tools/model/extra-*.jsonl
+tools/model/dpo-pairs*.jsonl

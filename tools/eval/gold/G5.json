@@ -1,0 +1,91 @@
+{
+  "L22-gm-kanion": {
+    "gold": [
+      "Pyłowy drążnik skacze na Tolę i odbija się od jej gardy jak od zardzewiałej bramy. Tola rewanżuje się zamachem, który przecina wyłącznie pył. Rdzawy rój tymczasem obsiada Maksa i kąsa go za 4.",
+      "Maks wali gołymi pięściami w rdzawy rój i wybija z niego 7 zdrowia, zostawiając ledwie 5. Pyłowy drążnik nie pozostaje dłużny i rozorywa Toli bok za 9. Tola krzywi się, ma jeszcze 20.",
+      "Tola kładzie dłonie na ranach Maksa i oddaje mu 6 zdrowia, do równych 40. Rdzawy rój natychmiast odgryza z tego 3. Pyłowy drążnik też próbuje szczęścia na Maksie, ale kłapie szczękami w próżnię.",
+      "Maks dopada rdzawy rój i ciosem za 5 rozbija go w rudą mgiełkę, rój ginie. Tola w tym czasie wbija się w pyłowego drążnika za 8, zostawiając mu 13 zdrowia.",
+      "Pyłowy drążnik wpada w Maksa z impetem lawiny i zabiera mu 12 zdrowia, zostaje 25. Maks w tej rundzie nie atakuje, tylko łapie oddech. Tola za to odzyskuje 5 zdrowia i ma teraz 25.",
+      "Tola tnie pyłowego drążnika za 6, a Maks dokłada 7 i bestia ginie, zwinięta w kłębek pyłu. Kanion milknie, drużyna wygrywa starcie. W łupie: 18 kredytów i 1 Filtr pyłowy, przyda się przy następnej burzy."
+    ],
+    "notes": "Oba modele są faktograficznie poprawne we wszystkich rundach, ale piszą sucho, jak protokół (\"odbiera Toli 9 zdrowia\", \"pozostawiając mu 13 zdrowia\"), bez humoru i obrazu. q4 w rundzie 6 przekręca nazwę łupu na \"filtr pyłu\", a w rundzie 3 używa niezgrabnego \"odbudowuje zdrowie\". run7 minimalnie lepszy."
+  },
+  "L23-gm-gobliny": {
+    "gold": [
+      "Goblin łucznik posyła strzałę prosto w Gaję i zabiera jej 3 zdrowia. Gaja tnie mieczem w goblina herszta, ale trafia tylko w zboże. Borin Kamienna Pięść poprawia za nią i wbija hersztowi 6 obrażeń.",
+      "Goblin herszt dosięga Borina Kamienną Pięść i odbiera mu 5 zdrowia, Borin tylko parska. Gaja w tym czasie rozprawia się z goblinem łucznikiem: cios za 9 i łucznik ginie w bruździe.",
+      "Goblin herszt rzuca się na Gaję, ale jej miecz zbija atak w całości. Borin Kamienna Pięść odpowiada zgodnie z przydomkiem: trafia herszta za 7 i zostawia mu ledwie 5 zdrowia.",
+      "Gaja dosięga goblina herszta ciosem za 2, a ten uznaje, że kariera wodza ma swoje granice, i skutecznie ucieka ze starcia, żywy. Na polu zostaje łup: 12 sztuk złota."
+    ],
+    "notes": "Oba modele poprawnie oddają przebieg wszystkich rund, w tym blok Gai i ucieczkę herszta bez śmierci. Styl jest suchy i niemal identyczny w obu wersjach; q4 nieco pełniej podaje imię Borina Kamiennej Pięści. Brak błędów faktograficznych."
+  },
+  "L24-gm-wilki": {
+    "gold": [
+      "Wilczyca alfa skacze na Olafa i rozdziera mu bok za 11, zostaje mu 34 zdrowia. Ingrid nie czeka i rąbie szronowego wilka za 8, zostawiając mu 7.",
+      "Szronowy wilk wgryza się w Ingrid za 6. Olaf zamachuje się na wilczycę alfę i trafia tylko lód. Wilczyca dziękuje mu za tę uprzejmość ciosem za 14, Olafowi zostaje 20 zdrowia.",
+      "Wilczyca alfa uderza w Olafa z całej siły za 20 i Olaf pada na lód, nie mogąc dalej działać w tej rundzie. Ingrid odpowiada natychmiast: trafia szronowego wilka za 7 i wilk ginie.",
+      "Wilczyca alfa dopada Ingrid i zabiera jej 13 zdrowia, zostaje 21. Ingrid oddaje cios, lecz wilczyca blokuje go w całości, nietknięta.",
+      "Ingrid ocenia sytuację trzeźwo i skutecznie ucieka ze starcia, cała i żywa. Na zamarzniętym jeziorze nie zostaje już nikt z drużyny zdolny do walki."
+    ],
+    "notes": "Oba modele poprawnie oddają kolejność trafień, upadek Olafa i ucieczkę Ingrid; blok w rundzie 4 też poprawnie przypisany wilczycy. q4 w rundzie 3 ma błąd odmiany \"przez wilczycę alfa\" (powinno być \"alfę\"). run7 w rundzie 5 pisze miękko \"opuszcza starcie\" zamiast wyraźnej ucieczki. Styl obu suchy, bez humoru."
+  },
+  "L25-gm-upior": {
+    "gold": [
+      "Nocny upiór wyłania się z mroku i rani Oskara za 6. Sabat za to trafia żałobną ćmę za 6 i ćma ginie, zanim zdąży zatrzepotać.",
+      "Nocny upiór sięga po Sabata, ale ten blokuje atak w całości. Oskar korzysta z okazji i tnie nocnego upiora sierpem za 4, zostaje mu 19.",
+      "Nocny upiór rozdziera Oskara za 9, zostawiając mu 20. Oskar zbiera się w sobie i odzyskuje 5 zdrowia. Sabat w tym czasie trafia nocnego upiora za 7, zbijając go do 12.",
+      "Oskar zamachuje się sierpem na upiora i chybia o włos. Upiór obraca się ku Sabatowi i rani go za 8, Sabatowi zostaje 19.",
+      "Sabat leczy Oskara, który odzyskuje 10 zdrowia i ma teraz 35. Nocny upiór próbuje to zepsuć, ale jego atak na Oskara mija cel.",
+      "Oskar wbija sierp w upiora za 6, a Sabat dorzuca kolejne 6 i nocny upiór ginie z westchnieniem ulgi. Drużyna wygrywa starcie, a w popiele zostaje łup: 9 groszy."
+    ],
+    "notes": "Runda 3 jest zepsuta w obu modelach: run7 pisze \"trafia sabatem za 7\", q4 \"trafia sabata, który zadaje przeciwnikowi 7\", choć to Sabat trafia nocnego upiora; obaj piszą imię Sabat małą literą. run7 w rundzie 6 ma 4 zdania. Pozostałe rundy poprawne, ale suche; q4 nieco zgrabniejszy w finale."
+  },
+  "S43-gm-zwyciestwo": {
+    "gold": [
+      "Nora wali krótką pałką w solnego psa za 13 i pies ginie, zanim zdąży zaszczekać. Drużyna wygrywa starcie. Łup: 17 plomb i 1 Nóż ratowniczy."
+    ],
+    "notes": "Oba modele poprawne: zabicie solnego psa, 13 obrażeń, 17 plomb i nóż ratowniczy. Styl suchy; run7 wspomina o zwycięstwie drużyny jawnie, q4 też, tylko krócej. Brak błędów."
+  },
+  "S44-gm-ucieczka": {
+    "gold": [
+      "Nela uznaje, że anteny mogą poczekać, i skutecznie ucieka ze starcia. Delta robi to samo, równie skutecznie. Antenowy pająk zostaje sam na polu, bo w drużynie nie ma już nikogo zdolnego do walki."
+    ],
+    "notes": "Oba modele piszą imię Delta źle: run7 małą literą (\"ucieczka delty\"), q4 w złym przypadku (\"ucieczkę Delta kończy walkę\", zdanie bez sensu). run7 przy Neli używa miękkiego \"opuszcza starcie\". Fakty ogólnie zgodne, ale polszczyzna słaba w obu."
+  },
+  "S45-gm-leczenie": {
+    "gold": [
+      "Wita leczy Milę, która odzyskuje 10 zdrowia i ma teraz 45. Cierniowa kuna nie docenia tej troski i trafia Witę za 6, Wicie zostaje 24."
+    ],
+    "notes": "run7 poprawny i zwięzły. q4 ma poważny błąd: \"Wita odbiera Cierniowej kunie 6 zdrowia\" odwraca atak (to kuna trafia Witę), do tego zmienia kolejność i pisze nazwę bestii wielką literą w środku zdania."
+  },
+  "S46-gm-pada": {
+    "gold": [
+      "Tomasz zamachuje się kordelasem na kraba rafowego, ale ostrze zgrzyta tylko o skałę. Krab odpowiada szczypcami za 4 i Tomasz pada, nie mogąc dalej działać w tej rundzie."
+    ],
+    "notes": "Oba modele poprawne: pudło Tomasza, trafienie kraba za 4, Tomasz powalony. run7 trochę urzędowy (\"trafienie przeciwnika odbiera\"), q4 naturalniejszy. Brak błędów."
+  },
+  "S47-gm-pudla": {
+    "gold": [
+      "Ada wymachuje parasolem w stronę szczurołapa i trafia tylko powietrze. Szczurołap rewanżuje się równie efektowną próbą i też chybia. Remis w kategorii pudła."
+    ],
+    "notes": "Oba modele poprawne, nikt nie trafia. q4 ładniej wykorzystuje parasol Ady i dopowiada brak obrażeń; run7 poprawny, ale płaski. Brak błędów."
+  },
+  "S48-gm-dwoch": {
+    "gold": [
+      "Haszim trafia piaskowego węża za 10 i wąż ginie, zwinięty na szkle. Szklany skorpion rani Lejlę za 7, zostawiając jej 21. Lejla odpowiada sztyletem, ale skorpion blokuje cios w całości."
+    ],
+    "notes": "Oba modele poprawnie oddają śmierć węża, trafienie Lejli i blok skorpiona. run7 ma rozwlekłe trzecie zdanie, q4 myli \"nie dosięga\" (sugeruje pudło) z blokiem, ale dalej mówi o bloku. Styl suchy w obu."
+  },
+  "S49-gm-ogar": {
+    "gold": [
+      "Siemira posyła strzałę w kornikowego ogara za 9. Ogar wściekle kąsa Bartosza za 5. Bartosz odpowiada siekierą za 4 i ogarowi zostają ledwie 2 zdrowia."
+    ],
+    "notes": "Fakty poprawne w obu. q4 ma błąd odmiany \"kornikowemu ogrowi\", \"ogrowi\" (powinno być \"ogarowi\"). run7 poprawny, ale suchy."
+  },
+  "S50-gm-meduza": {
+    "gold": [
+      "Kobalt-7 trafia kablową meduzę za 11 i meduza ginie w snopie iskier. Drużyna wygrywa starcie, a Ewa może wreszcie odetchnąć. Łup: 40 impulsów."
+    ],
+    "notes": "Oba modele poprawne i niemal identyczne: Kobalt-7 zabija meduzę za 11, łup 40 impulsów. Obu brakuje pełnej nazwy kablowej meduzy i jakiejkolwiek barwy. Brak błędów."
+  }
+}

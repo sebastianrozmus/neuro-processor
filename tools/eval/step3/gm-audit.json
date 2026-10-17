@@ -1,0 +1,225 @@
+{
+ "bad": [
+  {
+   "file": "train.jsonl",
+   "line": 55,
+   "reason": "błąd pisowni: „zwycięśtwo”",
+   "fix": "Nora tnie solnego psa za 13 obrażeń i bestia pada martwa. Drużyna odnosi zwycięstwo. Łupem są 17 plomb i 1 nóż ratowniczy."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 100,
+   "reason": "szczur chybił, a narracja mówi o mocnym uderzeniu w Ewę; bełkot („4 przed nią w kości”)",
+   "fix": "Ewa rzuca się na Olbrzymiego Szczura, ale jej cios chybia celu. Borin Kamienna Pięść podchodzi bliżej. Szczur kłapie zębami na Ewę, lecz i on chybia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 413,
+   "reason": "to Gaja trafiła, nie Borin; wymyślony upadek bestii; „furją”; 4 zdania",
+   "fix": "Borin Kamienna Pięść podchodzi do walki. Gaja dosięga Olbrzymiego Szczura, który traci 1 zdrowia. Szczur odpłaca się wściekłym ugryzieniem i Gaja traci 8 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 666,
+   "reason": "to Ewa traci 8 zdrowia, nie Szczur; „postępując z graczom”; 4 zdania",
+   "fix": "Ewa wyprowadza celny cios i Olbrzymi Szczur traci 3 zdrowia. Borin Kamienna Pięść podchodzi bliżej. Szczur odpowiada ugryzieniem, a Ewa traci 8 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 759,
+   "reason": "„Olbrzyma Szczura”, nie-słowa („zaszczkotała”, „przegródek”), liczba słownie, wymyślony atak Borina, brak ciosu w Ewę",
+   "fix": "Ewa wyprowadza krytyczny cios i Olbrzymi Szczur traci 6 zdrowia! Borin Kamienna Pięść podchodzi bliżej. Szczur w odwecie rani Ewę, która traci 6 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 833,
+   "reason": "wymyślony strzał z łuku, bełkot („szczerzenia”, „kulka”), pominięty Borin",
+   "fix": "Czas na decyzję mija i Ewa podchodzi do Olbrzymiego Szczura, a obok niej staje Borin Kamienna Pięść. Szczur rzuca się na Ewę, ale jego atak chybia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 1164,
+   "reason": "nie-słowo „sztykiem”; Borin tylko podchodzi, nie próbuje sięgnąć bestii",
+   "fix": "Ewa trafia Olbrzymiego Szczura, który traci 2 zdrowia. Borin Kamienna Pięść podchodzi bliżej. Szczur dwukrotnie atakuje Ewę i dwa razy chybia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 1270,
+   "reason": "błąd składni „wypełniają zapach”, dziwne „trafiając ją z klaty”, „odbijając 6 punktów”",
+   "fix": "Zdziczały Pies rzuca się na Celinę i rani ją, odbierając 6 zdrowia. Celina odpowiada ciosem, po którym pies traci 4 zdrowia i skomle z bólu."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 1357,
+   "reason": "„Olbrzyma Szczura”, nie-słowo „oziębrołym”",
+   "fix": "Borin Kamienna Pięść podchodzi bliżej. Gaja trafia Olbrzymiego Szczura w bok i ten traci 1 zdrowia. Szczur rzuca się na nią w odwecie, ale chybia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 1652,
+   "reason": "wymyślony atak Borina; zły rodzaj („jego ręka”, „jego zdrowie” o Gai); bełkot o ogonie",
+   "fix": "Borin Kamienna Pięść podchodzi bliżej. Cios Gai chybia Olbrzymiego Szczura. Szczur odpowiada ugryzieniem i Gaja traci 5 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 1689,
+   "reason": "wymyślony atak Borina; trafienie krytyczne Szczura przypisane drużynie; brak drugiego pudła; 4 zdania",
+   "fix": "Ewa trafia Olbrzymiego Szczura, który traci 1 zdrowia, a Borin Kamienna Pięść podchodzi bliżej. Szczur wyprowadza krytyczne ugryzienie i Ewa traci 6 zdrowia. Jego kolejny atak na Ewę chybia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 1694,
+   "reason": "nie-słowo „ząbiąc”, „pozbawiając jej” zamiast „ją”, „upadek o 4 punkty”",
+   "fix": "Celina uderza w galaretowate ciało Zarodnika, który traci 4 zdrowia. Galareta odpowiada ciężkim uderzeniem i Celina traci 7 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 1806,
+   "reason": "4 zdania; „obcieka” niejasne",
+   "fix": "Nikodem uderza w galaretowate ciało Zarodnika, który traci 5 zdrowia. W odpowiedzi Zarodnik oblepia Nikodema i ten traci 7 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 1865,
+   "reason": "liczba spoza [GRA] („6/18”) i błędnie podany stan zdrowia",
+   "fix": "Ewa uderza Bagiennego Szczura, który traci 6 zdrowia. Szczur odpowiada pazurami i Ewa traci 6 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 1982,
+   "reason": "„z obrażającymi wstrząsami” – błąd leksykalny; wymyślone łamanie kości",
+   "fix": "Nikodem trafia Zarodnika, a galareta traci 6 zdrowia. Zarodnik odpowiada i Nikodem traci 7 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2010,
+   "reason": "pudło Gai przypisane Borinowi (Borin tylko podchodzi); „dzierżawne” bez sensu",
+   "fix": "Borin Kamienna Pięść podchodzi bliżej. Gaja atakuje Olbrzymiego Szczura, ale chybia. Szczur odpowiada ugryzieniem i Gaja traci 8 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2020,
+   "reason": "błędna odmiana „pyska Olbrzyma” (nazwa: Olbrzymi Szczur)",
+   "fix": "Ewa rzuca się na Olbrzymiego Szczura, ale chybia. Borin Kamienna Pięść podchodzi bliżej. Szczur odpowiada natychmiast i Ewa traci 8 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2108,
+   "reason": "nie-słowo „sycz”, syk zadający obrażenia, „punktów uszkodzeń”",
+   "fix": "Ewa trafia Bagiennego Szczura, który traci 4 zdrowia. Szczur odpowiada gniewnym ugryzieniem i Ewa traci 7 zdrowia. Zaraz atakuje ponownie, odbierając jej kolejne 6 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2250,
+   "reason": "trafienie przypisane Borinowi, a trafienie Gai opisane jak pudło; brak obrażeń Gai",
+   "fix": "Borin Kamienna Pięść podchodzi bliżej. Gaja trafia Olbrzymiego Szczura, który traci 1 zdrowia. Szczur odpowiada brutalnym ugryzieniem i Gaja traci 3 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2278,
+   "reason": "wymyślona szarża Borina, „Olbrzyma Szczura”, bełkot („zrugany”, „zarywa się”)",
+   "fix": "Borin Kamienna Pięść podchodzi bliżej. Gaja próbuje dosięgnąć Olbrzymiego Szczura, ale chybia. Szczur rzuca się na nią w odwecie, lecz również chybia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2372,
+   "reason": "błędne odczytanie „łup na głowę” (złoto na głowie szczura); bełkot; brak ciosu Ewy",
+   "fix": "Cios Ewy odbiera Bagiennemu Szczurowi 6 zdrowia i bestia pada. Zwycięstwo! Łup na głowę to 19 sztuk złota i 10 punktów doświadczenia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2659,
+   "reason": "nie-słowo „rozlenülą”, bełkot o Borinie („z rykoszetem”)",
+   "fix": "Borin Kamienna Pięść podchodzi bliżej. Gaja trafia Olbrzymiego Szczura, który traci 1 zdrowia. Bestia odpowiada brutalnym uderzeniem i Gaja traci 3 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2664,
+   "reason": "„uderzając nią” zamiast „ją”, literówka „Zdzichzałego”, bełkot „celna rana odpłynęła”",
+   "fix": "Zdziczały Pies rzuca się na Celinę i ta traci 5 zdrowia. Celina odpowiada celnym ciosem, a pies traci 6 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2769,
+   "reason": "bełkot „spiera się z nim z ostrego bólu”, wymyślone serce galarety",
+   "fix": "Celina rzuca się na szarą, pulsującą masę Zarodnika, a galareta traci 5 zdrowia. Zarodnik odpowiada natychmiast i Celina, krzywiąc się z bólu, traci 6 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2834,
+   "reason": "zamienione liczby i role: to Bogna traci 7, a szczur 10; „zredukować do 4” błędne",
+   "fix": "Leon uderza Bagiennego Szczura, który traci 4 zdrowia. Szczur rzuca się na Bognę Topór i ta traci 7 zdrowia. Bogna Topór odpowiada potężnym ciosem, a szczur traci 10 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 2870,
+   "reason": "liczby spoza [GRA] („36/41”), „na Gają”, „zaciśnięty pięść”",
+   "fix": "Borin Kamienna Pięść podchodzi bliżej, a gdy czas na decyzję mija, Gaja także podchodzi. Olbrzymi Szczur rzuca się na Gaję i ta traci 5 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 3142,
+   "reason": "„odzyskuje 18 kapsli” (to łup), pominięte rany Celiny, bełkot („zardzewiały... wewnątrz martwego lasu”)",
+   "fix": "Zdziczały Pies dwukrotnie rani Celinę, która traci najpierw 5, a potem 7 zdrowia. Celina odpowiada ciosem za 4 i pies pada. Zwycięstwo przynosi jej 18 kapsli i 10 punktów doświadczenia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 3159,
+   "reason": "błędna odmiana „Ewzie”, bełkot „zmuszając do odparowania z 7 obrażeń”",
+   "fix": "Ewa trafia Bagiennego Szczura, który traci 5 zdrowia. Szczur odpowiada z furią i Ewa traci 7 zdrowia. Bestia nie odpuszcza i kolejnym atakiem odbiera Ewie 5 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 3248,
+   "reason": "wymyślony atak Borina, pominięta utrata 8 zdrowia przez Gaję, „zaryczy”",
+   "fix": "Borin Kamienna Pięść podchodzi bliżej. Gaja próbuje przebić się przez obronę Olbrzymiego Szczura, ale chybia. Szczur kontratakuje i Gaja traci 8 zdrowia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 3254,
+   "reason": "szczur chybił, a narracja daje Ewie 8 obrażeń; „Ewu”; wymyślona strzała",
+   "fix": "Ewa atakuje Olbrzymiego Szczura, ale chybia. Borin Kamienna Pięść podchodzi bliżej. Szczur kłapie zębami na Ewę, lecz również chybia."
+  },
+  {
+   "file": "train.jsonl",
+   "line": 3351,
+   "reason": "zły rodzaj: „jej kły” o psie",
+   "fix": "Zdziczały Pies rzuca się na Celinę i wbija w nią kły, a ta traci 6 zdrowia. Celina odpowiada desperackim ciosem i pies traci 5 zdrowia."
+  },
+  {
+   "file": "valid.jsonl",
+   "line": 6,
+   "reason": "sugeruje pecha Gai przy ataku szczura, choć szczur chybił; wymyślona „miedziana ręka”",
+   "fix": "Borin Kamienna Pięść podchodzi bliżej. Gaja uderza z całej siły i Olbrzymi Szczur traci 2 zdrowia. Szczur próbuje kontrataku, ale chybia."
+  },
+  {
+   "file": "valid.jsonl",
+   "line": 7,
+   "reason": "„rozbijając ją na kawałki” sugeruje śmierć psa; „9 punktów znikają”; „wbija szarpnięcie”",
+   "fix": "Nikodem rani Zdziczałego Psa, który traci 3 zdrowia. Pies odpowiada wściekłym ugryzieniem i Nikodem traci 5 zdrowia. Gruby Bolo rzuca się na bestię z potężnym ciosem, odbierając jej 9 zdrowia."
+  },
+  {
+   "file": "valid.jsonl",
+   "line": 8,
+   "reason": "bełkot bez faktów („ołowianym pniem”), niegramatyczne zdanie o Nikodemie, brak zwycięstwa i łupu",
+   "fix": "Nikodem rani Zdziczałego Psa, który traci 3 zdrowia, a pies odpowiada, odbierając Grubemu Bolo 6 zdrowia i Nikodemowi 5. Gruby Bolo odbiera bestii 8 zdrowia i Zdziczały Pies pada. Zwycięstwo przynosi łup na głowę: 20 kapsli i 10 punktów doświadczenia."
+  },
+  {
+   "file": "valid.jsonl",
+   "line": 9,
+   "reason": "4 zdania; martwy szczur nazwany „zranionym”; pominięty przebieg walki",
+   "fix": "Leon rani Bagiennego Szczura za 3, a szczur dwukrotnie dosięga Bogny Topór, która traci 5 i 6 zdrowia. Bogna Topór odpowiada ciosem za 9 i szczur pada, dając drużynie zwycięstwo. Łup na głowę to 19 sztuk złota i 10 punktów doświadczenia, a na ziemi leży Wywar z Szaleju."
+  },
+  {
+   "file": "valid.jsonl",
+   "line": 10,
+   "reason": "sprzeczność „mija cel, otrzymując nieszkodliwe obrażenia”, nie-słowo „zrygocze”, brak drugiego pudła",
+   "fix": "Ewa rzuca się na Olbrzymiego Szczura, ale chybia, a Borin Kamienna Pięść podchodzi bliżej. Szczur odpowiada ugryzieniem i Ewa traci 5 zdrowia. Jego drugi atak na Ewę chybia."
+  }
+ ],
+ "counts": {
+  "total": 331,
+  "bad": 36,
+  "dry": 292
+ }
+}

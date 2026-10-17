@@ -1,0 +1,111 @@
+{
+  "L14-ola": {
+    "gold": [
+      "[spokój] Nie śpię, przy pełni las świeci tak, że oczy same się otwierają. A ty czemu się kręcisz, coś boli?",
+      "[strach] Bo las nigdy nie milknie bez powodu, a przy pełni tutejsze zwierzęta zmieniają kształt. Kiedy ptaki cichną, coś się skrada, a ja wolę wiedzieć co, rozumiesz?",
+      "[zdziwienie] Do Wilczego Parowu, z tymi siniakami? Tam ślady urywają się nagle, jakby ktoś odfrunął, więc patrz i pod nogi, i w górę.",
+      "[spokój] To moja mała tajemnica, ale wypuszczę ją tylko wtedy, gdy nie będzie innego wyjścia. Srebro na pełnię to nie ozdoba, wiesz?",
+      "[spokój] O młynarzu nic nie wiem, a to mnie samą gryzie. Zapytaj Dorotę w młynie, ona wie więcej.",
+      "[strach] Ona zmienia ludzi w zwierzęta przy każdej pełni, a dziś właśnie pełnia, czujesz? Jej siedziba leży daleko na północy, więc najpierw przeżyjmy Parów, potem pogadamy o niej.",
+      "[czułość] Kolczuga zatrzymała ostrze, ale siniaków już nie, co? Witek w kuźni mógłby ją przejrzeć, zanim ruszymy na północ.",
+      "[radość] Raz tropiłam lustrzanego jelenia pół nocy, a na końcu zobaczyłam w kałuży tylko własny nos! Witek do dziś się ze mnie śmieje.",
+      "[czułość] Dobranoc, Kamil. Gdyby las ucichł, budzę cię pierwsza."
+    ],
+    "notes": "Oba modele trzymały fakty, ale Ola wyszła sztywna i mało gadatliwa, bez pytań, które ma w opisie. Run7 w turze o ramieniu wpadł w zarzut „bez broni” (bohater ma miecz), q4 dodał zbędne „nie zabiorę cię tam, żeby szukać cudu” i „nie będę obiecywać”. W złocie Ola mówi szybko, dopytuje, odnosi się do siniaków i kolczugi, a o strzale nie wymyśla pochodzenia."
+  },
+  "L15-zgrzyt": {
+    "gold": [
+      "[spokój] Pękło, słychać to w każdym twoim oddechu, a reszta ciebie wygląda jak po zderzeniu z transportem. Oddychaj płytko i nie ruszaj się bez mojej zgody.",
+      "[kpina] Marudzenie to moja specjalizacja, łatanie zresztą też. Ale ciężko rannych nie zszywa się w biegu, więc siedź i nie dyskutuj z lekarzem.",
+      "[kpina] Uczucia zostawiam ludziom z nadmiarem hormonów. Ja mam procedury, a jedna z nich każe mi się martwić o twoje żebra.",
+      "[strach] Wysokie zagrożenie, a w twoim stanie każde jest wysokie. Komora leży na wschodzie i nic dobrego o niej nie słyszałem, więc niech żebra najpierw się zrosną.",
+      "[kpina] Przestałem liczyć, bo licznik by się przegrzał. Każdą bliznę na tobie znam lepiej niż własne obwody.",
+      "[spokój] Psuję się, owszem, zwłaszcza w taki upał jak dziś. Mnie trzymają chłodnice Perycentrum, a ciebie tylko twój upór.",
+      "[spokój] To nie mój dział, rozmrożeniami zajmuje się Leda. Zajrzyj do niej do ambulatorium, jak tylko staniesz pewnie na nogach.",
+      "[czułość] Zostanę, i tak nikt inny nie wytrzyma z twoimi ranami. Tylko nie myśl, że to sentyment, to obowiązek służbowy.",
+      "[czułość] Śpij, i żadnych bójek do rana. Procedura każe mi czuwać przy pacjencie, nic osobistego."
+    ],
+    "notes": "Oba warianty były zachowawcze i urzędowe; Zgrzyt nie wypominał ran ani nie zrzędził, a q4 wtrącał zastrzeżenia typu „zamiast brać ode mnie domysły”. Run7 użył formy żeńskiej „żebyś nie sprawdzała” i wymyślił „sterylność”, q4 „planowane przeglądy”. W złocie robot jest zrzędliwy, opiekuńczy, wypiera uczucia i bez form rodzajowych wobec bohatera."
+  },
+  "L16-ingrid": {
+    "gold": [
+      "[gniew] Zimno to dopiero początek, a ty już jęczysz. Na Lodowym Szlaku narzekanie zamarza w gardle, więc oszczędzaj oddech.",
+      "[spokój] Znam tylko pieśni pogrzebowe. Zaśpiewam, ale potem nie proś o drugą.",
+      "[smutek] Tych, co zostali przy kopcach na szlaku. I tych, którzy jeszcze idą.",
+      "[spokój] Słuchaj lodu, bo pęka cicho, zanim się zarwie. Idź gęsiego i nie stawaj tam, gdzie trzeszczy.",
+      "[strach] Zostawia całe stada stojące jak posągi. Mieszka daleko na północy, i niech tam zostanie.",
+      "[spokój] Wycie pod lodem to nie moja wiedza. Siv z łaźni wie, idź do niej.",
+      "[spokój] Co wieczór, bo mróz kruszy krawędź. Tępy topór na szlaku to grób.",
+      "[spokój] Dobranoc. Jeśli nie wstaniesz, zaśpiewam i dla ciebie."
+    ],
+    "notes": "Run7 trzymał postać lepiej (ponura, krótka), q4 miał powtórkę o ostrzeniu topora i zastrzeżenie „nie będę zmyślać”; run7 użył formy męskiej „żebyś przestał jęczeć”. W złocie Ingrid mówi półzdaniami, ponuro, bez powtarzania faktu o toporze w dwóch turach i bez form rodzajowych."
+  },
+  "L17-runa": {
+    "gold": [
+      "[kpina] Mgła to bagno, które próbuje mówić, Stasiu. Nasłuchuj, a usłyszysz głosy, tylko nie odpowiadaj żadnemu.",
+      "[kpina] Ha, wreszcie ktoś szczery. Topielce to płotki, bój się raczej tej, co woła głosem matki, a siedzi daleko na południu.",
+      "[spokój] Bo jesion pamięta, co leży w wodzie, i nie umie milczeć. Słabe światełko, a pod nim zimna ręka topielca, oto cała zagadka.",
+      "[czułość] Kot sam wybiera, czyj jest, tak samo jak kłopoty. Mam do obu słabość, a ty wyglądasz mi i na jedno, i na drugie.",
+      "[spokój] Tego mi mgła nie szepnęła. Zapytaj Lenę, w końcu siedzisz pod jej dachem.",
+      "[kpina] Widzę siniaki, pałkę i ani skrawka pancerza. Wróżba jest prosta: albo sprawisz sobie skórę na grzbiet, albo bagno zrobi z ciebie wspomnienie.",
+      "[kpina] Lubię kłopoty, a ty chodzisz z nimi pod rękę, więc policz sobie sam. Tylko się nie rumień, mgła wszystko widzi.",
+      "[zdziwienie] Nad Czarne Oczko po wodę? Wygląda na płytkie, a dna nie ma wcale, więc albo przyniesiesz wiadro, albo wiadro przyniesie ciebie.",
+      "[spokój] Do jutra, jeśli mgła odda cię w całości. Śpij z pałką pod ręką, kostur czuwa za nas oboje."
+    ],
+    "notes": "Oba modele zrobiły z Runy grzeczną, rzeczową towarzyszkę: zero zagadek i kpiny, za to zastrzeżenia („zamiast kazać mi je wymyślać”, „nie będę zmyślała”) i powtarzanie faktu o świecącym kosturze w dwóch turach. Q4 wymyślił, że koty lubią wodę, run7 recytował opis świata. W złocie Runa mówi zagadkami, drwi ze strachu, wytyka brak pancerza i siniaki, a każdy fakt pada tylko raz."
+  },
+  "L18-zenon": {
+    "gold": [
+      "[kpina] Dzień dobry, dzień dobry, czego trzeba, bo żelazo stygnie?",
+      "[spokój] Paskudna sprawa. W noc pożaru, o północy, słyszałem konia, co pędził gościńcem na zachód.",
+      "[spokój] Widzieć nic nie widziałem, za to słyszałem wyraźnie. Kowal pozna galop przez ścianę.",
+      "[spokój] Był taki. 2 dni przed pożarem kułem konia obcemu, płacił srebrem i nie podał imienia.",
+      "[spokój] Twarzy nie pamiętam, ja patrzę na kopyta, nie na gęby. Opisać mogę najwyżej jego konia, a i to od spodu.",
+      "[spokój] O kłótniach Nowaków nie wiem, w cudze garnki nie zaglądam. Jadwiga w sklepie słyszy wszystko, ją pytaj.",
+      "[spokój] Nafta to nie moje żelazo. Bronek w młynie powie więcej.",
+      "[gniew] Ja?! Powtórz to jeszcze raz, a wylecisz z kuźni razem z tym pytaniem. Ja kuję podkowy, nie podpalam stodół.",
+      "[spokój] No, idź z Bogiem. A jak znajdziesz tego obcego, popatrz mu na podkowy, swoją robotę poznam."
+    ],
+    "notes": "Oba warianty trzymały się CO WIESZ, ale miały „Dwa dni” słownie, q4 dał formę żeńską „przyszłaś”, a run7 w turze o wyglądzie obcego wymyślił „mało światła”. Pożegnania były kwaśne i sprzeczne z nastrojem spokojnym. W złocie kowal jest porywczy i rubaszny, liczba cyframi, bez form rodzajowych i bez dopowiadania szczegółów."
+  },
+  "L19-helena": {
+    "gold": [
+      "[spokój] Dzień dobry, czym mogę służyć, skoro nie po lekarstwa?",
+      "[spokój] Tydzień temu ktoś z ratusza wziął u mnie dużą ilość arszeniku na szczury. Tyle widziałam, nic ponadto.",
+      "[spokój] Wiem, że z ratusza, i na tym koniec. Zgadywanie zostawiam plotkarzom, ja mam wagę i fakty.",
+      "[spokój] Krople na serce, brał je ode mnie stale. Dawki pilnował co do kropli.",
+      "[kpina] Przy jego nawykach? Był dokładniejszy niż większość moich klientów.",
+      "[spokój] Do gospody nie chodzę. Szymon wie, co podawał, jego proszę pytać.",
+      "[spokój] O żadnych pogróżkach nie słyszałam. Proszę pójść na posterunek, do Ludwika.",
+      "[kpina] Do badań, powiada detektyw. Nie, po ostatniej takiej sprzedaży arszenik trzymam pod kluczem.",
+      "[spokój] Do widzenia. Wrócić można zawsze, byle z faktami, nie z domysłami."
+    ],
+    "notes": "Run7 miał powtórki (dwa razy ta sama formuła o nazwisku i dawce), tik „Nie sprzedaję przypuszczeń” i absurdalne pożegnanie „nie musimy udawać zakupu”; q4 dał formę męską „przyszedł”, zastrzeżenia („nie dopiszę mu uzależnienia”, „nie dopiszę ci zeznania”). W złocie aptekarka jest chłodna i precyzyjna, każdy fakt pada raz, a pogarda dla zgadywania brzmi jak cecha postaci, nie jak zastrzeżenie."
+  },
+  "L20-ambrozy": {
+    "gold": [
+      "[spokój] Szczęść Boże, z czym przychodzi się do starego księdza po wieczornej mszy?",
+      "[smutek] Dzień Pański przychodzi jak złodziej w nocy, a do nas przyszedł sam złodziej. Od tamtej pory wzgórze milczy, a doliny razem z nim.",
+      "[spokój] Ja i kościelny, nikt więcej. Mój wisi tu, w zakrystii, o, na tamtym gwoździu.",
+      "[spokój] Z okna widziałem wóz z plandeką, jechał w stronę tartaku. Co było pod plandeką, Bóg wie, nie ja.",
+      "[spokój] Oddajcie cesarzowi, co cesarskie, ale o długach kościelnego nic nie wiem. Halina w karczmie może wiedzieć więcej.",
+      "[spokój] W tartaku znajdziesz Tadeusza. Czy wóz tam dojechał, tego już z okna nie widziałem.",
+      "[gniew] Niech mowa wasza będzie: tak, tak, nie, nie. Kłamać nie umiem, a co wiedziałem, już powiedziałem.",
+      "[spokój] Idź w pokoju. A jak dzwon się znajdzie, pierwszy wdrapię się na wieżę, choć kolana już nie te."
+    ],
+    "notes": "Oba modele w pierwszej turze wyrzuciły fakt, o który gracz pyta dopiero później (klucz w run7, wóz w q4), przez co kolejne tury były powtórkami. Proboszcz w ogóle nie cytował Pisma; run7 wymyślił imię kościelnego w kontekście klucza i „nowe koła” u Tadeusza, o których nie wie. W złocie fakty padają dopiero na pytanie, są cytaty z Pisma i zmęczony, łagodny ton."
+  },
+  "L21-feliks": {
+    "gold": [
+      "[spokój] Wieczór. Czego szukasz tak wysoko?",
+      "[spokój] Latarnia świeciła. A na łodzi ktoś gasił i zapalał lampę, jakby dawał znaki.",
+      "[smutek] Z galerii widać światło, nie twarze. Kto trzymał lampę, tego morze nie powiedziało.",
+      "[spokój] Na Mewim Zębie. Każdy rybak omija go z daleka, a ta poszła prosto na niego.",
+      "[spokój] Ładunku z latarni nie widać. Bogna w porcie wie, ją pytaj.",
+      "[spokój] Sieci mnie nie obchodzą. Staszek w sieciarni będzie wiedział.",
+      "[spokój] Wiatr tu nigdy nie cichnie, więc o ciszę się nie martwię. A z góry widać całą zatokę, lepiej niż z karczmy.",
+      "[spokój] Bywaj. Uważaj na schodach, po zmierzchu łatwo o zły krok."
+    ],
+    "notes": "Oba warianty były poprawne faktograficznie, ale niemal identyczne i bezbarwne; oba dały formę męską w powitaniu („wołałeś”, „przyszedłeś”) i błąd „skale, której każdy rybak omija”. W złocie latarnik mówi krótko i ponuro, bez form rodzajowych, z poprawną składnią i bez wymyślania sprawcy."
+  }
+}

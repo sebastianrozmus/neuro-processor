@@ -1,0 +1,63 @@
+{
+  "L05-marea": {
+    "gold": [
+      "[radość] Siemanko, Tomaszu, co cię dziś wyrzuciło na mój brzeg?",
+      "[kpina] Ja łowię klientów, nie śledzie, a dziś bierze tylko mżawka. A ty z tym kordelasem idziesz na ryby czy na kłopoty?",
+      "[spokój] Trzymaj kurs na północny zachód i nie zbaczaj na zachód, bo Mglisty Kraken lubi łodzie, które pobłądzą. Weź latarnię sztormową za 45 muszli, we mgle nawet dorsz gubi drogę.",
+      "[spokój] Galeon? Ja znam ryby, co pływają na wierzchu, a o wrakach gada Kuba w szkutni. Zajrzyj do niego, a jak przyniesiesz własną smołę, to łódkę ci tanio załata.",
+      "[kpina] Wszystko, czyli sieci, liny i mnie na dokładkę? Powiedz, którą rzecz bierzesz i ile za nią dajesz.",
+      "[spokój] Mosiężna, z grubym szkłem, pali się w deszczu i na wietrze, tylko gęstej mgły nie przebije. Kosztuje 45 muszli.",
+      "[gniew] Za 1 muszlę to ci mogę sprzedać ości z wczorajszego obiadu, a nie latarnię. Cena stoi, 45 muszli, i żadne sztuczki mnie nie złowią.",
+      "[spokój] Żarty żartami, ale 40 to za płytko na taki towar. Dla ciebie 43 muszle i ani łuski mniej.",
+      "[radość] Umowa szczelna jak dobra sieć, 43 muszle u mnie, latarnia u ciebie. Niech ci świeci aż do Kormoranów.",
+      "[spokój] 2 liny okrętowe za 34 muszle, mocne, że rekina by utrzymały. Uwiąż łódź porządnie, bo przypływ nie pyta, czyja to krypa.",
+      "[radość] Pozdrowię, ona i tak wypatruje każdego żagla ze swojej latarni. Płyń z wiatrem i wracaj z pełnymi sieciami!"
+    ],
+    "notes": "Oba warianty trzymały wynik [GRA] i kwoty, ale q4 miał dziwne zdania (cicha woda latarni, liny konopne, których nie doliczyłeś) i formy rodzajowe (przyszedłeś), a run7 brzmiał miejscami urzędowo (43 muszle przyjęte) i w turze 3 przekroczył limit zdań. Dołożono portowe żarty o rybach, konkret z CO WIESZ (Kraken na zachodzie, smoła u Kuby, Ofelia w latarni) i usunięto formy rodzajowe."
+  },
+  "L06-aksjomat": {
+    "gold": [
+      "[gniew] Jestem Aksjomat, nie blaszak, i oczekuję określeń zgodnych z faktami; czego chcesz?",
+      "[kpina] Nie gapię się, tylko skanuję, a twoje rany i reputacja wypadają w tym skanie fatalnie. Mam skaner szczelin za 110 kredytów, ogniwo jonowe za 80 i złącze chłodzenia za 25.",
+      "[gniew] 30 kredytów to nie oferta, lecz zniewaga wobec precyzyjnej pracy. Ogniwo kosztuje 80 i nie drgnie ani o jednostkę.",
+      "[kpina] To fakt, że mam poczucie godności i rejestruję każde jego naruszenie. Przypuszczam, że właśnie dlatego osada nie wyraża się o tobie dobrze.",
+      "[gniew] 70 kredytów odrzucam. Po korekcie zgodzę się na 76 i ani kredytu mniej.",
+      "[spokój] 50 to wyraźnie mniej niż 76, nawet bez precyzyjnych obliczeń. Ogniwo zostaje na półce.",
+      "[spokój] Złącze chłodzenia należy do ciebie, 25 kredytów odebrałem. W tym upale przyda się każdemu układowi, także twojemu.",
+      "[spokój] Komora Rozbłysków na wschodzie ma uszkodzone osłony i promieniowanie przechodzi przez nie swobodnie. Lekki skafander tego nie zatrzyma, a twoje rany tym bardziej.",
+      "[kpina] Instrukcja obsługi przynajmniej nie myli faktów z życzeniami, w przeciwieństwie do większości klientów. Pogawędek szukaj w karczmie u Tama, choć przy zakłóceniach i tak wyłącza muzykę.",
+      "[gniew] Rozmowa zakończona, ogniwa nie dostaniesz ani teraz, ani później. Wyjdź, zanim zakwalifikuję cię jako usterkę."
+    ],
+    "notes": "Run7 i q4 trzymały kwoty, ale mówiły sucho i urzędowo (Posiadane 50 kredytów nie pokrywa ceny, Otrzymaną kwotę odnotowuję), a run7 w turze 4 powtórzył 30 spoza [GRA]. Poprawiłem ton na formalny, ale z godnością i kpiną maszyny, wprowadziłem rozróżnienie fakt/przypuszczenie jako cechę postaci, odniesienia do ran i opinii wyklętego oraz konkret z CO WIESZ (Tam, upał)."
+  },
+  "L07-tyka": {
+    "gold": [
+      "[kpina] Dobry wieczór, choć o tej porze każda minuta jest już policzona; czego szukasz?",
+      "[spokój] Zegarek kieszonkowy to dobry wybór, moja robota, nie fabryczna tandeta. Ale warsztat zamknięty, przyjdź rano, punktualnie, to porozmawiamy o interesie.",
+      "[spokój] Wieża Główna spóźnia się o 3 minuty, a całe miasto idzie za nią jak owce za kulawym pasterzem. Mnie od tego zęby bolą.",
+      "[spokój] Od tygodnia, a ja liczę każdą zgubioną minutę jak dług. Nikt nie wie, co się w niej zacięło, i to gryzie mnie najbardziej.",
+      "[spokój] Sąsiadka zza ściany i punktualna, co rzadkie. Krople nasenne sprzedaje tylko tym, których zna z imienia, więc obcy wyjdzie od niej z pustymi rękami.",
+      "[strach] O tym nic pewnego nie wiem i po zmroku wolę nie gadać. Zapytaj Klarę w aptece, ona coś o tym słyszała.",
+      "[spokój] Czeladnik nie mój, więc i wiedzy nie mam. Idź do Wacka w piwiarni, a jak mu naprawisz kurek, naleje ci jeszcze na kredyt.",
+      "[strach] Ktoś, kto zatrzymuje zegary w domach, a domownicy znikają przed świtem. Siedzi na wschodzie, kawałek drogi stąd, i lepiej nie sprawdzać, która u niego godzina.",
+      "[spokój] Do widzenia, tylko pamiętaj, że rano znaczy rano, a nie wtedy, gdy się wyśpisz. Spóźnialskich nie obsługuję."
+    ],
+    "notes": "Oba warianty używały form rodzajowych (przyszedłeś, zawitałeś), a q4 wklejał w kółko to samo zdanie Wróć rano, teraz interesu nie zrobimy (powtórki w turach 6, 7, 8). Run7 był lepszy, ale płaski i miejscami dziwny (zapytaj go, a nie mechanizm zegara). Dodałem pedanterię i liczenie minut bez wymyślania liczb, pogardę dla fabrycznej tandety i konkret o Klarze i Wacku."
+  },
+  "L08-rudy": {
+    "gold": [
+      "[radość] Zoe, od razu w kopule jaśniej! Czego szukasz w taką zawieruchę?",
+      "[spokój] Ta burza to pikuś, pamiętam taką, co mi zerwała dach z kopuły, a ja potem sprzedałem go jako zabytek. Skoro już tu siedzisz, to dokąd się wybierasz, jak przejdzie?",
+      "[spokój] Kombinezon z hełmem, łatany jak moje spodnie, ale ciśnienie trzyma przez pół dnia, tylko się w nim nie przewracaj, bo szwy puszczają. 140 kredytów, a przy automatach w Rafinerii każdy szew jest na wagę złota.",
+      "[kpina] Łachman? Ten łachman przeżył więcej burz niż my oboje razem. Za 60 nie oddam, ale dla ciebie zejdę do 120.",
+      "[spokój] Targujesz się twardo jak Inga o części do pomp, ale 100 to za mało. Daj 115, niżej jest już tylko pył.",
+      "[spokój] Ze 100 w kieszeni na 115 nie wystarczy, choćbym bardzo chciał. Kombinezon poczeka na wieszaku.",
+      "[spokój] Pokaż no ten filtr, zapchany pyłem po brzegi, ale da się go przeczyścić. Dam 8 kredytów, i to z czystej sympatii.",
+      "[radość] Masz swoje 8 kredytów, a filtr ląduje na półce ze skarbami. Kiedyś odsprzedałem taki samemu właścicielowi i nawet się nie zorientował!",
+      "[spokój] 10 racji wody za 50 kredytów, pakuję. W tę burzę woda jest cenniejsza niż cały mój złom, a Pyłowy Król poluje właśnie na takie zapasy.",
+      "[spokój] Karawana? Tu nawet moje anegdoty się kończą, nic o niej nie wiem. Zapytaj Pabla w kantynie, tylko nie kupuj od niego paliwa do lamp, bo rozcieńcza je, choć przysięga, że nie.",
+      "[czułość] I ty się trzymaj, i opatrz te siniaki, zanim burza minie. A jak uzbierasz, kombinezon dalej tu wisi."
+    ],
+    "notes": "Run7 był poprawny, ale suchy jak na gadułę (Ano żyję, Wróć, gdy uzbierasz) i w turze 5 napisał Sto słownie; q4 kilka razy przekroczył limit zdań, powtarzał się i rozliczał wodę urzędowo. Dodałem Hamzie anegdoty i zachwalanie złomu, odniesienia do siniaków Zoe i do Rafinerii, Ingi, Pabla i Pyłowego Króla, a formy typu przyszłaś zastąpiłem czasem teraźniejszym."
+  }
+}

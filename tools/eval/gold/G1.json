@@ -1,0 +1,69 @@
+{
+  "L01-vika": {
+    "gold": [
+      "[spokój] Hej, tylko ciszej, czego szukasz?",
+      "[spokój] Blacha trzyma z dala pył, a przy okazji ciekawskie oczy. Z czym tu jesteś, z tą pałką i siniakami?",
+      "[spokój] Kiedy wiatr ciągnie od suchego kanału, pył zasypuje tunel. Bez wkładu oddechowego za 48 plomb nawet tam nie wchodź.",
+      "[spokój] Łodzie to nie mój interes i o tej nic nie wiem. Pytaj Sinę w karczmie, tylko nie mów, kto cię przysłał.",
+      "[spokój] Wkład oddechowy za 48 plomb, płaszcz pyłowy za 70, nóż ratowniczy za 25. Skąd to mam, nie pytaj.",
+      "[spokój] Gęsto tkany, z kapturem, solny pył przez niego nie przejdzie. Przed ostrzem jednak nie obroni. Kosztuje 70 plomb.",
+      "[gniew] Za 10 plomb chcesz cały płaszcz? Tyle nie jest wart nawet sam kaptur, cena zostaje 70.",
+      "[spokój] Za 50 nie oddam. Mogę zejść do 62 plomb, niżej już nie.",
+      "[radość] Zgadza się, 62 plomby, płaszcz należy do ciebie. Zapnij kaptur przed wyjściem i nikomu nie mów, skąd go masz.",
+      "[spokój] Został mi 1 nóż ratowniczy, nie 3. Za niego chcę 25 plomb.",
+      "[spokój] Z 12 plombami nie kupisz noża za 25. Nóż zostaje u mnie, a długów nie prowadzę.",
+      "[spokój] Idź cicho, a ten kram wyrzuć z pamięci, zanim miniesz grodzie."
+    ],
+    "notes": "Oba modele trzymały wynik z [GRA], ale Vika była płaska: tiki z innych postaci (po co mnie zaczepiasz, nie musisz zaglądać do cudzych kieszeni), dziwne zdania (to moja oferta, nie żądanie) i 4 zdania przy liście towaru. run7 był nieco lepszy od q4 (q4 dokładał bezsensowne dopowiedzenia). Usunąłem formy rodzajowe (przyszedłeś, zajrzałeś) i zastrzeżenie o niezmyślaniu, dodałem przemytniczą dyskrecję."
+  },
+  "L02-jagoda": {
+    "gold": [
+      "[spokój] Dzień dobry, dziecko, a czego ci trzeba od starej Jagody?",
+      "[czułość] Ojej, dziecko, zaraz mi całą izbę skrwawisz. Na taki upływ najlepszy Eliksir Krwawnika, 35 sztuk złota. Tylko nie siadaj na kocie, bo podrapie.",
+      "[spokój] Maść z Żywokostu zasklepia płytkie rany w jeden dzień, na głębokie nic nie poradzi. Kosztuje 22 sztuki złota, dziecko.",
+      "[spokój] Ech, za 9 sztuk złota maści nie dostaniesz, ona kosztuje 22. Pogrzeb w kieszeniach, zanim się wykrwawisz.",
+      "[kpina] Żabę? Mój kot by się ucieszył, ale ja handluję ziołami, naparami i maściami.",
+      "[strach] Woła głosami tych, których kochasz, a potem wciąga pod kożuch rzęsy. Siedzi daleko na południu, ale jak usłyszysz we mgle bliski głos, zatkaj uszy i nie odwracaj się.",
+      "[kpina] Prawda, dolewa bagiennej wody i myśli, że nikt nie pozna. Ja czuję to od progu, a mój kot nawet nie podejdzie do jej kufla.",
+      "[spokój] O światłach na grobli nic nie wiem, dziecko. Zapytaj Lenę w karczmie, tylko piwa u niej nie zamawiaj.",
+      "[spokój] Za 13 maści nie oddam, choć widzę, jak cię boli. Zejdę do 19 sztuk złota, bo cię lubię.",
+      "[radość] No, 19 sztuk złota w garnku, a maść twoja. Smaruj brzegi ran, nie środek, i nie mów mi, że wiesz lepiej.",
+      "[czułość] Idź, dziecko, i nie wykrwawiaj mi się na pomoście. Wracaj, zanim kot zapomni twój zapach."
+    ],
+    "notes": "Oba modele trzymały kwoty i odesłania, ale Jagoda nie straszyła kotem, pojawiały się dziwne lub błędne treści (nad staw, w słońcu z otwartą raną, żaba jako żywy towar w złym sensie) i 4 zdania przy maści w run7. q4 był bardziej rozwlekły i gubił sens (wróć z własnymi ranami), run7 nieco czystszy. Poprawiłem formę rodzajową (doszedłeś, znałeś), dodałem kota i gderliwą czułość oraz nawiązania do wcześniejszych kwestii (piwo Leny)."
+  },
+  "L03-torvin": {
+    "gold": [
+      "[kpina] Witaj, elfie, czego szukasz w porządnej kuźni?",
+      "[gniew] Moje topory tną jak trzeba, a elfie żarty łamią się jak tania stal. Masz w ogóle czym walczyć oprócz tego patyka z cięciwą?",
+      "[spokój] Kolczuga za 90 sztuk złota, hełm z nosalem za 40, topór za 65. Wszystko kute w tej kuźni, nie w elfim zagajniku.",
+      "[gniew] Za 20 sztuk złota dostaniesz kupę złomu, nie moją kolczugę! Cena zostaje 90, a elfie żarty zostaw za progiem.",
+      "[spokój] Hełm z nosalem, kuty tu, w Kamiennym Progu, przyjmie cios topora i nie pęknie. Widok na boki trochę ogranicza, ale lepsze to niż rozłupana czaszka. Kosztuje 40 sztuk złota.",
+      "[spokój] Za 35 nie puszczę, stal ma swoją wagę. Niech będzie 38 sztuk złota, bo przynajmniej przeprosić umiesz.",
+      "[radość] Zgoda, 38 sztuk złota przyjęte i hełm jest twój. Nawet elfiej głowie przyda się trochę krasnoludzkiej stali.",
+      "[spokój] O jaju nic nie wiem, ja siedzę przy kowadle, nie w szybach. Pytaj Gradę w kopalni, ona będzie wiedziała.",
+      "[spokój] Elfia robota, ładna i lekka, ale stal miękka jak masło w upale. Dam 15 sztuk złota i ani grosza więcej.",
+      "[gniew] Za elfi nożyk chcesz 60? Chyba upał ci zaszkodził. Moja cena to 18, nic ponad to.",
+      "[radość] Masz swoje 18 sztuk złota, a sztylet zostaje u mnie. Przekuję go na coś porządnego.",
+      "[spokój] Bywaj, elfie, i dbaj o ten hełm, bo drugiego takiego w lesie nie znajdziesz."
+    ],
+    "notes": "Oba modele w kluczowych turach targu pisały liczby słownie (Dwadzieścia, Trzydzieści pięć, Sześćdziesiąt), q4 dorzucał też 4 zdania i powtórki. Torvin prawie nie reagował na elfa przed sobą, mimo że to jego główne uprzedzenie, a run7 miał wpadkę ja zmyślam tylko młotem. Wszystkie kwoty cyframi, usunąłem formy rodzajowe (przyszedłeś, zawitałeś, będziesz miał) i tik wybieraj, a nie gadaj."
+  },
+  "L04-hakon": {
+    "gold": [
+      "[kpina] Dużo gadania jak na trochę zawiei. Czego trzeba?",
+      "[spokój] Daleko. Od kopca do kopca, ze szlaku nie schodź. Zgubisz kopce, zgubisz siebie.",
+      "[smutek] Ktoś tam zginął. Kopce stawia się co dzień drogi, rozwalony znaczy, że dalej już nikt nie poszedł.",
+      "[spokój] Futro wilcze, 60 bursztynów. Rakiety śnieżne, 28. Łój na odmrożenia, 9.",
+      "[spokój] Za 20 nie. Rakiety za 25 bursztynów, ostatnie słowo.",
+      "[radość] Twoje. Zgadza się, 25 bursztynów. Rzemienie ściągnij mocno.",
+      "[spokój] Masz 4 słoiki łoju, razem 30 bursztynów. Smarujcie przed wyjściem, nie po.",
+      "[spokój] Wycie? Nie wiem. Pytaj Siv w łaźni.",
+      "[spokój] Dobra skóra, ale grzbiet przetarty. 30 bursztynów, więcej nie dam.",
+      "[gniew] Za 55? Gadasz jak kupiec. Dam 34 bursztyny, ani jednego więcej.",
+      "[radość] Bierz 34 bursztyny. Dobra robota włócznią.",
+      "[spokój] Żegnaj. Patrz pod nogi, ślady nie kłamią."
+    ],
+    "notes": "Hakon miał być milczący, a oba modele gadały pełnymi zdaniami, z 4 zdaniami w turze o drodze, powtórką faktu o kopcach i tikiem nie będę zaglądał ci do kieszeni (run7). q4 dodawał zastrzeżenia (nie będę zgadywać) i dziwne sentencje. Usunąłem formy rodzajowe (przyszłaś, ostrożna, upolowałaś), skróciłem wszystko do półsłówek i rozdzieliłem informacje o kopcach między tury 2 i 3, żeby się nie powtarzały."
+  }
+}
