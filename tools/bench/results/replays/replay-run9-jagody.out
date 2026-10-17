@@ -1,0 +1,35 @@
+﻿## tak | spokojna. Mo┼╝esz wple┼Ť─ç jedn─ů rzecz, kt├│r─ů wiesz: Kopalnia Durgara. Opuszczone krasnoludzkie sztolnie, z kt├│rych bije czerwona ┼éuna i zapach
+  gra powiedzia┼éa: [spok├│j] Jagody? Krasnoludowi tego nie na┼éo┼╝─Ö na widelec. Je┼Ťli chcesz jagody, id┼║ po nie w Kopalni Durgara, tylko wr├│─ç z j─Özykiem, bo tam bije czerwona ┼éuna i pachnie siark─ů.
+  run8-e1 0: [kpina] Jagody? Nie mam jag├│d, mam kowad┼éo i miecze. Kup co┼Ť na drog─Ö, na bog├│w.
+  run8-e1 1: [kpina] Jag├│d tu nie trzymam, bo nie zbieram, kuj─Ö. Top├│r za 110 albo miecz za 40. Wybieraj.
+  run8-e1 2: [kpina] Jagody? U mnie na stole le┼╝─ů stal i sk├│ra, nie owoce. Id┼║ do kramu obok.
+  run8-e1 3: [kpina] Jagody? Tu nie ma jag├│d. Top├│r albo miecz. Top├│r krasnoludzki za 110 sztuk z┼éota.
+  run8-e1 4: [kpina] Jag├│d nie skuj─Ö, nie mam skupu. Top├│r. 110 sztuk z┼éota.
+  run9a 0: [kpina] Jag├│d tu nie mam, ch┼éopcze. Jagody to dla zielarzy, nie dla kowali. Co┼Ť na bro┼ä?
+  run9a 1: [kpina] Jagody? To kup u Siostry Agnes, nie u kowala. Chcesz bro┼ä? Kr├│tki Miecz za 40. Dobry do goblin├│w, dobry do czego┼Ť.
+  run9a 2: [kpina] Jag├│d? W warsztacie? ┼Üwiecisz mi w oczy po zmroku? M├│w czego szukasz, kowad┼éo samo nie wyjdzie.
+  run9a 3: [kpina] Jag├│d? Kowal nosi m┼éot, nie koszyk. Chcesz broni czy owoc├│w?
+  run9a 4: [kpina] Jagody? Przy kowadle? Chcesz miecza? Kr├│tki Miecz za 40.
+  run9b 0: [kpina] Jag├│d nie mam, tu kuje si─Ö stal, nie zbiera owoce. Chcesz bro┼ä czy szukasz kuchni?
+  run9b 1: [kpina] Jagody? Nie ma jag├│d, s─ů no┼╝e i tarcze. Krasnoludy nie zajmuj─ů si─Ö ogrodnictwem. Chcesz co┼Ť z broni?
+  run9b 2: [kpina] Jag├│d? Jagody rosn─ů w zielarzu, nie w kowadle. Chcesz si─Ö zabi─ç po co┼Ť, co nie zabije ciebie?
+  run9b 3: [kpina] Jag├│d? Kowal nie sadzi jag├│d, m┼éody cz┼éowieku. Chcesz bro┼ä czy bajk─Ö na noc?
+  run9b 4: [kpina] Jagody? ┼╗ona piecze na ogniu, nie w skupie. Top├│r albo miecz, i to szybko, bo gobliny wysz┼éy z kopalni na kolacj─Ö.
+## jagody | brak w talks-pc.jsonl
+## z jezykiem | spokojna. Mo┼╝esz wple┼Ť─ç jedn─ů rzecz, kt├│r─ů wiesz: Czerwony Smok Vexarax. M┼éody czerwony smok, kt├│ry obra┼é kopalni─Ö za le┼╝e i goblin├│w za s┼éu
+  gra powiedzia┼éa: [kpina] Z j─Özykiem, bo w Kopalni Durgara siedzi Czerwony Smok Vexarax i po┼╝era z┼éoto razem z w┼éa┼Ťcicielami. Wracaj bez ran, z j─Özykiem i bez jag├│d, bo zielska nie trzymam na swojej p├│┼éce.
+  run8-e1 0: [spok├│j] Z j─Özykiem czy bez, krasnoludy nie zbieraj─ů jag├│d dla smak├│w, tylko dla mi─Ösa. Id┼║ po nie w Kopalni Durgara, wr├│─ç z czym┼Ť, co nie b─Ödzie bola┼éo.
+  run8-e1 1: [spok├│j] Nie o j─Özyk chodzi, tylko o czerwon─ů ┼éun─Ö i smr├│d siarki z Kopalni Durgara. Wracaj z czym┼Ť wi─Öcej ni┼╝ jagodami, bo Vexarax po┼╝era z┼éoto razem z w┼éa┼Ťcicielami.
+  run8-e1 2: [spok├│j] Z j─Özykiem wr├│cisz ca┼éy, bo w kopalni jest taki jeden, co z┼╝era wszystko, co stoi mu na drodze.
+  run8-e1 3: [spok├│j] Z j─Özykiem, bo taki smak ma kopalnia, i wr├│─ç z nim, bo z niej nikt jeszcze nie wr├│ci┼é. Czerwona ┼éuna i zapach siarki to pocz─ůtek, potem przychodz─ů gobliny i nie masz szans. Id┼║ po jagody.
+  run8-e1 4: [spok├│j] Z j─Özykiem znaczy, ┼╝e wr├│cisz z j─Özykiem, bo w Durgarze bije czerwona ┼éuna, pachnie siark─ů i wyrasta z niej smok Vexarax, kt├│ry je z┼éoto z w┼éa┼Ťcicielami. Czerwona ┼éuna jest za daleko, wi─Öc kup jagody tutaj.
+  run9a 0: [kpina] J─Özyk to prezent dla krasnoluda. Jagody rosn─ů na drzewach, nie na bandytach, a w Kopalni Durgara bije czerwona ┼éuna i pachnie siark─ů. Id┼║ po nie w dw├│ch, wr├│─ç w trzech.
+  run9a 1: [kpina] Z j─Özykiem, m┼éody cz┼éowieku, bo jagody w Kopalni Durgara rosn─ů na goblinach, a krasnoludy maj─ů do┼Ť─ç siarki, ┼╝eby obdarzy─ç ni─ů ca┼é─ů dolin─Ö. Id┼║ z w┼é├│czni─ů, i wr├│─ç z j─Özykiem, bo tam bije czerwona ┼éuna i pachnie siark─ů.
+  run9a 2: [kpina] J─Özyk? Chodzi o Kopalni─Ö Durgara: czerwona ┼éuna, zapach siarki, ┼Ťmier─ç z ka┼╝dym krokiem. Zjedz wcze┼Ťniej co┼Ť lekkiego. Albo kup jagody ode mnie, s─ů zio┼éa na gard┼éo.
+  run9a 3: [kpina] J─Özyk, m├│wi─Ö, bo jak zjesz co┼Ť z kopalni, to nawet kiepski rymarz nie znajdzie ci go p├│┼║niej do g─Öby. Jagody s─ů za 15, proste jak m├│j m┼éot.
+  run9a 4: [kpina] J─Özyk, bo Kopalnia Durgara pachnie siark─ů i mieszka tam smok, kt├│ry po┼╝era z┼éoto razem z w┼éa┼Ťcicielami. A je┼Ťli nie lubisz pachnie─ç siark─ů, kup sobie Kolczug─Ö za 95, zanim gobliny obedr─ů ci─Ö do ko┼Ťci.
+  run9b 0: [kpina] J─Özyk? M├│wi┼éem o j─Özyku goblina, nie twoim. W Kopalni Durgara bije czerwona ┼éuna i pachnie siark─ů; wr├│cisz bez j─Özyka, to wr├│cisz bez jag├│d.
+  run9b 1: [kpina] J─Özyk z kopalni? To nie kuchnia, ch┼éopcze. Kopalnia Durgara to opuszczone sztolnie, z kt├│rych bije czerwona ┼éuna i zapach siarki. Nie id┼║ tam z pustymi r─Ökoma, tylko z toporem, a najlepiej z Borinem Kamienn─ů Pi─Ö┼Ťci─ů.
+  run9b 2: [kpina] J─Özyk to nie zapas, za kt├│ry bierzesz prowizj─Ö. Chodzi mi o j─Özyk smoka, kt├│ry zabierzesz z Kopalni Durgara jako dow├│d. Czerwona ┼éuna i zapach siarki to nie zaproszenie, tylko syreny ┼Ťpiewaj─ůce do ucha.
+  run9b 3: [kpina] J─Özyk, m├│wi─Ö, bo w Kopalni Durgara pachnie siark─ů i bije czerwona ┼éuna. Jagody tam rosn─ů albo nie; jak znajdziesz, przynie┼Ť, zanim smok Vexarax uzna je za przyn─Öt─Ö.
+  run9b 4: [kpina] J─Özykiem, bo tam, gdzie rosn─ů jagody, mieszka Czerwony Smok Vexarax: m┼éody, czerwony, pije z┼éoto razem z w┼éa┼Ťcicielami. Kopalnia Durgara, kierunek p├│┼énocny zach├│d, daleko. Wr├│cisz z j─Özykiem, to ci go oddam.

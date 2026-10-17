@@ -1,0 +1,26 @@
+﻿GRA: Gracz nie sk┼éada oferty, tylko rozmawia albo o co┼Ť pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedzia┼é. Je┼Ťli pyta o towar, mo┼╝esz poleci─ç co┼Ť ze swojego towaru i poda─ç jego cen─Ö z listy. W tej kwestii niczego nie sprzedajesz. Nastr├│j twojej postaci: spokojna. Gracz nie zrozumia┼é twojej poprzedniej kwestii: ÔÇ×Jagody? Krasnoludowi tego nie na┼éo┼╝─Ö na widelec. Je┼Ťli chcesz jagody, id┼║ po nie 
+
+neuro-npc-run8-e1 t0.8 0: [spok├│j] J─Özyk, bo z Kopalni Durgara nie wr├│ci┼é nikt bez j─Özyka. Jagody tam s─ů, ale trzeba wr├│ci─ç z czym┼Ť, co przyda si─Ö goblinom.
+neuro-npc-run8-e1 t0.8 1: [kpina] Z j─Özykiem, bo w Kopalni Durgara pachnie siark─ů i bije czerwona ┼éuna, wi─Öc wr├│─ç z j─Özykiem, nie bez. Jag├│d tu nie ma.
+neuro-npc-run8-e1 t0.8 2: [kpina] Z j─Özykiem w sensie ┼╝ywym, po powrocie z kopalni. Jagody tam s─ů, ale nie od krasnoluda z Karwina.
+neuro-npc-run8-e1 t0.8 3: [spok├│j] Z j─Özykiem, czyli wr├│─ç z nim ca┼éy. Jagody z Durgara nie kupisz, tylko zbierzesz.
+neuro-npc-run8-e1 t0.7 0: [spok├│j] J─Özyk nie znaczy tu j─Özyk, tylko wr├│─ç z j─Özykiem. Kopalnia Durgara to nie poczta, wi─Öc je┼Ťli nie zjesz ┼╝adnego goblina, nie przyniesiesz niczego z powrotem.
+neuro-npc-run8-e1 t0.7 1: [kpina] Z j─Özykiem, czyli wr├│─ç ┼╝ywy. Kopalnia Durgara pachnie siark─ů i kusi czerwonym ┼Ťwiat┼éem, a gobliny s┼éu┼╝─ů tam smokowi. Id┼║ po jagody, ale wr├│─ç z j─Özykiem, nie z jagodami.
+neuro-npc-run8-e1 t0.7 2: [spok├│j] Z j─Özykiem w sensie ┼╝ywym, m┼éody, nie z z─Öb├│w. Kopalnia Durgara to miejsce, gdzie krasnoludy kopa┼éy i gdzie teraz bija czerwona ┼éuna i pachnie siark─ů. Id┼║ tam po jagody, tylko wr├│─ç z j─Özykiem.
+neuro-npc-run8-e1 t0.7 3: [spok├│j] Z j─Özykiem, czyli bez niego wr├│cisz. Kopalnia Durgara to nie targ, tylko miejsce, gdzie zgin─ů┼é ju┼╝ niejeden.
+neuro-npc-run9a t0.8 0: [zdziwienie] J─Özyk? Chodzi┼éo mi, ┼╝e jak wr├│cisz z jag├│d, to b─Ödziesz mia┼é co opowiada─ç, bo w Durgarze bije czerwona ┼éuna i pachnie siark─ů. Id┼║ ostro┼╝nie.
+neuro-npc-run9a t0.8 1: [kpina] J─Özykiem w sensie, ┼╝e go zabierzesz z kopalni, nie ┼╝e ci go w┼éo┼╝─Ö do ust. Jagody s─ů w Kopalni Durgara, bije tam czerwona ┼éuna i smr├│d siarki, wi─Öc wr├│─ç z czym┼Ť na powr├│t.
+neuro-npc-run9a t0.8 2: [kpina] J─Özyk, kt├│ry ci wystawi─Ö, to tylko ┼╝art. Jag├│d nie mam, wi─Öc id┼║ do Kopalni Durgara po nie, cho─ç wr├│─ç z czym┼Ť, bo tam jest czerwono i ┼Ťmierdzi siark─ů.
+neuro-npc-run9a t0.8 3: [zdziwienie] J─Özyk to nie cz─Ö┼Ť─ç twojej garderoby. Chodzi┼éo mi o to, ┼╝e z kopalni Durgara wr├│cisz bez j─Özyka, bo bije tam czerwona ┼éuna i pachnie siark─ů. Jagody s─ů tam, nie w mojej ku┼║ni.
+neuro-npc-run9a t0.7 0: [spok├│j] J─Özyk to ┼╝art, cz┼éowieku, nie wyzwanie. Jag├│d nie sprzedaj─Ö, w Kopalni Durgara bije czerwona ┼éuna i pachnie siark─ů, a ja nie nak┼éadam ich na widelec.
+neuro-npc-run9a t0.7 1: [zdziwienie] Chcia┼éem powiedzie─ç, ┼╝e jag├│d ci nie dam, bo nie nosz─Ö ich na widelcu. Kopalnia Durgara to miejsce, gdzie rosn─ů, ale wr├│─ç z j─Özykiem, bo tam ┼Ťwieci czerwono i ┼Ťmierdzi siark─ů.
+neuro-npc-run9a t0.7 2: [zdziwienie] J─Özyk? Chodzi┼éo mi o to, ┼╝e z Kopalni Durgara wr├│cisz bez j─Özyka, nie z nim. Czerwona ┼éuna i smr├│d siarki: taki tam zbi├│r jag├│d.
+neuro-npc-run9a t0.7 3: [spok├│j] J─Özyk mia┼éem na my┼Ťli, bo w Kopalni Durgara bije czerwona ┼éuna i pachnie siark─ů, wi─Öc wr├│─ç z j─Özykiem, a nie z jagodami w sakiewce.
+neuro-npc-run9b t0.8 0: [spok├│j] J─Özyk nie ma tu nic do rzeczy. Jag├│d nie kupisz, bo nie mam. Kopalnia Durgara je hoduje; id┼║ po nie, tylko wr├│─ç z czym┼Ť, bo tam ┼Ťwieci czerwono i ┼Ťmierdzi siark─ů.
+neuro-npc-run9b t0.8 1: [zdziwienie] J─Özyk? Chodzi o to, ┼╝eby┼Ť wr├│ci┼é z czym┼Ť z Kopalni Durgara, bo jag├│d tam nie kupisz: tam bije czerwona ┼éuna i pachnie siark─ů.
+neuro-npc-run9b t0.8 2: [zdziwienie] J─Özyk? Chodzi┼éo mi o to, ┼╝e z Kopalni Durgara wr├│cisz z czym┼Ť na pami─ůtk─Ö, bo tam bije czerwona ┼éuna i pachnie siark─ů. Jagody kupuje si─Ö gdzie indziej.
+neuro-npc-run9b t0.8 3: [spok├│j] J─Özyk, m┼éody, znaczy nie zgub j─Özyka. Kopalnia Durgara to miejsce, z kt├│rego bije czerwona ┼éuna i siarka. Jak tam p├│jdziesz, wr├│─ç przynajmniej z j─Özykiem, czyli nie zgub go w drodze. Jag├│d nie bierzemy do ust.
+neuro-npc-run9b t0.7 0: [spok├│j] J─Özyk nie by┼é jedzeniem, tylko ostrze┼╝eniem: w Kopalni Durgara bije czerwona ┼éuna i pachnie siark─ů, wi─Öc przynie┼Ť stamt─ůd j─Özyk albo wr├│─ç z czym┼Ť innym.
+neuro-npc-run9b t0.7 1: [zdziwienie] J─Özyk? Chodzi o to, ┼╝eby┼Ť wr├│ci┼é z czym┼Ť z Kopalni Durgara, bo tam bije czerwona ┼éuna i pachnie siark─ů. A jagody to zmy┼Ťli┼éem, ┼╝eby┼Ť ruszy┼é g┼éow─ů.
+neuro-npc-run9b t0.7 2: [spok├│j] J─Özyk mia┼éem na my┼Ťli, ┼╝e wr├│cisz z czym┼Ť, bo Kopalnia Durgara to stal i ogie┼ä: czerwona ┼éuna i siarka. Jagody tam nie znajdziesz, cho─çby┼Ť kl─ů┼é godzin─Ö.
+neuro-npc-run9b t0.7 3: [spok├│j] J─Özyk mia┼éem na my┼Ťli, nie cz─Ö┼Ť─ç cia┼éa. Jagody rosn─ů w Kopalni Durgara, ale wr├│─ç z j─Özykiem, bo tam bije czerwona ┼éuna i pachnie siark─ů.

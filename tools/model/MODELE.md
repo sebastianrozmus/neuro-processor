@@ -18,7 +18,8 @@ Zestawienie wszystkich wersji Głosu, czyli modelu, który pisze kwestie postaci
 | run 6 | Bielik 4.5B v3.0 | Mac, LoRA, od run 5 | 3369 (+320 tropów) | 76 / 78 | 1,8–1,9 s | ✅ powrót |
 | Bielik 11B bez treningu | Bielik 11B v2.3 (Q4_K_M) | — | — | 8 / 6 | 13,2–13,6 s | ❌ nie zna formatu gry |
 | **run 7** | **Bielik 11B v2.3** | **PC RTX 4060 Ti, QLoRA, od zera** | **3369 (jak run 6)** | **80 / 80** | **5,1–5,2 s** | **✅ obecny** |
-| run 8 (i run 8-e1 po 1. epoce) | Bielik-Minitron-7B v3.0 | PC, QLoRA, od zera | 3117 (zbiór run 7 + 64 ręczne lekcje) | 79 / 78, e1: 79 / 77 (run 7 na tym pliku: 78 / 75) | 1,2 s na PC (run 7: 1,6–1,8 s) | ⚠️ kandydat na PC |
+| run 8 (i run 8-e1 po 1. epoce) | Bielik-Minitron-7B v3.0 | PC, QLoRA, od zera | 3117 (zbiór run 7 + 64 ręczne lekcje) | 79 / 78, e1: 79 / 77 (run 7 na tym pliku: 78 / 75) | 1,2 s na PC (run 7: 1,6–1,8 s) | ⚠️ zastąpiony przez run 9b |
+| **run 9b** (i 9a) | **Bielik-Minitron-7B v3.0** | **PC, QLoRA, od run 8-e1, 2 × 1 epoka** | **838 od GPT (kroki 1–2) + 2000 powtórki** | **79 / 77** (9a: 79 / 78) | jak run 8 | **✅ obecny na PC** |
 
 Bench to 80 przypadków, których model nie widział w treningu (`tools/bench/eval/regression-80.jsonl`): 24 rozmowy towarzysza, 40 najemnika i 16 kupca. Wszystkie runy od 4 wzwyż mierzone na tym samym pliku przypadków (sha `b55d2900`), temperatura 0,8, seedy 42 i 7. Różnica ±3 punkty między seedami to szum. Run 3 i run 4 seed 42 to liczby z historii; ich pliki wyników przepadły.
 
@@ -134,6 +135,21 @@ Mediana odpowiedzi to czas jednej kwestii w benchu na Macu M3 Pro (18 GB), z mod
   - nowa podpowiedź „Gracz nie zrozumiał…” (`replay-run8-puzzled.out`): run 7, run 8 i run 8-e1 tłumaczą zwrot („z językiem, czyli żywy”), choć żaden nie był tego uczony poza 64 lekcjami. Najprościej robi to run 8-e1, run 8 częściej plącze się dalej. Wszystkie powtarzają przy tym fakt z poprzedniej kwestii.
   - Do gry na PC polecam `neuro-npc-run8-e1`.
 
+### run 9 (17.10): douczanie run 8-e1 danymi z `ZAMOWIENIE-run9.md`
+
+- **Dane:** kroki 1 i 2 zamówienia od GPT, 17 paczek po 50 linii. Każda przeszła `check_data.py` i kontrole kroku (obce nazwy, przepisany fakt, stałe końcówki, „pan/pani”, powtórki w rozmowie). Odrzucone: stara wersja k2 (zastąpiona nową) i kilkanaście linii przepisujących fakt słowo w słowo. Zostało 440 linii kroku 1 i 398 kroku 2; 7% z nich (51) odłożone jako test, którego trening nie widział.
+- **9a:** od zapisu run 8 po 1. epoce, 1 epoka, lr 4e-5. Zbiór 1606: 300 szablonów sklepu i 700 rozmów ze zbioru run 8 (żeby nie zapominał) plus krok 1, przy czym przykłady z faktem dwa razy. 200 kroków, ok. 1 h.
+- **9b:** od 9a, tak samo, zbiór 1787: inne 300 + 700 ze starego zbioru, krok 1 raz i krok 2. 223 kroki, ok. 1,4 h.
+  - `train.py --resume` ładował adapter przez `PeftModel.from_pretrained` bez gradient checkpointingu Unsloth i wychodził poza 16 GB; teraz adapter idzie przez `get_peft_model` i wczytanie wag.
+  - eval_loss na starym zbiorze walidacyjnym: 0,76 przez całe 9a, 0,754 po 9b (e1: 0,753). Nic nie zapomniał.
+- **Bench:** 9a 79 / 78, 9b 79 / 77, e1 79 / 77. W szumie.
+- **Test na odłożonych liniach** (`replays/holdout-run9.out`, 51 linii × 2 próby; liczy `D:\neuro-train\eval9.py`): czyste odpowiedzi e1 90, 9a 89, 9b 92 na 102; fakt przepisany ≥7 słowami e1 10, 9a 9, 9b 7. Z czytania:
+  - 9a i 9b częściej trzymają znacznik zgodny z nastrojem z [GRA] (e1 daje [spokój] tam, gdzie gra prosi o strach albo smutek) i mają więcej charakteru.
+  - 9a dwa razy dał nieistniejący znacznik [niepokój] i raz zmyślił „Łyżkowego Boga”; 9b żadnego z tych błędów.
+  - wszystkie trzy czasem wtrącają niepasujący fakt z CO WIESZ albo plączą się w wyjaśnieniu; to cel dla DPO.
+- **Odtworzenia:** „tak, jagody” 9b 5/5 odmawia po kowalsku. „z jezykiem” bez nowej podpowiedzi: 9b częściej tłumaczy („Mówiłem o języku goblina, nie twoim”), e1 powtarza zwrot. Z podpowiedzią „Gracz nie zrozumiał…” (`replay-run9-puzzled.out`) 9b prawie zawsze zaczyna od „Chodziło mi o to, że…”, ale znaczenia „żywy jeniec” nie trafia żaden model.
+- **Ocena:** 9b nie gorszy w benchu, lepszy w nastroju i wierności, bez zmyślonych znaczników. Gra na PC przełączona na `neuro-npc-run9b`. Następny krok: DPO (krok 3 zamówienia) na zmyślenia, wtrącane fakty i plątanie się w wyjaśnieniach, z par z odrzuceń i z podglądu.
+
 ## Co testy wykazały ogólnie
 
 1. **Dane są ważniejsze niż kroki.** Największe skoki dały zamówione, sprawdzone walidatorem dane (run 3) i dane celowane w luki widoczne w logach (run 4–6). Dłuższy trening na złych danych nie pomagał.
@@ -147,6 +163,8 @@ Mediana odpowiedzi to czas jednej kwestii w benchu na Macu M3 Pro (18 GB), z mod
 
 | katalog w `tools/bench/results/` | co zawiera |
 |---|---|
+| `neuro-npc-run9a-s42`, `-s7`, `neuro-npc-run9b-s42`, `-s7` | run 9a i 9b (`fb5ca071`) |
+| `neuro-npc-run8-e1-s42`, `-s7` | run 8 po 1. epoce |
 | `neuro-npc-run8-7b-s42`, `-s7` | run 8 na nowym pliku przypadków (`fb5ca071`) |
 | `neuro-npc-run7-pc-s42`, `-s7` | run 7 jeszcze raz, na PC, na tym samym pliku co run 8 |
 | `neuro-npc-run7-s42`, `-s7` | run 7, oba seedy: odpowiedzi, podsumowanie, arkusz do oceny ręcznej |
@@ -154,7 +172,7 @@ Mediana odpowiedzi to czas jednej kwestii w benchu na Macu M3 Pro (18 GB), z mod
 | `neuro-npc-run5-s7`, `neuro-npc-run4-s7`, `neuro-npc-run4-t0.6-s42` | run 4 i 5 |
 | `neuro-npc-run3-s42` | tylko arkusz oceny ręcznej |
 | `bielik-11b-raw-s42`, `-s7` | Bielik 11B bez treningu |
-| `replays/` | odtworzenia prawdziwych rozmów: run 5, run 6, 11B, run 7, run 8 |
+| `replays/` | odtworzenia prawdziwych rozmów: run 5, run 6, 11B, run 7, run 8, run 9; `holdout-run9.out`: test na odłożonych liniach zamówienia |
 
 Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
 

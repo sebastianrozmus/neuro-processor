@@ -1,0 +1,101 @@
+﻿## siema mordo | spokojna. Gracz tylko si─Ö wita. Odpowiedz jednym kr├│tkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic wi─Öcej. Odpowi
+  gra powiedzia┼éa: [spok├│j] Siema, o czym tu chcesz pogada─ç?
+  run8-e1 0: [spok├│j] Siema, co ci─Ö sprowadza do starego Borina?
+  run8-e1 1: [spok├│j] Siema, ziomku, o co chcesz zagada─ç?
+  run8-e1 2: [spok├│j] Siema, nieznajomy, z czym przychodzisz?
+  run9a 0: [spok├│j] Siema, obcy cz┼éowieku, o czym chcesz pogada─ç?
+  run9a 1: [spok├│j] Siema, po co przysiad┼ée┼Ť?
+  run9a 2: [spok├│j] Siema, ch┼éopaku, o co chcesz zagada─ç?
+  run9b 0: [spok├│j] Siema, mordo, czego szukasz w mojej kompanii?
+  run9b 1: [spok├│j] Siema, zb┼é─ůkana duszo, czego szukasz przy moim stole?
+  run9b 2: [spok├│j] Siema, obcy, o co pyta ten krasnoludzki m┼éot?
+## elo mordo | spokojna. Gracz pyta o tw├│j towar. Pasuje: ┬źZw├│j Kuli Ognia┬╗ 135 (Zw├│j z piecz─Öci─ů Akademii. Ogie┼ä, kt├│ry nie pyta o imi─Ö. Do nauczenia. Ran
+  gra powiedzia┼éa: [spok├│j] Wiesz, mo┼╝na by rzec, ┼╝e ogie┼ä ma w┼éasny rozum; nawet Akademia nie potrafi┼éa go okie┼ézna─ç do ko┼äca. Mo┼╝e zainteresuje ci─Ö Zw├│j Kuli Ognia za 135 sztuk z┼éota, bo kiedy go odczytasz, wrogom odbierze cz─Ö┼Ť─ç ich ┼╝ycia i twojej troski o paliwo?
+  run8-e1 0: [spok├│j] Kr├│l to kr├│l, wi─Öc nie pytaj o niego przy ognisku. Zw├│j Kuli Ognia z mojej oferty rani wszystkich wrog├│w i kosztuje 135 sztuk z┼éota, ale nie pytaj o Akademi─Ö, bo to bolesny temat.
+  run8-e1 1: [spok├│j] Kuli Ognia nie nazywaj kr├│lem, ma 10 punkt├│w obra┼╝e┼ä i nie pyta o imi─Ö. Zw├│j Akademii, 135.
+  run8-e1 2: [spok├│j] Kr├│l? Kr├│lowie g├│r nie licz─ů, oni gryz─ů, a ja mam m─ůdrzejsze rozwi─ůzanie: Zw├│j Kuli Ognia. 135 sztuk z┼éota. Rani wszystkich wrog├│w za 10, koszt 9 punkt├│w mocy. Nie pyta o imi─Ö. Pami─Ötaj, ┼╝e ogie┼ä kocha cisz─Ö.
+  run9a 0: [spok├│j] O kr├│lu? Nie b─Öd─Ö zmy┼Ťla┼é, powiem tylko, ┼╝e z┼éoto zawsze zbiera si─Ö szybciej ni┼╝ m─ůdro┼Ť─ç. Chcesz wiedzie─ç, co mam? Zw├│j Kuli Ognia, 135 sztuk z┼éota. Rani wszystkich wrog├│w za 10, kosztuje 9 punkt├│w mocy. Akademia go nie odda┼éa, ale ja tak.
+  run9a 1: [spok├│j] Krol? A ja m├│wi┼éem o ogniu. Zw├│j Kuli Ognia z Akademii, 135 sztuk z┼éota. Rani wszystkich wrog├│w za 10, kosztuje 9 punkt├│w mocy. Nie pyta o imi─Ö.
+  run9a 2: [spok├│j] Ogie┼ä nie pami─Öta, co najwy┼╝ej zostawia pami─Ö─ç nad popio┼éem. Z mojego towaru polecam Zw├│j Kuli Ognia: zakl─Öcie Akademii, 10 obra┼╝e┼ä do ka┼╝dego wroga, 9 punkt├│w mocy. 135 sztuk z┼éota, ale warto, je┼Ťli chcesz rozmawia─ç z kim┼Ť innym ni┼╝ p┼éomie┼ä.
+  run9b 0: [spok├│j] Kr├│la? Ostatnio m├│wi─ů, ┼╝e Kurhany Kr├│l├│w noc─ů p┼éon─ů b┼é─Ödnym ogniem. Zapomnia┼ée┼Ť, ┼╝e ognia pytasz maga? Zw├│j Kuli Ognia, 135 sztuk z┼éota. Rani wszystkich, nie pyta o imi─Ö. Kup, zanim gobliny zapytaj─ů ciebie.
+  run9b 1: [spok├│j] O Kr├│lu wiem tylko, ┼╝e nie ma imienia. Chcesz Zw├│j Kuli Ognia? Piecz─Ö─ç Akademii na nim nie pyta o dowody. Rani wszystkich wrog├│w za 10, kosztuje 9 punkt├│w mocy i nie chce rozmowy. 135 sztuk z┼éota.
+  run9b 2: [spok├│j] Kr├│lu? Masz na my┼Ťli Czerwonego Smoka Vexaraxa? Ma pami─Ö─ç, i to jak─ů! Po┼╝era z┼éoto razem z w┼éa┼Ťcicielami, a jego siedziba le┼╝y daleko na p├│┼énocnym zachodzie. Znajdziesz go tam, gdzie gobliny robi─ů mu podarki z twojego z┼éota.
+## co wiesz o krolu | spokojna. Gracz pyta o co┼Ť, czego nie znasz: Kurhany Kr├│l├│w. S┼éysza┼ée┼Ť tylko tyle: ÔÇ×Omsza┼ée kopce dawnych w┼éadc├│w dolinyÔÇŁ. Powiedz to jak za
+  gra powiedzia┼éa: [kpina] Kurhan├│w nie zbadano; siostr─ů Agnet─ů w aptece o tym rozmawiaj
+  run8-e1 0: [spok├│j] M├│wi─ů, ┼╝e w Kurhanach Kr├│l├│w spoczywaj─ů dawni w┼éadcy doliny, ale to na tyle mojej wiedzy. Siostra Agnes w Aptece potrafi zgadn─ů─ç wi─Öcej.
+  run8-e1 1: [spok├│j] Kr─ů┼╝y wie┼Ť─ç o Kurhanach Kr├│l├│w, omsza┼éych kopcach dawnych w┼éadc├│w doliny. Nie znam jednak sprawcy, kt├│ry tam zaszed┼é. Siostra Agnes w Aptece powie wi─Öcej.
+  run8-e1 2: [spok├│j] M├│wi─ů, ┼╝e Kurhany Kr├│l├│w s─ů omsza┼ée, ale nie znam tych w┼éadc├│w. Siostra Agnes w Aptece zna te sprawy.
+  run9a 0: [zdziwienie] Krolu? S┼éysza┼éem o Kurhanach Kr├│l├│w, omsza┼éych kopcach na skraju doliny, ale o co chodzi? Siostra Agnes w aptece wie wi─Öcej.
+  run9a 1: [zdziwienie] O Kr├│lu? Ludzie m├│wi─ů, ┼╝e w Kurhanach Kr├│l├│w le┼╝─ů dawni w┼éadcy doliny, ale sam nie zbada┼éem tych kopc├│w. Siostra Agnes w Aptece mo┼╝e wiedzie─ç wi─Öcej.
+  run9a 2: [zdziwienie] Kr├│l? Kurhany Kr├│l├│w, m├│wi─ů, stoj─ů w dolinie, a dawni w┼éadcy le┼╝─ů w omsza┼éych kopcach. Ja tyle wiem; Siostra Agnes w Aptece zna reszt─Ö.
+  run9b 0: [zdziwienie] Krol? Kurhany Kr├│l├│w pono─ç stoj─ů na p├│┼énocnym zachodzie, kopce, w kt├│rych chowano dawnych w┼éadc├│w doliny. Nie potwierdz─Ö, czy le┼╝y tam kr├│l, nie potwierdz─Ö, czy warto tam i┼Ť─ç. Siostra Agnes w Aptece Siostry Agnes zna te sprawy.
+  run9b 1: [zdziwienie] O Kr├│lu? Wie┼Ťci nios─ů, ┼╝e Kurhany Kr├│l├│w stoj─ů na p├│┼énocnym wschodzie, omsza┼ée i ciche, ale nie wiem, co tam w ┼Ťrodku. Siostra Agnes w Aptece Siostry Agnes s┼éysza┼éa wi─Öcej; ja m├│wi─Ö tylko to, co szepcz─ů ludzie.
+  run9b 2: [zdziwienie] Kr├│lu? Wiesz co┼Ť o Kurhanach Kr├│l├│w, m├│wi─ů, ┼╝e le┼╝─ů tam dawni w┼éadcy doliny. Ja tylko s┼éysza┼éem, nie by┼éem. Siostra Agnes w Aptece zna wi─Öcej.
+## plotki | spokojna. Mo┼╝esz wple┼Ť─ç jedn─ů rzecz, kt├│r─ů wiesz: Pola Karw. ┼ü─ůki i zagrody, z kt├│rych ch┼éopi uciekli przed goblinami. W zbo┼╝u co┼Ť szele┼Ťci.
+  gra powiedzia┼éa: [spok├│j] S┼éycha─ç to tu, gdzie stal stoi. Ch┼éopi z Karwu uciekaj─ů na pola przed gradami i goblinami. W zbo┼╝u szele┼Ťci co┼Ť czasem; to chyba nie trzeba daleko patrze─ç. Niebezpiecze┼ästwo jest takie, jak napis za drzwiami.
+  run8-e1 0: [spok├│j] Pola Karw, z kt├│rych ch┼éopi uciekli przed goblinami, wci─ů┼╝ szepcz─ů traw─ů. Niebezpiecze┼ästwo ma┼ée, ale wystarczy, ┼╝eby przej┼Ť─ç przez pole bez miecza.
+  run8-e1 1: [spok├│j] Wie┼Ť─ç gminna m├│wi o zbo┼╝u, w kt├│rym co┼Ť szele┼Ťci na Polach Karw. Gobliny znikn─Ö┼éy, ale zbo┼╝e zosta┼éo. Niebezpiecze┼ästwo: ma┼ée.
+  run8-e1 2: [spok├│j] Pola Karw, z kt├│rych ch┼éopi uciekli przed goblinami, co┼Ť szele┼Ťci w zbo┼╝u. Niebezpiecze┼ästwo ma┼ée, jak na polu, gdzie nie zosta┼é nikt, kto by ci─Ö ostrzeg┼é.
+  run9a 0: [spok├│j] Ch┼éopi uciekli z p├│l Karw przed goblinami, zosta┼éy ┼éany i zagrody, kt├│re noc─ů szele┼Ťci w zbo┼╝u. Niebezpiecze┼ästwo ma┼ée, ale niech ci─Ö to nie usypia.
+  run9a 1: [spok├│j] W zbo┼╝u na Polach Karw co┼Ť szele┼Ťci. Ch┼éopi uciekli przed goblinami, a noc─ů tylko szept wiatru. Niebezpiecze┼ästwo ma┼ée, chyba ┼╝e trafisz na prawdziwy ┼╝niwiarz.
+  run9a 2: [spok├│j] Ch┼éopi uciekli z P├│l Karw przed goblinami, a w zbo┼╝u co┼Ť szele┼Ťci. Niebezpiecze┼ästwo ma┼ée, wi─Öc je┼Ťli si─Ö nie boisz o sakiewk─Ö, mo┼╝esz tam i┼Ť─ç.
+  run9b 0: [spok├│j] Gobliny schodz─ů z g├│ry i nie przepuszczaj─ů nikogo, kto nie umie bi─ç; pola Karw zostawiaj─ů dla tych, co si─Ö nie licz─ů. Zbo┼╝e szele┼Ťci, ale nikomu jeszcze nie zrobi┼éo wi─Ökszej krzywdy.
+  run9b 1: [spok├│j] M├│wi─ů, ┼╝e z p├│l Karw ch┼éopi uciekli przed goblinami. W zbo┼╝u co┼Ť szele┼Ťci. Szelest nie zabije, goblin mo┼╝e. Niebezpiecze┼ästwo: ma┼ée.
+  run9b 2: [spok├│j] Gobliny wygna┼éy ch┼éop├│w z p├│l Karw. W zbo┼╝u szele┼Ťci, jakby co┼Ť tam mieszka┼éo. Niebezpiecze┼ästwo: ma┼ée, dop├│ki cz┼éowiek nie potknie si─Ö o w┼éasn─ů pewno┼Ť─ç.
+## jaka masz najlepsza zbroje | spokojna. Gracz wspomina o: Szkielet Wojownika. Co o tym wiesz: Pochowany z mieczem, wsta┼é z mieczem. Zbroja trzyma si─Ö na rdzy. Cecha: Nieu
+  gra powiedzia┼éa: [spok├│j] Na pierwszy rzut oka nic nie wida─ç pod ┼éatami. Strza┼éka w r─Ök─Ö jeszcze nie jest ozdob─ů; to miecz, kt├│ry wsta┼é z pok┼éadu z wojownikiem bez r─Öki i straci┼é j─ů w walce. Z czasem rdza go ujarzy do cna: na pocz─ůtku ka┼╝dej rundy zrasta si─Ö i traci o po┼éow─Ö mniej. Najdoskonalszy najemnik nie ma zdrowej d┼éoni na obietii.
+  run8-e1 0: [spok├│j] Szkielet Wojownika? Rdza w zbroi i po┼éowa zdrowia na pocz─ůtku rundy, nic wi─Öcej. Je┼Ťli go zabijesz, zr├│b to na polu, bo w kopalni wr├│ci.
+  run8-e1 1: [spok├│j] Nie ma zbroi na Szkieleta Wojownika. On jest zbroj─ů. Na pocz─ůtku ka┼╝dej rundy zrasta si─Ö i odzyskuje zdrowie. Miecz trzyma na rdzy, ale to nie przeszkadza mu wstawa─ç.
+  run8-e1 2: [spok├│j] Szkielet Wojownika wsta┼é z mieczem i na pocz─ůtku ka┼╝dej rundy zrasta si─Ö z rdzy. Kolczuga za 95 sztuk z┼éota.
+  run9a 0: [spok├│j] Szkielet Wojownika: wsta┼é z mieczem, bo pochowali go z mieczem, rdza na zbroi trzyma si─Ö lepiej ni┼╝ ┼╝ycie; na pocz─ůtku ka┼╝dej rundy zrasta si─Ö i odzyskuje zdrowie. Nie bierz niczego z tego, co nosi┼é.
+  run9a 1: [spok├│j] Szkielet Wojownika, czyli kto┼Ť, kto wr├│ci┼é z grobu z mieczem i rdz─ů. Na pocz─ůtku ka┼╝dej rundy zrasta si─Ö i odzyskuje zdrowie. Niez┼éy, dop├│ki nie zacznie szar┼╝owa─ç.
+  run9a 2: [spok├│j] Szkielet Wojownika stoi po ciemku i zrasta si─Ö na pocz─ůtku ka┼╝dej rundy. Zbroja trzyma si─Ö na rdzy, ale z┼éama─ç j─ů to dopiero robota. Nie bierz mu miecza, zanim nie zobaczysz go z bliska.
+  run9b 0: [spok├│j] Szkielet Wojownika? Rdza mu nie straszna, na pocz─ůtku ka┼╝dej rundy zrasta si─Ö i odzyskuje zdrowie. Zanim go zaczniesz zbiera─ç, przypomnij sobie cen─Ö kolczugi.
+  run9b 1: [spok├│j] Szkielet Wojownika? Stal na rdzy, ale przynajmniej nie choruje. Na pocz─ůtku ka┼╝dej rundy zrasta si─Ö i odzyskuje zdrowie, dop├│ki go nie rozbijesz.
+  run9b 2: [spok├│j] Szkielet Wojownika wraca na pocz─ůtku ka┼╝dej rundy, bo umar┼é z mieczem i wstaje z mieczem. Rdza trzyma mu zbroj─Ö na ciele, a pancerz na twoim gardle.
+## dobre maja piwo | spokojna. Gracz dopytuje o to samo: Kurhany Kr├│l├│w. Nic wi─Öcej nie wiesz poza tym, co s┼éysza┼ée┼Ť: ÔÇ×Omsza┼ée kopce dawnych w┼éadc├│w dolinyÔÇŁ. Nie
+  gra powiedzia┼éa: [spok├│j] O kurhanch pytaj Siostr─Ö Agnes u Apteky, bo ja o nie informacje nie masz.
+  run8-e1 0: [spok├│j] Nie wiem, czy jest dobre, bo go nie pij─Ö. Wiem, ┼╝e Kurhany Kr├│l├│w stoj─ů; Siostra Agnes w Aptece wie wi─Öcej.
+  run8-e1 1: [spok├│j] Dobre, dop├│ki p┼éacisz. O Kurhanach Kr├│l├│w s┼éysza┼éem tylko, ┼╝e s─ů omsza┼ée, zapytaj Siostr─Ö Agnes w Aptece.
+  run8-e1 2: [spok├│j] Nie wiem, kto je postawi┼é. S┼éysza┼éem o kopcach z czas├│w dawnych w┼éadc├│w. Siostra Agnes u Apteki wie wi─Öcej, ja nie umiem wymy┼Ťli─ç kr├│la.
+  run9a 0: [spok├│j] Piwo bywa, ale g┼éowy nie dam. Masz pytanie o co┼Ť konkretnego?
+  run9a 1: [spok├│j] Dobre, tylko wola┼ébym je pi─ç w suchym miejscu. Co do kr├│la, s┼éysza┼éem tylko o kopcach w Kurhanach Kr├│l├│w; Siostra Agnes z Apteki zna reszt─Ö.
+  run9a 2: [spok├│j] Piwo mocne, jak zawsze. Kr├│la nie znam z imienia, s┼éysza┼éem tylko o Kurhanach Kr├│l├│w. Siostra Agnes w Aptece wie wi─Öcej.
+  run9b 0: [spok├│j] Piwo dobre, p├│ki ciep┼ée; ja pij─Ö, gdy mam czas, nie gdy trzeba rusza─ç. A ty po co przyszed┼ée┼Ť do mnie?
+  run9b 1: [spok├│j] Dobre, dop├│ki beczki nie zardzewiej─ů. Ty te┼╝ szukasz beczki czy towarzysza do kompanii?
+  run9b 2: [spok├│j] Piwo nie jest moim or─Ö┼╝em; wiem tylko, ┼╝e karczmarz ma co┼Ť na rozgrzanie. Chcesz wiedzie─ç co┼Ť o mojej drodze?
+## czy dobre piwo | spokojna. Gracz zagaduje bez konkretnego pytania o ┼Ťwiat. Odpowiedz kr├│tko i po swojemu na to, co powiedzia┼é, i sam zagadnij go o jedno: po 
+  gra powiedzia┼éa: [kupuj─ůcy) Dobry, ale nie lepszy od innych, kt├│re si─Ö tu pije; je┼Ťli chcesz spr├│bowa─ç czego┼Ť innego, id┼║ do karczmy w Przystanii.
+  run8-e1 0: [spok├│j] Nie znam smaku piwa, znam smak czerwonego smoka. Po co tu przyszed┼ée┼Ť?
+  run8-e1 1: [spok├│j] Piwo jak piwo, mocniejsze od tego, co pija┼éem w Przystani, ale to nie jest pow├│d, ┼╝eby zamawia─ç trzeci─ů kolejk─Ö. Ty czego tu szukasz?
+  run8-e1 2: [spok├│j] Nie wiem, czy dobre, nie pr├│bowa┼éem. A ty z czym zamierzasz si─Ö ┼Ťciga─ç z tym smokiem?
+  run9a 0: [spok├│j] Nie znam smaku piwa, kt├│re pij─Ö. Idziesz po nie czy po towarzysza?
+  run9a 1: [spok├│j] Dobrze m├│wisz, z takim piwem przynajmniej nie b─Ödziesz mi si─Ö wym─ůdrza┼é. Masz jaki┼Ť cel czy tylko odpoczywasz?
+  run9a 2: [spok├│j] Nie wiem, czy dobre, nie pij─Ö. Masz ochot─Ö na przechadzk─Ö czy na j─Özyk?
+  run9b 0: [spok├│j] Nie wiem, czy piwo dobre, nie mam czasu sprawdza─ç ka┼╝dej beczki; a ty wypijesz zanim ruszymy?
+  run9b 1: [spok├│j] Dobre, cho─ç nie sprawdzi┼éem, czy na pewno z beczki, a nie z cudzej ┼éupiny. Chcesz odpocz─ů─ç czy szukasz drogi?
+  run9b 2: [spok├│j] Nie znam smaku piwa z tej karczmy, ale je┼Ťli szukasz odpoczynku, to tu jest ciszej ni┼╝ w tunelach. Dok─ůd ci─Ö niesie?
+## skad te piwo | brak w talks-mac.jsonl
+## skad maja tu piwo | brak w talks-mac.jsonl
+## co mi powiesz o polowaniu | spokojna. Gracz zagaduje bez konkretnego pytania o ┼Ťwiat. Odpowiedz kr├│tko i po swojemu na to, co powiedzia┼é, i sam zagadnij go o jedno: po 
+  gra powiedzia┼éa: [rado┼Ť─ç] Nie wiem niczego poza tym, ┼╝e za lad─ů handluje Karwin i piwo stoi w beczkach przy sto┼éach, o ile nie jest inaczej wybite przez go┼Ťci.
+  run8-e1 0: [spok├│j] Polowanie to nie wyprawa, tylko cierpliwo┼Ť─ç. Ty masz na to cierpliwo┼Ť─ç?
+  run8-e1 1: [spok├│j] Dobrze. Dzi┼Ť wieczorem. A ty po co tu przychodzisz?
+  run8-e1 2: [spok├│j] Polowanie to polowanie; je┼Ťli chcesz zabi─ç dla zabawy, zapytaj, kogo szukasz.
+  run9a 0: [spok├│j] Polowanie? Z goblinami w Karwach poradzi sobie ka┼╝dy, kto ma oczy otwarte; z Vexaraxem poradzi si─Ö tylko ten, kto ma serce otwarte na ┼Ťmier─ç. Po co ci to?
+  run9a 1: [spok├│j] Dobre pytanie, ale z tob─ů bez broni to samob├│jstwo. Masz co┼Ť, czym mo┼╝esz si─Ö obroni─ç?
+  run9a 2: [spok├│j] Polowanie? Ja poluj─Ö na g├│ry, nie na zwierzyn─Ö. Masz sprz─Öt na drog─Ö?
+  run9b 0: [spok├│j] Polowanie? Na gobliny, je┼Ťli trafisz na nie uzbrojony. Na czerwonego smoka id─Ö sam, bo pieni─ůdze nie p┼éon─ů. Ty wiesz, czego szukasz?
+  run9b 1: [spok├│j] Piwo pachnie dobrze, ale polowanie pachnie krwi─ů. Dok─ůd si─Ö wybierasz?
+  run9b 2: [spok├│j] Polowanie? W Karwinie poluje si─Ö na gobliny, nie na smoki. Masz bro┼ä na te gobliny?
+## siema dziadu | spokojna. Gracz zagaduje bez konkretnego pytania o ┼Ťwiat. Odpowiedz kr├│tko i po swojemu na to, co powiedzia┼é, i sam zagadnij go o jedno: po 
+  gra powiedzia┼éa: [kpina] Piwo stoi w kustrach przy stole; je┼Ťli chcesz i┼Ť─ç na polowanie, te┼╝ pytaj.
+  run8-e1 0: [spok├│j] Piwo takie samo jak wsz─Ödzie: za z┼éoto i wiadro. Ty po co przyszed┼ée┼Ť?
+  run8-e1 1: [spok├│j] Dobrego, czyli nie ciep┼éego. Co ci─Ö sprowadza do osady?
+  run8-e1 2: [spok├│j] Piwo jest, jakie┼Ť dziwne, ale pij─Ö, skoro nie gryzie. Po co tu siedzisz?
+  run9a 0: [spok├│j] Piwo dobre, cho─ç beczka p┼éytka. Ty czekasz na wie┼Ťci czy na odpoczynek?
+  run9a 1: [spok├│j] Piwo, kt├│re wypijesz bez pytania o w┼éa┼Ťciciela, nie zada ci pyta┼ä o cierpliwo┼Ť─ç. Chcesz zosta─ç na noc czy idziesz dalej?
+  run9a 2: [spok├│j] Piwo jest, a ja wci─ů┼╝ stoj─Ö na nogach, wi─Öc mo┼╝e ci smakowa─ç. Czego szukasz w osadzie?
+  run9b 0: [spok├│j] Piwo dobre, krasnoludy robi─ů je dobrze. Ty te┼╝ chcesz odpocz─ů─ç, czy szukasz kompanii?
+  run9b 1: [spok├│j] Piwo mnie nie interesuje, interesuje mnie z┼éoto. Po co tu przyszed┼ée┼Ť?
+  run9b 2: [spok├│j] Piwo? Nie pij─Ö przy obcych, a ty jeste┼Ť obcy. Co ci─Ö sprowadza?
