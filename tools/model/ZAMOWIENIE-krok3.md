@@ -26,12 +26,24 @@ Jak zamówić (ChatGPT, najmocniejszy model, rozumowanie „wysokie”)
    Wypisuje kwestie, które łamią zasady gry (znacznik, zdania, liczby, kwota z [GRA]) albo są identyczne z `rejected` — te popraw ręcznie albo odeślij GPT z uwagą.
 5. Przeczytaj 15 losowych par: czy `chosen` naprawia dokładnie wadę z `why` i zmienia niewiele poza nią.
 
-Za mało na trening
-------------------
+Wynik pierwszej paczki (17.10): 56 par, 4 odrzucone przez automat za powtórzone zwroty.
 
-60 par to za mało na DPO (cel z zamówienia: ok. 300). Ta paczka to pierwsza porcja i wzorzec. Następne:
-- te same scenariusze puszczone na run 9b w innych seedach (`tools/eval/run.py --seed 42`, `--seed 1`), nowe błędy opisane w `dpo-notes-*.json` i zbudowane `dpo_pack.py`;
-- odrzucenia z gry i z podglądu (inspektor), jak przewiduje 3a;
-- ewentualnie 3b (pary syntetyczne) na brakujące typy błędów.
+Druga paczka: `dpo-run9b-3a-2.jsonl` (321 linii)
+-----------------------------------------------
+
+Te same 75 scenariuszy puszczone na run 9b z seedami 11, 23, 42, 101 (`run.py --seed`). Nowe błędy opisane ręcznie w `tools/eval/dpo-notes-run9b-s*.json` (218 notatek) plus automat; id mają przedrostek seeda (`s11:L01-vika#3`), bo ta sama tura wraca w kilku przebiegach z inną historią. Najczęstsze wady: liczby słownie (ok. 70), ponad 3 zdania (25), przekręcone i zmyślone fakty (ok. 25), zasady na głos (11), bełkot i zdania bez sensu (ok. 20), błędy odmiany i rodzaju (ok. 20), Mistrz Gry: złe przypisanie ciosów, druga osoba, zmyślone maksima zdrowia.
+
+Uwaga do rodzaju: prompt gry mówi o rozmówcy zawsze „go/nim” („Marta, detektyw; wynajął go”), więc męskie formy wobec gracza są błędem tylko wtedy, gdy gracz sam mówi o sobie w rodzaju żeńskim („doszłam”).
+
+1. Można w tej samej rozmowie co k1/k2 (GPT ma już kontrakt i prompt 3a). Załącz `dpo-run9b-3a-2.jsonl` i napisz:
+   > Następna paczka w tym samym formacie: dpo-run9b-3a-2.jsonl, 321 linii. Zasady jak wcześniej, id przepisuj dokładnie (z przedrostkiem s11:/s23:/…). Po 30 linii na odpowiedź, zaczynając od pierwszej; napiszę „dalej”.
+2. Odpowiedzi zapisz jako `extra-gpt-dpo-k3.jsonl` … `extra-gpt-dpo-k13.jsonl` (11 odpowiedzi, ostatnia ma 21 linii).
+3. Sprawdź:
+   ```
+   cd tools/eval
+   python3 dpo_merge.py ../model/dpo-run9b-3a-2.jsonl ../model/extra-gpt-dpo-k{3..13}.jsonl --out ../model/dpo-pairs-k3k13.jsonl
+   ```
+
+Razem z pierwszą paczką daje to ok. 370 par. Dalsze źródła, gdyby trzeba więcej: odrzucenia z gry i z podglądu (inspektor), 3b (pary syntetyczne) na brakujące typy błędów.
 
 Do treningu potrzebny jest jeszcze wariant `tools/pc/train.py` z `trl.DPOTrainer` (od adaptera run 9b, beta 0,1, 1 epoka, lr 5e-6) — zapowiedziany w `ZAMOWIENIE-run9.md`.

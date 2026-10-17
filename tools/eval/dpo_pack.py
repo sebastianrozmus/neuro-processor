@@ -1,6 +1,9 @@
 """Bad replies of a model on the scenarios -> DPO pack for GPT (ZAMOWIENIE-run9.md, step 3a).
 
-    python3 dpo_pack.py out/scen-run9b.checked.jsonl dpo-notes-run9b.json out/dpo-run9b-3a.jsonl
+    python3 dpo_pack.py out/scen-run9b.checked.jsonl dpo-notes-run9b.json out/dpo-run9b-3a.jsonl [s11]
+
+The optional last argument prefixes ids ("s11:L01-vika#3"), so packs from runs with other
+seeds do not collide; note keys stay unprefixed.
 
 Each line: {"id", "context", "rejected", "why"}. "context" is exactly what the
 model saw: system, history with its own earlier replies (player lines without
@@ -23,7 +26,8 @@ AUTO = {
     "nastroj": "znacznik sprzeczny z nastrojem z [GRA]",
 }
 
-results_path, notes_path, out_path = sys.argv[1:]
+results_path, notes_path, out_path = sys.argv[1:4]
+prefix = sys.argv[4] + ":" if len(sys.argv) > 4 else ""
 with open("scenarios.jsonl", encoding="utf-8") as handle:
     scenarios = {s["id"]: s for s in map(json.loads, handle)}
 with open(notes_path, encoding="utf-8") as handle:
@@ -51,6 +55,6 @@ with open(results_path, encoding="utf-8") as handle, open(out_path, "w", encodin
                 if text and text not in why and not (name == "GM:zmyslona-smierc" and key in notes):
                     why.append(text + (f" ({issue.split(':', 1)[1]})" if ":" in issue and not issue.startswith("GM:") else ""))
             if why:
-                out.write(json.dumps({"id": key, "context": context, "rejected": rep["reply"], "why": "; ".join(why)}, ensure_ascii=False) + "\n")
+                out.write(json.dumps({"id": prefix + key, "context": context, "rejected": rep["reply"], "why": "; ".join(why)}, ensure_ascii=False) + "\n")
                 count += 1
 print(f"{count} linii -> {out_path}")
