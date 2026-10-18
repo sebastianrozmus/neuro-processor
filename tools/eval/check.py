@@ -97,6 +97,9 @@ def check(scenario, idx, reply, previous):
     if gm:
         if re.search(DEATH, speech.lower()) and not re.search(r"ginie|pada|pokonani|ucieka|uciec|ucieczk", gra):
             issues.append("GM:zmyslona-smierc")
+        # the dice are for the rules; read out ("k20: 4 przeciw KP 13") they turn a scene into a log
+        if re.search(r"\bk20\b|\bKP\b", speech):
+            issues.append("GM:kosci")
 
     if previous:
         mine = words(speech)

@@ -244,3 +244,38 @@ func TestEscapeRoomCodesAndClock(t *testing.T) {
 		t.Errorf("the flood did not come: %v", realm.View(hero).Log)
 	}
 }
+
+func TestOfferedFactsAreNotRepeated(t *testing.T) {
+	realm, hero := presetRealm(t, "Jeziorna, Kanał 7")
+	who := realm.players[hero]
+
+	keeper, known := -1, 0
+	for _, fact := range realm.wisdom.facts {
+		for i := range fact.known {
+			if n := len(realm.knownBy(i)); n > known {
+				keeper, known = i, n
+			}
+		}
+	}
+
+	if known == 0 {
+		t.Skip("no keeper in the preset knows a fact")
+	}
+
+	who.shop, who.inn = keeper, false
+	seen := map[string]bool{}
+
+	for range known + 2 {
+		brief, _, _ := realm.hint(who, "opowiedz coś", Decision{Outcome: OutcomeChat}, nil)
+		if !strings.HasPrefix(brief, "Możesz wpleść") {
+			continue
+		}
+
+		subject := strings.SplitN(strings.TrimPrefix(brief, "Możesz wpleść jedną rzecz, którą wiesz: "), ".", 2)[0]
+		if seen[subject] {
+			t.Fatalf("the same subject offered twice: %s", subject)
+		}
+
+		seen[subject] = true
+	}
+}

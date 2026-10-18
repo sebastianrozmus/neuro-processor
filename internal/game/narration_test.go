@@ -164,6 +164,11 @@ func TestRead(t *testing.T) {
 		{"co masz na sprzedaż?", "", Intent{Action: ActionAsk}, true, Intent{Action: ActionAsk}},
 		{"biorę", "rura", Intent{Action: ActionAccept}, true, Intent{Action: ActionAccept}},
 		{"No dobra.", "rura", Intent{Action: ActionAccept}, true, Intent{Action: ActionAccept}},
+		{"ok. a co znaczy ze slyszales poszukiwacza przez kamien? komunikujecie sie tutaj przez kamienie ?", "rura", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		{"dobra, a skąd to masz", "rura", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		{"biorę?", "rura", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		{"co masz w ofercie dobra kobieto ?", "", Intent{Action: ActionAsk}, true, Intent{Action: ActionAsk}},
+		{"ok a co to sa bledne ognie i jak sie przed nimi uchronic ?", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
 		{"Żegnaj, stary", "", Intent{Action: ActionLeave}, true, Intent{Action: ActionLeave}},
 		{"gdzie właściwie jest ta rafineria?", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
 		{"mam dwa pytania do ciebie", "rura", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
@@ -495,5 +500,27 @@ func TestPuzzledAsksWhatTheLineMeant(t *testing.T) {
 		if got := puzzled(text, last); got != want {
 			t.Errorf("puzzled(%q) = %v, want %v", text, got, want)
 		}
+	}
+
+	odd := "Legenda mówi o Kurhanach Królów w dolinie, lecz miejsca ich lądowania nie znamy. Jeśli chcesz pogadać z poszukiwaczem, którego słyszałem przez kamień, idź do Wędrownego Kupca."
+	if !puzzled("ladowania? slyszales przez kamien ?", odd) {
+		t.Error("two odd bits of the last line echoed back are not taken as puzzlement")
+	}
+
+	if puzzled("a co z kurhanami i goblinami?", odd) {
+		t.Error("a new question taken as puzzlement")
+	}
+}
+
+func TestTouchesSkipsWordsThatNameNothing(t *testing.T) {
+	fact := "Elfia czarodziejka, która przyszła do doliny badać smoka, a została, bo nikt inny nie umie rzucać ognia."
+	words := strings.Fields(Fold("jestem zdeterminowany. w tej wiosce w zaden inny sposob nie umiem sie wykazac"))
+
+	if got := touches(words, fact); got != 0 {
+		t.Errorf("touches = %d, want 0: common words alone pulled up a fact", got)
+	}
+
+	if got := touches(strings.Fields(Fold("co wiesz o smoku i czarodziejce")), fact); got != 2 {
+		t.Errorf("touches = %d, want 2", got)
 	}
 }

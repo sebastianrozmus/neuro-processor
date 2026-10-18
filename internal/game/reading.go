@@ -13,10 +13,12 @@ const shortMessage = 3
 // The word lists are folded: lowercase and without Polish diacritics.
 var (
 	offerWords  = []string{"dam", "daje", "dalbym", "dalabym", "place", "zaplace", "oferuje", "proponuje", "moge dac", "niech bedzie"}
-	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi", "stoi", "pasuje", "dobra", "ok"}
-	leaveWords  = []string{"zegnaj", "do widzenia", "bywaj", "wychodze", "odchodze", "ide stad", "na razie", "do zobaczenia"}
-	tradeWords  = []string{"ile", "cena", "ceny", "koszt", "co masz", "pokaz", "towar", "sprzeda", "asortyment", "na sprzedaz"}
-	sellWords   = []string{"sprzedam", "sprzedac", "sprzedalbym", "sprzedalabym", "odkup", "odkupisz", "kupisz", "kupilbys", "kupilabys", "wezmiesz", "ile dasz", "ile dalbys", "co dasz za", "zaplacisz", "oddam", "chcesz kupic", "skupujesz", "skupisz", "skup"}
+	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi"}
+	// nodWords accept only in a short reply: "ok. a co znaczy..." goes on talking, it closes no deal.
+	nodWords   = []string{"stoi", "pasuje", "dobra", "ok", "okej"}
+	leaveWords = []string{"zegnaj", "do widzenia", "bywaj", "wychodze", "odchodze", "ide stad", "na razie", "do zobaczenia"}
+	tradeWords = []string{"ile", "cena", "ceny", "koszt", "co masz", "pokaz", "towar", "sprzeda", "asortyment", "na sprzedaz"}
+	sellWords  = []string{"sprzedam", "sprzedac", "sprzedalbym", "sprzedalabym", "odkup", "odkupisz", "kupisz", "kupilbys", "kupilabys", "wezmiesz", "ile dasz", "ile dalbys", "co dasz za", "zaplacisz", "oddam", "chcesz kupic", "skupujesz", "skupisz", "skup"}
 
 	amountNear = regexp.MustCompile(`\bza \d+\b|\b\d+ za\b`)
 
@@ -88,7 +90,8 @@ func Read(request InterpretRequest) Reading {
 		// A bare number in a longer sentence: it may be an offer, or not.
 	case hasPhrase(text, leaveWords):
 		reading.Intent.Action, reading.Sure = ActionLeave, true
-	case hasPhrase(text, acceptWords):
+	case !strings.Contains(request.Text, "?") && (hasPhrase(text, acceptWords) || len(words) <= shortMessage && hasPhrase(text, nodWords)):
+		// A question never closes a deal, whatever word it starts with.
 		reading.Intent.Action, reading.Sure = ActionAccept, true
 	case item != "" || hasPhrase(text, tradeWords):
 		reading.Intent.Action, reading.Sure = ActionAsk, true

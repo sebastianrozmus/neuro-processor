@@ -12,6 +12,13 @@ one GGUF file for Ollama (out/neuro-npc-run7.Q5_K_M.gguf), or with
 The prompt is rendered exactly as the game's Ollama template does
 (ChatML: <|im_start|>role\\ncontent<|im_end|>), and the loss counts only
 the final reply, as mlx_lm's --mask-prompt does on the Mac.
+
+With --dpo it trains preference pairs instead (step 3 of
+tools/model/ZAMOWIENIE-run9.md): --data holds train.jsonl and valid.jsonl
+with {"prompt": [messages], "chosen", "rejected"} from tools/eval/dpo_merge.py,
+and --base is the model being corrected, merged (e.g. run9b/gguf, the 16-bit
+folder Unsloth leaves next to the GGUF). A fresh adapter is trained on it, and
+the same model with the adapter switched off is the DPO reference.
 """
 import argparse
 import json
@@ -58,6 +65,64 @@ def encode(rows, tokenizer, limit):
     return encoded, dropped
 
 
+def pairs(path):
+    """DPO pairs as plain text in the game's template: the rendered prompt and
+    both replies ending with <|im_end|> (the base's eos, so trl adds nothing)."""
+    rows = []
+    for row in load(path):
+        prompt, chosen = render(row["prompt"] + [{"role": "assistant", "content": row["chosen"]}])
+        rows.append({"prompt": prompt, "chosen": chosen, "rejected": row["rejected"] + "<|im_end|>"})
+    return rows
+
+
+def train_dpo(args, model, tokenizer):
+    import torch
+    from datasets import Dataset
+    from trl import DPOConfig, DPOTrainer
+    from unsloth import FastLanguageModel
+
+    if tokenizer.eos_token != "<|im_end|>":
+        sys.exit(f"eos w {args.base} to {tokenizer.eos_token!r}, a odpowiedzi kończą się <|im_end|>")
+    train = pairs(os.path.join(args.data, "train.jsonl"))
+    valid = pairs(os.path.join(args.data, "valid.jsonl"))
+    steps = math.ceil(len(train) * args.epochs / args.accumulate)
+    print(f"DPO: train {len(train)} par, valid {len(valid)}; {steps} kroków po {args.accumulate}, lr {args.rate}, beta {args.beta}", flush=True)
+    if args.dry:
+        print("--- szablon (koniec promptu, chosen, rejected) ---")
+        print(train[0]["prompt"][-300:] + train[0]["chosen"] + "\n" + train[0]["rejected"])
+        return
+
+    model = FastLanguageModel.get_peft_model(
+        model, r=args.rank, lora_alpha=args.rank, lora_dropout=0, bias="none",
+        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        use_gradient_checkpointing="unsloth", random_state=7,
+    )
+    trainer = DPOTrainer(
+        model=model, ref_model=None, processing_class=tokenizer,
+        train_dataset=Dataset.from_list(train), eval_dataset=Dataset.from_list(valid),
+        args=DPOConfig(
+            output_dir=os.path.join(args.out, "checkpoints"), beta=args.beta, max_length=args.max_len,
+            per_device_train_batch_size=1, per_device_eval_batch_size=1, gradient_accumulation_steps=args.accumulate,
+            num_train_epochs=args.epochs, learning_rate=args.rate, lr_scheduler_type="cosine", warmup_steps=max(1, round(steps * 0.1)),
+            optim="adamw_8bit", weight_decay=0.0, bf16=torch.cuda.is_bf16_supported(), fp16=not torch.cuda.is_bf16_supported(),
+            # DPO overshoots quickly: chosen log-probs first rise, then fall with the rejected ones, so every
+            # evaluation is saved and the best one can be picked by the eval logps, not only by the margin.
+            logging_steps=5, eval_strategy="steps", eval_steps=max(steps // 4, 5), save_strategy="steps",
+            save_steps=max(steps // 4, 5), save_total_limit=4,
+            report_to="none", seed=7,
+        ),
+    )
+    print("przed treningiem:", trainer.evaluate(), flush=True)
+    started = time.time()
+    trainer.train()
+    print(f"trening: {(time.time() - started) / 60:.0f} min", flush=True)
+    print("ewaluacja:", trainer.evaluate(), flush=True)
+    adapter = os.path.join(args.out, "adapter")
+    model.save_pretrained(adapter)
+    tokenizer.save_pretrained(adapter)
+    print(f"adapter: {adapter}", flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", required=True, help="folder with train.jsonl and valid.jsonl from pack.sh")
@@ -73,6 +138,8 @@ def main():
     parser.add_argument("--gguf", default="", help="also write the whole model as GGUF: q5_k_m, q8_0, q4_k_m")
     parser.add_argument("--lora-gguf", action="store_true", help="also write the adapter alone as GGUF")
     parser.add_argument("--dry", action="store_true", help="only check the data and the template, no training")
+    parser.add_argument("--dpo", action="store_true", help="train DPO pairs on a merged --base instead of SFT")
+    parser.add_argument("--beta", type=float, default=0.1)
     args = parser.parse_args()
 
     from unsloth import FastLanguageModel  # imported first, as Unsloth asks
@@ -86,6 +153,9 @@ def main():
         ids = tokenizer(token, add_special_tokens=False)["input_ids"]
         if len(ids) != 1:
             sys.exit(f"{token} nie jest jednym tokenem w {args.base} ({ids}); szablon gry nie pasuje do tej bazy")
+
+    if args.dpo:
+        return train_dpo(args, model, tokenizer)
 
     train, dropped = encode(load(os.path.join(args.data, "train.jsonl")), tokenizer, args.max_len)
     valid, _ = encode(load(os.path.join(args.data, "valid.jsonl")), tokenizer, args.max_len)

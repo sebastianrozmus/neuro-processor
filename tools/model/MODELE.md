@@ -19,6 +19,7 @@ Zestawienie wszystkich wersji Głosu, czyli modelu, który pisze kwestie postaci
 | Bielik 11B bez treningu | Bielik 11B v2.3 (Q4_K_M) | — | — | 8 / 6 | 13,2–13,6 s | ❌ nie zna formatu gry |
 | **run 7** | **Bielik 11B v2.3** | **PC RTX 4060 Ti, QLoRA, od zera** | **3369 (jak run 6)** | **80 / 80** | **5,1–5,2 s** | **✅ obecny** |
 | run 8 (i run 8-e1 po 1. epoce) | Bielik-Minitron-7B v3.0 | PC, QLoRA, od zera | 3117 (zbiór run 7 + 64 ręczne lekcje) | 79 / 78, e1: 79 / 77 (run 7 na tym pliku: 78 / 75) | 1,2 s na PC (run 7: 1,6–1,8 s) | ⚠️ zastąpiony przez run 9b |
+| run 10d (i 10a–c) | Bielik-Minitron-7B v3.0 | PC, DPO (QLoRA) od scalonego run 9b, 1 epoka, lr 5e-5, beta 0,1 | 278 par DPO (krok 3a), 86 odłożonych | — (scenariusze: 94% czystych wobec 84% run 9b) | 1,1 s | ⚠️ kandydat: zasady tak, charakter słabszy |
 | **run 9b** (i 9a) | **Bielik-Minitron-7B v3.0** | **PC, QLoRA, od run 8-e1, 2 × 1 epoka** | **838 od GPT (kroki 1–2) + 2000 powtórki** | **79 / 77** (9a: 79 / 78) | jak run 8 | **✅ obecny na PC** |
 
 Bench to 80 przypadków, których model nie widział w treningu (`tools/bench/eval/regression-80.jsonl`): 24 rozmowy towarzysza, 40 najemnika i 16 kupca. Wszystkie runy od 4 wzwyż mierzone na tym samym pliku przypadków (sha `b55d2900`), temperatura 0,8, seedy 42 i 7. Różnica ±3 punkty między seedami to szum. Run 3 i run 4 seed 42 to liczby z historii; ich pliki wyników przepadły.
@@ -178,6 +179,65 @@ Mediana odpowiedzi to czas jednej kwestii w benchu na Macu M3 Pro (18 GB), z mod
   - Odpowiedzi GPT do drugiej paczki (`extra-gpt-dpo-k3..k7.jsonl`, 321 linii): 308 par przeszło automat, 13 odrzuconych za powtórzone zwroty (głównie świadkowie powtarzający ten sam fakt), żadna nie jest identyczna z odrzuconą. Razem z pierwszą paczką **364 pary** w `tools/model/dpo-pairs-run9b.jsonl` (poza repo). Następny krok: tryb DPO w `train.py` i run 10 od adaptera run 9b.
 - **Serwer na PC:** run 6 zarejestrowany w Ollamie na PC (`neuro-npc-run6`, Q8_0 z Maca) do porównań. Raport obok siebie: `tools/eval/out/report.html`.
 
+### run 10 (17.10): DPO na błędach run 9b (krok 3a)
+- **Trening:** `tools/pc/train.py --dpo` (nowy tryb, `trl.DPOTrainer`): baza to scalony run 9b (`D:\neuro-train\run9b\gguf`, 16 bit), nowy adapter LoRA r16, odniesienie = ta sama baza bez adaptera. Pary z `dpo-pairs-run9b.jsonl`: 278 do treningu, 86 z 16 scenariuszy odłożonych (`HELD_OUT` z `make_step3.py`) do walidacji; w praktyce 29 kroków i 67 par walidacji (dłuższe niż 2048 tokenów odpadają). Skrypty: `D:\neuro-train\run10*.sh`, log `run10.log`.
+- **Przed treningiem** run 9b daje złym kwestiom *wyższe* prawdopodobieństwo niż dobrym (logp −41,7 wobec −43,1).
+- **Warianty (walidacja na odłożonych parach):**
+
+  | | lr, epoki | trafność | margines | logp dobrych |
+  |---|---|---|---|---|
+  | 10a | 5e-6, 1 (z zamówienia) | 57% | 0,008 | −43,0 |
+  | 10b | 5e-5, 2 | 100% | 3,66 | −58,7 (przestrzelony) |
+  | 10c | 5e-5, 1 | 98,5% (liczone dokładnie: 67/67) | 1,64 | −39,5 |
+  | 10d | jak 10c, pary z przywróconym znacznikiem | 98,5% | ok. 1,6 | ok. −38 |
+
+  lr 5e-6 przy LoRA i 29 krokach nic nie robi. W 10b od połowy spadają też dobre kwestie (klasyczne przestrzelenie DPO). Najsłabsze pary to błędy jednego słowa („u mojej kowadła”, „towarowisko”, „była wiozła”) — DPO uczy się ich najwolniej (`D:\neuro-train\dpo_pairs_check.py`).
+- **Scenariusze (seedy 7 i 11, 558 kwestii):**
+
+  | | czyste | odłożone scenariusze | liczby słownie | śr. długość | [spokój] | zdziwienie / smutek / strach / czułość |
+  |---|---|---|---|---|---|---|
+  | run 9b | 84% | 83% | 41 | 115 zn. | 63% | 25 / 16 / 13 / 13 |
+  | run 10b | 95% | 97% | 2 | 67 zn. | 80% | 0 / 0 / 0 / 0 |
+  | run 10c | 93% | 91% | 3 | 90 zn. | 78% | 0 / 0 / 0 / 1 |
+  | **run 10d** | **94%** | **92%** | **2** | 90 zn. | 76% | 3 / 1 / 1 / 5 |
+
+  Stary test: 10c 100%, 10d 100%, 10b 99% (9b 97%). Poprawa na odłożonych scenariuszach jest prawie taka jak na wszystkich, więc to nie pamięć par. Torvin podaje 18, nie „Sto osiemnaście”; Mistrz Gry trzyma liczby.
+- **Cena:** spłaszczony charakter. 10b to urzędnik („Jesteśmy w drużynie.”, „Rozumiem twój strach.”, „Bywaj.”). 10c/10d poprawne, ale chłodniejsze od 9b, czasem ucinają pogawędkę („Nuda to nie temat tej rozmowy”, „Nie jestem jednak rozmową o zwierzętach”) i wciąż mówią zastrzeżenia („zamiast zgadywać”, „Nie będę wymyślać niczego o maszynach”). Nastrój zadany przez [GRA] trzymają (107/116 jak 9b); znikają emocje z wolnego wyboru.
+- **Przyczyna spłaszczenia:** GPT w 48 parach zamienił poprawny znacznik na [spokój], choć „why” o nim nie mówiło (zdziwienie→spokój 14 razy, strach 7, smutek 6), a jego „chosen” są w ogóle spokojniejsze od odrzuconych. `dpo_merge.py` przywraca teraz znacznik modelu, gdy jest z listy 8 i pasuje do [GRA] (33 pary) — to dało 10d, ale tylko trochę emocji wróciło: reszta to styl „chosen”.
+- **Dalej:** druga runda DPO z błędów 10d plus pary „żywo kontra urzędniczo”: wzorcowe odpowiedzi z `tools/eval/gold` (śr. 122 zn., 42% emocji) jako chosen, suche kwestie 10d jako rejected; w zamówieniu u GPT wymagać minimalnej poprawki (ten sam ton i znacznik). Gra na PC przełączona (17.10 wieczorem) na `neuro-npc-run10d` do prób w grze, z zapisem rozmów (`NEURO_LOG_TALKS=1`, `%APPDATA%\neuro-processor\talks.jsonl`); `neuro-npc-run9b`, `-run10c`, `-run10b` są w Ollamie do porównań.
+
+### Gra na run 10d (18.10): rozmowy z gry, odtworzenia na 5 modelach, błędy gry
+- **Materiał:** 41 kwestii z gry na PC (`tools/eval/talks/talks-1018.jsonl`, wszystkie `neuro-npc-run10d`): Borin (najemnik, 11), Siostra Agnes (10), Thorin (5 targów), Elira (1), Mistrz Gry (14 rund walki). Każda kwestia odtworzona na run 9b, 10c, 10d, run 7 i run 6 (2 seedy, temp. 0,8, ta sama historia co w grze) i sprawdzona `check.py`.
+
+| model | czyste (z 82) | powtórki | GM z „k20/KP” (z 34) | znaczniki NPC (54) | uwagi |
+|---|---|---|---|---|---|
+| run 9b | 54 | 13 | 13 | zdziwienie 26, spokój 15, reszta 13 | za długie (18× >3 zdania), nadużywa [zdziwienie] |
+| run 10c | 68 | 13 | 19 | spokój 46 | najchłodniejszy |
+| **run 10d** | **70** | 12 | **21** | spokój 28, zdziwienie 16, radość 8 | reguły dobrze, rozmowa sucha, GM jak protokół |
+| run 7 | 64 | 9 | 5 | 13× bez znacznika | najlepszy klimat (legenda, ekwipunek, GM), ale gubi znacznik |
+| run 6 | 72 | 4 | 2 | spokój 34, kpina 7 | barwny GM, ale zmyśla („Ozryk z Karawany”, „Kuźnia Pod Kowadłem”), literówki |
+
+- **Błędy gry (nie modelu), poprawione w `internal/game`:**
+  1. „**ok**. a co znaczy…?” zawierało umowę najmu za 60 (słowo „ok” = akceptacja). Teraz pytanie (znak „?”) nigdy nie zamyka transakcji, a „ok/dobra/pasuje/stoi” akceptują tylko w odpowiedzi do 3 słów (`reading.go`).
+  2. „co masz w ofercie, **dobra** kobieto?” i „**ok** a co to są błędne ognie” dawały [GRA] „niejasne, co chcesz kupić” — ta sama przyczyna.
+  3. „lądowania? słyszałeś przez kamień?” poszło jako pytanie o towar („kamień” ~ „Kamienna Pięść” w opisie najmu). Pytanie złożone tylko ze słów ostatniej kwestii (do 6 słów) to teraz „nie zrozumiał, wyjaśnij” (`puzzled`).
+  4. „w żaden **inny** sposób nie **umiem**” podsuwało fakt o Elirze („nikt inny nie umie”). Pospolite słowa nie dopasowują faktów (`plainWords`).
+  5. **Powtórki były w dużej części z gry:** „Możesz wpleść jedną rzecz” losowało co turę z tych samych faktów, więc Borin dostał Kurhany Królów 5 razy z rzędu i każdy model je powtarzał. Teraz tylko temat, którego gracz jeszcze nie słyszał.
+  6. F1–F3 (karty postaci) nie działały w konsoli Windows: bubbletea 1.2.4 nie zna klawiszy funkcyjnych w `key_windows.go`; podbite do 1.3.10 (z nim wish 1.4.7, lipgloss 1.1, bubbles 0.21; `go 1.24`).
+- **Błędy modelu (10d) do treningu:**
+  - **sucho i odmownie:** „opowiedz legendę” → jedno zdanie faktu; „jaki masz ekwipunek?” → „Broń mam ukrytą”; sarkazm gracza („świetna legenda, doprawdy”) → [zdziwienie] i to samo zdanie; strach gracza („a jeśli mnie pokonają?”) → bez troski i bez polecenia mikstury.
+  - **bełkot i dziwactwa:** „miejsca ich lądowania”, „słyszałem przez kamień”, „powinien się tłumaczyć rękoma”, „Dobra kobieta mówi: …”, „Najemnicy nie są odpowiedzią zamiast rozmowy”, odwrócony sens („nie wiem, kogo strzegą Kurhany”).
+  - **pomija podsuniętą osobę/rzecz:** „zebrać drużynę?” bez Borina; „mocnej broni” → słabszy miecz.
+  - **Mistrz Gry jak protokół:** „k20: 4 przeciw KP 13” w 21 z 34 rund, myli kto kogo atakuje („asd3 nie trafia dwóch ataków”), „szczur odzyskuje rany”, „(tarcza)” jako „odporny”, „Borinowi Kamienna Pięść”.
+- **Nowe testy:** `tools/eval/from_talks.py` robi scenariusze z `talks.jsonl` (historia jak w grze, `ref` = kwestia z gry, `note` = co ma zrobić dobra kwestia). `game-scen-1018.jsonl`: 28 scenariuszy (18 NPC, 10 GM) z notatkami w `game-notes-1018.json`. `check.py` liczy też `GM:kosci` (k20/KP w narracji).
+- **Plan run 11 (DPO, druga runda, baza: 10d):**
+  1. **Żywo kontra urzędniczo (~150 par):** prośby o opowieść, pytania o siebie i ekwipunek, sarkazm, strach i chwalenie się gracza; chosen = wzorce z `gold` i najlepsze kwestie run 7/9b z odtworzeń, poprawione przez GPT minimalnie; rejected = suche kwestie 10d.
+  2. **Bez powtórek (~100 par):** rozmowy wielotur, gdzie fakt już padł; rejected = kwestie 10d z `powtorka`, chosen = nowa treść albo krótko „już mówiłem”.
+  3. **Mistrz Gry (~150 par):** rundy z silnika walki (różne kości, krytyki, tarcza, nieprzytomność, zwoje); rejected = 10d z `GM:kosci` albo z pomylonym atakującym, chosen = barwna i wierna narracja bez rzutów. Wierność sprawdzana automatycznie (kto trafił, ile, kto padł).
+  4. **Podsunięty fakt związany ze słowami gracza (~50 par):** „Gracz wspomina o”/„Możesz wpleść” — chosen najpierw odpowiada graczowi, potem fakt.
+  5. Do tego 364 pary run 10 (żeby nie zgubić reguł). lr 5e-5, 1 epoka, beta 0,1, checkpointy co 1/4 epoki (już w `train.py`); wybór checkpointu po logp chosen na valid, nie tylko po marginesie.
+  6. **Bramka:** scenariusze ≥ 10d (92% odłożonych), `game-scen-1018` i odtworzenia lepsze w powtórkach i `GM:kosci` (cel < 5/34), znaczniki emocji ≥ 30% w wolnym wyborze.
+
 ## Co testy wykazały ogólnie
 
 1. **Dane są ważniejsze niż kroki.** Największe skoki dały zamówione, sprawdzone walidatorem dane (run 3) i dane celowane w luki widoczne w logach (run 4–6). Dłuższy trening na złych danych nie pomagał.
@@ -215,3 +275,20 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
 - **DPO z odrzuceń:** pary „dobra / zła kwestia” z podglądu i z odrzuceń gry, na zmyślone miejsca i powtarzanie zwrotów.
 - **Destylacja run 7 → 4.5B:** run 7 pisze odpowiedzi na prompty gry, walidator je filtruje, a szybki model 4,5B uczy się na nich od adaptera run 6. Cel: jakość bliższa 11B przy 1,8 s na kwestię.
 - **Większy bench z prawdziwych rozmów** (200–300 przypadków) i ocena sensu przez Umysł, nie tylko formatu.
+
+### Decyzja po 18.10: run 11 na 11B (douczanie run 7), 7B jako zapas
+- run 7 i run 8 uczyły się na tym samym zbiorze, a w długich rozmowach run 7 ma 92%, run 8 84%. Klimat run 7 pochodzi więc z bazy 11B, nie z danych; przeróbka zbioru „w duchu run 7” nie przeniesie go na 7B.
+- Suchość 10d częściowo pochodzi z własnych danych: krok 2E run 9 uczył odmawiać przy prośbach o legendę, a „chosen” od GPT w DPO były spokojniejsze od odrzuconych.
+- Zbiór step3-run7 (3785 rozmów):
+  - 57% [spokój];
+  - 280 kwestii NPC bez znacznika (powitania z szablonu), stąd run 7 gubi znacznik;
+  - 117 znaczników wielką literą;
+  - ok. 440 suchych kwestii w wolnej rozmowie;
+  - Mistrz Gry już barwny (0 × k20).
+- Plan i prompty dla GPT: [ZAMOWIENIE-run11.md](ZAMOWIENIE-run11.md):
+  - etap 0: run 7 w grze z pomiarem pamięci;
+  - A: ożywienie suchych kwestii, celowane, nie cały zbiór;
+  - B: ok. 450 sytuacji z gry;
+  - run 11 = run 7 + 1 epoka, lr 4e-5;
+  - DPO dla 11B tylko w razie potrzeby.
+- 7B zostaje jako run 10d i będzie douczany zbiorem v2 tylko wtedy, gdy 11B nie zmieści się w karcie.

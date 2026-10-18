@@ -8,8 +8,9 @@ listed and left out. Output lines: {"prompt": [messages], "chosen": "...", "reje
 """
 import argparse
 import json
+import re
 
-from check import check
+from check import TAGS, check
 
 parser = argparse.ArgumentParser()
 parser.add_argument("pack")
@@ -28,7 +29,8 @@ for path in args.gpt:
                 item = json.loads(line)
                 chosen[item["id"]] = item.get("chosen")
 
-kept = bad = skipped = 0
+TAG = re.compile(r"\[(\w+)\]")
+kept = bad = skipped = retagged = 0
 with open(args.out, "w", encoding="utf-8") as out:
     for key, item in pack.items():
         reply = chosen.get(key)
@@ -42,6 +44,16 @@ with open(args.out, "w", encoding="utf-8") as out:
         player, _, gra = last.partition("[GRA]")
         scenario = {"system": ctx[0]["content"], "turns": [{"player": player.strip(), "gra": gra.strip()}]}
         previous = [m["content"] for m in ctx[1:-1] if m["role"] == "assistant"]
+        # GPT tends to "calm" a valid tag ([zdziwienie] -> [spokój]) even when "why" says nothing about it;
+        # DPO then learns that every emotion is a fault (run 10c lost surprise, fear and sadness). The model's
+        # own tag goes back when it is one of the 8 and still fits the mood from [GRA].
+        old_tag, new_tag = TAG.match(item["rejected"]), TAG.match(reply)
+        if (old_tag and new_tag and old_tag.group(1) != new_tag.group(1) and old_tag.group(1) in TAGS
+                and not re.search(r"znacznik|nastr", item["why"])):
+            restored = old_tag.group(0) + reply[new_tag.end():]
+            if not check(scenario, 0, restored, previous):
+                reply = restored
+                retagged += 1
         issues = check(scenario, 0, reply, previous)
         if issues or reply.strip() == item["rejected"].strip():
             bad += 1
@@ -50,4 +62,4 @@ with open(args.out, "w", encoding="utf-8") as out:
         out.write(json.dumps({"id": key, "prompt": ctx, "chosen": reply, "rejected": item["rejected"]}, ensure_ascii=False) + "\n")
         kept += 1
 missing = [k for k in pack if k not in chosen]
-print(f"par: {kept}, odrzuconych przez automat: {bad}, chosen=null: {skipped}, bez odpowiedzi GPT: {len(missing)}")
+print(f"par: {kept}, odrzuconych przez automat: {bad}, chosen=null: {skipped}, bez odpowiedzi GPT: {len(missing)}, przywrócony znacznik modelu: {retagged}")

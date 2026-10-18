@@ -168,13 +168,21 @@ func abs(value int) int {
 	return value
 }
 
+// plainWords are folded words long enough to count that still name nothing:
+// "w żaden inny sposób nie umiem" touched "nikt inny nie umie rzucać ognia".
+var plainWords = []string{
+	"inny", "inna", "inne", "innego", "innej", "umiem", "umiesz", "umie", "jestem", "jestes", "tylko", "nikt", "nikogo",
+	"tutaj", "teraz", "bardzo", "jeszcze", "mnie", "ciebie", "sobie", "kiedy", "gdzie", "ktory", "ktora", "ktore",
+	"moze", "wiem", "wiesz", "sposob", "sposobu", "tego", "temu", "bylo", "beda", "chce", "chcesz", "musze", "mozesz",
+}
+
 // touches counts the player's words (long enough to mean something) that
 // begin a word of a text.
 func touches(words []string, text string) int {
 	count := 0
 
 	for _, word := range words {
-		if len(word) >= minQueryWord+1 && Matches(text, word) {
+		if len(word) >= minQueryWord+1 && !slices.Contains(plainWords, word) && Matches(text, word) {
 			count++
 		}
 	}
@@ -266,8 +274,17 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		}
 	}
 
-	if decision.Outcome == OutcomeChat && len(known) > 0 {
-		fact := known[r.rng.Intn(len(known))]
+	// Only a subject the player has not heard yet: offered the barrows every
+	// turn, a keeper said "the barrows of old kings, place unknown" five times running.
+	var fresh []*Fact
+	for _, fact := range known {
+		if !slices.ContainsFunc(known, func(other *Fact) bool { return other.Subject == fact.Subject && other.heard[customer.name] }) {
+			fresh = append(fresh, fact)
+		}
+	}
+
+	if decision.Outcome == OutcomeChat && len(fresh) > 0 {
+		fact := fresh[r.rng.Intn(len(fresh))]
 		r.learn(customer, fact)
 
 		// The model was taught to always use the fact; told it may drop one
@@ -395,7 +412,8 @@ func puzzled(text, last string) bool {
 		}
 	}
 
-	if !strings.Contains(text, "?") || len(words) > 3 {
+	// Up to six words: "lądowania? słyszałeś przez kamień?" echoes two odd bits of one line.
+	if !strings.Contains(text, "?") {
 		return false
 	}
 
