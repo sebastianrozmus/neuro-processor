@@ -1,7 +1,7 @@
 """Order B of run 11 (ZAMOWIENIE-run11.md, "Sytuacje z gry"): merges GPT's packs into one
 training file, without the facts GPT tailored to the player's question.
 
-    python3 situations.py extra-gpt-run11-b-k*.jsonl --out extra-b.jsonl
+    python3 situations.py extra-gpt-run11-b-k*.jsonl --out extra-b.jsonl [--fixes extra-b-fixes.jsonl]
 
 The game's CO WIESZ holds facts about the world, places, people and clues; never "Wiesz: broń.
 X uderza najmocniej" or "Wiesz: sprzęt. Mokra cięciwa twojej kuszy...". Such facts are cut out
@@ -9,7 +9,8 @@ of SYSTEM. When the trained (last) reply leans on one (says a word that only tha
 the whole conversation goes (two such words, or the fact's superlative), since the model would learn to say what the game never tells it.
 A fact about a person under a generic subject ("Wiesz: pomoc. Ruta w zielarni...") gets the
 person's name as subject, the way the game writes it. Last replies that fail tools/eval/check.py
-go too. Run rebrief.py and tools/bench/check_data.py on the result.
+go too. --fixes takes hand-written replacements of last replies, lines {"stare": <start of the
+old reply>, "nowa": <new reply>}, applied before the checks. Run rebrief.py and tools/bench/check_data.py on the result.
 """
 import json
 import os
@@ -88,16 +89,38 @@ def clean(row):
     return row, None, len(cut)
 
 
+def option(argv, name):
+    """(value of --name or None, argv without it)."""
+    if name not in argv:
+        return None, argv
+    at = argv.index(name)
+    return argv[at + 1], argv[:at] + argv[at + 2:]
+
+
+def fix(row, fixes, used):
+    reply = row["messages"][-1]["content"]
+    for old, new in fixes.items():
+        if reply.startswith(old):
+            row["messages"][-1]["content"] = new
+            used[old] += 1
+    return row
+
+
 def main(argv):
-    out = argv[argv.index("--out") + 1]
-    paths = [a for j, a in enumerate(argv) if a != "--out" and (j == 0 or argv[j - 1] != "--out")]
+    out, argv = option(argv, "--out")
+    fixes_path, paths = option(argv, "--fixes")
+    fixes = {}
+    if fixes_path:
+        with open(fixes_path, encoding="utf-8") as handle:
+            fixes = {f["stare"]: f["nowa"] for f in map(json.loads, filter(str.strip, handle))}
+    used = Counter()
     kept, dropped, facts, seen = [], [], 0, set()
     for path in paths:
         with open(path, encoding="utf-8") as handle:
             for number, line in enumerate(handle, 1):
                 if not line.strip():
                     continue
-                row, why, cut = clean(json.loads(line))
+                row, why, cut = clean(fix(json.loads(line), fixes, used))
                 facts += cut
                 where = f"{os.path.basename(path)}#{number}"
                 key = json.dumps(row["messages"], ensure_ascii=False)
@@ -116,6 +139,11 @@ def main(argv):
         print(f"  {reason:20s} {count}")
     for where, why, reply in dropped:
         print(f"  {where} {why}: {reply[:150]}")
+    if fixes:
+        print(f"poprawki ręczne: {sum(used.values())} z {len(fixes)}")
+        for old in fixes:
+            if used[old] != 1:
+                print(f"  poprawka użyta {used[old]} razy: {old}")
     tags = Counter(re.match(r"\[(\w+)\]", r["messages"][-1]["content"]).group(1) for r in kept)
     print("znaczniki:", dict(tags.most_common()))
     print(f"zapisano {out}")
