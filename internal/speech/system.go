@@ -7,6 +7,9 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
+
+	"github.com/sebastianrozmus/neuro-processor/internal/trace"
 )
 
 // NewSystem returns a speaker on the voice the operating system ships:
@@ -34,6 +37,8 @@ func NewSystem(voice string, speed float64) *Speaker {
 	}
 
 	speaker.start = func(text string, mood Emotion) func() {
+		spoken(voice, text, mood)
+
 		args := []string{}
 		if voice != "" {
 			args = append(args, "-v", voice)
@@ -61,6 +66,8 @@ func newSAPI(voice string, speed float64) *Speaker {
 	}
 
 	return &Speaker{start: func(text string, mood Emotion) func() {
+		spoken(voice, text, mood)
+
 		how, ok := deliveries[mood]
 		if !ok {
 			how = deliveries[Calm]
@@ -126,4 +133,10 @@ func SystemVoices() []string {
 	}
 
 	return append(polish, other...)
+}
+
+// spoken keeps a line of the system voice in the game's trace; it speaks
+// at once, so there is no time of synthesis to keep.
+func spoken(voice, text string, mood Emotion) {
+	trace.Default.AddSpeech(trace.Speech{At: time.Now(), Engine: EngineSystem, Voice: voice, Mood: string(mood), Text: text})
 }

@@ -77,6 +77,23 @@ Zamówienie A: „Ożywienie” suchych kwestii
 
 Paczki buduje skrypt z `step3-run7/train.jsonl`, po 40 rozmów. Każda linia to `{"id","messages","popraw":[k,…]}`, gdzie `k` to numer kwestii postaci (licząc od 0 tylko kwestie assistant), którą można przepisać. Odpowiedź GPT to linie `{"id","k","kwestia"}`; scalenie i automat (`check.py`: znacznik, zdania, liczby, kwota z [GRA]) robi skrypt po naszej stronie.
 
+Kroki:
+
+1. Paczki są już zrobione (18.10): `tools/model/revive/revive-01.jsonl` … `revive-15.jsonl`, razem 597 rozmów i 597 kwestii (14 paczek po 40, ostatnia ma 37). Odtworzenie paczek:
+   `python3 tools/model/revive.py pack ~/neuro-train/step3-run7/train.jsonl tools/model/revive`
+   - `id` to numer linii w `train.jsonl` (od 1);
+   - wybór: 487 kwestii z wolnej rozmowy krótszych niż 70 znaków i bez liczby, do tego 110 kwestii [spokój] krótszych niż 90 znaków ze zwrotem urzędniczym („czego potrzebujesz”, „Rozumiem”, „Nie znam…, pytaj…”, „zapraszam”);
+   - [GRA] stoi tylko w ostatniej wiadomości gracza, a strata liczy się tylko na ostatniej kwestii. Dlatego `popraw` zawsze wskazuje ostatnią kwestię rozmowy.
+2. Powitania z szablonu (251 kwestii bez znacznika zaraz po SYSTEM) zostają bez zmian. Gra wkłada `Greeting` ze świata do historii bez znacznika (`shop.go`, `Session.Remember`), a model nigdy ich nie mówi w pozycji, na której się uczy.
+3. W ok. 212 z 597 kwestii [GRA] mówi „Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce”. Tu żywa wersja ma zostać jednym zdaniem, tylko z charakterem. Do promptu niżej warto dopisać: „Gdy [GRA] każe odpowiedzieć jednym zdaniem na powitanie, zostań przy jednym zdaniu, tylko po swojemu”.
+4. GPT: nowa rozmowa, załącz `tools/model/PROMPT.md` i `revive-01.jsonl`, wklej prompt niżej. Kolejne paczki wysyłaj w tej samej rozmowie („dalej, revive-02.jsonl”).
+5. Odpowiedzi zapisuj jako `tools/model/extra-gpt-revive-k1.jsonl` … `extra-gpt-revive-k15.jsonl`, po jednym pliku na paczkę. Wzorzec `tools/model/extra-*.jsonl` jest w `.gitignore`, więc te pliki nie trafiają do repo.
+6. Scalenie, które przy okazji zamienia znaczniki wielką literą i „[Obrażona]”/„[Kpię]” w całym zbiorze:
+   `python3 tools/model/revive.py merge ~/neuro-train/step3-run7/train.jsonl tools/model/extra-gpt-revive-k*.jsonl --out ~/neuro-train/step3-run11/train-revived.jsonl`
+   - Każda nowa kwestia przechodzi przez `check()` z `tools/eval/check.py`: znacznik z listy 8 i zgodny z nastrojem, najwyżej 3 zdania, liczby tylko z SYSTEM i [GRA], bez liczebników słownie, gwiazdek, cudzysłowów i imienia na początku, bez powtórzonych 4-gramów z wcześniejszych kwestii rozmowy.
+   - Odrzucona kwestia zostaje w starej wersji i jest wypisana z powodem.
+   - Na końcu skrypt wypisuje rozkład znaczników ostatnich kwestii przed i po scaleniu.
+
 Do rozmowy załącz `tools/model/PROMPT.md` i paczkę `revive-N.jsonl`.
 
 ```

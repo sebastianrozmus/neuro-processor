@@ -311,6 +311,16 @@ Mowa: głos i mikrofon
 
 Obie rzeczy są opcjonalne i gra bez nich działa tak samo.
 
+*Modele w ustawieniach.* Esc → **Modele językowe**: każda rola ma własny model z listy serwera (Ollama), na karcie graficznej albo na procesorze. Role to rozmowy (kwestie postaci), walka (narrator walk), umysł (rozumienie gracza, nowe fakty i przedmioty), światy (generowanie) i obrazki (opisy po angielsku do SD-Turbo). Wybór działa od razu i zostaje w `settings.json`; zmienne `NEURO_*` mówią tylko, od czego zacząć. Procesor (opcja Ollamy `num_gpu: 0`) zwalnia kartę dla innych modeli i głosu, ale odpowiada kilka razy wolniej, więc pasuje do umysłu, który pyta rzadko i w tle.
+
+*Wywołania w podglądzie.* Zakładka **Wywołania** w podglądzie (`NEURO_DEBUG=on`) pokazuje każde zapytanie do każdego modelu:
+- rola, zadanie (kwestia, rozumienie gracza, nowy fakt?, nowy przedmiot?, opis obrazka, świat) i model;
+- czasy: całość, pierwszy fragment, ładowanie modelu, czytanie promptu;
+- tokeny wejścia i wyjścia oraz tokeny na sekundę;
+- pełny prompt i odpowiedź.
+
+Pokazuje też każde zdanie głosu: silnik, głos, czas syntezy i długość dźwięku. U góry jest tabela median dla każdego modelu i zadania. W zakładce **Rozmowy** przy każdej kwestii są jej czasy, tokeny i zdania głosu. Z `NEURO_LOG_TALKS=1` wszystko trafia też do `calls.jsonl` w katalogu danych.
+
 *Menu i wybór głosu.* Esc na mapie (gdy nic nie jest wpisane) otwiera menu: **Zapisz grę**, **Wczytaj grę**, **Ustawienia**, **Wyjdź z gry**. W ustawieniach wybiera się głos, a wybór działa od razu i zostaje na następne gry (`settings.json` w katalogu danych):
 - **Chatterbox:** najlepszy (nastroje, głosy z próbek), ale zajmuje ok. 4 GB karty graficznej i potrzebuje kilku sekund na zdanie. Można go puścić na procesorze (bez karty, ale bardzo wolno). Przełączenie na inny głos zamyka serwer Chatterboxa i zwalnia kartę.
 - **Piper** (MIT, głosy gosia, darkman i mc_speech na CC0): działa na procesorze, zdanie w ok. 0,1 s, bez karty graficznej. Brzmi naturalnie, ale bez nastrojów. W ustawieniach: tempo mowy, głos postaci i osobny głos narratora. Instalacja: `tools/speech/setup-piper.ps1` (Windows) albo `setup-piper.sh` (macOS, Linux), ok. 200 MB.

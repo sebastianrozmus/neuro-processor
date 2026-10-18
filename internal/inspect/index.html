@@ -98,6 +98,7 @@
     <button data-tab="voice">Głos</button>
     <button data-tab="quests">Zadania</button>
     <button data-tab="model">Model</button>
+    <button data-tab="calls">Wywołania</button>
   </nav>
 </header>
 <main>
@@ -111,6 +112,7 @@
   <section id="voice"></section>
   <section id="quests"></section>
   <section id="model"></section>
+  <section id="calls"></section>
 </main>
 <div id="toast"></div>
 <script>
@@ -146,6 +148,7 @@ async function loadModels() {
 
 async function load() {
   try {
+    await loadCalls();
     const fresh = await api("GET", "/api/world");
     // Empty lists arrive as null.
     ["tiles", "places", "players", "keepers", "facts", "beasts", "items", "companions", "quests", "flags", "exchanges", "notes"].forEach(k => fresh[k] = fresh[k] || []);
@@ -164,7 +167,7 @@ async function load() {
 function render() {
   if (!state) return;
   const el = document.getElementById(tab);
-  const draw = { world: worldView, graph: graphView, facts: factsView, beasts: beastsView, items: itemsView, people: peopleView, quests: questsView, model: modelView, talks: talksView, voice: voiceView }[tab];
+  const draw = { world: worldView, graph: graphView, facts: factsView, beasts: beastsView, items: itemsView, people: peopleView, quests: questsView, model: modelView, talks: talksView, voice: voiceView, calls: callsView }[tab];
   const scroll = window.scrollY;
   el.innerHTML = draw();
   window.scrollTo(0, scroll);
@@ -422,6 +425,94 @@ function questsView() {
   return html;
 }
 
+// --- Wywołania ---------------------------------------------------------
+// Every prompt the game sent to a model, with the answer, times and
+// tokens, and every sentence the voice spoke (GET /api/calls).
+let calls = [], spoken = [], lastTrace = 0;
+const openCalls = new Set();
+const hiddenRoles = new Set();
+const opNames = { narrate: "kwestia", interpret: "rozumienie gracza", note: "nowy fakt?", invent: "nowy przedmiot?", translate: "opis obrazka", world: "świat", rewrite: "przepisanie", warm: "rozgrzewka" };
+
+async function loadCalls() {
+  try {
+    const r = await api("GET", "/api/calls?since=" + lastTrace);
+    calls = calls.concat(r.calls || []).slice(-400);
+    spoken = spoken.concat(r.speech || []).slice(-400);
+    [...(r.calls || []), ...(r.speech || [])].forEach(x => lastTrace = Math.max(lastTrace, x.id));
+  } catch (e) { /* an older game has no trace */ }
+}
+
+const secs = ms => ms ? (ms / 1000).toFixed(ms < 10000 ? 2 : 1).replace(".", ",") + " s" : "—";
+
+function callLine(c) {
+  const speed = c.reply_tokens && c.gen_ms ? ` · ${(c.reply_tokens / c.gen_ms * 1000).toFixed(0)} tok/s` : "";
+  const parts = [`<b>${secs(c.total_ms)}</b>`];
+  if (c.first_ms) parts.push(`pierwszy fragment ${secs(c.first_ms)}`);
+  if (c.load_ms > 50) parts.push(`<span class="red">ładowanie modelu ${secs(c.load_ms)}</span>`);
+  if (c.prompt_ms) parts.push(`prompt ${secs(c.prompt_ms)}`);
+  const tokens = c.prompt_tokens || c.reply_tokens ? ` · ${c.prompt_tokens}→${c.reply_tokens} tok${speed}` : "";
+  return `${parts.join(" · ")}${tokens} · <span class="violet">${esc(c.role || "?")}</span> ${esc(opNames[c.op] || c.op)} · ${esc(c.model)}${c.cpu ? ' <span class="tag">CPU</span>' : ""}${c.error ? ` · <span class="red">${esc(c.error)}</span>` : ""}`;
+}
+
+function speechLine(s) {
+  const rtf = s.synth_ms && s.audio_ms ? ` · ${(s.synth_ms / s.audio_ms).toFixed(2).replace(".", ",")}× czasu mowy` : "";
+  return `${esc(s.engine)}${s.voice ? " (" + esc(s.voice) + ")" : ""} · synteza ${secs(s.synth_ms)} · dźwięk ${secs(s.audio_ms)}${rtf}${s.mood ? ` · <span class="tag">${esc(s.mood)}</span>` : ""}${s.error ? ` · <span class="red">${esc(s.error)}</span>` : ""} · „${esc(s.text)}”`;
+}
+
+// The calls behind an exchange: the line and its retries, for the same
+// keeper after the same words of the player.
+function callsFor(e) {
+  return calls.filter(c => c.op === "narrate" && c.who === e.keeper && c.said === e.said);
+}
+
+function spokenFor(e) {
+  const plain = (e.reply || "").replace(/[^\p{L}\p{N}]/gu, "").toLowerCase();
+  return spoken.filter(s => s.text && plain.includes(s.text.replace(/[^\p{L}\p{N}]/gu, "").toLowerCase()));
+}
+
+function median(list) {
+  if (!list.length) return 0;
+  const sorted = [...list].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+}
+
+function callsView() {
+  let html = `<div class="card"><h3>Ile to trwa</h3><p class="dim" style="font-size:12px">Każde zapytanie do modelu od uruchomienia gry (ostatnie 400). Z <code>NEURO_LOG_TALKS=1</code> wszystko trafia też do <code>calls.jsonl</code> w katalogu danych gry. Kliknij wiersz, żeby zobaczyć prompt i odpowiedź.</p><table><tr><th>model</th><th>zadanie</th><th>ile</th><th>mediana</th><th>najdłużej</th><th>tokeny (śr.)</th><th>tok/s</th></tr>`;
+  const groups = {};
+  calls.forEach(c => { const k = `${c.role}|${c.op}|${c.model}${c.cpu ? " (CPU)" : ""}`; (groups[k] = groups[k] || []).push(c); });
+  Object.entries(groups).forEach(([k, list]) => {
+    const [role, op, model] = k.split("|");
+    const avg = f => Math.round(list.reduce((s, c) => s + (c[f] || 0), 0) / list.length);
+    const gen = list.filter(c => c.gen_ms && c.reply_tokens);
+    const speed = gen.length ? (gen.reduce((s, c) => s + c.reply_tokens, 0) / gen.reduce((s, c) => s + c.gen_ms, 0) * 1000).toFixed(0) : "—";
+    html += `<tr><td><span class="violet">${esc(role)}</span> ${esc(model)}</td><td>${esc(opNames[op] || op)}</td><td>${list.length}</td><td>${secs(median(list.map(c => c.total_ms)))}</td><td>${secs(Math.max(...list.map(c => c.total_ms)))}</td><td>${avg("prompt_tokens")}→${avg("reply_tokens")}</td><td>${speed}</td></tr>`;
+  });
+  if (spoken.length) {
+    const synth = spoken.filter(s => s.synth_ms);
+    html += `<tr><td><span class="violet">głos</span> ${esc([...new Set(spoken.map(s => s.engine))].join(", "))}</td><td>zdania</td><td>${spoken.length}</td><td>${secs(median(synth.map(s => s.synth_ms)))}</td><td>${secs(Math.max(0, ...synth.map(s => s.synth_ms)))}</td><td>—</td><td>—</td></tr>`;
+  }
+  html += `</table></div>`;
+
+  const roles = [...new Set(calls.map(c => c.role))];
+  html += `<div class="card" style="margin-top:14px"><div class="sticky">pokaż: ${roles.map(r => `<label><input type="checkbox" ${hiddenRoles.has(r) ? "" : "checked"} onchange="this.checked ? hiddenRoles.delete('${esc(r)}') : hiddenRoles.add('${esc(r)}'); render()"> ${esc(r || "?")}</label>`).join(" ")} <label><input type="checkbox" ${hiddenRoles.has("głos") ? "" : "checked"} onchange="this.checked ? hiddenRoles.delete('głos') : hiddenRoles.add('głos'); render()"> głos</label></div>`;
+  const rows = [
+    ...calls.filter(c => !hiddenRoles.has(c.role)).map(c => ({ at: c.at, call: c })),
+    ...(hiddenRoles.has("głos") ? [] : spoken.map(s => ({ at: s.at, speech: s }))),
+  ].sort((a, b) => b.at.localeCompare(a.at));
+  if (!rows.length) html += `<p class="dim">Jeszcze nic.</p>`;
+  rows.forEach(row => {
+    const time = new Date(row.at).toLocaleTimeString("pl-PL");
+    if (row.speech) { html += `<div class="xch"><span class="dim">🔊</span><div><div class="who">${time}${row.speech.who ? " · " + esc(row.speech.who) : ""}</div><div class="meta">${speechLine(row.speech)}</div></div></div>`; return; }
+    const c = row.call, open = openCalls.has(c.id);
+    html += `<div class="xch"><span class="dim">⏱</span><div><div class="who" style="cursor:pointer" onclick="openCalls.has(${c.id}) ? openCalls.delete(${c.id}) : openCalls.add(${c.id}); render()">${time}${c.who ? " · " + esc(c.who) : ""}${c.said ? ` · <span class="said">${esc(c.said)}</span>` : ""}</div>`;
+    html += `<div class="meta">${callLine(c)}</div><div class="reply">${esc((c.reply || "").slice(0, open ? 100000 : 220))}</div>`;
+    if (open) html += `<pre class="prompt">${esc((c.messages || []).map(m => `── ${m.role.toUpperCase()} ──\n${m.content}`).join("\n\n"))}</pre>`;
+    html += `</div></div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
 // --- Rozmowy -----------------------------------------------------------
 const picked = new Set();
 const shownPrompts = {};
@@ -438,6 +529,8 @@ function talksView() {
     html += `<div class="reply${e.canned ? " canned" : ""}">${esc(e.reply)}${e.canned ? ' <span class="tag">gotowa kwestia gry</span>' : ""}${e.kept ? ' <span class="tag p">przyjęte mimo imienia</span>' : ""}</div>`;
     e.attempts.forEach(a => html += `<div class="meta"><span class="red">odrzucone (${esc(a.reason)})</span>: „${esc(a.text)}”</div>`);
     html += `<div class="meta">decyzja gry: ${esc(e.brief)}${e.hint ? `<br>podpowiedź: ${esc(e.hint)}` : ""}</div>`;
+    callsFor(e).forEach(c => html += `<div class="meta">⏱ ${callLine(c)}</div>`);
+    spokenFor(e).forEach(s => html += `<div class="meta">🔊 ${speechLine(s)}</div>`);
     e.marks.forEach(m => html += `<div class="mark">✎ ${esc(m)}</div>`);
     html += `<div class="acts" style="margin-top:4px"><button class="act" onclick="showPrompt(${e.id})">${shownPrompts[e.id] ? "ukryj prompt" : "pokaż prompt"}</button><button class="act" onclick="markOne('exchange', ${e.id})">✎ uwaga</button></div>`;
     if (shownPrompts[e.id]) html += `<pre class="prompt">${esc(shownPrompts[e.id])}</pre>`;

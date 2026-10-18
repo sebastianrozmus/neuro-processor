@@ -2,11 +2,15 @@ package speech
 
 import (
 	"context"
+	"encoding/binary"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/sebastianrozmus/neuro-processor/internal/trace"
 )
 
 // windowsPlayer plays a WAV through .NET's SoundPlayer: Windows has no
@@ -139,4 +143,34 @@ func playWav(ctx context.Context, player, path string) *exec.Cmd {
 	}
 
 	return exec.CommandContext(ctx, player, path)
+}
+
+// traced keeps a synthesized sentence in the game's trace: how long it
+// took and how long it sounds.
+func traced(engine, voice, who string, line queued, started time.Time, wav []byte, err error) {
+	said := trace.Speech{
+		At: started, Engine: engine, Voice: voice, Who: who, Mood: string(line.mood), Text: line.text,
+		SynthMs: trace.Ms(time.Since(started)), AudioMs: wavMs(wav),
+	}
+
+	if err != nil {
+		said.Error = err.Error()
+	}
+
+	trace.Default.AddSpeech(said)
+}
+
+// wavMs is how long a WAV sounds, from its header: the bytes of sound
+// over the bytes per second.
+func wavMs(wav []byte) float64 {
+	if len(wav) < 44 || string(wav[:4]) != "RIFF" {
+		return 0
+	}
+
+	rate := binary.LittleEndian.Uint32(wav[28:32])
+	if rate == 0 {
+		return 0
+	}
+
+	return float64(len(wav)-44) / float64(rate) * 1000
 }

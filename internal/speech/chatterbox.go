@@ -266,11 +266,14 @@ func (b *Chatterbox) fetch(ctx context.Context, name, kind string, line queued) 
 	defer cancel()
 
 	settings := LoadVoiceSettings(b.Settings)
+	voice, started := settings.VoiceFor(name, kind), time.Now()
 	how := settings.Expression(line.mood)
 	data, err := Synthesize(ctx, b.URL, SpeakRequest{
-		Text: line.text, Language: settings.Language, Voice: settings.VoiceFor(name, kind),
+		Text: line.text, Language: settings.Language, Voice: voice,
 		Exaggeration: how.Exaggeration, CFG: how.CFG, Temperature: how.Temperature,
 	})
+	traced(EngineChatterbox, voice, name, line, started, data, err)
+
 	if err != nil {
 		return "", err
 	}

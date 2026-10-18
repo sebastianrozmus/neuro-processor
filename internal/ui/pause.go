@@ -20,6 +20,25 @@ type Settings interface {
 	Apply(options speech.Options) error
 }
 
+// ModelChoice is the model of one role and whether it runs on the
+// processor.
+type ModelChoice struct {
+	Model string
+	CPU   bool
+}
+
+// Models is what the pause menu changes about the language models: which
+// one each role uses, on the graphics card or the processor.
+type Models interface {
+	// Roles lists the roles in order; Picked the model of each.
+	Roles() []string
+	Picked() map[string]ModelChoice
+	// Available lists the models the server has.
+	Available() ([]string, error)
+	// Use switches the roles and keeps the choice for the next game.
+	Use(picked map[string]ModelChoice) error
+}
+
 // Pause is what the host gives the pause menu: the saved games and how to
 // load one, and the settings. Any of them may be missing, and the menu
 // leaves out what it cannot do.
@@ -27,6 +46,7 @@ type Pause struct {
 	Saves    func() []game.State
 	Load     func(state game.State) (tea.Model, tea.Cmd, error)
 	Settings Settings
+	Models   Models
 }
 
 // The screens of the pause menu.
@@ -34,6 +54,7 @@ const (
 	pauseMain = iota
 	pauseLoad
 	pauseSettings
+	pauseModels
 )
 
 // The rows of the settings screen.
@@ -55,7 +76,11 @@ type pauseMenu struct {
 	saves   []game.State
 	draft   speech.Options
 	choices speech.Choices
-	note    string
+	// models is the draft of the models screen, available what the
+	// server offers.
+	models    map[string]ModelChoice
+	available []string
+	note      string
 }
 
 var (
@@ -99,7 +124,11 @@ func (g Game) pauseItems() []string {
 	}
 
 	if g.pauser.Settings != nil {
-		items = append(items, "Ustawienia")
+		items = append(items, "Ustawienia głosu")
+	}
+
+	if g.pauser.Models != nil {
+		items = append(items, "Modele językowe")
 	}
 
 	return append(items, "Wyjdź z gry")
@@ -129,6 +158,10 @@ func (g Game) pauseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch g.pause.screen {
 	case pauseLoad:
 		return g.loadKey(msg)
+	case pauseModels:
+		g.modelsKey(msg)
+
+		return g, nil
 	case pauseSettings:
 		g.settingsKey(msg)
 
@@ -158,13 +191,21 @@ func (g Game) pauseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			if len(g.pause.saves) == 0 {
 				g.pause.screen, g.pause.note = pauseMain, "Nie ma jeszcze zapisanych gier."
 			}
-		case "Ustawienia":
+		case "Ustawienia głosu":
 			g.pause.draft, g.pause.choices = g.pauser.Settings.Options(), g.pauser.Settings.Choices()
 			if g.pause.draft.Engine == "" {
 				g.pause.draft.Engine = speech.EngineOff
 			}
 
 			g.pause.screen, g.pause.cursor, g.pause.note = pauseSettings, 0, ""
+		case "Modele językowe":
+			g.pause.models = g.pauser.Models.Picked()
+			available, err := g.pauser.Models.Available()
+			g.pause.available, g.pause.screen, g.pause.cursor, g.pause.note = available, pauseModels, 0, ""
+
+			if err != nil {
+				g.pause.note = "Serwer modeli nie podał listy: " + err.Error()
+			}
 		case "Wyjdź z gry":
 			return g, tea.Quit
 		}
@@ -325,6 +366,15 @@ func (g Game) pauseView() string {
 
 		lines = append(lines, "", wrap(dimStyle.Render(engineNotes[g.pause.draft.Engine]), 56),
 			"", dimStyle.Render("←/→: zmień · Enter: wybierz · Esc: wróć"))
+	case pauseModels:
+		lines = append(lines, titleStyle.Render("Ustawienia: modele językowe"), "")
+		rows := g.modelRows()
+		for index := range rows {
+			lines = append(lines, pointer(index == g.pause.cursor)+g.modelLine(rows[index]))
+		}
+
+		lines = append(lines, "", wrap(dimStyle.Render("Procesor: model nie zajmuje karty graficznej, ale odpowiada kilka razy wolniej. Dobre dla umysłu, który pyta rzadko i w tle; zła rada dla rozmów."), 56),
+			"", dimStyle.Render("←/→: zmień · Enter: wybierz · Esc: wróć"))
 	default:
 		lines = append(lines, titleStyle.Render("Pauza"), "")
 		for index, item := range g.pauseItems() {
@@ -402,4 +452,96 @@ func pointer(on bool) string {
 // wrap breaks a text to the width.
 func wrap(text string, width int) string {
 	return lipgloss.NewStyle().Width(width).Render(text)
+}
+
+// roleNotes say what each role of the models does.
+var roleNotes = map[string]string{
+	"rozmowy": "kwestie postaci",
+	"walka":   "narrator walk",
+	"umysł":   "rozumie gracza, wyłapuje fakty i przedmioty",
+	"światy":  "generuje światy",
+	"obrazki": "opisy do obrazków po angielsku",
+}
+
+// modelRow is a row of the models screen: a role's model, a role's
+// device, or one of the buttons.
+type modelRow struct {
+	role   string
+	device bool
+	action string
+}
+
+func (g Game) modelRows() []modelRow {
+	rows := []modelRow{}
+	for _, role := range g.pauser.Models.Roles() {
+		rows = append(rows, modelRow{role: role}, modelRow{role: role, device: true})
+	}
+
+	return append(rows, modelRow{action: "apply"}, modelRow{action: "back"})
+}
+
+func (g Game) modelLine(row modelRow) string {
+	value := func(text string) string { return goldStyle.Render("‹ " + text + " ›") }
+	choice := g.pause.models[row.role]
+
+	switch {
+	case row.action == "apply":
+		return goodStyle.Render("Zastosuj i zapisz")
+	case row.action == "back":
+		return "Wróć"
+	case row.device:
+		where := "karta graficzna"
+		if choice.CPU {
+			where = "procesor"
+		}
+
+		return "    działa na: " + value(where)
+	}
+
+	return fmt.Sprintf("%s %s: %s", titleStyle.Render(row.role), labelStyle.Render("("+roleNotes[row.role]+")"), value(choice.Model))
+}
+
+func (g *Game) modelsKey(msg tea.KeyMsg) {
+	rows := g.modelRows()
+	g.pause.cursor = min(g.pause.cursor, len(rows)-1)
+	row := rows[g.pause.cursor]
+
+	switch msg.Type {
+	case tea.KeyEsc:
+		g.pause.screen, g.pause.cursor, g.pause.note = pauseMain, 0, ""
+	case tea.KeyUp:
+		g.pause.cursor = (g.pause.cursor + len(rows) - 1) % len(rows)
+	case tea.KeyDown:
+		g.pause.cursor = (g.pause.cursor + 1) % len(rows)
+	case tea.KeyLeft, tea.KeyRight, tea.KeyEnter:
+		step := 1
+		if msg.Type == tea.KeyLeft {
+			step = -1
+		}
+
+		switch {
+		case row.action == "back":
+			g.pause.screen, g.pause.cursor, g.pause.note = pauseMain, 0, ""
+		case row.action == "apply":
+			if msg.Type != tea.KeyEnter {
+				return
+			}
+
+			if err := g.pauser.Models.Use(g.pause.models); err != nil {
+				g.pause.note = "Nie udało się: " + err.Error()
+
+				return
+			}
+
+			g.pause.note = "Zapisane. Nowy model wczyta się przy pierwszym pytaniu."
+		case row.device:
+			choice := g.pause.models[row.role]
+			choice.CPU = !choice.CPU
+			g.pause.models[row.role] = choice
+		default:
+			choice := g.pause.models[row.role]
+			choice.Model = cycle(g.pause.available, choice.Model, step)
+			g.pause.models[row.role] = choice
+		}
+	}
 }

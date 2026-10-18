@@ -17,6 +17,80 @@ type Split struct {
 	Mind  *Client
 	Voice *Client
 	World *Client
+	// Master, when set, narrates fights instead of the Voice; Images,
+	// when set, words the pictures' descriptions in English instead of
+	// the Mind.
+	Master *Client
+	Images *Client
+}
+
+// The roles of the models, as the settings and the trace name them.
+const (
+	RoleTalk   = "rozmowy"
+	RoleFight  = "walka"
+	RoleMind   = "umysł"
+	RoleWorlds = "światy"
+	RoleImages = "obrazki"
+)
+
+// Roles are the roles in the order the settings list them.
+var Roles = []string{RoleTalk, RoleFight, RoleMind, RoleWorlds, RoleImages}
+
+// Choice is the model of one role, as the player picked it.
+type Choice struct {
+	Model string `json:"model"`
+	CPU   bool   `json:"cpu,omitempty"`
+}
+
+// Client is the client of a role.
+func (s Split) Client(role string) *Client {
+	switch role {
+	case RoleTalk:
+		return s.Voice
+	case RoleFight:
+		return s.Master
+	case RoleMind:
+		return s.Mind
+	case RoleWorlds:
+		return s.World
+	case RoleImages:
+		return s.Images
+	}
+
+	return nil
+}
+
+// Choices are the models of all roles.
+func (s Split) Choices() map[string]Choice {
+	choices := map[string]Choice{}
+
+	for _, role := range Roles {
+		if client := s.Client(role); client != nil {
+			model, cpu := client.Name()
+			choices[role] = Choice{Model: model, CPU: cpu}
+		}
+	}
+
+	return choices
+}
+
+// Use switches the roles to the models picked; roles left out or without
+// a model keep theirs.
+func (s Split) Use(choices map[string]Choice) {
+	for role, choice := range choices {
+		if client := s.Client(role); client != nil && choice.Model != "" {
+			client.Use(choice.Model, choice.CPU)
+		}
+	}
+}
+
+// Narrator is who narrates fights: the Master, or the Voice.
+func (s Split) Narrator() game.Narrator {
+	if s.Master != nil {
+		return s.Master
+	}
+
+	return s.Voice
 }
 
 // Interpret reads a player message with the Mind.
@@ -24,8 +98,12 @@ func (s Split) Interpret(ctx context.Context, request game.InterpretRequest) (ga
 	return s.Mind.Interpret(ctx, request)
 }
 
-// Translate puts a text into English with the Mind.
+// Translate puts a text into English with the Images model, or the Mind.
 func (s Split) Translate(ctx context.Context, text string) (string, error) {
+	if s.Images != nil {
+		return s.Images.Translate(ctx, text)
+	}
+
 	return s.Mind.Translate(ctx, text)
 }
 
@@ -60,12 +138,12 @@ func (s Split) maker() *Client {
 
 // VoiceModel names the model that words the lines.
 func (s Split) VoiceModel() string {
-	return s.Voice.Model
+	return s.Voice.model()
 }
 
 // RewriteModel names the model the inspector rewrites with by default.
 func (s Split) RewriteModel() string {
-	return s.Mind.Model
+	return s.Mind.model()
 }
 
 // RewriterWith rewrites with the named model on the Mind's server.
@@ -95,12 +173,20 @@ func (s Split) Local() bool {
 
 // Warm loads the models, each once.
 func (s Split) Warm(ctx context.Context) {
-	s.Mind.Warm(ctx)
+	warmed := map[Choice]bool{}
 
-	if s.Voice.Model != s.Mind.Model {
-		s.Voice.Warm(ctx)
+	// Worlds are made rarely, at the start, and pictures described
+	// rarely; loading more models only for that would push the others
+	// out of memory.
+	for _, client := range []*Client{s.Mind, s.Voice, s.Master} {
+		if client == nil {
+			continue
+		}
+
+		model, cpu := client.Name()
+		if !warmed[Choice{model, cpu}] {
+			warmed[Choice{model, cpu}] = true
+			client.Warm(ctx)
+		}
 	}
-
-	// Worlds are made rarely, at the start; loading a third model only
-	// for that would push the others out of memory.
 }

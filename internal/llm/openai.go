@@ -12,10 +12,12 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/trace"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -44,10 +46,52 @@ type Client struct {
 	// there instead of the OpenAI one. 0 keeps the server's setting; other
 	// servers are not asked.
 	Context int
+	// Role is what the model is for in the game (rozmowy, walka, umysł,
+	// światy, obrazki), for the trace of calls.
+	Role string
+	// CPU runs the model on the processor rather than the graphics card
+	// (an Ollama option; other servers ignore it).
+	CPU bool
 
 	// server is what the server turned out to be, found out once; see
 	// the serverKind values.
 	server int32
+	// mu guards Model and CPU, which the settings may change while the
+	// game runs.
+	mu sync.Mutex
+}
+
+// model is the model requests go to.
+func (c *Client) model() string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.Model
+}
+
+// onCPU reports whether the model is to run on the processor.
+func (c *Client) onCPU() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.CPU
+}
+
+// Use switches the client to another model, on the processor or the
+// graphics card, while the game runs.
+func (c *Client) Use(model string, cpu bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.Model, c.CPU = model, cpu
+}
+
+// Name is the model requests go to and whether it runs on the processor.
+func (c *Client) Name() (string, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.Model, c.CPU
 }
 
 // What a server turned out to be.
@@ -74,6 +118,12 @@ type chatRequest struct {
 	MaxTokens      int       `json:"max_tokens,omitempty"`
 	Temperature    float64   `json:"temperature,omitempty"`
 	Stream         bool      `json:"stream,omitempty"`
+	// StreamOptions asks OpenAI servers to count the tokens of a stream.
+	StreamOptions map[string]any `json:"stream_options,omitempty"`
+
+	// op, who and said describe the request for the trace: what was
+	// asked, for which character, after what the player said.
+	op, who, said string
 }
 
 // ollamaRequest is the same request in the shape of Ollama's own API,
@@ -103,6 +153,45 @@ type reply struct {
 	} `json:"choices"`
 	Message    message `json:"message"`
 	DoneReason string  `json:"done_reason"`
+
+	// The tokens and times, as OpenAI servers (usage) and Ollama count
+	// them; Ollama's durations are in nanoseconds.
+	Usage struct {
+		PromptTokens     int `json:"prompt_tokens"`
+		CompletionTokens int `json:"completion_tokens"`
+	} `json:"usage"`
+	PromptEvalCount    int   `json:"prompt_eval_count"`
+	EvalCount          int   `json:"eval_count"`
+	LoadDuration       int64 `json:"load_duration"`
+	PromptEvalDuration int64 `json:"prompt_eval_duration"`
+	EvalDuration       int64 `json:"eval_duration"`
+}
+
+// counted reports whether the reply carries token counts.
+func (r reply) counted() bool {
+	return r.Usage.PromptTokens+r.Usage.CompletionTokens+r.PromptEvalCount+r.EvalCount > 0
+}
+
+// trace keeps a finished call in the game's trace: its prompt, answer,
+// times and tokens.
+func (c *Client) trace(payload chatRequest, started time.Time, first time.Duration, text string, counts reply, err error) {
+	model, cpu := c.Name()
+	call := trace.Call{
+		At: started, Role: c.Role, Op: payload.op, Model: model, CPU: cpu, Who: payload.who, Said: payload.said,
+		Reply: text, TotalMs: trace.Ms(time.Since(started)), FirstMs: trace.Ms(first),
+		PromptTokens: counts.Usage.PromptTokens + counts.PromptEvalCount, ReplyTokens: counts.Usage.CompletionTokens + counts.EvalCount,
+		LoadMs: float64(counts.LoadDuration) / 1e6, PromptMs: float64(counts.PromptEvalDuration) / 1e6, GenMs: float64(counts.EvalDuration) / 1e6,
+	}
+
+	for _, sent := range payload.Messages {
+		call.Messages = append(call.Messages, trace.Message{Role: sent.Role, Content: sent.Content})
+	}
+
+	if err != nil {
+		call.Error = err.Error()
+	}
+
+	trace.Default.AddCall(call)
 }
 
 // text is the content of the reply, whichever shape it came in.
@@ -131,17 +220,17 @@ func (c *Client) Local() bool {
 // not have to wait for it. Failures are ignored: the first real request
 // will report them.
 func (c *Client) Warm(ctx context.Context) {
-	_, _ = c.chat(ctx, chatRequest{Model: c.Model, Messages: []message{{Role: "user", Content: "ok"}}, MaxTokens: 1})
+	_, _ = c.chat(ctx, chatRequest{Model: c.model(), op: "warm", Messages: []message{{Role: "user", Content: "ok"}}, MaxTokens: 1})
 }
 
 // VoiceModel names the model that words the lines: with one client, this one.
 func (c *Client) VoiceModel() string {
-	return c.Model
+	return c.model()
 }
 
 // RewriteModel names the model the inspector rewrites with by default.
 func (c *Client) RewriteModel() string {
-	return c.Model
+	return c.model()
 }
 
 // RewriterWith rewrites with the named model on the same server.
@@ -227,7 +316,7 @@ func (c *Client) Interpret(ctx context.Context, request game.InterpretRequest) (
 // interpret asks the model for an intent constrained by a JSON schema.
 func (c *Client) interpret(ctx context.Context, request game.InterpretRequest) (game.Intent, error) {
 	content, err := c.chat(ctx, chatRequest{
-		Model: c.Model,
+		Model: c.model(), op: "interpret", said: request.Text,
 		Messages: []message{
 			{Role: "system", Content: interpretInstructions},
 			{Role: "user", Content: interpretPrompt(request)},
@@ -257,7 +346,7 @@ func (c *Client) interpret(ctx context.Context, request game.InterpretRequest) (
 // understand English. It returns the text alone, without commentary.
 func (c *Client) Translate(ctx context.Context, text string) (string, error) {
 	content, err := c.chat(ctx, chatRequest{
-		Model: c.Model,
+		Model: c.model(), op: "translate",
 		Messages: []message{
 			{Role: "system", Content: "Translate the user's text into English. Reply with the translation only: no quotes, no notes."},
 			{Role: "user", Content: text},
@@ -277,7 +366,7 @@ func (c *Client) Translate(ctx context.Context, text string) (string, error) {
 // world, so that the world can remember it.
 func (c *Client) Note(ctx context.Context, request game.NoteRequest) (game.FactSpec, bool, error) {
 	content, err := c.chat(ctx, chatRequest{
-		Model: c.Model,
+		Model: c.model(), op: "note",
 		Messages: []message{
 			{Role: "system", Content: noteInstructions},
 			{Role: "user", Content: notePrompt(request)},
@@ -311,7 +400,7 @@ func (c *Client) Note(ctx context.Context, request game.NoteRequest) (game.FactS
 // meaning and names in cleaner Polish, for the inspector's refresh.
 func (c *Client) Rewrite(ctx context.Context, request game.RewriteRequest) (string, error) {
 	content, err := c.chat(ctx, chatRequest{
-		Model: c.Model,
+		Model: c.model(), op: "rewrite",
 		Messages: []message{
 			{Role: "system", Content: rewriteInstructions},
 			{Role: "user", Content: RewritePrompt(request)},
@@ -333,7 +422,7 @@ func (c *Client) Rewrite(ctx context.Context, request game.RewriteRequest) (stri
 
 func (c *Client) Invent(ctx context.Context, request game.InventRequest) (world.ItemSpec, bool, error) {
 	content, err := c.chat(ctx, chatRequest{
-		Model: c.Model,
+		Model: c.model(), op: "invent",
 		Messages: []message{
 			{Role: "system", Content: inventInstructions},
 			{Role: "user", Content: inventPrompt(request)},
@@ -365,21 +454,35 @@ func (c *Client) Invent(ctx context.Context, request game.InventRequest) (world.
 
 // Narrate asks the model to word the merchant's reply.
 func (c *Client) Narrate(ctx context.Context, request game.NarrateRequest) (string, error) {
-	return c.chat(ctx, chatRequest{Model: c.Model, Messages: narrateMessages(request), MaxTokens: c.MaxTokens})
+	return c.chat(ctx, chatRequest{Model: c.model(), Messages: narrateMessages(request), MaxTokens: c.MaxTokens, op: "narrate", who: request.Merchant.Name, said: request.Text})
 }
 
 // Stream asks for the merchant's reply as a stream of pieces, delivering
 // each as it arrives, and returns the whole.
 func (c *Client) Stream(ctx context.Context, request game.NarrateRequest, deliver func(piece string)) (string, error) {
-	response, err := c.send(ctx, chatRequest{Model: c.Model, Messages: narrateMessages(request), MaxTokens: c.MaxTokens, Stream: true})
+	payload := chatRequest{
+		Model: c.model(), Messages: narrateMessages(request), MaxTokens: c.MaxTokens, Stream: true,
+		StreamOptions: map[string]any{"include_usage": true}, op: "narrate", who: request.Merchant.Name, said: request.Text,
+	}
+
+	var (
+		started = time.Now()
+		first   time.Duration
+		counts  reply
+		text    strings.Builder
+	)
+
+	response, err := c.send(ctx, payload)
 	if err != nil {
+		c.trace(payload, started, 0, "", counts, err)
+
 		return "", err
 	}
 	defer response.Body.Close()
 
 	// OpenAI servers send events ("data: {…}"), Ollama's own API one JSON
-	// object per line; both end with a line that carries no text.
-	var text strings.Builder
+	// object per line; both end with a line that carries no text, and
+	// the counts of tokens come with the last one.
 	scanner := bufio.NewScanner(response.Body)
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 
@@ -394,13 +497,24 @@ func (c *Client) Stream(ctx context.Context, request game.NarrateRequest, delive
 			continue
 		}
 
+		if event.counted() {
+			counts = event
+		}
+
 		if piece := event.text(); piece != "" {
+			if first == 0 {
+				first = time.Since(started)
+			}
+
 			text.WriteString(piece)
 			deliver(piece)
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
+	err = scanner.Err()
+	c.trace(payload, started, first, text.String(), counts, err)
+
+	if err != nil {
 		return "", err
 	}
 
@@ -408,24 +522,33 @@ func (c *Client) Stream(ctx context.Context, request game.NarrateRequest, delive
 }
 
 func (c *Client) chat(ctx context.Context, payload chatRequest) (string, error) {
+	started := time.Now()
+	text, counts, err := c.ask(ctx, payload)
+	c.trace(payload, started, 0, text, counts, err)
+
+	return text, err
+}
+
+// ask sends a request and reads the whole answer.
+func (c *Client) ask(ctx context.Context, payload chatRequest) (string, reply, error) {
 	response, err := c.send(ctx, payload)
 	if err != nil {
-		return "", err
+		return "", reply{}, err
 	}
 	defer response.Body.Close()
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return "", err
+		return "", reply{}, err
 	}
 
 	var parsed reply
 	if err := json.Unmarshal(data, &parsed); err != nil {
-		return "", fmt.Errorf("model API returned invalid JSON: %w", err)
+		return "", reply{}, fmt.Errorf("model API returned invalid JSON: %w", err)
 	}
 
 	if len(parsed.Choices) == 0 && parsed.Message.Content == "" {
-		return "", errors.New("model API returned no choices")
+		return "", parsed, errors.New("model API returned no choices")
 	}
 
 	// An answer the server cut short is whole only when it is prose the
@@ -433,10 +556,10 @@ func (c *Client) chat(ctx context.Context, payload chatRequest) (string, error) 
 	// uncapped answer was cut by the window running out.
 	// The cut text comes back with the error, for looking into.
 	if parsed.cut() && (payload.MaxTokens == 0 || payload.ResponseFormat != nil) {
-		return parsed.text(), fmt.Errorf("%w: it did not fit the context window", ErrCut)
+		return parsed.text(), parsed, fmt.Errorf("%w: it did not fit the context window", ErrCut)
 	}
 
-	return parsed.text(), nil
+	return parsed.text(), parsed, nil
 }
 
 // send posts a request and returns the response once its status is known
@@ -446,7 +569,7 @@ func (c *Client) send(ctx context.Context, payload chatRequest) (*http.Response,
 
 	var sent any = payload
 	if c.ollama(ctx) {
-		url, sent = c.root()+"/api/chat", native(payload, c.Context)
+		url, sent = c.root()+"/api/chat", native(payload, c.Context, c.onCPU())
 	}
 
 	body, err := json.Marshal(sent)
@@ -494,7 +617,8 @@ func (c *Client) root() string {
 // the context window. It is found out once, by asking for the version
 // Ollama's own API gives.
 func (c *Client) ollama(ctx context.Context) bool {
-	if c.Context <= 0 {
+	// The processor is an option of Ollama's own API too.
+	if c.Context <= 0 && !c.onCPU() {
 		return false
 	}
 
@@ -543,13 +667,23 @@ func (c *Client) versioned(ctx context.Context) bool {
 // native puts a request into the shape of Ollama's own API, with the
 // window to run the model in. The schema goes as the format; a cap on the
 // answer as the number of tokens to predict.
-func native(payload chatRequest, window int) ollamaRequest {
+func native(payload chatRequest, window int, cpu bool) ollamaRequest {
 	request := ollamaRequest{
 		Model:     payload.Model,
 		Messages:  payload.Messages,
-		Options:   map[string]any{"num_ctx": window},
+		Options:   map[string]any{},
 		Stream:    payload.Stream,
 		KeepAlive: keepAlive,
+	}
+
+	if window > 0 {
+		request.Options["num_ctx"] = window
+	}
+
+	// No layers on the graphics card: the model runs on the processor and
+	// leaves the card to the others.
+	if cpu {
+		request.Options["num_gpu"] = 0
 	}
 
 	if payload.MaxTokens > 0 {

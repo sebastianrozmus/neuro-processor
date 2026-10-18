@@ -51,7 +51,7 @@ const styleInstructions = `Gracz opisał w paru słowach świat do tekstowej gry
 // cannot be had the world is simply made without one.
 func (c *Client) describeStyle(ctx context.Context, theme string) *world.StyleSpec {
 	content, err := c.chat(ctx, chatRequest{
-		Model: c.Model,
+		Model: c.model(), op: "world",
 		Messages: []message{
 			{Role: "system", Content: styleInstructions},
 			{Role: "user", Content: "Opis świata od gracza:\n" + theme},
@@ -106,7 +106,7 @@ func (c *Client) GenerateWorld(ctx context.Context, mode world.Mode, theme strin
 		brief += "\n\nKARTA STYLU (trzymaj się jej w nazwach, opisach, personach i powitaniach; nie kopiuj imion ani nazw z pierwowzoru):\n" + style.Card()
 	}
 
-	origin := &world.OriginSpec{Theme: theme, Model: c.Model, When: time.Now().Format("2006-01-02 15:04"), Brief: brief}
+	origin := &world.OriginSpec{Theme: theme, Model: c.model(), When: time.Now().Format("2006-01-02 15:04"), Brief: brief}
 
 	if mode == world.ModeInvestigation {
 		spec, err := c.generateInvestigation(ctx, brief, style)

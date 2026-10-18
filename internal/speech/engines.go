@@ -1,11 +1,12 @@
 package speech
 
 import (
-	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/sebastianrozmus/neuro-processor/internal/settings"
 )
 
 // The voices a player can pick in the game's settings.
@@ -251,36 +252,16 @@ func preferred(voices []string) string {
 // LoadOptions reads the voice options from the game's settings file;
 // fallback is used when there are none.
 func LoadOptions(path string, fallback Options) Options {
-	var settings struct {
-		Voice *Options `json:"voice"`
-	}
-
-	data, err := os.ReadFile(path)
-	if err != nil || json.Unmarshal(data, &settings) != nil || settings.Voice == nil {
+	var options Options
+	if !settings.Load(path, "voice", &options) {
 		return fallback
 	}
 
-	return *settings.Voice
+	return options
 }
 
 // SaveOptions writes the voice options into the game's settings file,
 // keeping whatever else is there.
 func SaveOptions(path string, options Options) error {
-	settings := map[string]any{}
-	if data, err := os.ReadFile(path); err == nil {
-		_ = json.Unmarshal(data, &settings)
-	}
-
-	settings["voice"] = options
-
-	data, err := json.MarshalIndent(settings, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-
-	return os.WriteFile(path, data, 0o644)
+	return settings.Save(path, "voice", options)
 }

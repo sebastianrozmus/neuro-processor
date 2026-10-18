@@ -533,7 +533,7 @@ func (c *Client) design(ctx context.Context, instructions string, schema map[str
 		}
 
 		content, err := c.chat(ctx, chatRequest{
-			Model: c.Model,
+			Model: c.model(), op: "world",
 			Messages: []message{
 				{Role: "system", Content: instructions},
 				{Role: "user", Content: asked},

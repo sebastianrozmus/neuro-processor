@@ -146,3 +146,53 @@ func TestPauseSettingsSwitchVoice(t *testing.T) {
 
 	assertShows(t, model, "applied", "Zapisane.")
 }
+
+// stubModels records the models the pause menu picks.
+type stubModels struct {
+	picked map[string]ModelChoice
+	used   []map[string]ModelChoice
+}
+
+func (m *stubModels) Roles() []string { return []string{"rozmowy", "umysł"} }
+
+func (m *stubModels) Picked() map[string]ModelChoice {
+	copied := map[string]ModelChoice{}
+	for role, choice := range m.picked {
+		copied[role] = choice
+	}
+
+	return copied
+}
+
+func (m *stubModels) Available() ([]string, error) {
+	return []string{"gemma3:4b", "neuro-npc-run10d", "neuro-npc-run7"}, nil
+}
+
+func (m *stubModels) Use(picked map[string]ModelChoice) error {
+	m.picked = picked
+	m.used = append(m.used, picked)
+
+	return nil
+}
+
+func TestPauseModelsPickModelAndProcessor(t *testing.T) {
+	models := &stubModels{picked: map[string]ModelChoice{"rozmowy": {Model: "neuro-npc-run10d"}, "umysł": {Model: "gemma3:4b"}}}
+	model := pausedGame(t, Pause{Models: models}, nil)
+
+	// Pauza: Wróć do gry, Modele językowe, Wyjdź z gry.
+	model = press(model, tea.KeyEsc, tea.KeyDown, tea.KeyEnter)
+	assertShows(t, model, "models", "modele językowe", "rozmowy", "neuro-npc-run10d", "umysł", "gemma3:4b", "karta graficzna")
+
+	// rozmowy → run7; umysł → processor; then Zastosuj.
+	model = press(model, tea.KeyRight, tea.KeyDown, tea.KeyDown, tea.KeyDown, tea.KeyRight, tea.KeyDown, tea.KeyEnter)
+	if len(models.used) != 1 {
+		t.Fatalf("used %d times", len(models.used))
+	}
+
+	got := models.used[0]
+	if got["rozmowy"].Model != "neuro-npc-run7" || got["rozmowy"].CPU || !got["umysł"].CPU || got["umysł"].Model != "gemma3:4b" {
+		t.Errorf("picked %+v", got)
+	}
+
+	assertShows(t, model, "applied", "Zapisane.")
+}

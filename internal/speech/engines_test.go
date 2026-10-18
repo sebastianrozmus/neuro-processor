@@ -101,7 +101,7 @@ func TestPiperForReal(t *testing.T) {
 	defer piper.Close()
 
 	for _, text := range []string{"Za 62 plomby płaszcz jest twój.", "Zapnij kaptur przed wyjściem, wędrowcze."} {
-		path, err := piper.fetch(t.Context(), "", text)
+		path, err := piper.fetch(t.Context(), "", "", queued{text: text, mood: Calm})
 		if err != nil {
 			t.Fatal(err)
 		}

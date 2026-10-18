@@ -85,7 +85,7 @@ func NewPiper(p *Piper) *Speaker {
 
 	queue := func(name, kind string) (func(text string, mood Emotion), func()) {
 		return queueWavs(p.Player, func(ctx context.Context, line queued) (string, error) {
-			return p.fetch(ctx, kind, line.text)
+			return p.fetch(ctx, name, kind, line)
 		})
 	}
 
@@ -103,19 +103,31 @@ func NewPiper(p *Piper) *Speaker {
 }
 
 // fetch writes one sentence into a WAV file and returns its path.
-func (p *Piper) fetch(ctx context.Context, kind, text string) (string, error) {
+func (p *Piper) fetch(ctx context.Context, name, kind string, line queued) (path string, err error) {
 	voice := p.Voice
 	if kind == "narrator" && p.Narrator != "" {
 		voice = p.Narrator
 	}
+
+	started := time.Now()
+
+	// Every sentence goes into the trace, the failed ones with the reason.
+	defer func() {
+		var wav []byte
+		if err == nil {
+			wav, _ = os.ReadFile(path)
+		}
+
+		traced(EnginePiper, PiperLabel(voice), name, line, started, wav, err)
+	}()
 
 	proc, err := p.proc(voice)
 	if err != nil {
 		return "", err
 	}
 
-	path := filepath.Join(p.Dir, fmt.Sprintf("neuro-piper-%d.wav", time.Now().UnixNano()))
-	request, _ := json.Marshal(map[string]string{"text": text, "output_file": filepath.ToSlash(path)})
+	path = filepath.Join(p.Dir, fmt.Sprintf("neuro-piper-%d.wav", time.Now().UnixNano()))
+	request, _ := json.Marshal(map[string]string{"text": line.text, "output_file": filepath.ToSlash(path)})
 
 	proc.mu.Lock()
 	defer proc.mu.Unlock()

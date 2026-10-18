@@ -21,6 +21,7 @@ import (
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
 	"github.com/sebastianrozmus/neuro-processor/internal/llm"
 	"github.com/sebastianrozmus/neuro-processor/internal/pix"
+	"github.com/sebastianrozmus/neuro-processor/internal/trace"
 	"github.com/sebastianrozmus/neuro-processor/internal/ui"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
@@ -143,6 +144,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/player", s.player)
 	mux.HandleFunc("POST /api/mark", s.mark)
 	mux.HandleFunc("GET /api/picture", s.picture)
+	mux.HandleFunc("GET /api/calls", s.calls)
 	s.voicesHandlers(mux)
 
 	return mux
@@ -529,4 +531,14 @@ func decode(w http.ResponseWriter, r *http.Request, into any) bool {
 func reply(w http.ResponseWriter, value any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	_ = json.NewEncoder(w).Encode(value)
+}
+
+// calls lists what the game asked its models and voices after the given
+// ID: every prompt with its answer, times and tokens, and every sentence
+// spoken.
+func (s *Server) calls(w http.ResponseWriter, r *http.Request) {
+	since, _ := strconv.ParseInt(r.URL.Query().Get("since"), 10, 64)
+	calls, speech := trace.Default.Since(since)
+
+	reply(w, map[string]any{"calls": calls, "speech": speech})
 }
