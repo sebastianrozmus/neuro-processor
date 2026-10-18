@@ -194,3 +194,24 @@ Kolejność pracy
 2. Skrypt paczek A i automat znaczników (Claude), potem zamówienie A i B u GPT, równolegle.
 3. Scalenie, `check.py`/`check_data.py`, czytanie 20 losowych linii z każdej paczki.
 4. Trening run 11 (ok. 4,5 h) i ocena.
+
+### Uwagi do zamówienia B po paczkach k1 i k2 (18.10)
+
+Format jest dobry (80 z 80 przechodzi `rebrief.py` i `check_data.py`). W 80 kwestiach są 3 zmyślone nazwy, a [spokój] stanowi tylko 8%, więc kwestie są żywe. Do poprawy:
+
+1. **Fakty podstawione pod pytanie.** GPT dopisuje do CO WIESZ fakty, których gra nigdy nie daje, np. „Wiesz: broń. Topór Bojowy uderza najmocniej…”. Model nauczy się wtedy polegać na takiej podpowiedzi, a w grze jej nie dostanie.
+2. **Legendy przepisane z gotowego faktu.** Cała opowieść stoi w „Wiesz:”. W grze fakty mają jedno zdanie („Kurhany Królów strzegą prastarych skarbów”), więc model musi zbudować opowieść z mało czego.
+3. **k2 powtarza układ k1.** Ta sama kolejność grup i te same sytuacje, tylko w innym świecie.
+4. **Kilka kwestii z grupy H nie ma sensu.** Przykłady:
+   - k2#20: „Mam pytanie, które omijasz: po co próbujesz skłonić mnie do roboty…” w odpowiedzi na „a o pomoscie nie masz juz nic”;
+   - k2#09, k2#29: odpowiedzi nie trzymają się pytania gracza.
+
+Dopisek do następnej paczki:
+
+```
+Uwagi do poprzednich paczek, popraw w kolejnych:
+1. CO WIESZ ma wyglądać jak w grze: fakty o świecie, miejscach, zagrożeniu i sąsiadach, po jednym zdaniu. Nie dopisuj faktów skrojonych pod pytanie gracza („Wiesz: broń. X uderza najmocniej”, „Wiesz: maść. …”). Przy „najmocniejsza/najtańsza broń” postać wybiera tylko z cennika i z tego, co mówią same nazwy, a gdy nie da się tego rozstrzygnąć, mówi, co sama uważa.
+2. Legendy (grupa A): co najmniej połowa z JEDNOZDANIOWEGO faktu albo samego zagrożenia („Rogaty Cień nocą uderza porożem w drzwi pustego młyna”). Postać buduje z tego 2–3 zdania z obrazem i nastrojem: kto widział, co słychać, czego ludzie się boją. Nie dodaje nowych nazw, osób ani liczb.
+3. Nie powtarzaj układu poprzednich paczek: inna kolejność grup, inne sytuacje i zawody postaci, inne wejścia gracza.
+4. Grupa H: odpowiedź musi wprost odnosić się do tego, o co gracz pyta. Najpierw krótko „już mówiłam, więcej nie wiem” albo nowy szczegół z CO WIESZ, potem ewentualnie odesłanie lub pytanie. Bez pretensji, których gracz nie wywołał.
+```
