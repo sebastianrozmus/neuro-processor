@@ -180,6 +180,11 @@ func TestRead(t *testing.T) {
 		{"ile za 4 kurtki?", "", Intent{Action: ActionAsk, ItemID: "kurtka", Quantity: 4}, true, Intent{Action: ActionAsk, ItemID: "kurtka", Quantity: 4}},
 		{"a 10 sztuk za 250?", "rura", Intent{Action: ActionOffer, Amount: 250, Quantity: 10}, true, Intent{Action: ActionOffer, Amount: 250, Quantity: 10}},
 		{"2 x rura za 60", "", Intent{Action: ActionOffer, ItemID: "rura", Amount: 60, Quantity: 2}, true, Intent{Action: ActionOffer, ItemID: "rura", Amount: 60, Quantity: 2}},
+		// A time is not money: "za 2 dni" offers nothing.
+		{"wroce za 2 dni po kurtke", "", Intent{Action: ActionAsk, ItemID: "kurtka"}, true, Intent{Action: ActionAsk, ItemID: "kurtka"}},
+		{"przyjde za 3 godziny", "rura", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		{"za tydzien wroce, za 5 lat bede bogaty", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		{"za 2 dni dam ci 40 za kurtke", "", Intent{Action: ActionOffer, ItemID: "kurtka", Amount: 40}, true, Intent{Action: ActionOffer, ItemID: "kurtka", Amount: 40}},
 	}
 
 	// Where money is counted in pieces, "sztuk" after a number means money.

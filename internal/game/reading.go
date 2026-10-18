@@ -2,6 +2,7 @@ package game
 
 import (
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -192,7 +193,27 @@ func namesWare(word string, wares []Ware) bool {
 // "kolczudze" is "kolczuga" and "nanoinfuzje" is "nanoinfuzja", but
 // "opowiedz" is not "opon".
 func inflected(word, part string) bool {
+	// A short noun does not name a long adjective it begins: "5 skor
+	// szczurow" (skins) is no "Skorzany Kaftan" (leather).
+	if adjective(part) && len(part)-len(word) > 2 {
+		return false
+	}
+
 	return len(word) >= minQueryWord && strings.HasPrefix(part, Stem(word))
+}
+
+// adjectiveEnds are the endings of the folded adjectives in names of wares.
+var adjectiveEnds = []string{"ny", "na", "ne", "wy", "wa", "we", "ski", "ska", "skie", "cki", "cka", "ckie"}
+
+// adjective reports whether a folded word of a name looks like an adjective.
+func adjective(word string) bool {
+	for _, end := range adjectiveEnds {
+		if strings.HasSuffix(word, end) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // namesWord reports whether any of the words is a form of the name's word.
@@ -259,10 +280,17 @@ func amountIn(text string, words []string, currency string) (int, bool) {
 	// paid notes that the message names the currency.
 	digits, spelled, run, paid := 0, 0, 0, false
 
-	for _, word := range words {
+	for index, word := range words {
 		paid = paid || (unit != "" && strings.HasPrefix(word, unit))
 
 		if number, err := strconv.Atoi(word); err == nil {
+			// "za 2 dni" is a time, not money.
+			if index+1 < len(words) && span(words[index+1]) {
+				run = 0
+
+				continue
+			}
+
 			digits, run = number, 0
 
 			continue
@@ -301,4 +329,23 @@ func hasPhrase(text string, phrases []string) bool {
 	}
 
 	return false
+}
+
+// spanStarts begin the words of time that follow a number which is not
+// money ("za 2 dni", "za 3 godziny"); spanWords are the short ones, whole
+// ("za 5 lat", not "za 5 latarni").
+var (
+	spanStarts = []string{"dni", "dzien", "dnia", "godzin", "minut", "chwil", "tydzien", "tygodni", "miesi", "roku"}
+	spanWords  = []string{"lat", "lata", "noc", "nocy", "rok"}
+)
+
+// span reports whether a folded word is a length of time.
+func span(word string) bool {
+	for _, start := range spanStarts {
+		if strings.HasPrefix(word, start) {
+			return true
+		}
+	}
+
+	return slices.Contains(spanWords, word)
 }

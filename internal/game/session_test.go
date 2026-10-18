@@ -361,3 +361,52 @@ func TestReadingPicksTheBestNamedWareAndRudeness(t *testing.T) {
 		t.Errorf("%q named %q", request.Text, got)
 	}
 }
+
+// A noun is no form of a longer adjective it begins: "skor" (skins) is not
+// "skórzany" (leather), whatever the count before it.
+func TestReadingTellsNounsFromAdjectives(t *testing.T) {
+	request := InterpretRequest{
+		Wares: []Ware{
+			{ID: "kaftan", Name: "Skórzany Kaftan", Aliases: Aliases("Skórzany Kaftan")},
+			{ID: "miecz", Name: "Długi Miecz", Aliases: Aliases("Długi Miecz")},
+			{ID: "luk", Name: "Elficki Łuk", Aliases: Aliases("Elficki Łuk")},
+		},
+		Currency: "szt. złota",
+	}
+
+	tests := []struct {
+		text     string
+		item     string
+		quantity int
+	}{
+		{"przynioslem ci 5 skor szczurow", "", 0},
+		{"mam skore wilka na sprzedaz", "", 0},
+		{"ile za skorzany kaftan", "kaftan", 0},
+		{"pokaz skorzanego kaftana", "kaftan", 0},
+		{"wezme 2 kaftany", "kaftan", 2},
+		{"ile za dlugi miecz", "miecz", 0},
+		{"a ten elficki", "luk", 0},
+	}
+
+	for _, test := range tests {
+		request.Text = test.text
+		got := Read(request).Alone()
+		if got.ItemID != test.item || got.Quantity != test.quantity {
+			t.Errorf("%q: item %q × %d, want %q × %d", test.text, got.ItemID, got.Quantity, test.item, test.quantity)
+		}
+	}
+}
+
+func TestSpanWords(t *testing.T) {
+	for _, word := range []string{"dni", "dzien", "godziny", "minut", "chwile", "tygodnie", "miesiace", "lat", "noc", "rok"} {
+		if !span(word) {
+			t.Errorf("%q is a time", word)
+		}
+	}
+
+	for _, word := range []string{"latarni", "noze", "rokitnik", "kapsli", "zlota", "kurtek"} {
+		if span(word) {
+			t.Errorf("%q is no time", word)
+		}
+	}
+}

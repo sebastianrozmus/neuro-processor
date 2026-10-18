@@ -59,6 +59,7 @@ func main() {
 	out := flag.String("out", "tools/eval/out/mind.jsonl", "results JSONL")
 	unload := flag.Bool("unload", true, "unload every model before starting")
 	dry := flag.Bool("dry", false, "list the cases and exit")
+	rescore := flag.String("rescore", "", "results JSONL to pass through the game's fact filters again, without asking any model")
 	flag.Parse()
 
 	ctx := context.Background()
@@ -67,6 +68,12 @@ func main() {
 
 	entries := load(*talks)
 	known := knownSubjects(entries)
+
+	if *rescore != "" {
+		rescoreNotes(*rescore, entries, known)
+
+		return
+	}
 
 	if *dry {
 		fmt.Println("known:", strings.Join(known, "; "))
@@ -437,4 +444,76 @@ func vram() int {
 	var used int
 	fmt.Sscan(strings.TrimSpace(string(output)), &used)
 	return used
+}
+
+// rescoreNotes passes the facts a run noted through the game's filters as
+// they are now (Noteworthy, Grounded, Stale) and prints what each did with
+// them, so that a change of the filters is judged on the same answers.
+func rescoreNotes(path string, entries []talk, known []string) {
+	lines := map[string]keeperLine{}
+	keepers := map[string]bool{}
+	for _, line := range append(keeperLines(entries), crafted...) {
+		lines[line.id] = line
+		keepers[line.keeper] = true
+	}
+
+	names := []string{}
+	for keeper := range keepers {
+		names = append(names, keeper)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	counts := map[string]int{}
+
+	for _, raw := range bytes.Split(data, []byte("\n")) {
+		var entry struct {
+			Type   string `json:"type"`
+			ID     string `json:"id"`
+			Output struct {
+				Fact struct {
+					Subject string `json:"subject"`
+					Fact    string `json:"fact"`
+					Quote   string `json:"quote"`
+				} `json:"fact"`
+				Found bool `json:"found"`
+			} `json:"output"`
+		}
+
+		if json.Unmarshal(raw, &entry) != nil || entry.Type != "note" || !entry.Output.Found {
+			continue
+		}
+
+		line := lines[entry.ID]
+		spec := game.FactSpec{Subject: entry.Output.Fact.Subject, Text: entry.Output.Fact.Fact, Quote: entry.Output.Fact.Quote}
+		verdict := "PRZYJĘTY"
+
+		switch {
+		case !game.Noteworthy(line.text):
+			verdict = "bez nazwy"
+		case !game.Grounded(spec, line.text):
+			verdict = "bez pokrycia"
+		default:
+			if why := game.Stale(spec, line.text, game.Known{Subjects: known, Wares: names2(line.wares), Names: names}); why != "" {
+				verdict = why
+			}
+		}
+
+		counts[verdict]++
+		fmt.Printf("%-8s %-18s %s: %s  [%s]\n", entry.ID, verdict, spec.Subject, spec.Text, line.fact)
+	}
+
+	fmt.Println(counts)
+}
+
+func names2(wares []game.Ware) []string {
+	out := []string{}
+	for _, ware := range wares {
+		out = append(out, ware.Name)
+	}
+
+	return out
 }

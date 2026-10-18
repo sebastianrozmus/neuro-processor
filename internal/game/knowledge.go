@@ -452,6 +452,12 @@ func (r *Realm) Learn(name string, spec FactSpec, line string) bool {
 		return false
 	}
 
+	// And it must be news: not a denial, a price, a ware or a known
+	// subject in other words.
+	if Stale(spec, line, r.news(name)) != "" {
+		return false
+	}
+
 	for _, fact := range r.wisdom.facts {
 		if Matches(fact.Subject, spec.Subject) && Matches(spec.Subject, fact.Subject) {
 			// Something more about a known subject still counts, once.
