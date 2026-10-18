@@ -336,7 +336,20 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
 
   - Linia stylu nie psuje zasad: run 7 ma 91% czystych kwestii, 10d 96%.
   - **Wniosek:** sama linia stylu nie wystarcza, bo modele uczone na jednym formacie karty ją pomijają. Pilot z danymi C1 jest potrzebny, a jego bramką jest skok z tych liczb do ≥ 80%.
-- **Pilot style1 (18.10, w toku):**
+- **Pilot style1 (18.10):**
   - Dane C1: 400 rozmów (po 120 na styl i 40 kontrolnych), napisane przez Claude (5 równoległych pomocników) zamiast GPT, który osiągnął limit. Każda paczka przeszła `check_data.py` i `style.py pack`.
   - Zbiór `D:\neuro-train\style1-data`: trening 356 linii C1 i 1000 linii ze step3-run7. Walidacja: 44 odłożone linie C1 i 100 linii z walidacji run 7.
   - Trening: od adaptera run 7, 1 epoka, lr 4e-5, GGUF Q5_K_M, w Ollamie jako `neuro-npc-style1`. Skrypt `D:\neuro-train\style1.sh`, log `style1.log`. Ocenę robi ten sam skrypt.
+- **Pilot style1: wynik (18.10, 17:48).** Trening 1 h 50 min. Zapis GGUF zapchał dysk C: (dysk WSL), WSL padł; GGUF zrobiony ponownie z adaptera na `E:\llm\style1-gguf_gguf` (`D:\neuro-train\style1-rest.sh`), log `style1-rest.out`.
+  - Odsetek kwestii ze słowami stylu (`style.py check`, 90 kwestii):
+
+    | styl | run 7 ze stylem | style1 ze stylem | style1 bez linii stylu |
+    |---|---|---|---|
+    | staropolski | 0% | 28% | 0% |
+    | krasnoludzki | 25% | 54% | 25% (run 7: 20%) |
+    | wojskowy | 11% | 37% | 0% |
+
+  - Zasady: na zwykłych scenariuszach style1 ma 93% czystych (279 kwestii), czyli tyle co run 7, i nie przenosi stylu tam, gdzie go nie ma. Na scenariuszach ze stylem 82% wobec 91% u run 7: 12 powtórek w długich rozmowach. Postać czepia się własnych stylowych zwrotów („przodkowie byliby dumni”, „w kuźni”), a kwestie są dłuższe (132 znaki wobec 94).
+  - Czytane: wojskowy brzmi najlepiej („Przyjąłem warunki i dołączam”, „melduję wykonanie rozkazu”). Staropolski to pojedyncze „jeno”, „przeto” w zwykłej polszczyźnie. Krasnolud przeklina „na brody przodków” i woła „kamieniu” bez sensu, a raz zmyśla nazwy („Kamienny Próg”, „Grada”). W wojskowym zdarza się żart z liczbą spoza [GRA] („100 lat”).
+  - **Bramka niezaliczona:** styl 28–54% wobec wymaganych ≥ 80%, a zasady ze stylem 9 punktów gorzej (dopuszczalne 3). Nie ma przecieku, a model bez linii stylu się nie zepsuł.
+  - **Wniosek:** kierunek działa, ale dawka jest za słaba: 356 linii stylu w 1356, 1 epoka, lr 4e-5. Kolejna próba (style2) za ok. 2 h: C1 dwa razy w zbiorze, 2 epoki, lr 1e-4, a przed nią paczka C1-bis z długimi rozmowami, w których postać nie powtarza swoich stylowych zwrotów. Jeśli style2 nie przejdzie, odkładamy style.
