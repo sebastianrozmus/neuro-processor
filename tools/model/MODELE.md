@@ -325,3 +325,14 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
 ### Style mowy: decyzja o pilocie (18.10)
 - Style idą jako jeden model ze stylem w karcie postaci (`STYL MOWY: …`), a nie osobne modele: postacie jednego świata potrzebują różnych stylów naraz, a osobne modele wymagałyby przeładowań i N treningów.
 - Nie mieszamy ich z run 11. Pilot na 3 stylach (staropolski, wojskowy, krasnoludzki) to osobny adapter od run 7 (`neuro-npc-style1`) z własną bramką. Plan i prompt: [ZAMOWIENIE-style.md](ZAMOWIENIE-style.md). Gwary nie robimy.
+- **Krok 0 pilotu (18.10):** 30 scenariuszy z linią `STYL MOWY` (po 10 na styl, `tools/eval/style.py`, `style-scen.jsonl`), run 7 i 10d bez treningu.
+  - Odsetek kwestii ze słowami stylu:
+
+    | styl | run 7 | 10d | ci sami bohaterowie bez linii stylu |
+    |---|---|---|---|
+    | staropolski | 0% | 0% | 0% |
+    | krasnoludzki | 25% | 8% | 20% / 8% (Torvin i tak mówi o kuźni) |
+    | wojskowy | 11% | 14% | 0–3% |
+
+  - Linia stylu nie psuje zasad: run 7 ma 91% czystych kwestii, 10d 96%.
+  - **Wniosek:** sama linia stylu nie wystarcza, bo modele uczone na jednym formacie karty ją pomijają. Pilot z danymi C1 jest potrzebny, a jego bramką jest skok z tych liczb do ≥ 80%.
