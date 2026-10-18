@@ -321,3 +321,7 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
   - dwa błędy reguł czytania gracza: „wroce za 2 dni” czytane jako oferta, „5 skor szczurow” jako Skórzany Kaftan.
 
   Trening ma sens dopiero przy ok. 500 oznaczonych przykładach Note i 200 Invent. Gemmę można przełączyć na procesor w Esc → Modele językowe.
+
+### Style mowy: decyzja o pilocie (18.10)
+- Style idą jako jeden model ze stylem w karcie postaci (`STYL MOWY: …`), a nie osobne modele: postacie jednego świata potrzebują różnych stylów naraz, a osobne modele wymagałyby przeładowań i N treningów.
+- Nie mieszamy ich z run 11. Pilot na 3 stylach (staropolski, wojskowy, krasnoludzki) to osobny adapter od run 7 (`neuro-npc-style1`) z własną bramką. Plan i prompt: [ZAMOWIENIE-style.md](ZAMOWIENIE-style.md). Gwary nie robimy.
