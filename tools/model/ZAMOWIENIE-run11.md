@@ -19,17 +19,13 @@ Wnioski, na których stoi plan
    - Mistrz Gry jest już przepisany barwnie (355 narracji, 0 × „k20/KP”). run 7 tego jeszcze nie widział.
 4. **Przepisanie całego zbioru przez GPT to ryzyko.** Ok. 6 mln znaków to ok. 90 paczek. GPT przy długich zamówieniach pisze z szablonu i uspokaja ton, co widać już na parach DPO. Grozi to spłaszczeniem całego zbioru do głosu GPT, czyli dokładnie tym, co chcemy naprawić. Dlatego przeróbka ma być celowana: tylko kwestie suche i z błędnym znacznikiem, a do tego nowe sytuacje z gry.
 
-Decyzja: 11B jako główna linia, 7B jako zapas
----------------------------------------------
+Decyzja: najpierw 11B, potem 7B (obie wersje do wydania open source)
+--------------------------------------------------------------------
 
 - **Główny model: 11B (run 11 = douczanie run 7).** Ma najlepszą polszczyznę i klimat, a jego słabości (znacznik, suchy Mistrz Gry, zasady na głos) da się naprawić danymi.
   - Koszt: ok. 1,8 s na kwestię zamiast 1,2 s i 7,9 GB pamięci zamiast 5,3 GB.
   - Warunek: musi się zmieścić w 16 GB karty razem z głosem. Sprawdzamy to w etapie 0, zanim cokolwiek trenujemy.
-- **7B (run 10d) zostaje zamrożony jako zapas**, bez osobnej rundy DPO. Utrzymywanie obu linii w pełni podwaja pracę:
-  - pary DPO muszą pochodzić z błędów tego samego modelu, więc dla każdego trzeba osobnych odtworzeń i osobnego zamówienia u GPT;
-  - wspólny może być tylko zbiór SFT.
-
-  Gdy zbiór v2 będzie gotowy, douczenie 7B na nim kosztuje ok. 2 h. Zrobimy to tylko wtedy, gdy 11B nie zmieści się w karcie albo okaże się za wolny w grze.
+- **7B (run 10d) czeka do run 11, potem dostaje to samo:** zbiór SFT jest wspólny, ale pary DPO muszą pochodzić z błędów tego samego modelu. Dla 7B trzeba więc osobnych odtworzeń i osobnego zamówienia u GPT. Robimy to po kolei, nie równolegle.
 
 Etapy
 -----
@@ -68,7 +64,11 @@ Etapy
 - Błędy opisane ręcznie i automatem, potem paczka w formacie kroku 3a.
 - Prompt kroku 3a z dopiskiem C (niżej). Trening: lr 5e-5, 1 epoka, beta 0,1, jak 10d.
 
-**7B:** dopiero po etapie 3. Jeśli 11B przejdzie bramkę i zmieści się w karcie, 7B zostaje jako 10d. W przeciwnym razie douczamy 9b na zbiorze v2 (1 epoka) i robimy DPO tylko z par 7B.
+**7B (po 11B, 18.10: obie wersje mają być wydane):** gdy run 11 przejdzie bramkę:
+- douczamy 9b na tym samym zbiorze v2 (1 epoka, ok. 2,7 h);
+- odtwarzamy jego błędy i robimy własną rundę DPO z par 7B (dopisek C).
+
+Szybki 7B jest dla słabszych kart, 11B dla tych, którzy mają ok. 8 GB wolnej pamięci karty na sam model.
 
 ---
 

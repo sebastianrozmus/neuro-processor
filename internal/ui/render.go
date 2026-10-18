@@ -28,6 +28,10 @@ func (g Game) View() string {
 		return fmt.Sprintf("Powiększ okno terminala do co najmniej %dx%d (teraz %dx%d).", MinWidth, MinHeight, g.width, g.height)
 	}
 
+	if g.pause.open {
+		return g.pauseView()
+	}
+
 	if g.view.Shop != nil {
 		return g.shopView()
 	}

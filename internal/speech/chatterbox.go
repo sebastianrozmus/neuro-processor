@@ -16,13 +16,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 )
-
-// windowsPlayer plays a WAV through .NET's SoundPlayer: Windows has no
-// afplay, and PowerShell is always there. Killing it stops the sound.
-const windowsPlayer = "powershell"
 
 // Chatterbox (Resemble AI, MIT) speaks Polish with a cloned voice and a
 // dial for how expressive it is, so the moods a narrator tags its lines
@@ -241,14 +236,7 @@ func NewChatterbox(base, settings string) *Speaker {
 		base = DefaultChatterboxURL
 	}
 
-	player := "afplay"
-	if runtime.GOOS == "windows" {
-		player = windowsPlayer
-	} else if _, err := exec.LookPath(player); err != nil {
-		player = "aplay"
-	}
-
-	box := &Chatterbox{URL: base, Settings: settings, Player: player, Dir: os.TempDir()}
+	box := &Chatterbox{URL: base, Settings: settings, Player: wavPlayer(), Dir: os.TempDir()}
 
 	return &Speaker{
 		start:   func(text string, mood Emotion) func() { return box.start("", "", text, mood) },
@@ -262,103 +250,14 @@ func NewChatterbox(base, settings string) *Speaker {
 func (b *Chatterbox) start(name, kind, text string, mood Emotion) func() {
 	add, stop := b.queue(name, kind)
 
-	chunks, _ := Sentences(text, true)
-	for _, chunk := range chunks {
-		add(chunk, mood)
-	}
-
-	return stop
+	return speakWhole(add, stop, text, mood)
 }
 
-// queued is a sentence waiting for the voice.
-type queued struct {
-	text string
-	mood Emotion
-}
-
-// queue starts a line whose sentences come one by one: each is fetched as
-// soon as the one before it is, and played when the one before it ends, so
-// the next sentence is being synthesized while the previous one is heard.
-// It returns what adds a sentence and what stops it all: the fetches are
-// abandoned and the player killed.
+// queue starts a line whose sentences come one by one (see queueWavs).
 func (b *Chatterbox) queue(name, kind string) (func(text string, mood Emotion), func()) {
-	ctx, cancel := context.WithCancel(context.Background())
-	lines := make(chan queued, 32)
-	sounds := make(chan string, 32)
-
-	var (
-		mu     sync.Mutex
-		cmd    *exec.Cmd
-		closed bool
-	)
-
-	go func() {
-		defer close(sounds)
-
-		for line := range lines {
-			if ctx.Err() != nil {
-				return
-			}
-
-			path, err := b.fetch(ctx, name, kind, line)
-			if err != nil {
-				continue
-			}
-
-			sounds <- path
-		}
-	}()
-
-	go func() {
-		for path := range sounds {
-			mu.Lock()
-			if ctx.Err() == nil {
-				cmd = b.play(ctx, path)
-				if cmd.Start() != nil {
-					cmd = nil
-				}
-			}
-			playing := cmd
-			mu.Unlock()
-
-			if playing != nil {
-				_ = playing.Wait()
-			}
-
-			_ = os.Remove(path)
-		}
-	}()
-
-	add := func(text string, mood Emotion) {
-		mu.Lock()
-		defer mu.Unlock()
-
-		if closed {
-			return
-		}
-
-		select {
-		case lines <- queued{text, mood}:
-		default: // a line this long is not worth hearing to the end
-		}
-	}
-
-	stop := func() {
-		mu.Lock()
-		defer mu.Unlock()
-
-		cancel()
-		if !closed {
-			closed = true
-			close(lines)
-		}
-
-		if cmd != nil && cmd.Process != nil {
-			_ = cmd.Process.Kill()
-		}
-	}
-
-	return add, stop
+	return queueWavs(b.Player, func(ctx context.Context, line queued) (string, error) {
+		return b.fetch(ctx, name, kind, line)
+	})
 }
 
 // fetch synthesizes one sentence into a WAV file and returns its path.
@@ -381,17 +280,6 @@ func (b *Chatterbox) fetch(ctx context.Context, name, kind string, line queued) 
 	return path, os.WriteFile(path, data, 0o644)
 }
 
-// play is the command that plays the WAV at path.
-func (b *Chatterbox) play(ctx context.Context, path string) *exec.Cmd {
-	if b.Player == windowsPlayer {
-		script := "(New-Object Media.SoundPlayer '" + strings.ReplaceAll(path, "'", "''") + "').PlaySync()"
-
-		return exec.CommandContext(ctx, b.Player, "-NoProfile", "-NonInteractive", "-Command", script)
-	}
-
-	return exec.CommandContext(ctx, b.Player, path)
-}
-
 // VenvPython is the interpreter of the Python environment in dir:
 // Scripts\python.exe on Windows, bin/python3 elsewhere.
 func VenvPython(dir string) string {
@@ -408,6 +296,9 @@ type Server struct {
 	Voices string
 	URL    string
 	Log    string
+	// Device is where the model runs: auto, cuda, mps or cpu. On the
+	// processor it takes no memory of the graphics card, but is slow.
+	Device string
 
 	cmd *exec.Cmd
 }
@@ -461,7 +352,12 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	cmd := exec.Command(s.Python, "-", "--host", host, "--port", port, "--voices", s.Voices)
+	args := []string{"-", "--host", host, "--port", port, "--voices", s.Voices}
+	if s.Device != "" {
+		args = append(args, "--device", s.Device)
+	}
+
+	cmd := exec.Command(s.Python, args...)
 	cmd.Stdin = strings.NewReader(chatterboxScript)
 
 	if s.Log != "" {

@@ -291,4 +291,9 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
   - B: ok. 450 sytuacji z gry;
   - run 11 = run 7 + 1 epoka, lr 4e-5;
   - DPO dla 11B tylko w razie potrzeby.
-- 7B zostaje jako run 10d i będzie douczany zbiorem v2 tylko wtedy, gdy 11B nie zmieści się w karcie.
+- 7B (run 10d) do czasu run 11 bez zmian. Potem: ten sam zbiór v2 i własne DPO, żeby wydać obie wersje (decyzja z 18.10).
+- Czasy (PC, RTX 4060 Ti):
+  - kwestia: 11B Q5 1,6–1,8 s (Q4 1,6 s), 7B 1,1–1,4 s;
+  - pamięć karty: 7,9 GB wobec 5,3 GB;
+  - trening 2 epok: 11B 388 min na 3369 przykładach, 7B ok. 234 min na 3117;
+  - run 11 (1 epoka, ok. 5000 przykładów): 11B ok. 4,5 h, 7B ok. 2,7 h.

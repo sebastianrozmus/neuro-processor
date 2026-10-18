@@ -23,7 +23,7 @@ Highlights
 - **Guardrails on every line** — numbers must come from the game, names must be spelled as given, facts noted from conversations must be quoted from them; a refused line gets one retry, then a safe fallback.
 - **Browser inspector** (`NEURO_DEBUG=on`) — the running world as a map, knowledge graph, bestiary, items and people; edit anything live, see where every entry came from (prompt, original, rejected attempts and why), and mark bad lines for the next round of training.
 - **Multiplayer over SSH** — host a world, friends join with a plain `ssh` client.
-- **Optional voice and microphone** — system TTS or [Chatterbox](https://github.com/resemble-ai/chatterbox) with cloned voices and audible moods; push-to-talk with local Whisper.
+- **Optional voice and microphone** — picked in the pause menu (Esc → Ustawienia): the system voice (SAPI on Windows, `say` on macOS), [Piper](https://github.com/rhasspy/piper) (light, runs on the CPU, natural Polish voices) or [Chatterbox](https://github.com/resemble-ai/chatterbox) with cloned voices and audible moods (~4 GB of GPU memory); push-to-talk with local Whisper.
 - **Pixel art in the terminal** — scenes, sprites and portraits drawn with block characters; generated worlds and custom avatars painted locally by SD-Turbo.
 
 | Screenshot | |
@@ -118,7 +118,7 @@ Settings come from environment variables or `.env.local`. The most useful ones:
 | `NEURO_LLM_MODEL`, `NEURO_LLM_BASE_URL`, `NEURO_LLM_API_KEY` | the main model; empty model = offline mode |
 | `NEURO_TALK_MODEL`, `NEURO_TALK_BASE_URL` | a second model just for character lines |
 | `NEURO_DEBUG` | `on` starts the browser inspector at `http://127.0.0.1:7788/` |
-| `NEURO_TTS` | `1` reads lines aloud with the system voice; `chatterbox` uses Chatterbox (set up with `tools/speech/setup-tts.sh`) |
+| `NEURO_TTS` | the voice to start with before one is picked in the pause menu: `1` the system voice, `chatterbox` Chatterbox (set up with `tools/speech/setup-tts.sh`); Piper is set up with `tools/speech/setup-piper.sh` / `.ps1` |
 | `NEURO_LOG_TALKS` | `1` logs every conversation with its full prompt to `talks.jsonl`, for training and replays |
 | `NEURO_IMAGES` | `auto` shows painted scenes as real images in terminals with the kitty graphics protocol |
 
@@ -139,4 +139,4 @@ The first version of the project, written in PHP and Symfony, is kept on the `ph
 Credits and license
 -------------------
 
-MIT, see [LICENSE](LICENSE). Built with [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Lip Gloss](https://github.com/charmbracelet/lipgloss) and [Wish](https://github.com/charmbracelet/wish). Models used at runtime are downloaded separately under their own licenses: [Bielik](https://huggingface.co/speakleash) (the base of `neuro-npc`), [Gemma 3](https://ai.google.dev/gemma), [SD-Turbo](https://huggingface.co/stabilityai/sd-turbo), [Whisper](https://huggingface.co/mlx-community/whisper-large-v3-turbo), [Chatterbox](https://github.com/resemble-ai/chatterbox). `tools/data` converts the [FIREBALL](https://huggingface.co/datasets/lara-martin/FIREBALL) dataset (CC-BY-4.0).
+MIT, see [LICENSE](LICENSE). Built with [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Lip Gloss](https://github.com/charmbracelet/lipgloss) and [Wish](https://github.com/charmbracelet/wish). Models used at runtime are downloaded separately under their own licenses: [Bielik](https://huggingface.co/speakleash) (the base of `neuro-npc`), [Gemma 3](https://ai.google.dev/gemma), [SD-Turbo](https://huggingface.co/stabilityai/sd-turbo), [Whisper](https://huggingface.co/mlx-community/whisper-large-v3-turbo), [Chatterbox](https://github.com/resemble-ai/chatterbox), [Piper](https://github.com/rhasspy/piper) with Polish voices from [piper-voices](https://huggingface.co/rhasspy/piper-voices) (CC0). `tools/data` converts the [FIREBALL](https://huggingface.co/datasets/lara-martin/FIREBALL) dataset (CC-BY-4.0).

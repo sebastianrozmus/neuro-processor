@@ -103,38 +103,35 @@ func run(listen, name string) error {
 	worldsDir := filepath.Join(dataDir, "worlds")
 	host := &host{brain: brain, name: name, listen: listen, dataDir: dataDir}
 
-	// A nil speaker would still be a non-nil Voice, so it is only set
-	// when there is something to speak with.
-	if cfg.Speech {
-		speaker := speech.New(cfg.Voice)
-		if cfg.SpeechCommand != "" {
-			speaker = speech.NewCommand(cfg.SpeechCommand)
-		}
+	// The voice is picked in the game's settings (Escape → Ustawienia);
+	// NEURO_TTS only says which one to start with before anything is
+	// picked. Chatterbox speaks with cloned voices and audible moods from
+	// its own environment; piper is a light voice on the processor; the
+	// system voice needs nothing installed.
+	voices := &speech.Engines{
+		TTSPython: speech.VenvPython(filepath.Join(dataDir, "venv-tts")), Samples: filepath.Join(dataDir, "voices"),
+		Settings: filepath.Join(dataDir, "voices", "voices.json"), URL: cfg.TTSURL, Log: filepath.Join(dataDir, "tts.log"),
+		PiperDir: filepath.Join(dataDir, "piper"), Command: cfg.SpeechCommand,
+	}
+	defer voices.Close()
 
-		// Chatterbox speaks with cloned voices and audible moods; the
-		// game runs its server from the TTS environment, if there is one.
-		if cfg.Chatterbox {
-			tts := &speech.Server{
-				Python: speech.VenvPython(filepath.Join(dataDir, "venv-tts")), Voices: filepath.Join(dataDir, "voices"),
-				URL: cfg.TTSURL, Log: filepath.Join(dataDir, "tts.log"),
-			}
+	fallback := speech.Options{Engine: speech.EngineOff}
+	switch {
+	case cfg.Chatterbox:
+		fallback = speech.Options{Engine: speech.EngineChatterbox}
+	case cfg.Speech:
+		fallback = speech.Options{Engine: speech.EngineSystem, Voice: cfg.Voice}
+	}
 
-			if tts.Available() || tts.Running() {
-				if err := tts.Start(); err != nil {
-					return fmt.Errorf("serwer mowy: %w", err)
-				}
+	settingsPath := filepath.Join(dataDir, "settings.json")
+	if err := voices.Apply(speech.LoadOptions(settingsPath, fallback)); err != nil {
+		fmt.Fprintln(os.Stderr, "mowa: "+err.Error()+"; mówi głos systemowy (zmiana: Esc → Ustawienia)")
+		_ = voices.Apply(speech.Options{Engine: speech.EngineSystem, Voice: cfg.Voice})
+	}
 
-				defer tts.Stop()
-				speaker = speech.NewChatterbox(cfg.TTSURL, filepath.Join(dataDir, "voices", "voices.json"))
-				host.tts = &inspect.TTS{URL: cfg.TTSURL, Settings: filepath.Join(dataDir, "voices", "voices.json"), Voices: filepath.Join(dataDir, "voices")}
-			} else {
-				fmt.Fprintln(os.Stderr, "NEURO_TTS=chatterbox, ale nie ma środowiska mowy: uruchom tools/speech/setup-tts.sh; na razie mówi głos systemowy")
-			}
-		}
-
-		if speaker != nil {
-			host.voice = speaker
-		}
+	host.voice, host.settings = voices, &voiceSettings{Engines: voices, path: settingsPath}
+	if (&speech.Server{Python: voices.TTSPython}).Available() {
+		host.tts = &inspect.TTS{URL: cfg.TTSURL, Settings: voices.Settings, Voices: voices.Samples}
 	}
 
 	if cfg.Talks {
@@ -212,6 +209,8 @@ type host struct {
 	// is the Chatterbox server it may test voices against.
 	inspector *inspect.Server
 	tts       *inspect.TTS
+	// settings is what the pause menu changes: the voice.
+	settings ui.Settings
 }
 
 func (h *host) savesDir() string {
@@ -292,7 +291,8 @@ func (h *host) play(realm *game.Realm, hero, invite string) (tea.Model, tea.Cmd)
 		realm.Tell(hero, "Podgląd świata w przeglądarce: "+h.inspector.URL())
 	}
 
-	scene := ui.NewGame(realm, hero, h.brain, h.library, save, h.voice, h.ear, h.record).Inline(inline.Enabled()).Debug(h.inspector != nil)
+	pause := ui.Pause{Saves: func() []game.State { return game.ReadStates(h.savesDir()) }, Load: h.Load, Settings: h.settings}
+	scene := ui.NewGame(realm, hero, h.brain, h.library, save, h.voice, h.ear, h.record).Inline(inline.Enabled()).Debug(h.inspector != nil).Pause(pause)
 
 	return scene, scene.Init()
 }
@@ -390,4 +390,19 @@ func invitation(addr net.Addr) string {
 	}
 
 	return fmt.Sprintf("ssh -p %s IMIĘ@%s", port, host)
+}
+
+// voiceSettings keeps the voice the player picks in the pause menu for
+// the next game.
+type voiceSettings struct {
+	*speech.Engines
+	path string
+}
+
+func (v *voiceSettings) Apply(options speech.Options) error {
+	if err := v.Engines.Apply(options); err != nil {
+		return err
+	}
+
+	return speech.SaveOptions(v.path, v.Engines.Options())
 }

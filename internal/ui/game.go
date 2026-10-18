@@ -100,6 +100,9 @@ type Game struct {
 	inline bool
 	width  int
 	height int
+	// pause is the menu Escape opens; pauser what it can do.
+	pause  pauseMenu
+	pauser Pause
 }
 
 // NewGame builds the interface of the named player, who must have joined
@@ -303,6 +306,10 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyCtrlC {
 			return g, tea.Quit
+		}
+
+		if g.pause.open {
+			return g.pauseKey(msg)
 		}
 
 		if msg.Type == tea.KeyF5 {
@@ -537,6 +544,13 @@ func (g Game) mapKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// taken the other way round.
 		g.card = min(int(tea.KeyF1-msg.Type), len(g.view.Me.Party))
 	case tea.KeyEsc:
+		// Escape first clears what is typed, then opens the pause menu.
+		if !typing {
+			g.openPause()
+
+			return g, nil
+		}
+
 		g.input.SetValue("")
 	case tea.KeyTab:
 		g.bag = true

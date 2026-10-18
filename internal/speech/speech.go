@@ -231,3 +231,18 @@ func SplitMood(text string) (Emotion, string) {
 
 	return Calm, rest
 }
+
+// Stop cuts short whatever is being said.
+func (s *Speaker) Stop() {
+	if s == nil {
+		return
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.stop != nil {
+		s.stop()
+		s.stop = nil
+	}
+}

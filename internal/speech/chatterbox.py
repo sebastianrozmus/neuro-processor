@@ -27,6 +27,11 @@ model = None
 model_lock = threading.Lock()
 device = "cpu"
 voices_dir = ""
+# The conditionals a voice sample makes (speaker embedding, prompt tokens)
+# cost a second or so; they are made once per sample and reused, and the
+# built-in voice is kept apart so that it comes back after a sample.
+conds_cache = {}
+builtin_conds = None
 
 
 def log(*parts):
@@ -47,7 +52,7 @@ def pick_device(wanted):
 def load(wanted):
     """Loads the multilingual model once. On Apple Silicon the checkpoints
     are saved for CUDA, so torch.load is pointed at the chosen device."""
-    global model, device
+    global model, device, builtin_conds
     import torch
     device = pick_device(wanted)
     original = torch.load
@@ -65,6 +70,7 @@ def load(wanted):
     except TypeError:
         loaded = ChatterboxMultilingualTTS.from_pretrained(device=device)
     model = loaded
+    builtin_conds = loaded.conds
     log(f"model ready on {device} in {time.time() - started:.0f}s")
 
 
@@ -80,6 +86,21 @@ def connected(sock):
         return not readable or bool(sock.recv(1, socket.MSG_PEEK))
     except OSError:
         return False
+
+
+def use_voice(prompt, exaggeration):
+    """Puts the conditionals of a sample (or the built-in voice) on the
+    model; generate then only updates the exaggeration."""
+    if not prompt:
+        if builtin_conds is not None:
+            model.conds = builtin_conds
+        return
+    cached = conds_cache.get(prompt)
+    if cached is None:
+        model.prepare_conditionals(prompt, exaggeration=exaggeration)
+        conds_cache[prompt] = model.conds
+    else:
+        model.conds = cached
 
 
 def synthesize(body, alive=None):
@@ -101,14 +122,13 @@ def synthesize(body, alive=None):
         "cfg_weight": float(body.get("cfg_weight", 0.5)),
         "temperature": float(body.get("temperature", 0.8)),
     }
-    if prompt:
-        kwargs["audio_prompt_path"] = prompt
     with model_lock:
         # Sentences of a line the game cut short still queue for the lock;
         # making them anyway keeps the next line waiting for nothing.
         if alive is not None and not alive():
             raise Abandoned()
         started = time.time()
+        use_voice(prompt, kwargs["exaggeration"])
         wav = model.generate(text, **kwargs)
         log(f"{len(text)} chars -> {wav.shape[-1] / model.sr:.1f}s audio in {time.time() - started:.1f}s (voice {voice or 'default'})")
     buffer = io.BytesIO()
