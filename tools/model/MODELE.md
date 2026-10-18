@@ -383,3 +383,19 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
     - kolejne dokładanie danych w tym samym układzie raczej nie da 80%. Model traktuje linię `STYL MOWY` jako słabą wskazówkę obok mocnego wzorca run 7;
     - zgodnie z planem odkładamy style i wracamy do run 11. `neuro-npc-style2` zostaje w Ollamie do grania i porównań; adapter jest w `~/neuro-train/style2/adapter`;
     - jeśli wrócimy do stylów, to raczej osobnym adapterem uczonym od bazy razem z danymi run 7, a nie douczaniem run 7. Albo mocniejszym sygnałem w karcie, np. 2–3 przykładowe zwroty stylu zamiast samego opisu.
+
+### run 11: zbiór v2 i trening (18.10, wieczór)
+- **Ożywienie A napisał Claude** (5 równoległych pomocników, brief jak w ZAMOWIENIE-run11.md), bo GPT osiągnął limit. Odpowiedzi są w `tools/model/extra-claude-revive-k01…k15.jsonl` (gitignore).
+  - Wynik: 597 kwestii, 445 przepisanych, 152 zostawionych (null), 0 odrzuconych przez `check.py`.
+  - Nazwy własne w nowych kwestiach sprawdził skrypt `D:\neuro-train\revive_names.py`. Wszystkie pochodzą z SYSTEM albo z rozmowy, 11 podejrzanych okazało się odmianami.
+  - Znaczniki ostatnich kwestii w run7: [spokój] spadł z 2078 do 1926, [kpina] wzrosła z 373 do 468, [radość] z 355 do 393, [smutek] z 19 do 31.
+  - Przy okazji poprawione zostały oryginały ze złym rodzajem („niosłem” u kobiety) i ze zmyślonymi osobami.
+- **Zbiór `D:\neuro-train\run11-data`** (`run11_src.sh` i `run11_prep.py`):
+  - step3-run7 po ożywieniu, B dwa razy (149 rozmów), krok 1 run 9 (440), krok 2 run 9 bez grupy E (372, wycięte 26 odmów legend i imion) i manual-run8 (64);
+  - razem 4959 rozmów, w treningu 4835 (124 za długie), walidacja 184 z step3-run7;
+  - 118 znaczników z wielką literą zamienionych na małe, a [Obrażona] i [Kpię] na [gniew] i [kpina];
+  - powitania z szablonu zostają bez znacznika, tak jak wkłada je gra.
+- **Trening:** od run 7, 1 epoka, lr 4e-5, 605 kroków. Skrypt `D:\neuro-train\run11.sh`, log `run11.log`. Ten sam skrypt robi GGUF, `neuro-npc-run11` i ocenę etapu 3:
+  - scenariusze w seedach 7 i 11;
+  - `test-scen`;
+  - `game-scen-1018` w 2 seedach dla run 11, run 7 i 10d.
