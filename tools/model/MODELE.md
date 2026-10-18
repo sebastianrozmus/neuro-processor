@@ -297,3 +297,27 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
   - pamięć karty: 7,9 GB wobec 5,3 GB;
   - trening 2 epok: 11B 388 min na 3369 przykładach, 7B ok. 234 min na 3117;
   - run 11 (1 epoka, ok. 5000 przykładów): 11B ok. 4,5 h, 7B ok. 2,7 h.
+
+### Umysł (gemma3:4b) na karcie i na procesorze (18.10)
+- **Pomiar:** `tools/mindeval` sprawdził 115 wywołań gemmy na materiale z gry 18.10 (wynik: `tools/eval/out/mind-1018.md`).
+- **Czas (mediana):**
+
+  | | karta | procesor |
+  |---|---|---|
+  | Interpret (rozumienie gracza) | 0,65 s | 6,8 s |
+  | Note (nowy fakt) | 1,2 s | 9,3 s |
+  | Invent (nowy przedmiot) | 1,1 s | 8,3 s |
+  | Translate (opis obrazka) | 0,27 s | 1,8 s |
+
+  Na karcie gemma zajmuje 4,0 GB, na procesorze nic.
+- **Jakość:**
+  - Note zgłasza fakt w 36 z 43 kwestii, przy czym 82% to fałszywe alarmy. Po filtrach gry zostaje ok. 22 fałszywych faktów, z czego 8 ma odwróconą treść („Ozryka nie znam” → fakt).
+  - Invent wykrył 1 z 3 nowych przedmiotów, a jego fałszywe alarmy odcina gra.
+  - Interpret trafił w 13–15 z 17.
+  - Translate pomylił się w 6 z 12.
+  - qwen2.5:3b wypadł gorzej we wszystkim.
+- **Wniosek:** gemmy na razie nie trenujemy. Najpierw filtry w grze:
+  - Note: odrzucać znany temat, zaprzeczenia, ceny i przedmioty z towaru;
+  - dwa błędy reguł czytania gracza: „wroce za 2 dni” czytane jako oferta, „5 skor szczurow” jako Skórzany Kaftan.
+
+  Trening ma sens dopiero przy ok. 500 oznaczonych przykładach Note i 200 Invent. Gemmę można przełączyć na procesor w Esc → Modele językowe.
