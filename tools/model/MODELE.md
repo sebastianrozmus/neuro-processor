@@ -353,3 +353,33 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
   - Czytane: wojskowy brzmi najlepiej („Przyjąłem warunki i dołączam”, „melduję wykonanie rozkazu”). Staropolski to pojedyncze „jeno”, „przeto” w zwykłej polszczyźnie. Krasnolud przeklina „na brody przodków” i woła „kamieniu” bez sensu, a raz zmyśla nazwy („Kamienny Próg”, „Grada”). W wojskowym zdarza się żart z liczbą spoza [GRA] („100 lat”).
   - **Bramka niezaliczona:** styl 28–54% wobec wymaganych ≥ 80%, a zasady ze stylem 9 punktów gorzej (dopuszczalne 3). Nie ma przecieku, a model bez linii stylu się nie zepsuł.
   - **Wniosek:** kierunek działa, ale dawka jest za słaba: 356 linii stylu w 1356, 1 epoka, lr 4e-5. Kolejna próba (style2) za ok. 2 h: C1 dwa razy w zbiorze, 2 epoki, lr 1e-4, a przed nią paczka C1-bis z długimi rozmowami, w których postać nie powtarza swoich stylowych zwrotów. Jeśli style2 nie przejdzie, odkładamy style.
+- **Pilot style2 (18.10, 20:46).**
+  - Dane:
+    - paczka C1-bis: 180 rozmów (po 60 na styl), głównie długich (4–7 wymian), w których styl jest w każdej kwestii postaci, za każdym razem innymi słowami;
+    - zbiór `D:\neuro-train\style2-data` (`style2_prep.py`): C1 ×2, C1-bis ×2 i 600 zwykłych rozmów ze step3-run7, razem 1621 linii.
+  - Trening: od run 7, 1 epoka (nie 2 z planu, żeby nie dokładać trzeciego powtórzenia C1), lr 1e-4, 112 min. eval_loss 0.808 → 0.793, bez przeuczenia. W Ollamie jako `neuro-npc-style2`, skrypt `D:\neuro-train\style2.sh`. Eksport GGUF przeszedł bez kłopotu, bo dysk WSL jest teraz na E:.
+  - Odsetek kwestii ze słowami stylu:
+
+    | styl | run 7 | style1 | style2 | style2 bez linii stylu |
+    |---|---|---|---|---|
+    | staropolski | 0% | 28% | 46% | 3% |
+    | krasnoludzki | 25% | 54% | 57% | 25% (run 7: 20%) |
+    | wojskowy | 11% | 37% | 37% | 3% |
+
+  - Zasady ze stylem: 91% czystych, czyli tyle co run 7 (style1 82%). Powtórek jest 7 (run 7: 2), słownie zapisanych liczb 0 (run 7: 4). Kwestie mają 127 znaków wobec 94.
+  - Zwykłe scenariusze: 91% wobec 92% u run 7. Powtórek jest 14 wobec 6, kwestie mają 116 znaków wobec 97.
+  - Czytane:
+    - staropolski brzmi lepiej („atoli”, „niechaj”, „waść”, „toż”), ale Ola wstawia „przeto” w prawie każdą kwestię;
+    - krasnolud powtarza zamknięcia rozmowy („wracaj z porządnym toporem, a nie z zabawką” 3 razy, „nie z odmrożeniami” 2 razy) i znów zmyśla nazwy („Kamienny Próg”, „Grada”);
+    - wojskowy brzmi dobrze u robota („Ofertę 18 impulsów odrzucam”, „Wyłączam się z rozmowy”), ale u najemnika jest zwykłą polszczyzną.
+    - Błędy logiki targu: kupiec mówi „dam 25” zamiast „chcę 25”; cena maści skacze (22, potem „kosztującej 19”); „4 słoiki za 30, taniej niż po 9”, czyli zgoda na rabat bez [GRA].
+  - **Bramka niezaliczona:**
+    - styl 37–57% wobec wymaganych ≥ 80%;
+    - przeciek mieści się w normie (3%, a krasnolud +5 punktów, bo i tak mówi o kuźni);
+    - zasady ze stylem są na poziomie run 7;
+    - zwykłe scenariusze najwyżej o punkt gorsze, ale z ponad 2 razy większą liczbą powtórek.
+  - **Wniosek:**
+    - podwojenie danych i wyższe lr podniosło staropolski z 28% do 46%, ale krasnoludzki i wojskowy prawie stoją. Zasady wróciły do poziomu run 7, więc koszt stylu jest mały, tylko zysk za słaby;
+    - kolejne dokładanie danych w tym samym układzie raczej nie da 80%. Model traktuje linię `STYL MOWY` jako słabą wskazówkę obok mocnego wzorca run 7;
+    - zgodnie z planem odkładamy style i wracamy do run 11. `neuro-npc-style2` zostaje w Ollamie do grania i porównań; adapter jest w `~/neuro-train/style2/adapter`;
+    - jeśli wrócimy do stylów, to raczej osobnym adapterem uczonym od bazy razem z danymi run 7, a nie douczaniem run 7. Albo mocniejszym sygnałem w karcie, np. 2–3 przykładowe zwroty stylu zamiast samego opisu.
