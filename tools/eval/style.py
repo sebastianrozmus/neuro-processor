@@ -32,8 +32,8 @@ PICK = {
 # Words of each style, folded (lowercase, no Polish letters).
 MARKERS = {
     "staropolski": r"\b(wasc\w*|wacpan\w*|jeno|azali\w*|onegdaj|przeto|zaiste|wszelako|tedy|niechaj|acan\w*|izali|bowiem|jako zywo|ninie|atoli|iza|mosci|panie bracie|zali)\b",
-    "wojskowy": r"\b(melduj\w*|przyjalem|przyjeto|rozkaz\w*|pozycj\w*|teren\w*|cel\w?|zrozumiano|potwierdzam|negatyw\w*|odmeldow\w*|szereg\w*|zadanie|meldunek|odbior|bez odbioru|wykonac|wykonam|osłon\w*|oslon\w*)\b",
-    "krasnoludzki": r"\b(kamien\w*|kowadl\w*|rud\w*|przodk\w*|klan\w*|brod\w*|sztoln\w*|mlot\w*|kuzni\w*|elf\w*|kilof\w*|gor\w*)\b",
+    "wojskowy": r"\b(melduj\w*|meldun\w*|przyjalem|przyjelam|przyjeto|rozkaz\w*|pozycj\w*|teren\w*|cel\w?|zrozumiano|potwierdzam|negatyw\w*|odmeldow\w*|szereg\w*|zadani\w*|odbior|bez odbioru|wykonac|wykonam|oslon\w*|wart\w*|patrol\w*)\b",
+    "krasnoludzki": r"\b(kamien\w*|kowadl\w*|rud(a|y|e|zie|ami)|przodk\w*|klan\w*|brod\w*|sztoln\w*|mlot\w*|kuzni\w*|elf\w*|kilof\w*|gorni\w*|skal\w*)\b",
 }
 ANACHRONISMS = r"\b(ok|okej|spoko|super|fajn\w*|serio|luz\w*|sorry|totalnie|generalnie)\b"
 INVENTED = r"\b(azaliz\w+|onegdajow\w*|waszmosci\w+)\b"

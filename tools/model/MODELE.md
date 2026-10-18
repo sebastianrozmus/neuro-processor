@@ -336,3 +336,7 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
 
   - Linia stylu nie psuje zasad: run 7 ma 91% czystych kwestii, 10d 96%.
   - **Wniosek:** sama linia stylu nie wystarcza, bo modele uczone na jednym formacie karty ją pomijają. Pilot z danymi C1 jest potrzebny, a jego bramką jest skok z tych liczb do ≥ 80%.
+- **Pilot style1 (18.10, w toku):**
+  - Dane C1: 400 rozmów (po 120 na styl i 40 kontrolnych), napisane przez Claude (5 równoległych pomocników) zamiast GPT, który osiągnął limit. Każda paczka przeszła `check_data.py` i `style.py pack`.
+  - Zbiór `D:\neuro-train\style1-data`: trening 356 linii C1 i 1000 linii ze step3-run7. Walidacja: 44 odłożone linie C1 i 100 linii z walidacji run 7.
+  - Trening: od adaptera run 7, 1 epoka, lr 4e-5, GGUF Q5_K_M, w Ollamie jako `neuro-npc-style1`. Skrypt `D:\neuro-train\style1.sh`, log `style1.log`. Ocenę robi ten sam skrypt.
