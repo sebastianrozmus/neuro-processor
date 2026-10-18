@@ -3,6 +3,7 @@ check of how much of the style the replies carry.
 
     python3 style.py build scenarios.jsonl style-scen.jsonl
     python3 style.py check style-scen.jsonl out/style-run7.jsonl [...] --plain out/scen-run7.jsonl
+    python3 style.py pack ../model/extra-claude-style-c1-k1.jsonl [...]
 
 `build` takes ten scenarios per pilot style and puts the style's line right
 after TWOJA POSTAĆ, the way the game will. `check` counts, per style, the
@@ -104,9 +105,64 @@ def check(scenarios_path, paths, plain_paths):
             print(f"  {style:13s} słowa stylu w {marked}/{n} ({100 * marked // max(n, 1)}%), anachronizmy {anach}, wymyślone formy {invented}")
 
 
+TAILORED = r"^Wiesz: (bro[nń]|uzbrojenie|ma[sś][cć]|bandaż|opatrunek|zioła|[sś]wiatło|leki|sprzęt|towar|pancerz|amunicja)\b"
+
+
+def pack(paths):
+    """Checks a data pack of order C1 (lines {"messages": [...]}): the style
+    line word for word, the style heard in styled replies and not in the
+    control ones, the game's rules (check.py), one-sentence facts and no
+    facts made up to fit the question."""
+    sys.path.insert(0, __import__("os").path.dirname(__file__))
+    import check as rules
+
+    problems, counts = [], defaultdict(int)
+    for path in paths:
+        for number, line in enumerate(open(path, encoding="utf-8"), 1):
+            messages = json.loads(line)["messages"]
+            system, user, reply = messages[0]["content"], messages[-2]["content"], messages[-1]["content"]
+            found = re.search(r"^STYL MOWY: (\w+)\. (.*)$", system, re.M)
+            style = found.group(1) if found else None
+            where = f"{path.rsplit('/', 1)[-1]}#{number}"
+            issues = []
+
+            if found and STYLES.get(style) != found.group(2):
+                issues.append("linia-stylu-nie-dosłownie")
+            if found and not re.search(r"TWOJA POSTAĆ:[^\n]*\nSTYL MOWY:", system):
+                issues.append("linia-stylu-nie-po-postaci")
+            text = body(reply)
+            if style and not re.search(MARKERS[style], text):
+                issues.append("brak-słów-stylu")
+            if not style and any(re.search(m, text) for s, m in MARKERS.items() if s != "krasnoludzki"):
+                issues.append("styl-bez-linii")
+            if style == "staropolski" and re.search(ANACHRONISMS, text):
+                issues.append("anachronizm")
+            if re.search(INVENTED, text):
+                issues.append("wymyślona-forma")
+            for fact in re.findall(r"^Wiesz: .*$", system, re.M):
+                if re.search(TAILORED, fact, re.I):
+                    issues.append("fakt-pod-pytanie")
+                if len(fact.split()) > 22 or fact.count(". ") > 1:
+                    issues.append("fakt-za-długi")
+
+            gra = user.split("[GRA]")[-1] if "[GRA]" in user else ""
+            previous = [m["content"] for m in messages[1:-1] if m["role"] == "assistant"]
+            issues += rules.check({"turns": [{"gra": gra, "system": system}], "system": system}, 0, reply, previous)
+
+            counts[style or "kontrola"] += 1
+            if issues:
+                problems.append((where, sorted(set(issues)), reply[:140]))
+
+    print("linie:", dict(counts), "| z uwagami:", len(problems))
+    for problem in problems:
+        print(*problem)
+
+
 def main():
     if sys.argv[1] == "build":
         build(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == "pack":
+        pack(sys.argv[2:])
     elif sys.argv[1] == "check":
         args = sys.argv[3:]
         plain = []
