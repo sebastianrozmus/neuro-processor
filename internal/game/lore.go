@@ -81,7 +81,7 @@ func (r *Realm) lore(customer *player, wares []Ware) string {
 	fmt.Fprintf(&lore, "Największe zagrożenie: %s. %s Jego siedziba: %s.\n", built.Boss.Name, built.Boss.Description, bearing(here, built.Lair))
 
 	for _, fact := range r.knownBy(customer.shop) {
-		fmt.Fprintf(&lore, "Wiesz: %s. %s\n", fact.Subject, fact.Text)
+		fmt.Fprintf(&lore, "Wiesz: %s. %s\n", fact.Subject, r.told(fact))
 	}
 
 	if gaps := r.unknownTo(customer.shop); len(gaps) > 0 {
@@ -174,6 +174,7 @@ var plainWords = []string{
 	"inny", "inna", "inne", "innego", "innej", "umiem", "umiesz", "umie", "jestem", "jestes", "tylko", "nikt", "nikogo",
 	"tutaj", "teraz", "bardzo", "jeszcze", "mnie", "ciebie", "sobie", "kiedy", "gdzie", "ktory", "ktora", "ktore",
 	"moze", "wiem", "wiesz", "sposob", "sposobu", "tego", "temu", "bylo", "beda", "chce", "chcesz", "musze", "mozesz",
+	"starczy", "wystarczy", "starucho", "staruchu", "staruszko",
 }
 
 // touches counts the player's words (long enough to mean something) that
@@ -250,7 +251,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	if best != nil {
 		r.learn(customer, best)
 
-		return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s", best.Subject, best.Text), nil, true
+		return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s", best.Subject, r.told(best)), nil, true
 	}
 
 	// Something the keeper lacks but another has is a lead: the keeper
@@ -270,7 +271,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		if gossip := r.gossip(customer.shop); gossip != nil {
 			r.learn(customer, gossip)
 
-			return fmt.Sprintf("W karczmie usłyszałeś od sąsiada i możesz powtórzyć: %s. %s", gossip.Subject, gossip.Text), nil, true
+			return fmt.Sprintf("W karczmie usłyszałeś od sąsiada i możesz powtórzyć: %s. %s", gossip.Subject, r.told(gossip)), nil, true
 		}
 	}
 
@@ -289,7 +290,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 		// The model was taught to always use the fact; told it may drop one
 		// that does not fit, it stops sending a buyer of berries to a mine.
-		return fmt.Sprintf("Możesz wpleść jedną rzecz, którą wiesz: %s. %s Jeśli nie pasuje do tego, co mówi gracz, pomiń ją.", fact.Subject, fact.Text), nil, true
+		return fmt.Sprintf("Możesz wpleść jedną rzecz, którą wiesz: %s. %s Jeśli nie pasuje do tego, co mówi gracz, pomiń ją.", fact.Subject, r.told(fact)), nil, true
 	}
 
 	// A greeting or banter with nothing to hang on: without a direction a

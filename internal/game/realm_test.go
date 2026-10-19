@@ -2422,3 +2422,17 @@ func TestShutDoorsHoldFromBothSides(t *testing.T) {
 		t.Errorf("could not leave the flat: %s", realm.View(hero).Place.Name)
 	}
 }
+
+func TestHiredCompanionNoLongerWaits(t *testing.T) {
+	realm := partyRealm(t)
+	fact := &Fact{Subject: "Bogna Topór", Text: "Bije mocno. Czeka na najem w karczmie w osadzie Osada."}
+
+	if got := realm.told(fact); got != fact.Text {
+		t.Errorf("before hiring = %q", got)
+	}
+
+	realm.hired[0] = "ala"
+	if got, want := realm.told(fact), "Bije mocno. Jest teraz w drużynie bohatera Ala."; got != want {
+		t.Errorf("after hiring = %q, want %q", got, want)
+	}
+}

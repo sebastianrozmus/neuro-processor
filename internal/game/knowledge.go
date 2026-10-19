@@ -3,6 +3,7 @@ package game
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -363,7 +364,7 @@ func (r *Realm) gapFor(hero *player, keeper int, words []string) (*Fact, int) {
 	for _, word := range words {
 		// A short word's stem is a prefix of too much ("skad" of
 		// "Skalny"), and a question word is never a subject.
-		if len(word) < leadWord || questionWord(word) {
+		if len(word) < leadWord || questionWord(word) || slices.Contains(plainWords, word) {
 			continue
 		}
 
@@ -580,4 +581,21 @@ func (r *Realm) Subjects() []string {
 	sort.Strings(subjects)
 
 	return subjects
+}
+
+// told is a fact as a keeper tells it now: a companion someone has hired
+// no longer waits at the inn, so Borin "czeka na najem" while he walks
+// with the hero no more.
+func (r *Realm) told(fact *Fact) string {
+	for kind, companion := range r.world.Companions {
+		if companion.Name != fact.Subject || r.hired[kind] == "" {
+			continue
+		}
+
+		if text, _, found := strings.Cut(fact.Text, " Czeka na najem"); found {
+			return fmt.Sprintf("%s Jest teraz w drużynie bohatera %s.", text, capitalized(r.hired[kind]))
+		}
+	}
+
+	return fact.Text
 }
