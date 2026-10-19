@@ -249,7 +249,7 @@ func (r *Realm) Join(name, avatar string) string {
 	if existing, ok := r.players[name]; ok && !existing.connected {
 		existing.connected = true
 		r.tell(existing, "Wracasz do gry.")
-		r.tellOthers(existing, existing.name+" wraca do gry.")
+		r.tellOthers(existing, existing.label()+" wraca do gry.")
 
 		if r.alive(existing.pos) > 0 {
 			r.engage(existing)

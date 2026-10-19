@@ -183,13 +183,13 @@ func (r *Realm) flee(runner *player) {
 
 	// Nimble heroes slip away more often.
 	if r.rng.Intn(100) >= fleePercent+5*Modifier(runner.abilities[Dexterity]) {
-		r.tellFight(current, runner.name+" próbuje uciec, bez skutku.")
+		r.tellFight(current, runner.label()+" próbuje uciec, bez skutku.")
 		r.next(current)
 
 		return
 	}
 
-	r.tellFight(current, runner.name+" ucieka z walki.")
+	r.tellFight(current, runner.label()+" ucieka z walki.")
 	current.stopTimer()
 	r.cure(runner)
 	r.leaveFight(current, runner)
@@ -296,7 +296,7 @@ func (r *Realm) engage(joiner *player) {
 		return
 	}
 
-	r.tellFight(current, joiner.name+" dołącza do walki.")
+	r.tellFight(current, joiner.label()+" dołącza do walki.")
 	current.members = append(current.members, joiner.name)
 
 	if r.dnd() {
@@ -746,7 +746,7 @@ func (r *Realm) drink(current *fight, who unit, index int) {
 // fall takes a beaten player, with their companions, out of the fight and
 // back to the settlement they visited last.
 func (r *Realm) fall(current *fight, fallen *player) {
-	r.tellFight(current, fallen.name+" pada bez sił.")
+	r.tellFight(current, fallen.label()+" pada bez sił.")
 	r.cure(fallen)
 	r.leaveFight(current, fallen)
 

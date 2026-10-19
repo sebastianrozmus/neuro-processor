@@ -199,6 +199,13 @@ func inflected(word, part string) bool {
 		return false
 	}
 
+	// A word that short names only a word about as short: "5 rur" are
+	// "rury", but "skad wiesz, ze on wie" asks nothing about a "Wielka
+	// Mikstura".
+	if len(word) == minQueryWord && len(part)-len(word) > 1 {
+		return false
+	}
+
 	return len(word) >= minQueryWord && strings.HasPrefix(part, Stem(word))
 }
 
