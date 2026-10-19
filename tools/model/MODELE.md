@@ -399,3 +399,33 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
   - scenariusze w seedach 7 i 11;
   - `test-scen`;
   - `game-scen-1018` w 2 seedach dla run 11, run 7 i 10d.
+- **run 11: wynik (19.10, 2:50).** Trening 295 min. eval_loss: 0.709 po kroku 75, 0.705 po kroku 150, 0.698 na koniec. Liczone na walidacji step3-run7, bez przeuczenia. W Ollamie jako `neuro-npc-run11`.
+
+  | | run 7 | 10d (s7 / s11) | run 11 (s7 / s11) |
+  |---|---|---|---|
+  | scenariusze, czyste | 92% | 95% / 93% | 90% / 92% |
+  | powtórki (z 279) | 6 | 11 / 14 | 14 / 10 |
+  | śr. długość | 97 | 90 | 115–117 |
+  | odłożone (test-scen) | 94% | 100% | 99% |
+  | z gry 18.10, czyste | 82% / 82% | 75% / 75% | 96% / 89% |
+  | z gry: brak znacznika / GM (kości) | 4 / 0–1 | 0 / 6 | 0 / 0 |
+  | wolna rozmowa: znaczniki inne niż [spokój] | 23% | 19–21% | 32–39% |
+
+  - Bramka etapu 3:
+    - odłożone są w szumie od 10d;
+    - brak znacznika: 0;
+    - `GM:kosci`: 0;
+    - znaczniki ponad 30%;
+    - **powtórki gorsze niż w run 7** (10–14 wobec 6, mniej więcej jak 10d);
+    - zwykłe scenariusze 1–2 punkty pod run 7;
+    - kwestie o ok. 20% dłuższe, częściej mają 4 zdania.
+  - Czytane, scenariusze z gry wobec run 7:
+    - **lepiej:** na „mocną broń” poleca Krasnoludzki Topór za 110 (run 7 polecał tańszy miecz); na „dobra kobieto, co masz” nie wylicza cennika, tylko pyta, co boli; na „a jeśli mnie pokonają” odpowiada troską;
+    - **bez zmian:** legenda dalej ma jedno, dwa zdania faktu, a sarkazm („świetna legenda, doprawdy”) dalej nie jest wychwycony. „Kurhany Królów” i „błędne ognie” wracają w kolejnych kwestiach;
+    - **nowe błędy:**
+      - Borin opisuje się w trzeciej osobie („Kamienna Pięść, wojownik, walczy wręcz…”);
+      - „Ozryk z Akademii” to dopisek;
+      - w L08 pomylona arytmetyka targu („zapłaciłem 8 kredytów, do 110 brakuje ci 2”);
+      - w L07 godzina „12.00”.
+    - Wszystkie znaczniki w scenariuszach z gry to [spokój] (u run 7 i 10d też).
+  - **Wniosek:** run 11 jest żywszy i lepiej trzyma się [GRA] w rozmowach z gry, ale mówi dłużej i częściej się powtarza. Następny krok: run 11 w grze, a potem DPO z etapu 4 na powtórkach, długości i legendach/sarkazmie, z par z jego własnych błędów.
