@@ -468,3 +468,18 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
     - „boisz się smoka?” i „czego żałujesz?” dostały odpowiedzi wprost i w roli;
     - „masz kota?” i „wynajmuję cię” (gdy już jest w drużynie) obsłużone sensownie;
     - odmowa skupu kaftana poprawna.
+
+- **run 12 (19.10, DPO na run 11).** Poprawki gry przed parami: 425935d, 9ce4ba4, e59b038, 6168ed1 (groźby, towarzysz w drużynie, niejasna oferta, „starucho”); osobne głosy kobiet i mężczyzn: 5f035dc.
+  - Pary: scenariusze z sesji 2 i 3 (`talks-1019c`, kwestie run 11), odtworzone 2 razy (seed 7 i 11), poprawione odpowiedzi od pomocników według `run12/brief.md`; 542 pary treningowe, 64 sprawdzające, 31 pozycji odłożonych (`run12/held.jsonl`).
+  - Zasada z run 10: dobre odpowiedzi nie są spokojniejsze od złych ([spokój] 135 wobec 147, kpina 65 wobec 17); są krótsze (postaci 153 wobec 184 znaków, MG 215 wobec 256).
+  - Trening: baza run11/merged, 1 epoka, lr 5e-5, beta 0.1, max-len 4352, 119 min. Strata na parach sprawdzających 0.693 → 0.258 (krok 17) → 0.089; trafność 97%. Logps chosen −70.9 → −82.3, rejected −76.0 → −142.
+  - Ocena (`check.py`, bez uwag, run 11 → run 12):
+    - scenariusze s7/s11: 90/92% → 98/98%; powtórki 14/10 → 2/1; średnio 115 → 92 znaki, 2.0 → 1.7 s;
+    - odłożone: 99% → 99%;
+    - z gry 18.10: 96/89% → 100/96%;
+    - odłożone z gry 19.10: 84% → 100% (MG 187 → 126 znaków).
+  - Nastroje: [spokój] w scenariuszach 68% → 55%, w odłożonych z gry 57% → 14%; kpina 12 → 32. Charakter się nie spłaszczył, raczej przechylił w stronę kpiny.
+  - Czytane ręcznie (31 odłożonych):
+    - lepiej: MG krótszy, zwykle wierny protokołowi; „skąd wiesz, że idę na górę?” dostało wprost „mówiłeś o górze i smoku”; nie ma „synku” ani „pij przed walką”;
+    - gorzej: kpina także tam, gdzie nie pasuje, i przechodzi w bełkot („Urosnę od twoich żartów”, „własny dowcip mi staje dęba”); dziwne słowa u MG („spudłowuje”, „zszywa widmo za 12”, „opieka Żmiję”, „Pocisk z Zwoju Magicznego Pudła”); raz „23 srebrniki” zamiast złota; MG raz pominął łup (kaftan, 17 złota).
+  - **Wniosek:** według automatu wyraźnie lepszy od run 11, ale polszczyzna miejscami dziwniejsza. Do sprawdzenia w grze; jeśli kpina męczy, porównać checkpoint-34 (połowa epoki, strata 0.116).
