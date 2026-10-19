@@ -1,6 +1,11 @@
 package game
 
-import "github.com/sebastianrozmus/neuro-processor/internal/world"
+import (
+	"unicode"
+	"unicode/utf8"
+
+	"github.com/sebastianrozmus/neuro-processor/internal/world"
+)
 
 // unit is anyone on the heroes' side of a fight: a player's hero or one of
 // their companions. Both carry gear and powers and both get a turn.
@@ -35,7 +40,7 @@ const (
 	levelsPerPace = 2
 )
 
-func (p *player) label() string            { return p.name }
+func (p *player) label() string            { return capitalized(p.name) }
 func (p *player) leader() *player          { return p }
 func (p *player) health() int              { return p.hp }
 func (p *player) setHealth(value int)      { p.hp = value }
@@ -82,4 +87,15 @@ func equipSlot(weapon, armor, charm **world.ItemSpec, kind world.Kind) **world.I
 	}
 
 	return weapon
+}
+
+// capitalized is a name as the story writes it: a player who typed
+// "mieczyslaw" is still Mieczyslaw in the fight log and the narration.
+func capitalized(name string) string {
+	first, size := utf8.DecodeRuneInString(name)
+	if first == utf8.RuneError {
+		return name
+	}
+
+	return string(unicode.ToUpper(first)) + name[size:]
 }

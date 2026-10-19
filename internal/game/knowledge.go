@@ -411,7 +411,9 @@ func (r *Realm) whereIs(keeper int) string {
 	case r.caravan != nil && keeper == r.caravanShop():
 		return "karawana na trakcie, dziś w miejscu: " + r.placeAt(r.caravan.pos).Name
 	case keeper < len(r.world.Shops):
-		return r.world.Shops[keeper].Name + " w każdej osadzie"
+		// Every settlement has this shop; "in every settlement" in the hint
+		// was repeated word for word by the model.
+		return r.world.Shops[keeper].Name
 	}
 
 	if kind, ok := r.mateOf(keeper); ok {

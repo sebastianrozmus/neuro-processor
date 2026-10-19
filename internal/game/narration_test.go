@@ -529,3 +529,14 @@ func TestTouchesSkipsWordsThatNameNothing(t *testing.T) {
 		t.Errorf("touches = %d, want 2", got)
 	}
 }
+
+func TestSceneBriefWithoutDice(t *testing.T) {
+	scene := "Borin atakuje (k20: 10): Goblin traci 4 zdrowia. Ala atakuje: Goblin. Pudło (k20: 3 przeciw KP 13). " +
+		"Ala atakuje (k20: 20, trafienie krytyczne!): Goblin traci 9 zdrowia."
+	brief := Decision{Outcome: OutcomeScene, Scene: scene}.Brief()
+	want := "Przebieg rundy: Borin atakuje: Goblin traci 4 zdrowia. Ala atakuje: Goblin. Pudło. " +
+		"Ala atakuje (trafienie krytyczne!): Goblin traci 9 zdrowia."
+	if brief != want {
+		t.Errorf("brief = %q, want %q", brief, want)
+	}
+}

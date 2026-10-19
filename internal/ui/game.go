@@ -217,7 +217,9 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return g, nil
 	case replyMsg:
 		mood, line := speech.SplitMood(msg.text)
-		g.realm.HaggleRemember(g.name, msg.said, line)
+		// The history keeps the tag: the model learned on tagged past lines
+		// and, shown them bare, drops its own tag a few turns into a talk.
+		g.realm.HaggleRemember(g.name, msg.said, "["+string(mood)+"] "+line)
 		g.shop.waiting, g.shop.partial = false, ""
 		g.shop.say(speakerMerchant, withMood(line, mood))
 		if g.shop.speaking != nil {

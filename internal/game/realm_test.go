@@ -866,7 +866,7 @@ func TestWhatAKeeperLacksBecomesALead(t *testing.T) {
 	// who knows it, and the name must come out right.
 	_, request, ok := realm.Haggle(hero, "co wiesz o kurhanach?", Intent{Action: ActionChat})
 	if !ok || !strings.Contains(request.Hint, "czego nie znasz: Kurhany Królów. Słyszałeś tylko tyle: „Pod kurhanami śpi stary król, a jego miecz świeci nocą”.") ||
-		!strings.Contains(request.Hint, "zna sprawę: Jagna (Chata Zielarki w każdej osadzie). Imię podaj dokładnie tak.") {
+		!strings.Contains(request.Hint, "zna sprawę: Jagna (Chata Zielarki). Imię podaj dokładnie tak.") {
 		t.Errorf("referral hint = %q", request.Hint)
 	}
 

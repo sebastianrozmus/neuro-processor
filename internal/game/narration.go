@@ -741,7 +741,7 @@ func (d Decision) Brief() string {
 	case outcome == OutcomeUnwanted:
 		brief = fmt.Sprintf("Gracz chce ci sprzedać %s, ale ty takimi rzeczami nie handlujesz. Odmów i powiedz, czym handlujesz. Nie podawaj żadnych kwot.", d.what())
 	case outcome == OutcomeScene:
-		return "Przebieg rundy: " + d.Scene
+		return "Przebieg rundy: " + withoutDice(d.Scene)
 	}
 
 	if d.Quantity > 1 && d.Outcome != OutcomeShort {
@@ -749,6 +749,21 @@ func (d Decision) Brief() string {
 	}
 
 	return brief + " Nastrój twojej postaci: " + string(d.Mood) + "."
+}
+
+// dice are the rolls in a round's log: "(k20: 3 przeciw KP 13)", "(k20: 10)".
+var dice = regexp.MustCompile(` ?\(k20: \d+(?: przeciw KP \d+)?\)| ?\(k20: 20, (trafienie krytyczne!)\)`)
+
+// withoutDice drops the rolls from a round's log for the Game Master: the
+// player sees them in the log, and the model copied them into the story.
+func withoutDice(scene string) string {
+	return dice.ReplaceAllStringFunc(scene, func(roll string) string {
+		if strings.Contains(roll, "krytyczne") {
+			return " (trafienie krytyczne!)"
+		}
+
+		return ""
+	})
 }
 
 // Fallback is the merchant's reply used when no model can provide one.
