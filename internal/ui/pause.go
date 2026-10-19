@@ -62,6 +62,7 @@ const (
 	rowEngine = iota
 	rowSpeed
 	rowVoice
+	rowFemale
 	rowNarrator
 	rowDevice
 	rowApply
@@ -141,7 +142,7 @@ func (g Game) settingsRows() []int {
 
 	switch g.pause.draft.Engine {
 	case speech.EnginePiper:
-		rows = append(rows, rowSpeed, rowVoice, rowNarrator)
+		rows = append(rows, rowSpeed, rowVoice, rowFemale, rowNarrator)
 	case speech.EngineSystem:
 		rows = append(rows, rowSpeed)
 		if len(g.pause.choices.SystemVoices) > 0 {
@@ -318,6 +319,8 @@ func (g *Game) change(row, step int) {
 		}
 
 		draft.Voice = cycle(voices, draft.Voice, step)
+	case rowFemale:
+		draft.Female = cycle(append([]string{""}, g.pause.choices.PiperVoices...), draft.Female, step)
 	case rowNarrator:
 		draft.Narrator = cycle(append([]string{""}, g.pause.choices.PiperVoices...), draft.Narrator, step)
 	case rowDevice:
@@ -419,7 +422,18 @@ func (g Game) settingsLine(row int) string {
 			voice = "domyślny"
 		}
 
+		if draft.Engine == speech.EnginePiper {
+			return "Głos mężczyzn: " + value(voice)
+		}
+
 		return "Głos postaci: " + value(voice)
+	case rowFemale:
+		voice := speech.PiperLabel(draft.Female)
+		if draft.Female == "" {
+			voice = "jak mężczyzn"
+		}
+
+		return "Głos kobiet: " + value(voice)
 	case rowNarrator:
 		voice := speech.PiperLabel(draft.Narrator)
 		if draft.Narrator == "" {

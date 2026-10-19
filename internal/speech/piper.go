@@ -27,9 +27,11 @@ type Piper struct {
 	// Exe is the piper program; Voices the folder of *.onnx voices.
 	Exe    string
 	Voices string
-	// Voice is the voice of the characters and Narrator the game master's,
-	// both file names in Voices; an empty Narrator speaks with Voice.
+	// Voice is the voice of the characters, Female that of the women among
+	// them and Narrator the game master's, all file names in Voices; an
+	// empty Female or Narrator speaks with Voice.
 	Voice    string
+	Female   string
 	Narrator string
 	// Speed above 1 speaks faster.
 	Speed  float64
@@ -105,8 +107,12 @@ func NewPiper(p *Piper) *Speaker {
 // fetch writes one sentence into a WAV file and returns its path.
 func (p *Piper) fetch(ctx context.Context, name, kind string, line queued) (path string, err error) {
 	voice := p.Voice
-	if kind == "narrator" && p.Narrator != "" {
+
+	switch {
+	case kind == "narrator" && p.Narrator != "":
 		voice = p.Narrator
+	case kind != "narrator" && p.Female != "" && Feminine(name):
+		voice = p.Female
 	}
 
 	started := time.Now()

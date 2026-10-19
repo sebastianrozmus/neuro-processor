@@ -23,9 +23,10 @@ type Options struct {
 	Engine string `json:"engine"`
 	// Speed above 1 speaks faster (piper and the system voice).
 	Speed float64 `json:"speed,omitempty"`
-	// Voice is the piper voice or the system voice; Narrator the piper
-	// voice of the game master.
+	// Voice is the piper voice or the system voice; Female the piper voice
+	// of the women and Narrator that of the game master.
 	Voice    string `json:"voice,omitempty"`
+	Female   string `json:"female,omitempty"`
 	Narrator string `json:"narrator,omitempty"`
 	// Device is where Chatterbox runs: auto, cuda or cpu.
 	Device string `json:"device,omitempty"`
@@ -143,7 +144,11 @@ func (e *Engines) Apply(options Options) error {
 			options.Narrator = ""
 		}
 
-		piper = &Piper{Exe: PiperExe(e.PiperDir), Voices: filepath.Join(e.PiperDir, "voices"), Voice: options.Voice, Narrator: options.Narrator, Speed: options.Speed}
+		if options.Female != "" && !contains(voices, options.Female) {
+			options.Female = ""
+		}
+
+		piper = &Piper{Exe: PiperExe(e.PiperDir), Voices: filepath.Join(e.PiperDir, "voices"), Voice: options.Voice, Female: options.Female, Narrator: options.Narrator, Speed: options.Speed}
 		speaker = NewPiper(piper)
 	case EngineSystem:
 		if e.Command != "" {

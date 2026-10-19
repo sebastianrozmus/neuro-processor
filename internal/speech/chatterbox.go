@@ -61,6 +61,9 @@ type VoiceSettings struct {
 	// Narrator the one for the game master's lines.
 	Default  string `json:"default"`
 	Narrator string `json:"narrator,omitempty"`
+	// Female is the sample for the women among the characters, when no
+	// name or kind says otherwise.
+	Female string `json:"female,omitempty"`
 	// ByName assigns samples to characters by name; ByKind to kinds of
 	// shop (armory, alchemist, magic, caravan) and roles (wojownik,
 	// uzdrowiciel, mag).
@@ -136,6 +139,10 @@ func (s VoiceSettings) VoiceFor(name, kind string) string {
 
 	if kind == "narrator" && s.Narrator != "" {
 		return s.Narrator
+	}
+
+	if kind != "narrator" && s.Female != "" && Feminine(name) {
+		return s.Female
 	}
 
 	return s.Default

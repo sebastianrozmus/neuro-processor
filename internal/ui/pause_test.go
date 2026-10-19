@@ -127,11 +127,11 @@ func TestPauseSettingsSwitchVoice(t *testing.T) {
 
 	// Chatterbox → Piper shows the piper rows.
 	model = press(model, tea.KeyRight)
-	assertShows(t, model, "piper", "Piper", "Tempo mowy", "Głos postaci", "gosia", "Głos narratora", "jak postaci")
+	assertShows(t, model, "piper", "Piper", "Tempo mowy", "Głos mężczyzn", "gosia", "Głos kobiet", "jak mężczyzn", "Głos narratora", "jak postaci")
 
-	// Faster, then the narrator gets a voice of its own.
-	model = press(model, tea.KeyDown, tea.KeyRight, tea.KeyRight, tea.KeyDown, tea.KeyDown, tea.KeyRight)
-	assertShows(t, model, "changed", "1.2×", "darkman")
+	// Faster, then the women and the narrator get voices of their own.
+	model = press(model, tea.KeyDown, tea.KeyRight, tea.KeyRight, tea.KeyDown, tea.KeyDown, tea.KeyRight, tea.KeyRight, tea.KeyDown, tea.KeyRight)
+	assertShows(t, model, "changed", "1.2×", "Głos kobiet: ‹ gosia ›", "Głos narratora: ‹ darkman ›")
 
 	// Down to "Zastosuj i posłuchaj".
 	model = press(model, tea.KeyDown, tea.KeyEnter)
@@ -140,7 +140,7 @@ func TestPauseSettingsSwitchVoice(t *testing.T) {
 	}
 
 	got := settings.applied[0]
-	if got.Engine != speech.EnginePiper || got.Speed != 1.2 || got.Narrator != "pl_PL-darkman-medium.onnx" {
+	if got.Engine != speech.EnginePiper || got.Speed != 1.2 || got.Narrator != "pl_PL-darkman-medium.onnx" || got.Female != "pl_PL-gosia-medium.onnx" {
 		t.Errorf("applied %+v", got)
 	}
 
