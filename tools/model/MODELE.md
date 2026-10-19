@@ -429,3 +429,21 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
       - w L07 godzina „12.00”.
     - Wszystkie znaczniki w scenariuszach z gry to [spokój] (u run 7 i 10d też).
   - **Wniosek:** run 11 jest żywszy i lepiej trzyma się [GRA] w rozmowach z gry, ale mówi dłużej i częściej się powtarza. Następny krok: run 11 w grze, a potem DPO z etapu 4 na powtórkach, długości i legendach/sarkazmie, z par z jego własnych błędów.
+
+- **run 11 w grze, sesja 2 (19.10, 13:03–14:10).** 145 zapytań: 32 kwestie postaci i 113 narracji Mistrza Gry (log w `tools/eval/talks/talks-1019b.jsonl`, lokalnie). Gra po poprawkach ab902e0, b3e7646, 425935d.
+  - Poprawki gry zadziałały:
+    - brak znacznika: 0 z 32 (w sesji 1 było 14 z 48);
+    - k20/KP w narracji: 0 z 113.
+  - Postaci:
+    - dobrze trzymają rolę i krótko odpowiadają (śr. 150 znaków);
+    - Borin uchyla się od pytania „masz dość odwagi?”, gracz musiał pytać trzy razy;
+    - przy najmie postaci dopisują własne warunki („rozliczenie na powrocie”, „zostaję na warcie”), sprzeczne z „płatne przy dołączeniu”;
+    - Agnes powtarza „pij przed walką, nie zamiast” w 7 kwestiach, wciska eliksiry nie na temat i umieszcza Borina w Przystani;
+    - pojedyncze bełkotliwe zdania („Miedziak, i mój 20”, „Oczy krwawią, a ty się martwisz, że ich nie masz?”).
+  - Mistrz Gry:
+    - 54 ze 113 narracji ma ponad 3 zdania, 2 są ucięte;
+    - ok. 10 myli, kto co zrobił (np. „Borin trafia za 7”, gdy to Borin stracił 7; Elira rzuca czar, leżąc nieprzytomna; goblin rzuca Podmuch Eliry);
+    - dopisuje fakty („druga żmija”, „za życia ojca Mruka”) i robi błędy odmiany („Zwójem”, „pudruje”, „niegnie”);
+    - 9 razy pisze imię gracza małą literą („mieczysław”), bo gra w 4 komunikatach walki podawała surowe imię (poprawione w 425935d).
+  - Błąd gry, poprawiony w 425935d: „skąd wiesz, że on wie?” szło jako pytanie o Wielką Miksturę, bo „wie” pasowało do „wielka”.
+  - **Wniosek:** na DPO jest dość materiału z Mistrza Gry: długość, kto co zrobił, zmyślenia. Postaci potrzebują jeszcze par na uniki, powtórki i dopisywanie warunków umowy.
