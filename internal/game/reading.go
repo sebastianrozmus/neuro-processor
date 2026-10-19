@@ -264,7 +264,7 @@ func namedItem(text string, wares []Ware) string {
 
 // rudeWords are what an insult is made of; a message with one is read as
 // the worst manners without asking any model.
-var rudeWords = []string{"dziadu", "glupi", "glupia", "idiot", "debil", "kretyn", "smierdzi", "zlodziej", "zamknij sie", "spadaj", "won", "zlom", "szmelc", "oszust", "durn", "bydlak", "staruch", "czarownic", "wiedzm"}
+var rudeWords = []string{"dziadu", "glupi", "glupia", "idiot", "debil", "kretyn", "smierdzi", "zlodziej", "zamknij sie", "spadaj", "won", "zlom", "szmelc", "oszust", "durn", "bydlak", "staruch", "czarownic", "wiedzm", "kurdupl", "bezuzyteczn", "nieudacznik", "glupek", "matol", "palant"}
 
 // rude reports whether a folded message insults the keeper.
 func rude(text string) bool {

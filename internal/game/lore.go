@@ -174,18 +174,25 @@ var plainWords = []string{
 	"inny", "inna", "inne", "innego", "innej", "umiem", "umiesz", "umie", "jestem", "jestes", "tylko", "nikt", "nikogo",
 	"tutaj", "teraz", "bardzo", "jeszcze", "mnie", "ciebie", "sobie", "kiedy", "gdzie", "ktory", "ktora", "ktore",
 	"moze", "wiem", "wiesz", "sposob", "sposobu", "tego", "temu", "bylo", "beda", "chce", "chcesz", "musze", "mozesz",
-	"starczy", "wystarczy", "starucho", "staruchu", "staruszko",
+	"starczy", "wystarczy", "starucho", "staruchu", "staruszko", "stary", "staruszku",
 }
 
 // touches counts the player's words (long enough to mean something) that
-// begin a word of a text.
+// begin a word of a text. A plain word counts only next to one that names
+// the text too: "Stary Bór", but not "ty stary kurduplu".
 func touches(words []string, text string) int {
 	count := 0
 
-	for _, word := range words {
-		if len(word) >= minQueryWord+1 && !slices.Contains(plainWords, word) && Matches(text, word) {
-			count++
+	for index, word := range words {
+		if len(word) < minQueryWord+1 || !Matches(text, word) {
+			continue
 		}
+
+		if slices.Contains(plainWords, word) && (index+1 >= len(words) || !Matches(text, words[index+1])) {
+			continue
+		}
+
+		count++
 	}
 
 	return count

@@ -27,3 +27,19 @@ func TestOldWomanIsNoOldForest(t *testing.T) {
 		t.Error("an old crone is no insult")
 	}
 }
+
+func TestOldDwarfIsNoOldForest(t *testing.T) {
+	if touches(strings.Fields(Fold("ty stary kurduplu")), "Stary Bór") > 0 {
+		t.Error("an old dwarf touches Stary Bór")
+	}
+
+	if touches(strings.Fields(Fold("Pola Karw czy Stary Bór?")), "Stary Bór") == 0 {
+		t.Error("Stary Bór named outright is not touched")
+	}
+
+	for _, text := range []string{"ty stary kurduplu", "jesteś bezużyteczna w walce"} {
+		if !Read(InterpretRequest{Text: text}).rude {
+			t.Errorf("%q is no insult", text)
+		}
+	}
+}
