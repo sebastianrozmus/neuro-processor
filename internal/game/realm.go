@@ -122,6 +122,7 @@ type player struct {
 	charm  *world.ItemSpec
 	spells []world.ItemSpec
 	log    []string
+	told   int // lines ever told, also those that left the log
 	talks  map[int]*talk
 	shop   int
 	party  []*companion
@@ -567,6 +568,7 @@ func (r *Realm) active(name string) *player {
 
 func (r *Realm) tell(listener *player, text string) {
 	listener.log = append(listener.log, text)
+	listener.told++
 	if len(listener.log) > logLimit {
 		listener.log = listener.log[len(listener.log)-logLimit:]
 	}

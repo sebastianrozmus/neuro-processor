@@ -349,7 +349,7 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // refresh takes a new snapshot of the world and keeps the screen valid.
 func (g *Game) refresh() {
 	fighting := g.view.Fight != nil
-	heard := len(g.view.Log)
+	heard := g.view.Told
 	g.view = g.realm.View(g.name)
 	g.collect()
 
@@ -357,8 +357,10 @@ func (g *Game) refresh() {
 		g.names, g.named = newNamer(g.view.World), g.view.World
 	}
 
-	// New lines of the game master are read aloud as they come in.
-	for _, line := range g.view.Log[min(heard, len(g.view.Log)):] {
+	// New lines of the game master are read aloud as they come in. The log
+	// keeps only its last lines, so the new ones are counted, not indexed.
+	fresh := min(max(g.view.Told-heard, 0), len(g.view.Log))
+	for _, line := range g.view.Log[len(g.view.Log)-fresh:] {
 		if strings.HasPrefix(line, game.MasterMark) {
 			g.narrate(strings.TrimPrefix(line, game.MasterMark))
 		}

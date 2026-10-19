@@ -168,7 +168,10 @@ type View struct {
 	Fight  *FightView
 	Shop   *ShopView
 	Log    []string
-	Won    bool
+	// Told counts every line the viewer was ever told: once the log is full
+	// its length stays put, so new lines are found by this count.
+	Told int
+	Won  bool
 	// Blows are the latest blows struck where the viewer stands.
 	Blows []BlowView
 	// People are who stands in the viewer's room of an adventure.
@@ -265,7 +268,7 @@ func (r *Realm) View(name string) View {
 	view.People = personNames(r.peopleAt(viewer.pos, viewer))
 	view.Hour, view.HoursLeft = r.hourName(viewer), r.hoursLeft(viewer)
 	view.Ground = append([]world.ItemSpec(nil), r.ground[r.world.Index(viewer.pos)]...)
-	view.Log = append([]string(nil), viewer.log...)
+	view.Log, view.Told = append([]string(nil), viewer.log...), viewer.told
 
 	for _, struck := range r.blows {
 		if struck.Pos == viewer.pos {
