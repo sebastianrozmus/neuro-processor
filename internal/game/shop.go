@@ -175,6 +175,14 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	decision := session.Apply(intent)
 	town := r.townOf(customer)
 
+	// An insult or a threat leaves the keeper offended whatever their
+	// patience: told "spokojna", the model shrugged off "milcz starucho".
+	folded := Fold(text)
+	threat, insult := threatening(folded), rude(folded)
+	if (threat || insult) && decision.Outcome == OutcomeChat {
+		decision.Mood = MoodOffended
+	}
+
 	switch decision.Outcome {
 	case OutcomeChat:
 		r.fire(customer, onTalk, session.Merchant.Name)
@@ -243,6 +251,13 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 				request.Forbidden = append(request.Forbidden, ware.Price)
 			}
 		}
+	}
+
+	switch {
+	case threat && decision.Outcome == OutcomeChat:
+		request.Hint = "Gracz ci grozi. Nie dajesz się zastraszyć: odpowiedz twardo, z gniewem albo z kpiną, i niczego mu nie dajesz ani nie sprzedajesz. " + request.Hint
+	case insult && decision.Outcome == OutcomeChat:
+		request.Hint = "Gracz cię obraża. Odpowiedz urażony, zimno albo z gniewem; nie udawaj, że nic się nie stało. " + request.Hint
 	}
 
 	if afterHours {

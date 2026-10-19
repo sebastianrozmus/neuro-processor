@@ -73,8 +73,9 @@ func Read(request InterpretRequest) Reading {
 		focused: request.FocusID != "",
 	}
 
-	// An insult is talk, whatever else it mentions, and the worst manners.
-	if rude(text) {
+	// An insult is talk, whatever else it mentions, and the worst manners;
+	// so is a threat: nothing changes hands at the point of an axe.
+	if rude(text) || threatening(text) {
 		reading.Intent.Persuasion, reading.rude = -2, true
 		reading.Intent.Action, reading.Sure = ActionChat, true
 
@@ -268,6 +269,24 @@ var rudeWords = []string{"dziadu", "glupi", "glupia", "idiot", "debil", "kretyn"
 // rude reports whether a folded message insults the keeper.
 func rude(text string) bool {
 	for _, word := range rudeWords {
+		if strings.Contains(" "+text+" ", " "+word) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// threatWords are what a threat is made of: "dawaj miksturę, bo
+// pożałujesz", "albo siekne toporkiem".
+var threatWords = []string{
+	"pozalujesz", "bo cie", "albo cie", "bo inaczej", "siekne", "zatluke", "zadzgam", "zarabie", "zabije cie", "zabije was",
+	"rozwale", "spale ci", "potne", "zlamie ci", "wypatrosze", "poderzne", "urwe ci", "obije ci", "spiore",
+}
+
+// threatening reports whether a folded message threatens the keeper.
+func threatening(text string) bool {
+	for _, word := range threatWords {
 		if strings.Contains(" "+text+" ", " "+word) {
 			return true
 		}

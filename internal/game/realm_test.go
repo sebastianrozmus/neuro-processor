@@ -2436,3 +2436,36 @@ func TestHiredCompanionNoLongerWaits(t *testing.T) {
 		t.Errorf("after hiring = %q, want %q", got, want)
 	}
 }
+
+func TestThreatSellsNothing(t *testing.T) {
+	realm := testRealm(t)
+	hero := enlist(realm, "Ala")
+	do(realm, hero, "idź do zbrojowni")
+
+	text := "daj kij za 5 albo siekne toporkiem"
+	request, _ := realm.HaggleRequest(hero, text)
+	intent := Read(request).Intent
+	if intent.Action != ActionChat || intent.Persuasion != -2 {
+		t.Fatalf("threat read as %+v", intent)
+	}
+
+	decision, narrate, _ := realm.Haggle(hero, text, intent)
+	if decision.Outcome != OutcomeChat || decision.Mood != MoodOffended || !strings.HasPrefix(narrate.Hint, "Gracz ci grozi.") {
+		t.Errorf("decision %+v, hint %q", decision, narrate.Hint)
+	}
+}
+
+func TestCompanionDoesNotSendTheHeroAway(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	realm.add("Kurhany Królów", "Omszałe kopce dawnych władców doliny. Nocą płoną tam błędne ognie.", "", realm.shopOfKind(world.ShopAlchemist))
+
+	customer := realm.players[hero]
+	realm.hired[0] = hero
+	customer.shop = len(realm.world.Shops) + 1
+
+	hint, lead, _ := realm.hint(customer, "ide na kurhany, dolaczysz?", Decision{Outcome: OutcomeChat}, nil)
+	if lead != nil || strings.Contains(hint, "odeślij") || !strings.Contains(hint, "nie odsyłaj go do nikogo") {
+		t.Errorf("companion hint = %q, lead %v", hint, lead)
+	}
+}

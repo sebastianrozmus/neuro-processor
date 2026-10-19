@@ -257,6 +257,14 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	// Something the keeper lacks but another has is a lead: the keeper
 	// passes on the little they heard and names who knows the rest.
 	if fact, keeper := r.gapFor(customer, customer.shop, words); fact != nil {
+		// A companion walks with the hero: "idę na kurhany, dołączysz?"
+		// is answered, not sent off to the apothecary.
+		if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == customer.name {
+			r.learn(customer, fact)
+
+			return fmt.Sprintf("Gracz mówi o: %s. Słyszałeś tylko tyle: „%s”. Odpowiedz na to, o co pyta, jak ktoś, kto idzie z nim w drogę; nie odsyłaj go do nikogo i nie zmyślaj więcej.", fact.Subject, crumb(fact)), nil, true
+		}
+
 		return r.referral(fact, keeper, false), &lead{fact: fact, keeper: keeper}, true
 	}
 
