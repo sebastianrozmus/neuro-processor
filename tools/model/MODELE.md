@@ -447,3 +447,24 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
     - 9 razy pisze imię gracza małą literą („mieczysław”), bo gra w 4 komunikatach walki podawała surowe imię (poprawione w 425935d).
   - Błąd gry, poprawiony w 425935d: „skąd wiesz, że on wie?” szło jako pytanie o Wielką Miksturę, bo „wie” pasowało do „wielka”.
   - **Wniosek:** na DPO jest dość materiału z Mistrza Gry: długość, kto co zrobił, zmyślenia. Postaci potrzebują jeszcze par na uniki, powtórki i dopisywanie warunków umowy.
+
+- **run 11 w grze, sesja 3 (19.10, 15:09–17:12).** 64 kwestie postaci, bez walki (log `tools/eval/talks/talks-1019c.jsonl`, lokalnie). Scenariusze: legenda i sarkazm, trudne pytania, groźby, obelgi, śmierć towarzysza, absurd („do Pacanowa”, „upieczesz kota?”).
+  - Znaczniki: wszystkie są, ale prawie wszystkie to [spokój], także przy „milcz starucho”, „Borin umarł” i „boję się iść w góry”.
+  - Część uników to wina gry, poprawione w 9ce4ba4:
+    - „starucho” i „starczy” pasowały do „Stary Bór”, więc postać mówiła o lesie zamiast odpowiadać;
+    - o najętym Borinie i Elirze gra podawała „czeka na najem w karczmie”, więc Agnes na „Borin umarł” odpowiedziała „to dobry wybór, czeka na najem”.
+  - Nadal po stronie gry:
+    - groźby („dawaj miksturę, bo pożałujesz”, „albo siekne toporkiem”) idą jak zwykły handel;
+    - towarzysz z drużyny pytany „dołączysz na kurhany?” dostaje podpowiedź „odeślij do Agnes”.
+  - Błędy modelu:
+    - legenda to dalej fakty ze świata (Vexaraks, 135 złota) powtórzone w 3 kwestiach; „wymyśl coś dłuższego” dało to samo;
+    - sarkazm wychwycony słabo („Legenda jest potrzebna…”);
+    - Agnes mówi „synku” w niemal każdej kwestii;
+    - Thorin sam sobie przeczy („nie poprawiałem” / „dziś poprawione”) i zmyśla, że Borin kupił miecz;
+    - przy przeprosinach i przy „rozśmiesz mnie” odpowiedź nie na temat (Przełęcz Wichrów, Mokradła);
+    - zmyślenia: „półtora człowieka nie wróciło”, „Pacanów leży nad jeziorem”;
+    - wciska towar (Wielka Mikstura w odpowiedzi na kota i na pochówek).
+  - Dobrze:
+    - „boisz się smoka?” i „czego żałujesz?” dostały odpowiedzi wprost i w roli;
+    - „masz kota?” i „wynajmuję cię” (gdy już jest w drużynie) obsłużone sensownie;
+    - odmowa skupu kaftana poprawna.
