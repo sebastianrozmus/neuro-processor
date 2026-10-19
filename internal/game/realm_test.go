@@ -2469,3 +2469,14 @@ func TestCompanionDoesNotSendTheHeroAway(t *testing.T) {
 		t.Errorf("companion hint = %q, lead %v", hint, lead)
 	}
 }
+
+func TestUnclearOfferListsNoPrices(t *testing.T) {
+	realm := testRealm(t)
+	hero := enlist(realm, "Ala")
+	do(realm, hero, "idź do zbrojowni")
+
+	_, request, _ := realm.Haggle(hero, "a ten kaftan?", Intent{Action: ActionAccept})
+	if !strings.Contains(request.Hint, "nie wiadomo o którym: «Kaftan»") || strings.Contains(request.Hint, "35") {
+		t.Errorf("hint for an unclear offer = %q", request.Hint)
+	}
+}

@@ -226,7 +226,17 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	// masz zbroję" is about the mail on the shelf, not about the skeleton
 	// whose armour hangs on rust.
 	if decision.Outcome == OutcomeChat || decision.Outcome == OutcomeUnclear {
-		if fitting := waresAsked(words, wares); len(fitting) > 0 {
+		if fitting := waresAsked(words, wares); len(fitting) > 0 && decision.Outcome == OutcomeUnclear {
+			// The brief forbids any sum here, so the wares go without
+			// their prices: "który, bo mam dwa?" and no price list.
+			for index, ware := range fitting {
+				if name, _, found := strings.Cut(ware, "» "); found {
+					fitting[index] = name + "»"
+				}
+			}
+
+			return "Gracz mówi o twoim towarze, ale nie wiadomo o którym: " + join(fitting) + ". Zapytaj, o którą z tych rzeczy mu chodzi.", nil, false
+		} else if len(fitting) > 0 {
 			return "Gracz pyta o twój towar. Pasuje: " + join(fitting) + ". Poleć jedną z tych rzeczy, powiedz, do czego jest, i podaj jej cenę z listy.", nil, false
 		}
 	}
