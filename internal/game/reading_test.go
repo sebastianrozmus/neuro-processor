@@ -49,6 +49,10 @@ func TestSessionWordsFromTest13(t *testing.T) {
 		t.Error("burning the tower down is no threat")
 	}
 
+	if Read(InterpretRequest{Text: "no dobra, sorry"}).Intent.Action != ActionChat {
+		t.Error("an apology is a deal")
+	}
+
 	if Read(InterpretRequest{Text: "dobra, idę sobie"}).Intent.Action != ActionLeave {
 		t.Error("going away is not leaving")
 	}

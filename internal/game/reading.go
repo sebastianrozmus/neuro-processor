@@ -16,7 +16,10 @@ var (
 	offerWords  = []string{"dam", "daje", "dalbym", "dalabym", "place", "zaplace", "oferuje", "proponuje", "moge dac", "niech bedzie"}
 	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi"}
 	// nodWords accept only in a short reply: "ok. a co znaczy..." goes on talking, it closes no deal.
-	nodWords   = []string{"stoi", "pasuje", "dobra", "ok", "okej"}
+	nodWords = []string{"stoi", "pasuje", "dobra", "ok", "okej"}
+	// sorryWords make a nod part of an apology: "no dobra, sorry" takes back
+	// a word, it does not hire anybody.
+	sorryWords = []string{"przepraszam", "sorry", "sorki", "sory", "wybacz", "wybaczcie", "nie gniewaj", "nie obrazaj"}
 	leaveWords = []string{"zegnaj", "do widzenia", "bywaj", "wychodze", "odchodze", "ide stad", "na razie", "do zobaczenia", "ide sobie", "pojde sobie", "pojde juz", "ide juz", "spadam", "zmywam sie"}
 	tradeWords = []string{"ile", "cena", "ceny", "koszt", "co masz", "pokaz", "towar", "sprzeda", "asortyment", "na sprzedaz"}
 	sellWords  = []string{"sprzedam", "sprzedac", "sprzedalbym", "sprzedalabym", "odkup", "odkupisz", "kupisz", "kupilbys", "kupilabys", "wezmiesz", "ile dasz", "ile dalbys", "co dasz za", "zaplacisz", "oddam", "chcesz kupic", "skupujesz", "skupisz", "skup"}
@@ -92,6 +95,8 @@ func Read(request InterpretRequest) Reading {
 		// A bare number in a longer sentence: it may be an offer, or not.
 	case hasPhrase(text, leaveWords):
 		reading.Intent.Action, reading.Sure = ActionLeave, true
+	case hasPhrase(text, sorryWords):
+		// An apology is talk.
 	case !strings.Contains(request.Text, "?") && (hasPhrase(text, acceptWords) || len(words) <= shortMessage && hasPhrase(text, nodWords)):
 		// A question never closes a deal, whatever word it starts with.
 		reading.Intent.Action, reading.Sure = ActionAccept, true
