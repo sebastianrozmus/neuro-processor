@@ -22,8 +22,10 @@ type State struct {
 	Host    string     `json:"host"`
 	Spec    world.Spec `json:"spec"`
 
-	Players  []PlayerState    `json:"players"`
-	Extras   []ExtraState     `json:"extras,omitempty"`
+	Players []PlayerState `json:"players"`
+	Extras  []ExtraState  `json:"extras,omitempty"`
+	// Dropped are the artifacts fallen bosses have left.
+	Dropped  []string         `json:"dropped,omitempty"`
 	Monsters [][]MonsterState `json:"monsters"`
 	Ground   [][]string       `json:"ground"`
 	Revealed []bool           `json:"revealed"`
@@ -240,6 +242,8 @@ func (r *Realm) State(host string) State {
 		state.Extras = append(state.Extras, ExtraState{Shop: added.shop, ID: added.item.ID, Item: added.item})
 	}
 
+	state.Dropped = append([]string(nil), r.dropped...)
+
 	for _, name := range r.order {
 		saved := r.players[name]
 
@@ -358,13 +362,15 @@ func Restore(state State, seed int64) (*Realm, error) {
 
 	for _, saved := range state.Extras {
 		item, ok := world.CleanItem(saved.Item)
-		if !ok || saved.Shop < 0 || saved.Shop >= len(built.Shops) || saved.ID == "" {
+		if !ok || saved.Shop < -1 || saved.Shop >= len(built.Shops) || saved.ID == "" {
 			continue
 		}
 
 		item.ID = saved.ID
 		realm.extras = append(realm.extras, extra{shop: saved.Shop, item: item})
 	}
+
+	realm.dropped = append([]string(nil), state.Dropped...)
 
 	for index := range built.Tiles {
 		realm.monsters[index], realm.ground[index] = nil, realm.items(state.Ground[index])

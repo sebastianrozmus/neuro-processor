@@ -585,6 +585,10 @@ func TestShops(t *testing.T) {
 		t.Fatalf("request = %+v", request)
 	}
 
+	if decision, _, _ := realm.Haggle(hero, "dam 30 za kij", Intent{Action: ActionOffer, ItemID: "item-1", Amount: 30}); decision.Outcome != OutcomeCounter {
+		t.Fatalf("the first offer is taken at once: %+v", decision)
+	}
+
 	decision, narrate, ok := realm.Haggle(hero, "dam 30 za kij", Intent{Action: ActionOffer, ItemID: "item-1", Amount: 30})
 	if !ok || decision.Outcome != OutcomeSold || narrate.Merchant.Name != "Kowal" {
 		t.Fatalf("decision = %+v", decision)
@@ -2330,6 +2334,7 @@ func TestCompanionsHaggleAtTheInn(t *testing.T) {
 	}
 
 	gold := ala.gold
+	realm.Haggle(hero, "dam 55 dziennie", Intent{Action: ActionOffer, Amount: 55})
 	decision, _, _ = realm.Haggle(hero, "dam 55 dziennie", Intent{Action: ActionOffer, Amount: 55})
 	if decision.Outcome != OutcomeSold || decision.Price != 55 || ala.gold != gold || len(ala.party) != 1 || ala.party[0].wage != 55 {
 		t.Fatalf("the legend's wage: %+v, gold %d, party %d", decision, ala.gold, len(ala.party))

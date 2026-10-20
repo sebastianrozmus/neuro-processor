@@ -397,5 +397,127 @@
     "text": "Siódmego dnia przyszła odwilż i Przełęcz Wichrów stała się przejezdna."
    }
   }
+ ],
+ "artifacts": [
+  {
+   "name": "Kieł Vexaraxa",
+   "description": "Ząb smoka oprawiony jak miecz; wciąż tli się w nim czerwony żar.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 18
+  },
+  {
+   "name": "Młot Krasnoludzkich Królów",
+   "description": "Młot, którym królowie Przystani kuli pierwsze bramy, ciężki od historii.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 15
+  },
+  {
+   "name": "Łuk z Rogu Wywerny",
+   "description": "Napięty ścięgnem wywerny; strzała z niego leci szybciej niż krzyk.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 14
+  },
+  {
+   "name": "Sztylet Goblińskiego Wodza",
+   "description": "Krzywe, zatrute ostrze wodza band, które nigdy nie chybia pleców.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 13
+  },
+  {
+   "name": "Ognista Halabarda Karw",
+   "description": "Halabarda herbowa Karw, której ostrze płonie w rękach prawowitego obrońcy.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 16
+  },
+  {
+   "name": "Zbroja ze Smoczych Łusek",
+   "description": "Czerwone łuski Vexaraxa, połączone krasnoludzkim drutem; ogień ich nie rusza.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 9
+  },
+  {
+   "name": "Mithrilowa Kolczuga",
+   "description": "Lśniąca kolczuga z najgłębszej sztolni, lekka jak koszula.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 8
+  },
+  {
+   "name": "Płaszcz Elfiego Zwiadowcy",
+   "description": "Płaszcz, który zlewa się ze skałą, więc ciosy mijają cel.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 7
+  },
+  {
+   "name": "Tarcza Strażnika Przełęczy",
+   "description": "Okrągła tarcza z runą góry, o którą kruszyły się gobliny przez stulecia.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 8
+  },
+  {
+   "name": "Hełm Pierwszego Górnika",
+   "description": "Hełm z lampką, która nigdy nie gaśnie, i daszkiem twardszym od skały.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 7
+  },
+  {
+   "name": "Pas Siły Olbrzyma",
+   "description": "Szeroki pas z klamrą w kształcie pięści, który daje siłę górskiego olbrzyma.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 3,
+   "strength": 9
+  },
+  {
+   "name": "Pierścień Smoczej Łuski",
+   "description": "Pierścień z jednej łuski, który odbija cios jak cały smok.",
+   "kind": "charm",
+   "effect": "ward",
+   "tier": 3,
+   "strength": 6
+  },
+  {
+   "name": "Serce Góry",
+   "description": "Ciepły kryształ z wnętrza Smoczej Góry, który bije w rytm jej żył.",
+   "kind": "charm",
+   "effect": "vigor",
+   "tier": 3,
+   "strength": 50
+  },
+  {
+   "name": "Korona Arcymaga",
+   "description": "Cienka korona z gwiezdnego metalu, w której myśli układają się w zaklęcia.",
+   "kind": "charm",
+   "effect": "focus",
+   "tier": 3,
+   "strength": 20
+  },
+  {
+   "name": "Rękawice Kowala Run",
+   "description": "Rękawice mistrza run, w których ręka sama wie, gdzie uderzyć.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 3,
+   "strength": 8
+  }
  ]
 }

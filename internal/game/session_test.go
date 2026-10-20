@@ -27,7 +27,7 @@ func TestOffer(t *testing.T) {
 		wantGold     int
 		wantPatience int
 	}{
-		{"at floor sells at offer", 300, Intent{Action: ActionOffer, ItemID: "a", Amount: 100}, OutcomeSold, 100, 200, 4},
+		{"first offer at floor is haggled", 300, Intent{Action: ActionOffer, ItemID: "a", Amount: 100}, OutcomeCounter, 170, 300, 4},
 		{"above ask sells at ask", 300, Intent{Action: ActionOffer, ItemID: "a", Amount: 250}, OutcomeSold, 200, 100, 4},
 		{"below floor gets counter", 300, Intent{Action: ActionOffer, ItemID: "a", Amount: 90}, OutcomeCounter, 167, 300, 3},
 		{"counter never drops below floor", 300, Intent{Action: ActionOffer, ItemID: "b", Amount: 29}, OutcomeCounter, 44, 300, 3},
@@ -37,7 +37,7 @@ func TestOffer(t *testing.T) {
 		{"no item", 300, Intent{Action: ActionOffer, Amount: 100}, OutcomeUnclear, 0, 300, 4},
 		{"accept buys at ask", 300, Intent{Action: ActionAccept, ItemID: "b"}, OutcomeSold, 50, 250, 4},
 		{"accept without gold", 10, Intent{Action: ActionAccept, ItemID: "b"}, OutcomeNoGold, 50, 10, 4},
-		{"persuasion lowers floor", 300, Intent{Action: ActionOffer, ItemID: "a", Amount: 95, Persuasion: 2}, OutcomeSold, 95, 205, 4},
+		{"persuasion lowers floor", 300, Intent{Action: ActionOffer, ItemID: "a", Amount: 95, Persuasion: 2}, OutcomeCounter, 169, 300, 4},
 		{"rudeness raises floor", 300, Intent{Action: ActionOffer, ItemID: "a", Amount: 100, Persuasion: -2}, OutcomeCounter, 170, 300, 3},
 	}
 
@@ -120,9 +120,28 @@ func TestMerchantWalksAwayWhenPatienceRunsOut(t *testing.T) {
 	}
 }
 
+// The first offer under the price only starts the haggling; the same offer
+// again, at or above the floor, closes it, and the price is reset after.
+func TestFairOfferSellsTheSecondTime(t *testing.T) {
+	session := NewSession(testMerchant(), 300)
+
+	if got := session.Apply(Intent{Action: ActionOffer, ItemID: "a", Amount: 100}); got.Outcome != OutcomeCounter || session.Patience() != 4 {
+		t.Fatalf("first offer at floor: %+v, patience %d", got, session.Patience())
+	}
+
+	if got := session.Apply(Intent{Action: ActionOffer, ItemID: "a", Amount: 100}); got.Outcome != OutcomeSold || got.Price != 100 {
+		t.Fatalf("second offer at floor: %+v", got)
+	}
+
+	if got := session.Apply(Intent{Action: ActionOffer, ItemID: "b", Amount: 40}); got.Outcome != OutcomeCounter {
+		t.Errorf("another item is haggled anew: %+v", got)
+	}
+}
+
 func TestFocusCarriesOverBetweenTurns(t *testing.T) {
 	session := NewSession(testMerchant(), 300)
 	session.Apply(Intent{Action: ActionAsk, ItemID: "b"})
+	session.Apply(Intent{Action: ActionOffer, Amount: 30})
 
 	decision := session.Apply(Intent{Action: ActionOffer, Amount: 30})
 	if decision.Outcome != OutcomeSold || decision.Item.ID != "b" {

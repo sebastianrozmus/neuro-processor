@@ -114,12 +114,14 @@ const (
 	// MaxTier is the highest tier of places, monsters and items.
 	MaxTier = 3
 
-	maxTowns        = 3
-	maxPlaces       = 12
-	maxSites        = 5
-	maxCompanions   = 6
-	maxMonsters     = 12
-	maxItems        = 24
+	maxTowns      = 3
+	maxPlaces     = 12
+	maxSites      = 5
+	maxCompanions = 6
+	maxMonsters   = 12
+	maxItems      = 24
+	// maxArtifacts is how many artifacts of one kind a world may have.
+	maxArtifacts    = 5
 	maxName         = 40
 	maxText         = 600
 	defaultCurrency = "szt. złota"
@@ -177,6 +179,12 @@ type ItemSpec struct {
 	Tier        int    `json:"tier"`
 	// Fixed things of an adventure cannot be picked up.
 	Fixed bool `json:"fixed,omitempty"`
+	// Artifact marks one of the world's legendary pieces: no shop sells
+	// it, only a fallen boss leaves one behind.
+	Artifact bool `json:"artifact,omitempty"`
+	// Strength, when set, is the item's power instead of the one its tier
+	// gives: an artifact's, or one made by hand in the inspector.
+	Strength int `json:"strength,omitempty"`
 }
 
 // ShopSpec is a building found in every settlement, with its keeper.
@@ -260,12 +268,15 @@ type Spec struct {
 	// the model and the brief it was given. Presets have none.
 	Origin *OriginSpec `json:"origin,omitempty"`
 	// Backdrops name embedded art shown behind the world in the menu.
-	Backdrops  []string        `json:"backdrops,omitempty"`
-	Places     []PlaceSpec     `json:"places"`
-	Sites      []SiteSpec      `json:"sites"`
-	Monsters   []MonsterSpec   `json:"monsters"`
-	Boss       BossSpec        `json:"boss"`
-	Items      []ItemSpec      `json:"items"`
+	Backdrops []string      `json:"backdrops,omitempty"`
+	Places    []PlaceSpec   `json:"places"`
+	Sites     []SiteSpec    `json:"sites"`
+	Monsters  []MonsterSpec `json:"monsters"`
+	Boss      BossSpec      `json:"boss"`
+	Items     []ItemSpec    `json:"items"`
+	// Artifacts are the legendary weapons, armours and charms that bosses
+	// leave behind, five of each kind at most.
+	Artifacts  []ItemSpec      `json:"artifacts,omitempty"`
 	Shops      []ShopSpec      `json:"shops"`
 	Companions []CompanionSpec `json:"companions"`
 
@@ -433,6 +444,39 @@ func (s *Spec) normalizeItems() {
 	}
 
 	s.Items = items
+
+	artifacts := make([]ItemSpec, 0, len(s.Artifacts))
+
+	for _, item := range s.Artifacts {
+		item, ok := CleanItem(item)
+		taken := slices.ContainsFunc(append(artifacts, items...), func(other ItemSpec) bool { return other.Name == item.Name })
+		ofKind := 0
+
+		for _, other := range artifacts {
+			if other.Kind == item.Kind {
+				ofKind++
+			}
+		}
+
+		if !ok || taken || !Wearable(item.Kind) || ofKind == maxArtifacts {
+			continue
+		}
+
+		item.ID, item.Artifact, item.Tier = fmt.Sprintf("artifact-%d", len(artifacts)+1), true, MaxTier
+		if item.Strength == 0 {
+			item.Strength = powers[item.Kind][item.Effect][MaxTier-1] * artifactStrengthPercent / 100
+		}
+
+		artifacts = append(artifacts, item)
+	}
+
+	s.Artifacts = artifacts
+}
+
+// Wearable reports whether items of the kind are worn: weapons, armours
+// and charms.
+func Wearable(kind Kind) bool {
+	return kind == KindWeapon || kind == KindArmor || kind == KindCharm
 }
 
 // CleanItem tidies an item of any origin: texts trimmed, tier clamped, the
@@ -453,6 +497,7 @@ func CleanItem(item ItemSpec) (ItemSpec, bool) {
 	}
 
 	item.Effect = knownOr(allowed, item.Effect)
+	item.Strength = min(max(item.Strength, 0), maxStrength(item))
 
 	return item, true
 }
@@ -514,7 +559,7 @@ func (s *Spec) TownPlaces() []int {
 
 // Item returns the item with the given ID.
 func (s *Spec) Item(id string) (ItemSpec, bool) {
-	for _, item := range s.Items {
+	for _, item := range append(s.Items[:len(s.Items):len(s.Items)], s.Artifacts...) {
 		if item.ID == id {
 			return item, true
 		}

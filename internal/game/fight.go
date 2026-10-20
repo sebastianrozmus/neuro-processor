@@ -806,6 +806,7 @@ func (r *Realm) victory(current *fight) {
 
 		if foe.boss {
 			fallen = foe.name
+			r.dropArtifact(current, index, foe.name)
 		}
 
 		if foe.boss {

@@ -29,6 +29,8 @@ Wymagania:
   - 4 x kind "spell": rzecz, z której bohater uczy się mocy rzucanej w walce (zwój, księga, schemat, program). ` +
 	`effect "bolt" (rani jednego wroga) tier 1 i 3, "blast" (rani wszystkich) tier 2, "heal" (leczy drużynę) tier 2.
   - 4 x kind "charm": noszony przedmiot magiczny lub gadżet. effect "ward" (obrona) tier 1, "power" (atak) tier 2, "focus" (moc) tier 2, "vigor" (zdrowie) tier 3.
+- artifacts: dokładnie 15 legendarnych artefaktów, które zostawiają pokonani bossowie: 5 x kind "weapon", 5 x kind "armor" (effect "none") ` +
+	`i 5 x kind "charm" (effect "ward", "power", "focus" albo "vigor", każdy co najmniej raz). Nazwy niepowtarzalne, związane z bossem i historią świata; opis to jedno zdanie bez liczb.
 - companions: 4 towarzysze do wynajęcia w karczmach osad: role "fighter" (wojownik), "healer" (uzdrowiciel) i "mage" (rzuca moce), ` +
 	`tier 1-3 (koszt i siła). name to imię lub przydomek, description to 1-2 zdania o charakterze. ` +
 	`Dokładnie jeden z nich ma legend true: to słynny najemnik najwyższej klasy (tier 3), który nie bierze zapłaty z góry, tylko żołd za każdy dzień.
@@ -171,6 +173,12 @@ func worldSchema() map[string]any {
 			"kind":        map[string]any{"type": "string", "enum": world.Kinds},
 			"effect":      map[string]any{"type": "string", "enum": world.Effects},
 			"tier":        tier,
+		})),
+		"artifacts": list(object(map[string]any{
+			"name":        text,
+			"description": text,
+			"kind":        map[string]any{"type": "string", "enum": []world.Kind{world.KindWeapon, world.KindArmor, world.KindCharm}},
+			"effect":      map[string]any{"type": "string", "enum": world.Effects},
 		})),
 		"companions": list(object(map[string]any{
 			"name":        text,

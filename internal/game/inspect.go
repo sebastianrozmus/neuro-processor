@@ -2,6 +2,7 @@ package game
 
 import (
 	"context"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -105,6 +106,37 @@ type PlayerInfo struct {
 	Hour      string         `json:"hour"`
 	Standing  []StandingView `json:"standing,omitempty"`
 	Log       []string       `json:"log"`
+	// Gear is what the editor needs: abilities and IDs; Members the
+	// companions in the party, each with theirs.
+	Gear    GearInfo     `json:"gear"`
+	Members []MemberInfo `json:"members,omitempty"`
+}
+
+// GearInfo is what a hero or a companion wears, carries and knows, by
+// item ID, with their abilities in the order of AbilityNames.
+type GearInfo struct {
+	Abilities Abilities `json:"abilities"`
+	Weapon    string    `json:"weapon"`
+	Armor     string    `json:"armor"`
+	Charm     string    `json:"charm"`
+	Bag       []string  `json:"bag"`
+	Spells    []string  `json:"spells"`
+}
+
+// MemberInfo is a companion as the editor sees them.
+type MemberInfo struct {
+	Name    string   `json:"name"`
+	Level   int      `json:"level"`
+	XP      int      `json:"xp"`
+	HP      int      `json:"hp"`
+	MaxHP   int      `json:"max_hp"`
+	Mana    int      `json:"mana"`
+	MaxMana int      `json:"max_mana"`
+	Gear    GearInfo `json:"gear"`
+}
+
+func gearOf(abilities Abilities, weapon, armor, charm *world.ItemSpec, bag, spells []world.ItemSpec) GearInfo {
+	return GearInfo{Abilities: abilities, Weapon: id(weapon), Armor: id(armor), Charm: id(charm), Bag: ids(bag), Spells: ids(spells)}
 }
 
 // KeeperInfo is somebody who can be talked to and knows things.
@@ -159,6 +191,11 @@ type ItemInfo struct {
 	Power       string `json:"power"`
 	// Keeper names who talked an invented item into the world.
 	Keeper string `json:"keeper,omitempty"`
+	// Artifact marks a boss's piece, Dropped one a boss has left already;
+	// Custom an item made by hand in the inspector.
+	Artifact bool `json:"artifact,omitempty"`
+	Dropped  bool `json:"dropped,omitempty"`
+	Custom   bool `json:"custom,omitempty"`
 	// Picture names the drawing the screens use; the inspector fills it.
 	Picture string `json:"picture,omitempty"`
 }
@@ -251,6 +288,14 @@ func (r *Realm) Inspect() Inspection {
 			info.Party = append(info.Party, member.Name)
 		}
 
+		info.Gear = gearOf(hero.abilities, hero.weapon, hero.armor, hero.charm, hero.bag, hero.spells)
+		for _, ally := range hero.party {
+			info.Members = append(info.Members, MemberInfo{
+				Name: ally.spec().Name, Level: ally.level, XP: ally.xp, HP: ally.hp, MaxHP: ally.maxHealth(), Mana: ally.mana, MaxMana: ally.maxEnergy(),
+				Gear: gearOf(ally.abilities, ally.weapon, ally.armor, ally.charm, ally.bag, ally.spells),
+			})
+		}
+
 		if hero.shop >= 0 {
 			info.Talking = r.keeperName(hero.shop)
 		}
@@ -319,7 +364,14 @@ func (r *Realm) Inspect() Inspection {
 		item := made.item
 		report.Items = append(report.Items, ItemInfo{
 			Index: len(built.Items) + index, ID: item.ID, Name: item.Name, Description: item.Description, Kind: string(item.Kind), Effect: string(item.Effect),
-			Tier: item.Tier, Price: item.Price(), Power: Effect(item), Keeper: r.keeperName(made.shop),
+			Tier: item.Tier, Price: item.Price(), Power: Effect(item), Keeper: r.keeperName(made.shop), Custom: made.shop < 0,
+		})
+	}
+
+	for index, item := range built.Artifacts {
+		report.Items = append(report.Items, ItemInfo{
+			Index: len(built.Items) + len(r.extras) + index, ID: item.ID, Name: item.Name, Description: item.Description, Kind: string(item.Kind),
+			Effect: string(item.Effect), Tier: item.Tier, Price: item.Price(), Power: Effect(item), Artifact: true, Dropped: slices.Contains(r.dropped, item.ID),
 		})
 	}
 
@@ -537,6 +589,8 @@ func (r *Realm) itemAt(index int) *world.ItemSpec {
 		return &r.world.Items[index]
 	case index-len(r.world.Items) < len(r.extras):
 		return &r.extras[index-len(r.world.Items)].item
+	case index-len(r.world.Items)-len(r.extras) < len(r.world.Artifacts):
+		return &r.world.Artifacts[index-len(r.world.Items)-len(r.extras)]
 	}
 
 	return nil

@@ -128,6 +128,12 @@ func (r *Realm) known(name string) bool {
 		}
 	}
 
+	for _, item := range r.world.Artifacts {
+		if Matches(item.Name, name) || Matches(name, item.Name) {
+			return true
+		}
+	}
+
 	return false
 }
 

@@ -48,18 +48,22 @@ type Session struct {
 	focus    string
 	// quantity is how many pieces of the focused item the talk is about.
 	quantity int
-	history  []Line
+	// countered marks the items the merchant has already answered an
+	// offer for: only then does an offer under the asking price sell.
+	countered map[string]bool
+	history   []Line
 }
 
 // NewSession starts a conversation with the given merchant.
 func NewSession(merchant Merchant, gold int) *Session {
 	s := &Session{
-		Merchant: merchant,
-		Gold:     gold,
-		stock:    append([]Item(nil), merchant.Items...),
-		asks:     make(map[string]int, len(merchant.Items)),
-		bids:     map[string]int{},
-		patience: merchant.Patience,
+		Merchant:  merchant,
+		Gold:      gold,
+		stock:     append([]Item(nil), merchant.Items...),
+		asks:      make(map[string]int, len(merchant.Items)),
+		bids:      map[string]int{},
+		patience:  merchant.Patience,
+		countered: map[string]bool{},
 	}
 
 	for _, item := range merchant.Items {
@@ -257,8 +261,18 @@ func (s *Session) offer(item *Item, amount int) Decision {
 		return s.sell(*item, amount, ask)
 	}
 
-	if amount >= floor {
+	// The first offer under the price is never taken at once: the merchant
+	// haggles back, and only the next fair one closes the deal.
+	if amount >= floor && s.countered[item.ID] {
 		return s.sell(*item, amount, amount)
+	}
+
+	s.countered[item.ID] = true
+
+	if amount >= floor {
+		s.concede(item, amount, floor)
+
+		return s.decide(OutcomeCounter, item, amount)
 	}
 
 	if amount*2 < floor {
@@ -269,17 +283,23 @@ func (s *Session) offer(item *Item, amount int) Decision {
 		return s.decide(OutcomeInsulted, item, amount)
 	}
 
-	// The concession is made on the lot and carried over to the price of
-	// one piece, which never rises and never drops under the floor.
-	conceded := max(floor, ask-max(1, (ask-amount)*concessionPercent/100))
-	each := (conceded*100 + s.quantity*(100-bulk(s.quantity)) - 1) / (s.quantity * (100 - bulk(s.quantity)))
-	s.asks[item.ID] = min(s.asks[item.ID], max(each, s.floor(*item)))
+	s.concede(item, amount, floor)
 
 	if s.irritate(1) {
 		return s.decide(OutcomeWalkedAway, item, amount)
 	}
 
 	return s.decide(OutcomeCounter, item, amount)
+}
+
+// concede lowers the asking price towards an offer. The concession is made
+// on the lot and carried over to the price of one piece, which never rises
+// and never drops under the floor.
+func (s *Session) concede(item *Item, amount, floor int) {
+	ask := s.asked(*item)
+	conceded := max(floor, ask-max(1, (ask-amount)*concessionPercent/100))
+	each := (conceded*100 + s.quantity*(100-bulk(s.quantity)) - 1) / (s.quantity * (100 - bulk(s.quantity)))
+	s.asks[item.ID] = min(s.asks[item.ID], max(each, s.floor(*item)))
 }
 
 // buyFrom weighs the player's wish to sell a thing, for the sum they ask
@@ -392,6 +412,7 @@ func (s *Session) sell(item Item, offer, price int) Decision {
 
 	s.focus, s.quantity = "", 0
 	s.asks[item.ID] = item.ListPrice
+	delete(s.countered, item.ID)
 
 	for i := range s.stock {
 		if s.stock[i].ID == item.ID && !item.Unlimited {

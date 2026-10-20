@@ -142,6 +142,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/rewrite", s.rewrite)
 	mux.HandleFunc("GET /api/models", s.models)
 	mux.HandleFunc("POST /api/player", s.player)
+	mux.HandleFunc("POST /api/edit", s.edit)
+	mux.HandleFunc("POST /api/craft", s.craft)
 	mux.HandleFunc("POST /api/mark", s.mark)
 	mux.HandleFunc("GET /api/picture", s.picture)
 	mux.HandleFunc("GET /api/calls", s.calls)
@@ -374,6 +376,54 @@ func (s *Server) player(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reply(w, map[string]bool{"ok": true})
+}
+
+// edit changes a hero or a companion of their party: numbers, worn
+// items, the bag and the powers known.
+func (s *Server) edit(w http.ResponseWriter, r *http.Request) {
+	realm, _, ok := s.current(w)
+	if !ok {
+		return
+	}
+
+	var body struct {
+		Name string `json:"name"`
+		game.Change
+	}
+
+	if !decode(w, r, &body) {
+		return
+	}
+
+	if err := realm.Edit(body.Name, body.Change); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		return
+	}
+
+	reply(w, map[string]bool{"ok": true})
+}
+
+// craft makes a new item or spell by hand, to be given in the editor.
+func (s *Server) craft(w http.ResponseWriter, r *http.Request) {
+	realm, _, ok := s.current(w)
+	if !ok {
+		return
+	}
+
+	var item world.ItemSpec
+	if !decode(w, r, &item) {
+		return
+	}
+
+	made, err := realm.Craft(item)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		return
+	}
+
+	reply(w, map[string]string{"id": made.ID})
 }
 
 // mark leaves a person's comment on exchanges or on things in the world,

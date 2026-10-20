@@ -399,5 +399,127 @@
     "text": "Szóstego dnia pękł Kamienny Jaz i Mgliste Łąki poszły pod wodę; żywność podrożała."
    }
   }
+ ],
+ "artifacts": [
+  {
+   "name": "Korona-Ostrze Topielców",
+   "description": "Wykuta z korony utopionego króla, wciąż ocieka wodą, która nie chce wyschnąć.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 15
+  },
+  {
+   "name": "Włócznia Ostatniego Przewoźnika",
+   "description": "Grot z kości przewoźnika umarłych; topielcy cofają się przed nią jak przed brzegiem.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 14
+  },
+  {
+   "name": "Miecz Szarego Brodu",
+   "description": "Pierwszy miecz osady, przez wieki leżący w mule pod brodem, nadal pamięta, kogo bronić.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 16
+  },
+  {
+   "name": "Bagienny Sierp Wiedźmy",
+   "description": "Zakrzywione ostrze, które ścina trzcinę i cienie tym samym ruchem.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 13
+  },
+  {
+   "name": "Runa Krypt",
+   "description": "Krótki miecz z runą zamknięcia, którą dawni królowie pieczętowali groby.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 18
+  },
+  {
+   "name": "Pancerz z Łusek Leviathana",
+   "description": "Zdarty z czegoś, co żyło pod kryptami; woda spływa po nim jak po rybie.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 8
+  },
+  {
+   "name": "Całun Królowej Mgieł",
+   "description": "Szary płaszcz, w którym ciosy tracą kierunek jak łodzie we mgle.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 7
+  },
+  {
+   "name": "Zbroja Strażnika Krypt",
+   "description": "Ciężka, zielona od patyny zbroja, którą strażnik nosił, nim stał się wodą.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 9
+  },
+  {
+   "name": "Kaftan z Sieci Rybaków",
+   "description": "Sto sieci splecionych w jedno; nic, co się w nie zaplącze, nie dosięgnie ciała.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 7
+  },
+  {
+   "name": "Hełm Utopionego Rycerza",
+   "description": "Pełny hełm z dziurą po włóczni, przez którą wciąż słychać szum fal.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 8
+  },
+  {
+   "name": "Pierścień Króla Topielców",
+   "description": "Sygnet władcy bagien; ręka, która go nosi, bije z ciężarem korony.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 3,
+   "strength": 9
+  },
+  {
+   "name": "Kamień Suchej Stopy",
+   "description": "Gładki kamień z dna krypt, przy którym nawet woda omija noszącego.",
+   "kind": "charm",
+   "effect": "ward",
+   "tier": 3,
+   "strength": 6
+  },
+  {
+   "name": "Perła Głębin",
+   "description": "Czarna perła, która oddycha za ciebie, kiedy brakuje tchu.",
+   "kind": "charm",
+   "effect": "vigor",
+   "tier": 3,
+   "strength": 45
+  },
+  {
+   "name": "Oko Kapłana Krypt",
+   "description": "Szklane oko w srebrnej oprawie, które widzi zaklęcia, zanim padną.",
+   "kind": "charm",
+   "effect": "focus",
+   "tier": 3,
+   "strength": 20
+  },
+  {
+   "name": "Kieł Matki Żmijów",
+   "description": "Największy kieł, jaki kiedykolwiek wyciągnięto z bagna; jeszcze jest ciepły.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 3,
+   "strength": 8
+  }
  ]
 }

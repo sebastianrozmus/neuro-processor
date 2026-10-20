@@ -389,5 +389,127 @@
     "text": "Czwartego dnia ocalali z Kantyny naprawili filtry i Magazyny Próżniowe mają powietrze."
    }
   }
+ ],
+ "artifacts": [
+  {
+   "name": "Działko Wieżyczki",
+   "description": "Wymontowane z wieżyczki Rdzenia; celuje samo, trzeba tylko je trzymać.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 16
+  },
+  {
+   "name": "Laser Wiertniczy",
+   "description": "Głowica wiertła górniczego, która tnie skałę, grodzie i wszystko pomiędzy.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 14
+  },
+  {
+   "name": "Szabla z Włókna Węglowego",
+   "description": "Prawie nieważka klinga z laboratorium, ostra aż do poziomu cząsteczek.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 15
+  },
+  {
+   "name": "Paralizator Kapitana",
+   "description": "Pałka kapitana Erebusa z wyłączonym bezpiecznikiem; trzaska jak burza.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 13
+  },
+  {
+   "name": "Klucz Główny Rdzenia",
+   "description": "Pręt dostępu do Rdzenia, który przy zderzeniu wyładowuje cały zapas energii.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 18
+  },
+  {
+   "name": "Pancerz Androida Ochrony",
+   "description": "Skorupa najlepszego androida stacji, przerobiona dla człowieka.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 9
+  },
+  {
+   "name": "Skafander Próżniowy Kapitana",
+   "description": "Biały skafander z naszywką dowódcy; wytrzymał rozhermetyzowanie mostka.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 8
+  },
+  {
+   "name": "Kamizelka z Aerożelu",
+   "description": "Lekka jak powietrze kamizelka, w której pociski grzęzną jak w chmurze.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 7
+  },
+  {
+   "name": "Osłona Reaktora",
+   "description": "Płyta z osłony reaktora, przypięta pasami; na niej kończy się każde trafienie.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 8
+  },
+  {
+   "name": "Egzoszkielet Ratunkowy",
+   "description": "Rama ratowników stacji, która podnosi gruz i przyjmuje ciosy.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 7
+  },
+  {
+   "name": "Moduł Bojowy Rdzenia",
+   "description": "Fragment programu Rdzenia, który oblicza każdy cios do ostatniego niutona.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 3,
+   "strength": 9
+  },
+  {
+   "name": "Emiter Pola Statycznego",
+   "description": "Pierścień emiterów, który ugina pociski jak zakrzywiona przestrzeń.",
+   "kind": "charm",
+   "effect": "ward",
+   "tier": 3,
+   "strength": 6
+  },
+  {
+   "name": "Kapsuła Krioserca",
+   "description": "Zamrożone zapasowe serce, które budzi się, kiedy twoje słabnie.",
+   "kind": "charm",
+   "effect": "vigor",
+   "tier": 3,
+   "strength": 45
+  },
+  {
+   "name": "Rdzeń Pamięci Erebusa",
+   "description": "Wyrwany kawałek świadomości stacji; zna każdy program na pamięć.",
+   "kind": "charm",
+   "effect": "focus",
+   "tier": 3,
+   "strength": 20
+  },
+  {
+   "name": "Hełm Neuronawigatora",
+   "description": "Opaska nawigatora, która łączy myśli z obwodami bez kabli.",
+   "kind": "charm",
+   "effect": "focus",
+   "tier": 3,
+   "strength": 18
+  }
  ]
 }

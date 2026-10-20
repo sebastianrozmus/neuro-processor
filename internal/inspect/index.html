@@ -233,6 +233,8 @@ function worldView() {
     if (p.party.length) html += `<div style="margin-top:4px" class="dim">Drużyna: ${esc(p.party.join(", "))}</div>`;
     if (p.standing && p.standing.length) html += `<div style="margin-top:4px" class="dim">Opinia: ${p.standing.map(s => `${esc(s.Town)} ${esc(s.Label)} (${s.Score > 0 ? "+" : ""}${s.Score})`).join(" · ")}</div>`;
     html += `<div class="acts" style="margin-top:8px"><button class="act" onclick="adjust('${esc(p.name)}','gold',${p.gold})">złoto…</button><button class="act" onclick="adjust('${esc(p.name)}','hp',${p.hp})">HP…</button><button class="act" onclick="adjust('${esc(p.name)}','mana',${p.mana})">mana…</button></div>`;
+    html += gearEditor(p.name, "", p);
+    (p.members || []).forEach(m => { html += gearEditor(p.name, m.name, m); });
     html += `</div></div></div>`;
   });
   html += `</div></div>`;
@@ -282,6 +284,62 @@ async function rewrite(button, kind, index) {
     await load();
   } catch (e) { toast(e.message, true); }
   button.classList.remove("spin"); button.textContent = "↻";
+}
+
+// --- Edytor postaci -------------------------------------------------------
+const abilityShort = ["SIŁ", "ZRĘ", "KON", "INT", "MĄD", "CHA"], abilityFields = ["sil", "zre", "kon", "int", "mad", "cha"];
+const effectsOf = { weapon: ["none"], armor: ["none"], potion: ["heal", "mana"], spell: ["bolt", "blast", "heal"], charm: ["power", "ward", "vigor", "focus"] };
+const openEditors = new Set();
+const itemLabel = it => `${it.artifact ? "★ " : it.custom ? "✎ " : ""}${it.name} (${it.power})`;
+const itemName = id => { const it = state.items.find(i => i.id === id); return it ? itemLabel(it) : id; };
+const itemOptions = (kinds, chosen, none) => (none ? `<option value="">${none}</option>` : "") +
+  state.items.filter(it => kinds.includes(it.kind)).map(it => `<option value="${esc(it.id)}"${it.id === chosen ? " selected" : ""}>${esc(itemLabel(it))}</option>`).join("");
+
+function gearEditor(hero, member, who) {
+  const key = hero + "|" + member, g = who.gear || {}, at = `data-hero="${esc(hero)}" data-member="${esc(member)}"`;
+  let html = `<details class="src gear" data-key="${esc(key)}"${openEditors.has(key) ? " open" : ""}><summary>edytuj ${member ? "towarzysza: " + esc(member) : "postać"}</summary><div class="step">`;
+  const stat = (field, label, value) => `<button class="act" ${at} data-op="stat" data-field="${field}" data-label="${label}" data-value="${value}">${label} ${value}</button>`;
+  html += `<div class="acts">${stat("level", "poz.", who.level)}${stat("xp", "XP", who.xp)}${stat("hp", "HP", who.hp)}${stat("mana", "mana", who.mana)}${member ? "" : stat("gold", "złoto", who.gold)}</div>`;
+  html += `<div class="acts" style="margin-top:4px">${(g.abilities || []).map((v, i) => stat(abilityFields[i], abilityShort[i], v)).join("")}</div>`;
+  [["weapon", "broń", "bez broni"], ["armor", "pancerz", "bez pancerza"], ["charm", "amulet", "bez amuletu"]].forEach(([field, label, none]) => {
+    html += `<div style="margin-top:4px;font-size:12px">${label}: <select ${at} onfocus="editing++" onblur="editing--" data-op="equip" data-field="${field}">${itemOptions([field], g[field], none)}</select></div>`;
+  });
+  html += `<div style="margin-top:6px;font-size:12px">plecak: ${(g.bag || []).map((id, i) => `<span class="tag">${esc(itemName(id))} <a href="#" ${at} data-op="take" data-field="bag" data-value="${i}">×</a></span>`).join("") || '<span class="dim">pusty</span>'}</div>`;
+  html += `<div style="margin-top:4px;font-size:12px">zaklęcia: ${(g.spells || []).map((id, i) => `<span class="tag violet">${esc(itemName(id))} <a href="#" ${at} data-op="take" data-field="spells" data-value="${i}">×</a></span>`).join("") || '<span class="dim">żadnych</span>'}</div>`;
+  html += `<div style="margin-top:6px;font-size:12px"><select class="pick" onfocus="editing++" onblur="editing--">${itemOptions(Object.keys(effectsOf))}</select> <button class="act" ${at} data-op="give">daj do plecaka</button></div>`;
+  html += `<div style="margin-top:4px;font-size:12px"><select class="pick" onfocus="editing++" onblur="editing--">${itemOptions(["spell"])}</select> <button class="act" ${at} data-op="teach">naucz</button></div>`;
+  return html + `</div></details>`;
+}
+
+async function edit(el, change) {
+  try { await api("POST", "/api/edit", { name: el.dataset.hero, member: el.dataset.member, ...change }); toast("Zmienione."); load(); } catch (e) { toast(e.message, true); load(); }
+}
+
+document.addEventListener("toggle", e => {
+  const d = e.target;
+  if (d.classList && d.classList.contains("gear")) d.open ? openEditors.add(d.dataset.key) : openEditors.delete(d.dataset.key);
+}, true);
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-op]");
+  if (!el || el.tagName === "SELECT") return;
+  e.preventDefault();
+  const op = el.dataset.op, field = el.dataset.field;
+  if (op === "stat") {
+    const value = prompt(`${el.dataset.member || el.dataset.hero} · ${el.dataset.label}:`, el.dataset.value);
+    if (value !== null) edit(el, { op, field, value: +value });
+  } else if (op === "take") edit(el, { op, field, value: +el.dataset.value });
+  else if (op === "give" || op === "teach") edit(el, { op, item: el.parentElement.querySelector("select.pick").value });
+});
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.dataset && el.dataset.op === "equip") edit(el, { op: "equip", field: el.dataset.field, item: el.value });
+  if (el.id === "craft-kind") document.getElementById("craft-effect").innerHTML = effectsOf[el.value].map(f => `<option value="${f}">${esc(effectNames[f])}</option>`).join("");
+});
+
+async function craft() {
+  const v = id => document.getElementById(id).value;
+  const item = { name: v("craft-name"), description: v("craft-desc"), kind: v("craft-kind"), effect: v("craft-effect"), tier: +v("craft-tier"), strength: +v("craft-strength") || 0 };
+  try { const made = await api("POST", "/api/craft", item); toast(`Dodane: ${item.name} (${made.id}). Daj je postaci w jej edytorze.`); load(); } catch (e) { toast(e.message, true); }
 }
 
 async function adjust(name, field, current) {
@@ -377,9 +435,16 @@ function beastsView() {
 
 // --- Przedmioty --------------------------------------------------------
 function itemsView() {
-  let html = `<div class="card"><table><tr><th></th><th>Nazwa</th><th>Rodzaj</th><th>Efekt</th><th>Poz.</th><th>Cena</th><th>Opis</th><th></th></tr>`;
+  let html = `<div class="card"><h3>Nowy przedmiot albo zaklęcie</h3><div class="acts" style="flex-wrap:wrap;gap:6px">`;
+  html += `<input id="craft-name" onfocus="editing++" onblur="editing--" placeholder="nazwa" maxlength="40"> <select id="craft-kind">${Object.keys(effectsOf).map(k => `<option value="${k}">${esc(kindNames[k])}</option>`).join("")}</select>`;
+  html += ` <select id="craft-effect">${effectsOf.weapon.map(f => `<option value="${f}">${esc(effectNames[f])}</option>`).join("")}</select>`;
+  html += ` poz. <select id="craft-tier"><option>1</option><option>2</option><option selected>3</option></select>`;
+  html += ` siła <input id="craft-strength" onfocus="editing++" onblur="editing--" type="number" min="0" style="width:60px" placeholder="z poz.">`;
+  html += ` <input id="craft-desc" onfocus="editing++" onblur="editing--" placeholder="opis, jedno zdanie" style="flex:1;min-width:200px"> <button class="act" onclick="craft()">stwórz</button></div>`;
+  html += `<div class="dim" style="font-size:11px;margin-top:4px">★ artefakt (zostawia go pokonany boss) · ✎ zrobione ręcznie. Siła pusta = jak z poziomu.</div></div>`;
+  html += `<div class="card" style="margin-top:10px"><table><tr><th></th><th>Nazwa</th><th>Rodzaj</th><th>Efekt</th><th>Poz.</th><th>Cena</th><th>Opis</th><th></th></tr>`;
   state.items.forEach(it => {
-    html += `<tr><td><img class="pic" src="/api/picture?kind=item&index=${it.index}" width="40" height="40" alt=""></td><td><b>${esc(it.name)}</b><br><span class="dim" style="font-size:11px">${esc(it.id)}</span></td>`;
+    html += `<tr><td><img class="pic" src="/api/picture?kind=item&index=${it.index}" width="40" height="40" alt=""></td><td><b>${it.artifact ? '<span class="gold">★</span> ' : it.custom ? "✎ " : ""}${esc(it.name)}</b><br><span class="dim" style="font-size:11px">${esc(it.id)}${it.artifact ? (it.dropped ? " · już wypadł" : " · czeka na bossa") : ""}</span></td>`;
     html += `<td>${esc(kindNames[it.kind] || it.kind)}</td><td>${esc(effectNames[it.effect] || it.effect)}<br><span class="dim" style="font-size:11px">${esc(it.power)}</span></td><td>${it.tier}</td><td class="gold">${it.price}</td>`;
     html += `<td>${editable("item", it.index, it.description)}${it.keeper ? `<div class="gold" style="font-size:11px">wymyślone w rozmowie: ${esc(it.keeper)}</div>` : ""}<div class="dim" style="font-size:11px">ikona: ${esc(it.picture || "")}</div>${origin("item", it.keeper ? it.id : it.index)}</td><td class="acts">${rewriteButton("item", it.index)}</td></tr>`;
   });

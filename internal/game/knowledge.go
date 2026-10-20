@@ -67,6 +67,10 @@ func (r *Realm) names() []string {
 		names = append(names, added.item.Name)
 	}
 
+	for _, item := range r.world.Artifacts {
+		names = append(names, item.Name)
+	}
+
 	return names
 }
 

@@ -66,6 +66,8 @@ type Realm struct {
 	revealed     []bool
 	fights       map[world.Point]*fight
 	extras       []extra
+	// dropped are the IDs of the artifacts bosses have left so far.
+	dropped []string
 	// hired maps a companion to the player they follow.
 	hired map[int]string
 	talks int

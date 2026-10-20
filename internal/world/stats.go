@@ -59,7 +59,20 @@ func StatsFor(tier int, boss bool) MonsterStats {
 // damage absorbed by an armor, points restored by a potion, damage or
 // healing of a spell, or the bonus of a charm.
 func (i ItemSpec) Power() int {
+	if i.Strength > 0 {
+		return i.Strength
+	}
+
 	return powers[i.Kind][i.Effect][i.tier()]
+}
+
+// strengthCap is how many times the best tier's power an item set by hand
+// may have.
+const strengthCap = 3
+
+// maxStrength is the most power an item of its kind and effect may have.
+func maxStrength(i ItemSpec) int {
+	return powers[i.Kind][i.Effect][MaxTier-1] * strengthCap
 }
 
 // Cost is the power a spell drains when cast; other items cost nothing.
@@ -73,8 +86,20 @@ func (i ItemSpec) Cost() int {
 
 // Price is the merchant's list price of the item.
 func (i ItemSpec) Price() int {
+	if i.Artifact {
+		return prices[i.Kind][MaxTier-1] * artifactPriceFactor
+	}
+
 	return prices[i.Kind][i.tier()]
 }
+
+// artifactStrengthPercent is an artifact's power, against the best tier's,
+// when the world does not say.
+const artifactStrengthPercent = 150
+
+// artifactPriceFactor is how much more than the best of its kind an
+// artifact is worth, should a merchant be offered one.
+const artifactPriceFactor = 3
 
 // MinPrice is the lowest price a merchant accepts for the item.
 func (i ItemSpec) MinPrice() int {

@@ -164,6 +164,22 @@ func TestInspectorWritesTheWorld(t *testing.T) {
 		t.Errorf("player: %d, gold %d", response.StatusCode, realm.View("Ala").Me.Gold)
 	}
 
+	var made struct {
+		ID string `json:"id"`
+	}
+
+	if response := post(t, web.URL+"/api/craft", map[string]any{"name": "Gwiazda Zarania", "kind": "spell", "effect": "bolt", "tier": 3, "strength": 40}, &made); response.StatusCode != http.StatusOK || made.ID == "" {
+		t.Fatalf("craft: %d %q", response.StatusCode, made.ID)
+	}
+
+	if response := post(t, web.URL+"/api/edit", map[string]any{"name": "Ala", "op": "teach", "item": made.ID}, nil); response.StatusCode != http.StatusOK || len(realm.View("Ala").Me.Spells) == 0 {
+		t.Errorf("edit: %d, spells %v", response.StatusCode, realm.View("Ala").Me.Spells)
+	}
+
+	if response := post(t, web.URL+"/api/edit", map[string]any{"name": "Ala", "op": "equip", "field": "weapon", "item": made.ID}, nil); response.StatusCode != http.StatusBadRequest {
+		t.Errorf("a spell worn as a weapon: %d", response.StatusCode)
+	}
+
 	request, _ := http.NewRequest(http.MethodDelete, web.URL+"/api/fact?id="+itoa(fact.ID), nil)
 	response, err := http.DefaultClient.Do(request)
 	if err != nil || response.StatusCode != http.StatusOK {

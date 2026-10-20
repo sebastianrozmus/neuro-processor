@@ -386,5 +386,127 @@
     "text": "Piątego dnia spadł deszcz; na Wypalonych Polach zazieleniło się, a ceny spadły."
    }
   }
+ ],
+ "artifacts": [
+  {
+   "name": "Młot Pneumatyczny",
+   "description": "Przerobiony młot z rafinerii; każdy cios brzmi jak syrena końca zmiany.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 15
+  },
+  {
+   "name": "Karabin Ostatniego Szeryfa",
+   "description": "Wyczyszczony do połysku karabin, z którego szeryf Schronu 7 bronił pomp.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 17
+  },
+  {
+   "name": "Ostrze z Turbiny",
+   "description": "Łopatka z turbiny elektrowni, naostrzona na kamieniu i owinięta taśmą.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 14
+  },
+  {
+   "name": "Łańcuch Nadzorcy",
+   "description": "Gruby łańcuch, którym Nadzorca zamykał zawory; zamyka też usta.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 13
+  },
+  {
+   "name": "Miotacz Iskier",
+   "description": "Ręczny miotacz z resztek generatora; strzela błyskawicą wielkości pięści.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3,
+   "strength": 18
+  },
+  {
+   "name": "Płyty Nadzorcy",
+   "description": "Stalowe płyty zdjęte z olbrzyma, ciągle ciepłe od jego gniewu.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 9
+  },
+  {
+   "name": "Kombinezon Strażaka",
+   "description": "Pomarańczowy, nadpalony, ale ogień i kule wolą go omijać.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 7
+  },
+  {
+   "name": "Pancerz z Maski Ciężarówki",
+   "description": "Wygięta maska wojskowej ciężarówki, z której zrobiono napierśnik.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 8
+  },
+  {
+   "name": "Płaszcz z Folii Ratunkowej",
+   "description": "Szeleszczący płaszcz, w którym promieniowanie i ostrza tracą zapał.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 7
+  },
+  {
+   "name": "Hełm Pilota Bombowca",
+   "description": "Hełm z pękniętą szybką, który przetrwał upadek z nieba.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3,
+   "strength": 8
+  },
+  {
+   "name": "Rękawica Hydrauliczna",
+   "description": "Rękawica z siłownikiem, która ściska jak prasa w rafinerii.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 3,
+   "strength": 9
+  },
+  {
+   "name": "Dozymetr Oszusta",
+   "description": "Wskaźnik, który ostrzega przed ciosem chwilę wcześniej niż przed promieniowaniem.",
+   "kind": "charm",
+   "effect": "ward",
+   "tier": 3,
+   "strength": 6
+  },
+  {
+   "name": "Filtr Czystej Wody",
+   "description": "Ostatni działający filtr z pomp; kto pije przez niego, żyje dłużej.",
+   "kind": "charm",
+   "effect": "vigor",
+   "tier": 3,
+   "strength": 45
+  },
+  {
+   "name": "Procesor ze Schronu Zero",
+   "description": "Chip z nieotwartego schronu, który podpowiada schematy szybciej niż myśl.",
+   "kind": "charm",
+   "effect": "focus",
+   "tier": 3,
+   "strength": 20
+  },
+  {
+   "name": "Odznaka Ostatniego Szeryfa",
+   "description": "Gwiazda z blachy, przy której ręka sama trzyma się pewniej.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 3,
+   "strength": 8
+  }
  ]
 }
