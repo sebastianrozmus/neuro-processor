@@ -53,7 +53,7 @@ func (r *Realm) mateSpec(kind int) world.ShopSpec {
 	return world.ShopSpec{
 		Name:     "Karczma",
 		Keeper:   spec.Name,
-		Persona:  fmt.Sprintf("%s, %s. %s Mówisz jak najemnik: o pieniądzach wprost, o walce ze znawstwem, o swoich warunkach bez wstydu.", spec.Name, roleName(spec.Role), spec.Description),
+		Persona:  fmt.Sprintf("%s, %s. %s O swojej służbie i jej cenie mówisz wprost, o walce ze znawstwem, a poza tym tak, jak każe twój charakter.", spec.Name, roleName(spec.Role), spec.Description),
 		Greeting: greeting,
 	}
 }

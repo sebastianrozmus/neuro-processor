@@ -304,6 +304,12 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == customer.name {
 			r.learn(customer, fact)
 
+			// Gniewomir came back from the crypts and Iskra lived through
+			// the Krater: their own past is no rumour heard at the inn.
+			if spec := r.world.Companions[kind]; touches(strings.Fields(Fold(fact.Subject)), spec.Description) > 0 {
+				return fmt.Sprintf("Gracz mówi o: %s. To twoja własna przeszłość: %s Inni wiedzą o tym miejscu tyle: „%s”. Odpowiedz jak ktoś, kto to przeżył, ale nie zmyślaj szczegółów spoza tego i nie odsyłaj go do nikogo.", fact.Subject, spec.Description, crumb(fact)), nil, true
+			}
+
 			return fmt.Sprintf("Gracz mówi o: %s. Słyszałeś tylko tyle: „%s”. Odpowiedz na to, o co pyta, jak ktoś, kto idzie z nim w drogę; nie odsyłaj go do nikogo i nie zmyślaj więcej.", fact.Subject, crumb(fact)), nil, true
 		}
 

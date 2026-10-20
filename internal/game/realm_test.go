@@ -2475,6 +2475,24 @@ func TestCompanionDoesNotSendTheHeroAway(t *testing.T) {
 	}
 }
 
+// A companion who came back from the barrows talks of them as their own past,
+// not as something heard at the inn.
+func TestCompanionKnowsTheirOwnPast(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	realm.add("Kurhany Królów", "Omszałe kopce dawnych władców doliny. Nocą płoną tam błędne ognie.", "", realm.shopOfKind(world.ShopAlchemist))
+	realm.world.Companions[0].Description = "Wróciła z kurhanów jako jedyna ze swojej kompanii."
+
+	customer := realm.players[hero]
+	realm.hired[0] = hero
+	customer.shop = len(realm.world.Shops) + 1
+
+	hint, _, _ := realm.hint(customer, "bylas na kurhanach?", Decision{Outcome: OutcomeChat}, nil)
+	if !strings.Contains(hint, "To twoja własna przeszłość: Wróciła z kurhanów") || strings.Contains(hint, "Słyszałeś tylko") {
+		t.Errorf("own past hint = %q", hint)
+	}
+}
+
 func TestUnclearOfferListsNoPrices(t *testing.T) {
 	realm := testRealm(t)
 	hero := enlist(realm, "Ala")
