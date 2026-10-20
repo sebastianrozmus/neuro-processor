@@ -15,12 +15,15 @@ import (
 // A script is a scripted conversation played through the game's own rules:
 // TestScripts turns each line into the prompt the model would get, for
 // tools/eval/run.py. Run with NEURO_SCRIPT=in.jsonl NEURO_SCENARIOS=out.jsonl.
+// A line may carry the reply to remember in place of a stub: the next prompts
+// then follow from it, and the turn gets its full messages, as training data.
 type script struct {
 	ID       string   `json:"id"`
 	Kind     string   `json:"kind"`
 	Note     string   `json:"note"`
 	World    string   `json:"world"`
 	Place    string   `json:"place"`
+	Hero     string   `json:"hero"`
 	Talk     string   `json:"talk"`
 	Hire     []string `json:"hire"`
 	Gold     int      `json:"gold"`
@@ -31,6 +34,7 @@ type script struct {
 
 type line struct {
 	Say    string       `json:"say"`
+	Reply  string       `json:"reply"`
 	Intent *game.Intent `json:"intent"`
 }
 
@@ -102,7 +106,12 @@ func play(t *testing.T, presets []world.Spec, s script) map[string]any {
 	}
 
 	realm := game.NewRealm(built, 7)
-	hero := realm.Join("Radomir", "")
+	name := s.Hero
+	if name == "" {
+		name = "Radomir"
+	}
+
+	hero := realm.Join(name, "")
 	must(t, s.ID, realm.Teleport(hero, s.Place))
 	realm.SetGold(hero, s.Gold)
 	if s.Health > 0 {
@@ -149,8 +158,14 @@ func play(t *testing.T, presets []world.Spec, s script) map[string]any {
 			t.Logf("%s: %q read by rules only as %+v", s.ID, said.Say, intent)
 		}
 
-		turns = append(turns, map[string]any{"player": player, "gra": gra, "outcome": decision.Outcome})
-		realm.HaggleRemember(hero, said.Say, "[spokój] Dobrze.")
+		turn := map[string]any{"player": player, "gra": gra, "outcome": decision.Outcome}
+		reply := "[spokój] Dobrze."
+		if said.Reply != "" {
+			turn["messages"], reply = messages[:len(messages)-1], said.Reply
+		}
+
+		turns = append(turns, turn)
+		realm.HaggleRemember(hero, said.Say, reply)
 	}
 
 	return map[string]any{"id": s.ID, "kind": s.Kind, "note": s.Note, "system": system, "turns": turns}
