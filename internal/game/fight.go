@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -629,7 +630,11 @@ func (r *Realm) maul(current *fight, foe *monster, struck unit, share int) {
 
 	if member, ok := struck.(*companion); ok {
 		member.hp, member.poison = 0, 0
-		r.tellFight(current, member.spec().Name+" pada nieprzytomny. Odpoczynek w osadzie postawi go na nogi.")
+		if speech.Feminine(member.spec().Name) {
+			r.tellFight(current, member.spec().Name+" pada nieprzytomna. Odpoczynek w osadzie postawi ją na nogi.")
+		} else {
+			r.tellFight(current, member.spec().Name+" pada nieprzytomny. Odpoczynek w osadzie postawi go na nogi.")
+		}
 
 		return
 	}

@@ -369,7 +369,9 @@ func (r *Realm) gapFor(hero *player, keeper int, words []string) (*Fact, int) {
 		}
 
 		for _, fact := range r.wisdom.facts {
-			if fact.known[keeper] || !r.open(fact, hero) || !Matches(fact.Subject, word) {
+			// Nobody is sent to ask about themselves: "Borin, dokąd idziemy?"
+			// is no question about Borin Kamienna Pięść.
+			if fact.known[keeper] || !r.open(fact, hero) || !leads(fact.Subject, word) || fact.Subject == r.keeperName(keeper) {
 				continue
 			}
 
@@ -382,6 +384,33 @@ func (r *Realm) gapFor(hero *player, keeper int, words []string) (*Fact, int) {
 	}
 
 	return nil, -1
+}
+
+// leadPrefix is how many first letters a player's word shares with a word
+// of a subject for a lead: "przełęczy" is "Przełęcz", "przepraszam" is not.
+const leadPrefix = 5
+
+// leads reports whether a folded word of the player's names a word of the
+// subject: the two share leadPrefix letters, or all but the ending of the
+// shorter one ("widma" is "Widmo"). A word of three letters leads nowhere:
+// "Borin" is no "Bór".
+func leads(subject, word string) bool {
+	for _, part := range strings.Fields(Fold(subject)) {
+		if len(part) <= minQueryWord {
+			continue
+		}
+
+		shared := 0
+		for shared < len(part) && shared < len(word) && part[shared] == word[shared] {
+			shared++
+		}
+
+		if shared >= min(leadPrefix, len(part)-1, len(word)-1) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // crumb is the little a keeper who does not know a fact has heard of it:

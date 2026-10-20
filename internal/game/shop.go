@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -257,7 +258,12 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	case threat && decision.Outcome == OutcomeChat:
 		request.Hint = "Gracz ci grozi. Nie dajesz się zastraszyć: odpowiedz twardo, z gniewem albo z kpiną, i niczego mu nie dajesz ani nie sprzedajesz. " + request.Hint
 	case insult && decision.Outcome == OutcomeChat:
-		request.Hint = "Gracz cię obraża. Odpowiedz urażony, zimno albo z gniewem; nie udawaj, że nic się nie stało. " + request.Hint
+		hurt := "urażony"
+		if speech.Feminine(r.keeperName(customer.shop)) {
+			hurt = "urażona"
+		}
+
+		request.Hint = "Gracz cię obraża. Odpowiedz " + hurt + ", zimno albo z gniewem; nie udawaj, że nic się nie stało. " + request.Hint
 	}
 
 	if afterHours {

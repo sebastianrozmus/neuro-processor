@@ -229,6 +229,12 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		}
 	}
 
+	// A bare greeting is answered in one sentence: the model has never seen
+	// one, and given three sentences and a random fact it drifts.
+	if decision.Outcome == OutcomeChat && greeting(words) {
+		return "Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej.", nil, false
+	}
+
 	// Talk about the goods goes to the goods before anything else: "jaką
 	// masz zbroję" is about the mail on the shelf, not about the skeleton
 	// whose armour hangs on rust.
@@ -246,12 +252,6 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		} else if len(fitting) > 0 {
 			return "Gracz pyta o twój towar. Pasuje: " + join(fitting) + ". Poleć jedną z tych rzeczy, powiedz, do czego jest, i podaj jej cenę z listy.", nil, false
 		}
-	}
-
-	// A bare greeting is answered in one sentence: the model has never seen
-	// one, and given three sentences and a random fact it drifts.
-	if decision.Outcome == OutcomeChat && greeting(words) {
-		return "Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej.", nil, false
 	}
 
 	// The fact the player's words touch most: subject words count double,
@@ -320,9 +320,17 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 	// A greeting or banter with nothing to hang on: without a direction a
 	// small model fills the three sentences with noise.
-	if decision.Outcome == OutcomeChat {
-		return "Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, " +
-			"i sam zagadnij go o jedno: po co przyszedł, dokąd idzie albo czy ma czym walczyć.", nil, false
+	if decision.Outcome == OutcomeChat && !strings.Contains(text, "?") && !asked(words) {
+		if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == customer.name {
+			return "Gracz zagaduje bez konkretnego pytania. Odpowiedz krótko i po swojemu na to, co powiedział; nie pytaj go o nic.", nil, false
+		}
+
+		if !lastAsked(customer) {
+			return "Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, " +
+				"i sam zagadnij go o jedno: po co przyszedł albo dokąd idzie.", nil, false
+		}
+
+		return "Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział; nie pytaj go o nic.", nil, false
 	}
 
 	return "", nil, false
@@ -387,6 +395,27 @@ func (r *Realm) referral(fact *Fact, keeper int, again bool) string {
 
 	return fmt.Sprintf("Gracz pyta o coś, czego nie znasz: %s. Słyszałeś tylko tyle: „%s”. Powiedz to jak zasłyszaną plotkę, przyznaj, że więcej nie wiesz, i odeślij go do osoby, która zna sprawę: %s. Imię podaj dokładnie tak.",
 		fact.Subject, crumb(fact), who)
+}
+
+// askWords begin a question asked without a question mark: "co potrafisz",
+// "opowiedz o sobie".
+var askWords = []string{"co", "czy", "jak", "jaki", "jaka", "jakie", "kto", "gdzie", "kiedy", "dlaczego", "czemu", "skad", "dokad", "ile", "opowiedz", "powiedz", "pokaz"}
+
+// asked reports whether the folded words start as a question or a request.
+func asked(words []string) bool {
+	for _, word := range words[:min(len(words), 2)] {
+		if slices.Contains(askWords, strings.Trim(word, ".,!?;:")) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// lastAsked reports whether the keeper's last line ended in a question:
+// then this turn the keeper does not ask another.
+func lastAsked(customer *player) bool {
+	return strings.HasSuffix(strings.TrimSpace(lastReply(customer)), "?")
 }
 
 // lastReply is the keeper's last line in the talk the customer is in,
@@ -476,6 +505,11 @@ var greetingWords = []string{
 func greeting(words []string) bool {
 	if len(words) == 0 || len(words) > 4 {
 		return false
+	}
+
+	// The last word may be how the keeper is called: "dzień dobry, magu".
+	if last := strings.Trim(words[len(words)-1], ".,!?"); len(words) >= 2 && !slices.Contains(greetingWords, last) && strings.HasSuffix(last, "u") {
+		words = words[:len(words)-1]
 	}
 
 	for _, word := range words {

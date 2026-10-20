@@ -279,6 +279,20 @@ func (r *Realm) mateLore(leader *player, kind int, wares []Ware) string {
 		fmt.Fprintf(&lore, "Twoja służba kosztuje: «%s» %d %s, płatne raz, przy dołączeniu. Poniżej tej kwoty nie zejdziesz bez powodu.\n", wares[0].Name, wares[0].Price, built.Currency)
 	case r.hired[kind] == leader.name:
 		lore.WriteString("Jesteś już w drużynie bohatera: nie targujesz się, tylko radzisz, narzekasz albo opowiadasz.\n")
+
+		// Asked "who else is with us?", a companion named strangers.
+		var others []string
+		for _, member := range leader.party {
+			if member.kind != kind {
+				others = append(others, member.spec().Name+", "+roleName(member.spec().Role))
+			}
+		}
+
+		if len(others) > 0 {
+			fmt.Fprintf(&lore, "W drużynie idą z tobą też: %s. Nikogo więcej nie ma.\n", strings.Join(others, "; "))
+		} else {
+			lore.WriteString("Poza bohaterem nikogo więcej w drużynie nie ma.\n")
+		}
 	default:
 		lore.WriteString("Bohater ma pełną drużynę: nie możesz dołączyć, póki kogoś nie odprawi. Możecie pogadać.\n")
 	}

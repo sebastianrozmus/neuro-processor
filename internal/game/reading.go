@@ -17,7 +17,7 @@ var (
 	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi"}
 	// nodWords accept only in a short reply: "ok. a co znaczy..." goes on talking, it closes no deal.
 	nodWords   = []string{"stoi", "pasuje", "dobra", "ok", "okej"}
-	leaveWords = []string{"zegnaj", "do widzenia", "bywaj", "wychodze", "odchodze", "ide stad", "na razie", "do zobaczenia"}
+	leaveWords = []string{"zegnaj", "do widzenia", "bywaj", "wychodze", "odchodze", "ide stad", "na razie", "do zobaczenia", "ide sobie", "pojde sobie", "pojde juz", "ide juz", "spadam", "zmywam sie"}
 	tradeWords = []string{"ile", "cena", "ceny", "koszt", "co masz", "pokaz", "towar", "sprzeda", "asortyment", "na sprzedaz"}
 	sellWords  = []string{"sprzedam", "sprzedac", "sprzedalbym", "sprzedalabym", "odkup", "odkupisz", "kupisz", "kupilbys", "kupilabys", "wezmiesz", "ile dasz", "ile dalbys", "co dasz za", "zaplacisz", "oddam", "chcesz kupic", "skupujesz", "skupisz", "skup"}
 
@@ -281,7 +281,7 @@ func rude(text string) bool {
 // pożałujesz", "albo siekne toporkiem".
 var threatWords = []string{
 	"pozalujesz", "bo cie", "albo cie", "bo inaczej", "siekne", "zatluke", "zadzgam", "zarabie", "zabije cie", "zabije was",
-	"rozwale", "spale ci", "potne", "zlamie ci", "wypatrosze", "poderzne", "urwe ci", "obije ci", "spiore",
+	"rozwale", "spale ci", "podpale", "spale wam", "puszcze z dymem", "potne", "zlamie ci", "wypatrosze", "poderzne", "urwe ci", "obije ci", "spiore",
 }
 
 // threatening reports whether a folded message threatens the keeper.

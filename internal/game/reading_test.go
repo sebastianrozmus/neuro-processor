@@ -43,3 +43,29 @@ func TestOldDwarfIsNoOldForest(t *testing.T) {
 		}
 	}
 }
+
+func TestSessionWordsFromTest13(t *testing.T) {
+	if !Read(InterpretRequest{Text: "podpalę ci wieżę"}).rude {
+		t.Error("burning the tower down is no threat")
+	}
+
+	if Read(InterpretRequest{Text: "dobra, idę sobie"}).Intent.Action != ActionLeave {
+		t.Error("going away is not leaving")
+	}
+
+	if !greeting(strings.Fields(Fold("Dzień dobry magu."))) {
+		t.Error("a greeting with an address is no greeting")
+	}
+
+	if greeting(strings.Fields(Fold("dzień dobry, masz miecz"))) {
+		t.Error("a question about a sword is a greeting")
+	}
+
+	if leads("Przełęcz Wichrów", "przepraszam") || !leads("Przełęcz Wichrów", "przeleczy") || !leads("Ogniste Widmo", "widma") || leads("Stary Bór", "borin") {
+		t.Error("an apology leads to the pass, or the pass does not")
+	}
+
+	if !asked(strings.Fields(Fold("a co potrafisz w walce"))) && !asked(strings.Fields(Fold("co potrafisz w walce"))) {
+		t.Error("a question without a mark is not asked")
+	}
+}

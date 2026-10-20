@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -59,7 +60,11 @@ func (r *Realm) Order(name, text string) bool {
 	}
 
 	if member.hp <= 0 {
-		r.tell(leader, label+" leży nieprzytomny i niczego nie wykona.")
+		if speech.Feminine(member.spec().Name) {
+			r.tell(leader, label+" leży nieprzytomna i niczego nie wykona.")
+		} else {
+			r.tell(leader, label+" leży nieprzytomny i niczego nie wykona.")
+		}
 
 		return true
 	}
