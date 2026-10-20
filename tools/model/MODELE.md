@@ -507,3 +507,36 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
     - Rozmowy run13: wyliczanki towaru, bełkot („a ja twoje złoto schowałem”), ceny spoza listy.
   - Przyczyna: dobre odpowiedzi w parach były poprawkami dopisującymi brakujące fakty, czyli dłuższe od złych; DPO nauczyło się długości.
   - **Wniosek:** w grze zostaje run12h. Run 13 naprawia walkę kosztem długości; następny trening musi pilnować długości (pary o podobnej długości albo nowy SFT od podstaw na przebranym zbiorze).
+
+- **run 14 (20.10): SFT od bazy Bielika na czystym zbiorze, wyraźnie lepszy od run 12h.**
+  - Dane (`D:/neuro-train/run14`, `build.py`):
+    - 168 nowych rozmów pomocników przez silnik gry (`talk/k01–k14`);
+    - ~460 rund MG;
+    - przebrana stara pula (inwentaryzacja `inv/pool.py`).
+    - Razem 3155 przykładów treningowych i 127 sprawdzających.
+  - Trening: 2 epoki, lr 1e-4, r16, max-len 4096, 391 min. eval_loss: 0.958 → 0.915 → 0.887 → **0.871 (krok 392, koniec 1. epoki)**, potem 0.921 → 0.911, czyli przeuczenie w 2. epoce. run14h = checkpoint-394 (koniec 1. epoki).
+  - Awarie:
+    - D: zapełnił się przy `ollama create` (19:45). train.sh i tak wypisał „koniec” bez testu. Dokończone przez `run14/recover.sh` z GGUF ocalałym na C:. Stare foldery przeniesione albo usunięte za zgodą.
+    - Wykryty błąd tokenizacji w `tools/pc/train.py`: odpowiedź tokenizowana osobno zaczynała się od „▁[” zamiast „[”. Dotyczy wszystkich dotychczasowych SFT, poprawione w ff1f0f7 (run 15 już na poprawce).
+    - Wyciek testu: 169 przykładów ze Smoczej Góry w zbiorze. To świat 14 z 23 scenariuszy testu, a 4 z 6 postaci testu były w treningu. Wyniki testu run14 i wcześniejszych mogą być zawyżone; run 15 nie ma ze Smoczej Góry nic.
+  - `check.py` po poprawce fałszywych alarmów (1bc37bc; wszystkie modele przeliczone tym samym), bez uwag s7/s11:
+
+    | model | bez uwag s7/s11 | znaki |
+    |---|---|---|
+    | run14 | 91/90% | 134–138 |
+    | run14h | 88/91% | 126–133 |
+    | run12h | 91/96% | 110 |
+    | run13h | 83/77% | |
+    | run13 | 70/65% | |
+
+    Główna uwaga run14: powtórki (7/11), np. recytowanie opisu kaftana dwa razy.
+  - Ślepa ocena (pomocnik, `run14/blind/verdict-*.jsonl`, klucz `blind-key.json`, zliczenie `run15/blind_score.py`):
+
+    | model | MG: rundy bez ciężkich błędów | MG: ciężkie / lekkie | rozmowy: bez ciężkich | ocena 1–5 | najlepszy |
+    |---|---|---|---|---|---|
+    | run14h | 94% | 6 / 33 | 58% | 3.46 | 9 |
+    | run14 | 86% | 12 / 26 | 58% | 3.79 | 14 z 24 |
+    | run12h | 46% | 55 / 89 | 46% | 2.75 | 1 |
+
+    Typowe błędy MG to pominięte zdarzenie albo łup i dopisane stany zdrowia. W rozmowach: bełkot, pominięte polecenie [GRA] (cena, odesłanie), powtarzanie własnych zdań, uleganie prośbie o wiersz.
+  - **Wniosek:** SFT od bazy na przebranym zbiorze bije całą linię DPO (run12h) i w walce, i w rozmowach. Druga epoka nic nie daje w automacie, a MG ma po niej więcej błędów (run14h 6 wobec 12 ciężkich). Rozmowy są po niej nieco lepsze w ocenie (3.79 wobec 3.46). Kandydat do gry: run14 albo run14h (zmiana modelu w `.env.local` tylko za zgodą). Dalej: run 15 (1 epoka, poprawiona tokenizacja, nowe światy, bez świata testu).
