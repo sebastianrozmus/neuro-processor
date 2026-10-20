@@ -173,6 +173,12 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 		intent.Action = ActionChat
 	}
 
+	// A companion in the party sells nothing: "ile mamy bandaży?" and
+	// "dobra, ruszamy" are talk, not a question about wares or a deal.
+	if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == name && intent.Action != ActionLeave {
+		intent = Intent{Action: ActionChat, Persuasion: intent.Persuasion}
+	}
+
 	decision := session.Apply(intent)
 	town := r.townOf(customer)
 

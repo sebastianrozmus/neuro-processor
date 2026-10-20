@@ -175,6 +175,7 @@ var plainWords = []string{
 	"tutaj", "teraz", "bardzo", "jeszcze", "mnie", "ciebie", "sobie", "kiedy", "gdzie", "ktory", "ktora", "ktore",
 	"moze", "wiem", "wiesz", "sposob", "sposobu", "tego", "temu", "bylo", "beda", "chce", "chcesz", "musze", "mozesz",
 	"starczy", "wystarczy", "starucho", "staruchu", "staruszko", "stary", "staruszku",
+	"stalo", "stala", "stanie", "stalem", "stalam",
 }
 
 // touches counts the player's words (long enough to mean something) that
@@ -238,7 +239,11 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	// Talk about the goods goes to the goods before anything else: "jaką
 	// masz zbroję" is about the mail on the shelf, not about the skeleton
 	// whose armour hangs on rust.
-	if decision.Outcome == OutcomeChat || decision.Outcome == OutcomeUnclear {
+	// A mercenary's ware is the hire itself: "ty jesteś Bolo?" names him,
+	// it does not ask his price, which he gives when asked.
+	_, mate := r.mateOf(customer.shop)
+
+	if (decision.Outcome == OutcomeChat || decision.Outcome == OutcomeUnclear) && !mate {
 		if fitting := waresAsked(words, wares); len(fitting) > 0 && decision.Outcome == OutcomeUnclear {
 			// The brief forbids any sum here, so the wares go without
 			// their prices: "który, bo mam dwa?" and no price list.

@@ -392,8 +392,8 @@ const leadPrefix = 5
 
 // leads reports whether a folded word of the player's names a word of the
 // subject: the two share leadPrefix letters, or all but the ending of the
-// shorter one ("widma" is "Widmo"). A word of three letters leads nowhere:
-// "Borin" is no "Bór".
+// shorter one ("widma" is "Widmo"), and never fewer than four: "dzień" is
+// no "Dzik". A word of three letters leads nowhere: "Borin" is no "Bór".
 func leads(subject, word string) bool {
 	for _, part := range strings.Fields(Fold(subject)) {
 		if len(part) <= minQueryWord {
@@ -405,7 +405,7 @@ func leads(subject, word string) bool {
 			shared++
 		}
 
-		if shared >= min(leadPrefix, len(part)-1, len(word)-1) {
+		if shared >= max(minQueryWord+1, min(leadPrefix, len(part)-1, len(word)-1)) {
 			return true
 		}
 	}

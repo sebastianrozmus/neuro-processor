@@ -65,7 +65,7 @@ func TestSessionWordsFromTest13(t *testing.T) {
 		t.Error("a question about a sword is a greeting")
 	}
 
-	if leads("Przełęcz Wichrów", "przepraszam") || !leads("Przełęcz Wichrów", "przeleczy") || !leads("Ogniste Widmo", "widma") || leads("Stary Bór", "borin") {
+	if leads("Przełęcz Wichrów", "przepraszam") || !leads("Przełęcz Wichrów", "przeleczy") || !leads("Ogniste Widmo", "widma") || leads("Stary Bór", "borin") || leads("Zmutowany Dzik", "dzien") || !leads("Zmutowany Dzik", "dzika") {
 		t.Error("an apology leads to the pass, or the pass does not")
 	}
 
