@@ -47,7 +47,12 @@ def load(path):
 def encode(rows, tokenizer, limit):
     """Tokens and labels: the prompt is masked (-100), the reply is learnt.
     Rows longer than the limit are dropped, not cut, so no reply is
-    learnt without its prompt."""
+    learnt without its prompt.
+
+    The whole conversation is tokenized at once, as Ollama does: Bielik's
+    SentencePiece tokenizer puts "▁" before any text tokenized alone, so a
+    reply tokenized apart would start with "▁[" where the game sees "[".
+    The mask is set by character offsets, not by a separate prompt count."""
     encoded, dropped = [], 0
     for row in rows:
         messages = row["messages"]
@@ -55,13 +60,22 @@ def encode(rows, tokenizer, limit):
             dropped += 1
             continue
         prompt, reply = render(messages)
-        prompt_ids = tokenizer(prompt, add_special_tokens=True)["input_ids"]
-        reply_ids = tokenizer(reply, add_special_tokens=False)["input_ids"]
-        ids = prompt_ids + reply_ids
+        tokens = tokenizer(prompt + reply, add_special_tokens=True, return_offsets_mapping=True)
+        ids = tokens["input_ids"]
         if len(ids) > limit:
             dropped += 1
             continue
-        encoded.append({"input_ids": ids, "attention_mask": [1] * len(ids), "labels": [-100] * len(prompt_ids) + reply_ids})
+        # Special tokens (bos) have the empty span (0, 0) and belong to the prompt.
+        # A token across the boundary would teach a split the game never feeds.
+        spans = tokens["offset_mapping"]
+        if any(start < len(prompt) < end for start, end in spans):
+            dropped += 1
+            continue
+        labels = [token if start >= len(prompt) and end > start else -100 for token, (start, end) in zip(ids, spans)]
+        if all(label == -100 for label in labels):
+            dropped += 1
+            continue
+        encoded.append({"input_ids": ids, "attention_mask": [1] * len(ids), "labels": labels})
     return encoded, dropped
 
 
