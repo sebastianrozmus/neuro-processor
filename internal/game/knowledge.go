@@ -96,6 +96,19 @@ type Fact struct {
 	hour       string
 }
 
+// knowers lists the keepers who know the fact in a fixed order: walking
+// the map sent the player to a different keeper on every run.
+func (fact *Fact) knowers() []int {
+	keepers := make([]int, 0, len(fact.known))
+	for keeper := range fact.known {
+		keepers = append(keepers, keeper)
+	}
+
+	slices.Sort(keepers)
+
+	return keepers
+}
+
 // FactSpec is a fact as a model or an event states it. Quote, from a
 // model, is the words of the line the fact was read from: a fact without
 // its source in the line is not taken.
@@ -323,7 +336,7 @@ func (r *Realm) unknownTo(keeper int) []string {
 			continue
 		}
 
-		for other := range fact.known {
+		for _, other := range fact.knowers() {
 			if other != keeper && r.keeperName(other) != "" {
 				gaps = append(gaps, fmt.Sprintf("%s (wie o tym %s)", fact.Subject, r.keeperName(other)))
 
@@ -375,7 +388,7 @@ func (r *Realm) gapFor(hero *player, keeper int, words []string) (*Fact, int) {
 				continue
 			}
 
-			for other := range fact.known {
+			for _, other := range fact.knowers() {
 				if other != keeper && r.keeperName(other) != "" {
 					return fact, other
 				}

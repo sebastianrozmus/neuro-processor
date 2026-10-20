@@ -366,7 +366,7 @@ func (r *Realm) Inspect() Inspection {
 func (r *Realm) factInfo(fact *Fact) FactInfo {
 	info := FactInfo{ID: fact.ID, Subject: fact.Subject, Text: fact.Text, Source: fact.Source, Day: fact.Day, Known: []string{}, Heard: []string{}}
 
-	for keeper := range fact.known {
+	for _, keeper := range fact.knowers() {
 		if name := r.keeperName(keeper); name != "" {
 			info.Known = append(info.Known, name)
 		}

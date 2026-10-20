@@ -191,7 +191,7 @@ func (r *Realm) gapsFor(hero *player, keeper int) []string {
 			continue
 		}
 
-		for other := range fact.known {
+		for _, other := range fact.knowers() {
 			if other != keeper {
 				gaps = append(gaps, fmt.Sprintf("%s (wie o tym %s)", fact.Subject, r.keeperName(other)))
 
