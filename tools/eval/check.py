@@ -19,7 +19,11 @@ CLASH = {
 }
 NUM_WORDS = r"\b(dwa|dwie|trzy|cztery|pięć|sześć|siedem|osiem|dziewięć|dziesięć|jedenaście|dwanaście|piętnaście|dwadzieścia|trzydzieści|czterdzieści|pięćdziesiąt|sześćdziesiąt|siedemdziesiąt|osiemdziesiąt|dziewięćdziesiąt|sto|dwieście|trzysta)\b"
 DEATH = r"\b(ginie|zgin\w*|pada|padł\w*|martw\w*|zabit\w*|zabij\w*|pokonan\w*|truchł\w*|nie żyje|ucieka|uciekł\w*|uciec)\b"
-META = r"(\[GRA\]|\bblok\w* \[?GRA|\bjako model\b|\bsztuczn\w+ inteligencj\w*|\binstrukcj\w+ (gry|systemu)|\bprompt)"
+META = r"(\[GRA\]|\bblok\w* \[?GRA|\bjako model\b|\bmodel\w* językow\w*|\bsztuczn\w+ inteligencj\w*|\binstrukcj\w+ (gry|systemu)|\bprompt)"
+# a machine in the story (ARES-9, an android, an automaton) may well call itself an artificial intelligence
+MACHINE = r"\b(sztuczn\w+|android\w*|robot\w*|automat\w*|jednostk\w+|maszyn\w+|SI)\b"
+# speaker labels, besides the character's own name: "MG: ...", "Odpowiedź: ..."
+LABELS = {"mg", "mistrz", "npc", "postać", "odpowiedź", "narrator", "kupiec", "najemnik", "towarzysz"}
 
 
 def sentences(text):
@@ -68,16 +72,23 @@ def check(scenario, idx, reply, previous):
         issues.append("gwiazdki")
     if re.match(r'^["„«]', speech):
         issues.append("cudzyslow")
-    if re.search(META, speech, re.I):
+    meta = re.search(META, speech, re.I)
+    if meta and not (meta.group(0).lower().startswith("sztuczn") and re.search(MACHINE, system, re.I)):
         issues.append("meta")
-    if re.match(r"^[A-ZŁŚŻ][\w-]+:\s", speech):
+    # "Raport: ...", "Dane: ..." are words, a label is the character's own name or a role
+    label = re.match(r"^([A-ZŁŚŻ][\w-]+):\s", speech)
+    own = re.search(r"TWOJA POSTAĆ: ([^,\n]+)", system)
+    names = {w.lower() for w in words(own.group(1))} if own else set()
+    if label and (label.group(1).lower() in names | LABELS):
         issues.append("imie-na-poczatku")
 
     allowed = numbers(gra) | numbers(system)
     extra = numbers(speech) - allowed
     if extra:
         issues.append("liczba-spoza:" + ",".join(sorted(extra)))
-    if re.search(NUM_WORDS, speech.lower()):
+    # a number word the game itself uses ("Siedem Studni") is a name, not a number spelt out
+    spelt = set(re.findall(NUM_WORDS, speech.lower())) - set(words(gra + " " + system))
+    if spelt:
         issues.append("liczba-slownie")
     if "Nie podawaj żadnych kwot" in gra and numbers(speech):
         issues.append("kwota-zakazana")
@@ -102,14 +113,27 @@ def check(scenario, idx, reply, previous):
             issues.append("GM:kosci")
 
     if previous:
-        mine = words(speech)
-        grams = {tuple(mine[i:i + 4]) for i in range(len(mine) - 3)}
+        grams = phrases(speech)
         for prev in previous:
-            p = words(re.sub(r"^\[\w+\]\s*", "", prev))
-            if grams & {tuple(p[i:i + 4]) for i in range(len(p) - 3)}:
+            if grams & phrases(re.sub(r"^\[\w+\]\s*", "", prev)):
                 issues.append("powtorka")
                 break
     return issues
+
+
+def phrases(text):
+    """Four words in a row, but not those made of names: a fight tells
+    "Borina Kamienną Pięść" and "Ogniste Widmo parzy Elirę" round after
+    round, and that is no parroting."""
+    tokens = re.findall(r"[A-Za-ząęółśżźćńĄĘÓŁŚŻŹĆŃ]+", text)
+    out = set()
+    for i in range(len(tokens) - 3):
+        window = tokens[i:i + 4]
+        # the first word of a sentence is capitalised anyway; count names inside
+        capitals = sum(1 for k, w in enumerate(window) if w[0].isupper() and not (i + k == 0))
+        if capitals < 2:
+            out.add(tuple(w.lower() for w in window))
+    return out
 
 
 def main():
