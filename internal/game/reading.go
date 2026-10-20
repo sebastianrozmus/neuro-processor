@@ -26,7 +26,7 @@ var (
 	}
 	// byeWords end a message as a goodbye ("no trudno, cześć"), though alone
 	// or among other greetings they greet.
-	byeWords = []string{"czesc", "hej", "elo", "ide"}
+	byeWords   = []string{"czesc", "hej", "elo", "ide"}
 	tradeWords = []string{"ile", "cena", "ceny", "koszt", "co masz", "pokaz", "towar", "sprzeda", "asortyment", "na sprzedaz"}
 	sellWords  = []string{"sprzedam", "sprzedac", "sprzedalbym", "sprzedalabym", "odkup", "odkupisz", "kupisz", "kupilbys", "kupilabys", "wezmiesz", "ile dasz", "ile dalbys", "co dasz za", "zaplacisz", "oddam", "chcesz kupic", "skupujesz", "skupisz", "skup"}
 
