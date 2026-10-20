@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -39,6 +40,70 @@ type line struct {
 	Intent *game.Intent `json:"intent"`
 }
 
+// extraWorlds are the worlds in NEURO_WORLDS (a folder of world files, as
+// the game saves them), for scripts in worlds the game does not ship. A file
+// that does not load fails the run instead of being skipped.
+func extraWorlds(t *testing.T) []world.Spec {
+	t.Helper()
+
+	dir := os.Getenv("NEURO_WORLDS")
+	if dir == "" {
+		return nil
+	}
+
+	paths, _ := filepath.Glob(filepath.Join(dir, "*.json"))
+	specs := make([]world.Spec, 0, len(paths))
+
+	for _, path := range paths {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var spec world.Spec
+		if err := json.Unmarshal(data, &spec); err != nil {
+			t.Fatalf("%s: %v", path, err)
+		}
+
+		if err := spec.Normalize(); err != nil {
+			t.Fatalf("%s: %v", path, err)
+		}
+
+		specs = append(specs, spec)
+	}
+
+	return specs
+}
+
+// TestWorldFiles checks the worlds in NEURO_WORLDS load and that each place,
+// keeper and companion can be talked to, as scripts need.
+func TestWorldFiles(t *testing.T) {
+	if os.Getenv("NEURO_WORLDS") == "" {
+		t.Skip("NEURO_WORLDS not set")
+	}
+
+	for _, spec := range extraWorlds(t) {
+		t.Logf("%s (%s): %d osad, %d miejsc, %d sklepów, %d towarzyszy, %d przedmiotów, %d artefaktów, %d potworów",
+			spec.Name, spec.Mode, len(spec.Places), len(spec.Sites), len(spec.Shops), len(spec.Companions), len(spec.Items), len(spec.Artifacts), len(spec.Monsters))
+
+		built, err := world.Build(spec)
+		if err != nil {
+			t.Errorf("%s: %v", spec.Name, err)
+
+			continue
+		}
+
+		realm := game.NewRealm(built, 7)
+		hero := realm.Join("Radomir", "")
+
+		for _, place := range spec.Places {
+			if err := realm.Teleport(hero, place.Name); err != nil {
+				t.Errorf("%s: %s: %v", spec.Name, place.Name, err)
+			}
+		}
+	}
+}
+
 func (l *line) UnmarshalJSON(data []byte) error {
 	if len(data) > 0 && data[0] == '"' {
 		return json.Unmarshal(data, &l.Say)
@@ -59,6 +124,8 @@ func TestScripts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	presets = append(presets, extraWorlds(t)...)
 
 	source, err := os.Open(in)
 	if err != nil {

@@ -198,6 +198,33 @@ var plainWords = []string{
 	"masz", "macie", "mamy", "pani", "pana", "panu", "panie", "pania", "dzien", "dobry", "dobra", "dobre", "stara", "stare", "starej", "staremu", "starego",
 }
 
+// ownPast tells whether a fact is part of a companion's own story: a place
+// or a thing their description names, as the crypts Gniewomir came back
+// from. A creature or a person is not: the knight is no Upiorny Rycerz, and
+// Kaliber's past is not Iskra.
+func (r *Realm) ownPast(mate world.CompanionSpec, fact *Fact) bool {
+	subject := Fold(fact.Subject)
+	people := []string{Fold(r.world.Boss.Name)}
+
+	for _, monster := range r.world.Monsters {
+		people = append(people, Fold(monster.Name))
+	}
+
+	for _, companion := range r.world.Companions {
+		people = append(people, Fold(companion.Name))
+	}
+
+	for _, shop := range r.world.Shops {
+		people = append(people, Fold(shop.Keeper))
+	}
+
+	if slices.Contains(people, subject) {
+		return false
+	}
+
+	return touches(strings.Fields(subject), mate.Description) > 0
+}
+
 // touches counts the player's words (long enough to mean something) that
 // begin a word of a text. A plain word counts only next to one that names
 // the text too: "Stary Bór", but not "ty stary kurduplu".
@@ -306,8 +333,8 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 			// Gniewomir came back from the crypts and Iskra lived through
 			// the Krater: their own past is no rumour heard at the inn.
-			if spec := r.world.Companions[kind]; touches(strings.Fields(Fold(fact.Subject)), spec.Description) > 0 {
-				return fmt.Sprintf("Gracz mówi o: %s. To twoja własna przeszłość: %s Inni wiedzą o tym miejscu tyle: „%s”. Odpowiedz jak ktoś, kto to przeżył, ale nie zmyślaj szczegółów spoza tego i nie odsyłaj go do nikogo.", fact.Subject, spec.Description, crumb(fact)), nil, true
+			if spec := r.world.Companions[kind]; r.ownPast(spec, fact) {
+				return fmt.Sprintf("Gracz mówi o: %s. To twoja własna przeszłość: %s Inni wiedzą o tym tyle: „%s”. Odpowiedz jak ktoś, kto to przeżył, ale nie zmyślaj szczegółów spoza tego i nie odsyłaj go do nikogo.", fact.Subject, spec.Description, crumb(fact)), nil, true
 			}
 
 			return fmt.Sprintf("Gracz mówi o: %s. Słyszałeś tylko tyle: „%s”. Odpowiedz na to, o co pyta, jak ktoś, kto idzie z nim w drogę; nie odsyłaj go do nikogo i nie zmyślaj więcej.", fact.Subject, crumb(fact)), nil, true

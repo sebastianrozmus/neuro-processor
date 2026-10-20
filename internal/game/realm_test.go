@@ -2491,6 +2491,15 @@ func TestCompanionKnowsTheirOwnPast(t *testing.T) {
 	if !strings.Contains(hint, "To twoja własna przeszłość: Wróciła z kurhanów") || strings.Contains(hint, "Słyszałeś tylko") {
 		t.Errorf("own past hint = %q", hint)
 	}
+
+	// A creature sharing a word with the description is no part of the past.
+	monster := realm.world.Monsters[0].Name
+	realm.world.Companions[0].Description = "Była " + strings.Fields(monster)[0] + " i wróciła z kurhanów."
+	realm.add(monster, "Stwór z bagien, który poluje nocą.", "", realm.shopOfKind(world.ShopAlchemist))
+
+	if hint, _, _ := realm.hint(customer, "a "+strings.ToLower(monster)+"?", Decision{Outcome: OutcomeChat}, nil); strings.Contains(hint, "własna przeszłość") {
+		t.Errorf("a monster as the companion's past: %q", hint)
+	}
 }
 
 func TestUnclearOfferListsNoPrices(t *testing.T) {
