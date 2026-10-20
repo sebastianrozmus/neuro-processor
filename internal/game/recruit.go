@@ -338,7 +338,7 @@ func (r *Realm) mateLore(leader *player, kind int, wares []Ware) string {
 
 	if town := r.townOf(leader); town >= 0 {
 		score := r.standingOf(leader, town)
-		fmt.Fprintf(&lore, " Opinia o nim w osadzie: %s (%+d); traktuj go odpowiednio.", standingLabel(score), score)
+		fmt.Fprintf(&lore, " %s", opinion(leader, score))
 	}
 
 	return lore.String()

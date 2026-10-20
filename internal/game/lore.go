@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -93,7 +94,7 @@ func (r *Realm) lore(customer *player, wares []Ware) string {
 
 	if town := r.townOf(customer); town >= 0 {
 		score := r.standingOf(customer, town)
-		fmt.Fprintf(&lore, " Opinia o nim w osadzie: %s (%+d); traktuj go odpowiednio.", standingLabel(score), score)
+		fmt.Fprintf(&lore, " %s", opinion(customer, score))
 	}
 
 	return lore.String()
@@ -141,15 +142,32 @@ func bearing(from, to world.Point) string {
 	return fmt.Sprintf("kierunek %s, %s", direction, distance)
 }
 
+// condition words how the hero looks, in the hero's gender: the model
+// copied "Kasia, ciężko ranny" into its replies.
 func condition(hero *player) string {
+	ending := "y"
+	if speech.Feminine(hero.name) {
+		ending = "a"
+	}
+
 	switch {
 	case hero.hp*3 <= hero.maxHP():
-		return "ciężko ranny"
+		return "ciężko rann" + ending
 	case hero.hp*3 <= hero.maxHP()*2:
-		return "poobijany"
+		return "poobijan" + ending
 	}
 
 	return "w dobrym zdrowiu"
+}
+
+// opinion tells a keeper what the settlement thinks of the hero.
+func opinion(hero *player, score int) string {
+	about, treat := "nim", "go"
+	if speech.Feminine(hero.name) {
+		about, treat = "niej", "ją"
+	}
+
+	return fmt.Sprintf("Opinia o %s w osadzie: %s (%+d); traktuj %s odpowiednio.", about, standingLabel(score), score, treat)
 }
 
 func orNothing(item *world.ItemSpec) string {

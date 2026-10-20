@@ -950,7 +950,7 @@ func TestKeepersKnowTheWorld(t *testing.T) {
 		"Świat: Test.", "Osada, w której mieszkasz: Osada.", "Twoi sąsiedzi w osadzie: Jagna (Chata Zielarki).",
 		"Inna osada: Przystań, kierunek południe, blisko.",
 		"Największe zagrożenie: Szef.", "Jego siedziba: kierunek północny zachód, daleko.",
-		"Wiesz: Szef.", "Twój rozmówca: Ala, ciężko ranny. Broń: Kij. Pancerz: brak.",
+		"Wiesz: Szef.", "Twój rozmówca: Ala, ciężko ranna. Broń: Kij. Pancerz: brak.",
 	} {
 		if !strings.Contains(request.Lore, want) {
 			t.Errorf("lore misses %q:\n%s", want, request.Lore)
