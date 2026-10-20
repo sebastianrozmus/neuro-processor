@@ -69,7 +69,7 @@ func TestSessionWordsFromTest13(t *testing.T) {
 		t.Error("an apology leads to the pass, or the pass does not")
 	}
 
-	if !asked(strings.Fields(Fold("a co potrafisz w walce"))) && !asked(strings.Fields(Fold("co potrafisz w walce"))) {
+	if !asked("a co potrafisz w walce") || !asked("co potrafisz w walce") || !asked("ok ok, przepraszam. ile bierzesz") || asked("dobra, idziemy") {
 		t.Error("a question without a mark is not asked")
 	}
 }

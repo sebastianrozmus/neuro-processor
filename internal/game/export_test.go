@@ -10,6 +10,15 @@ func (r *Realm) SetGold(name string, gold int) {
 	r.players[name].gold = gold
 }
 
+// SetHour moves a hero's day on to an hour: "wieczór" is when keepers sit
+// in the inn, anything else the morning.
+func (r *Realm) SetHour(name, hour string) {
+	r.players[name].steps = 0
+	if hour == "wieczór" {
+		r.players[name].steps = innFrom
+	}
+}
+
 // SetHealth wounds or heals a hero.
 func (r *Realm) SetHealth(name string, hp int) {
 	r.players[name].hp = hp

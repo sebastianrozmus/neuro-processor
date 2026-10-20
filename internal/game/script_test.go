@@ -24,6 +24,7 @@ type script struct {
 	World    string   `json:"world"`
 	Place    string   `json:"place"`
 	Hero     string   `json:"hero"`
+	Hour     string   `json:"hour"`
 	Talk     string   `json:"talk"`
 	Hire     []string `json:"hire"`
 	Gold     int      `json:"gold"`
@@ -114,6 +115,7 @@ func play(t *testing.T, presets []world.Spec, s script) map[string]any {
 	hero := realm.Join(name, "")
 	must(t, s.ID, realm.Teleport(hero, s.Place))
 	realm.SetGold(hero, s.Gold)
+	realm.SetHour(hero, s.Hour)
 	if s.Health > 0 {
 		realm.SetHealth(hero, s.Health)
 	}

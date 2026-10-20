@@ -194,6 +194,8 @@ var plainWords = []string{
 	"moze", "wiem", "wiesz", "sposob", "sposobu", "tego", "temu", "bylo", "beda", "chce", "chcesz", "musze", "mozesz",
 	"starczy", "wystarczy", "starucho", "staruchu", "staruszko", "stary", "staruszku",
 	"stalo", "stala", "stanie", "stalem", "stalam",
+	// "masz ładne oczy" is no Łowca w Masce, "dzień dobry, pani" no Pani Kaliber, "stara baba" no Stara Rafineria.
+	"masz", "macie", "mamy", "pani", "pana", "panu", "panie", "pania", "dzien", "dobry", "dobra", "dobre", "stara", "stare", "starej", "staremu", "starego",
 }
 
 // touches counts the player's words (long enough to mean something) that
@@ -343,7 +345,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 	// A greeting or banter with nothing to hang on: without a direction a
 	// small model fills the three sentences with noise.
-	if decision.Outcome == OutcomeChat && !strings.Contains(text, "?") && !asked(words) {
+	if decision.Outcome == OutcomeChat && !strings.Contains(text, "?") && !asked(text) {
 		if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == customer.name {
 			return "Gracz zagaduje bez konkretnego pytania. Odpowiedz krótko i po swojemu na to, co powiedział; nie pytaj go o nic.", nil, false
 		}
@@ -424,11 +426,15 @@ func (r *Realm) referral(fact *Fact, keeper int, again bool) string {
 // "opowiedz o sobie".
 var askWords = []string{"co", "czy", "jak", "jaki", "jaka", "jakie", "kto", "gdzie", "kiedy", "dlaczego", "czemu", "skad", "dokad", "ile", "opowiedz", "powiedz", "pokaz"}
 
-// asked reports whether the folded words start as a question or a request.
-func asked(words []string) bool {
-	for _, word := range words[:min(len(words), 2)] {
-		if slices.Contains(askWords, strings.Trim(word, ".,!?;:")) {
-			return true
+// asked reports whether a sentence of the message starts as a question or
+// a request: "ok ok, przepraszam. ile bierzesz" asks too.
+func asked(text string) bool {
+	for _, sentence := range strings.FieldsFunc(text, func(char rune) bool { return strings.ContainsRune(".!;\n", char) }) {
+		words := strings.Fields(Fold(sentence))
+		for _, word := range words[:min(len(words), 2)] {
+			if slices.Contains(askWords, word) {
+				return true
+			}
 		}
 	}
 
@@ -535,14 +541,23 @@ func greeting(words []string) bool {
 		words = words[:len(words)-1]
 	}
 
+	greets := false
+
 	for _, word := range words {
-		if !slices.Contains(greetingWords, strings.Trim(word, ".,!?")) {
+		word = strings.Trim(word, ".,!?")
+		if !slices.Contains(greetingWords, word) {
 			return false
 		}
+
+		greets = greets || !slices.Contains(greetingFillers, word)
 	}
 
-	return true
+	return greets
 }
+
+// greetingFillers come with a greeting but make none: a bare "no" or
+// "stary" is no hello.
+var greetingFillers = []string{"no", "ej", "mordo", "stary", "ziom", "ziomek", "ziomku", "bracie", "brachu", "panu", "pani", "panie", "kolego", "mistrzu"}
 
 // waresAsked lists the wares the player's words point at: by the kind of
 // thing they ask for, by name or by what the description says; three at
