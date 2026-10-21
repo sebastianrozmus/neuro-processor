@@ -42,7 +42,7 @@ var (
 	tradeWords = []string{"cena", "ceny", "koszt", "co masz", "pokaz", "towar", "sprzeda", "asortyment", "na sprzedaz", "sprzedajesz", "sprzedajecie", "handlujesz", "co oferujesz"}
 	// ileWords after "ile" ask a price: "ile za kaftan", "ile bierzesz";
 	// "ile wilków zabiłeś" asks something else.
-	ileWords = []string{"za", "to", "chcesz", "bierzesz", "bierzecie", "dasz", "by", "bys", "liczysz", "kasujesz", "wolasz", "trzeba", "mam", "place", "zaplace", "zaplacic"}
+	ileWords = []string{"za", "to", "chcesz", "chce", "bierzesz", "bierze", "bierzecie", "kasuje", "liczy", "zyczy", "chcialby", "chcialaby", "dasz", "by", "bys", "liczysz", "kasujesz", "wolasz", "trzeba", "mam", "place", "zaplace", "zaplacic"}
 	// laterWords put the talk off: "dobra, jutro wrócę" leaves, it hires no one.
 	laterWords = []string{"wroce", "jutro wroce", "wroce jutro", "przyjde jutro", "przyjde pozniej", "zajrze pozniej", "zajrze jutro"}
 	// notTradeWords ask "ile" and "pokaż" about anything but wares: "ile ty
@@ -222,7 +222,13 @@ func priceAsked(words []string) bool {
 			return true
 		}
 
-		if next := words[index+1]; slices.Contains(ileWords, next) || strings.HasPrefix(next, "koszt") || strings.HasPrefix(next, "plac") {
+		// "ile pani bierze": who is asked stands between.
+		next := words[index+1]
+		if slices.Contains([]string{"pani", "pan", "panu", "ty", "wy", "mi", "u", "ciebie", "was"}, next) && index+2 < len(words) {
+			next = words[index+2]
+		}
+
+		if slices.Contains(ileWords, next) || strings.HasPrefix(next, "koszt") || strings.HasPrefix(next, "plac") {
 			return true
 		}
 	}
