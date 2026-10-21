@@ -185,6 +185,9 @@ type Decision struct {
 	Currency string
 	// Scene is what happened in a round of combat, for OutcomeScene.
 	Scene string
+	// Aside marks talk that is no occasion to sell: an apology, a
+	// threat, a question from outside the world.
+	Aside bool
 }
 
 // Line is one entry of the dialogue history.

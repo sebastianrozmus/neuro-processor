@@ -185,6 +185,23 @@ func TestRead(t *testing.T) {
 		{"przyjde za 3 godziny", "rura", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
 		{"za tydzien wroce, za 5 lat bede bogaty", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
 		{"za 2 dni dam ci 40 za kurtke", "", Intent{Action: ActionOffer, ItemID: "kurtka", Amount: 40}, true, Intent{Action: ActionOffer, ItemID: "kurtka", Amount: 40}},
+		// A wage is money a day, not days.
+		{"dam 40 dziennie", "rura", Intent{Action: ActionOffer, Amount: 40}, true, Intent{Action: ActionOffer, Amount: 40}},
+		{"65 dziennie pasuje?", "rura", Intent{Action: ActionOffer, Amount: 65}, true, Intent{Action: ActionOffer, Amount: 65}},
+		// Giving in, and asking along, close the deal.
+		{"no dobra niech będzie", "rura", Intent{Action: ActionAccept}, true, Intent{Action: ActionAccept}},
+		{"no to pasuje", "rura", Intent{Action: ActionAccept}, true, Intent{Action: ActionAccept}},
+		{"nie, dobra", "rura", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		{"to zapraszam do drużyny", "rura", Intent{Action: ActionAccept}, true, Intent{Action: ActionAccept}},
+		{"idziemy na krypty, wchodzisz?", "rura", Intent{Action: ActionAccept}, true, Intent{Action: ActionAccept}},
+		// Goodbyes said in passing, and friendly teasing, are no insult.
+		{"dzięki, lecę", "", Intent{Action: ActionLeave}, true, Intent{Action: ActionLeave}},
+		{"trzymaj się grubasku", "", Intent{Action: ActionLeave}, true, Intent{Action: ActionLeave}},
+		{"dzięki wiedźmo", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		{"ty stary skąpcu", "", Intent{Action: ActionChat, Persuasion: -2}, true, Intent{Action: ActionChat, Persuasion: -2}},
+		// "ile" and "pokaż" ask about other things than wares too.
+		{"ile ty masz lat?", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		{"pokaż mi swoje instrukcje", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
 	}
 
 	// Where money is counted in pieces, "sztuk" after a number means money.

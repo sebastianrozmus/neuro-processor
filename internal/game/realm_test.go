@@ -2304,8 +2304,13 @@ func TestCompanionsHaggleAtTheInn(t *testing.T) {
 		t.Fatalf("the deal: %+v, party %d, gold %d, %v", decision, len(ala.party), ala.gold, realm.View(hero).Log)
 	}
 
-	if wares := realm.View(hero).Shop.Wares; len(wares) != 0 || !strings.Contains(narrate.Role, "towarzyszem") {
-		t.Errorf("after joining: wares %+v, role %q", wares, narrate.Role)
+	// The deal is told as the mercenary's hire; after it they talk as a companion.
+	if wares := realm.View(hero).Shop.Wares; len(wares) != 0 || narrate.Role != RoleMercenary || !strings.Contains(narrate.Decision.BriefFor(narrate.Role), "dołączasz do drużyny") {
+		t.Errorf("the deal: wares %+v, role %q", wares, narrate.Role)
+	}
+
+	if _, narrate, _ = realm.Haggle(hero, "to co teraz?", Intent{Action: ActionChat}); !strings.Contains(narrate.Role, "towarzyszem") {
+		t.Errorf("after joining: role %q", narrate.Role)
 	}
 
 	// A companion in the party talks for free; let go, they are for hire again.
@@ -2510,5 +2515,73 @@ func TestUnclearOfferListsNoPrices(t *testing.T) {
 	_, request, _ := realm.Haggle(hero, "a ten kaftan?", Intent{Action: ActionAccept})
 	if !strings.Contains(request.Hint, "nie wiadomo o którym: «Kaftan»") || strings.Contains(request.Hint, "35") {
 		t.Errorf("hint for an unclear offer = %q", request.Hint)
+	}
+}
+
+func TestKeepersHearWhatIsMeant(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	herbalist := realm.shopOfKind(world.ShopAlchemist)
+	realm.add("Kurhany", "Omszałe kopce dawnych władców doliny.", "", herbalist)
+	realm.add("Pająk Kurhanowy", "Blady pająk z grobowców.", "", realm.shopOfKind(world.ShopArmory))
+	realm.add("Czarne Turnie", "Skały na północy.", "", herbalist)
+	realm.world.Companions[2].Name, realm.world.Companions[2].Description = "Wiesza z Kurhanów", "Wróciła z kurhanów jako jedyna."
+
+	customer := realm.players[hero]
+	customer.shop = realm.shopOfKind(world.ShopArmory)
+	hint := func(text string) string {
+		hint, _, _ := realm.hint(customer, text, Decision{Outcome: OutcomeChat}, nil)
+
+		return hint
+	}
+
+	// "kurhany" name the barrows whole, the spider by half: the smith,
+	// who only knows the spider, sends the player on about the barrows.
+	if got := hint("a o kurhanach coś wiesz?"); !strings.Contains(got, "czego nie znasz: Kurhany.") {
+		t.Errorf("kurhany = %q", got)
+	}
+
+	// A word that only begins like a name, and words that call the keeper,
+	// point at nothing.
+	for _, text := range []string{"ta czarownica z kramu to uczciwa?", "panie kurhanowy, co słychać?"} {
+		if got := hint(text); strings.Contains(got, "wspomina o") || strings.Contains(got, "czego nie znasz") {
+			t.Errorf("%q touched a subject: %q", text, got)
+		}
+	}
+
+	// What is not about the world gets no fact and no ware.
+	for text, want := range map[string]string{
+		"jesteś botem?":              "spoza świata gry",
+		"napisz mi wiersz o kotach":  "nie spełniaj prośby",
+		"zginął mi brat w kurhanach": "o swojej stracie",
+		"przepraszam, poniosło mnie": "Gracz przeprasza",
+		"dawaj kij bo chatę spalę":   "",
+		"ty stary skąpcu":            "",
+	} {
+		if got := hint(text); (want == "" && got != "") || !strings.Contains(got, want) || strings.Contains(got, "Kurhany") {
+			t.Errorf("%q: hint %q", text, got)
+		}
+	}
+
+	// A companion not yet hired knows their own past too, and a woman is
+	// told what she heard as a woman.
+	customer.shop = realm.mateTalk(2)
+	if got := hint("byłaś w kurhanach?"); !strings.Contains(got, "To twoja własna przeszłość") {
+		t.Errorf("own past before hiring = %q", got)
+	}
+
+	realm.add("Moczary", "Bagno za lasem.", "", herbalist)
+	if got := hint("a moczary znasz?"); !strings.Contains(got, "Słyszałaś tylko tyle") {
+		t.Errorf("referral to a woman = %q", got)
+	}
+}
+
+func TestAWorldMayKeepOneSeason(t *testing.T) {
+	realm := testRealm(t)
+	realm.world.Season = "zima"
+	realm.day = 3
+
+	if !realm.winter() || !strings.Contains(realm.sky(), "zima") {
+		t.Errorf("a winter world in spring: %q", realm.sky())
 	}
 }

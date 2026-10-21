@@ -7,6 +7,8 @@ func TestFeminine(t *testing.T) {
 		"Siostra Agnes": true, "Elira Cieniokrąg": true, "Jagna": true, "Bogna Topór": true,
 		"Borin Kamienna Pięść": false, "Thorin Żelazna Broda": false, "Ozryk z Akademii": false,
 		"Kuba Rozpruwacz": false, "Wędrowny Kupiec": false, "": false,
+		"Pani Kaliber": true, "Doktor Lena": true, "Brat Jaromir": false, "Żerca Bogumił": false, "Sanitariusz Kuba": false,
+		"Sanitariuszka Mira": true, "Kwatermistrz Vey": false, "Stara Jagna": true, "Sir Gniewomir Nieugięty": false,
 	} {
 		if got := Feminine(name); got != want {
 			t.Errorf("Feminine(%q) = %v", name, got)

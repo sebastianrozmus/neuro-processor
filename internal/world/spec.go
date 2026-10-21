@@ -262,6 +262,9 @@ type Spec struct {
 	Intro string `json:"intro"`
 	// Currency is the phrase put after an amount, e.g. "kredytów".
 	Currency string `json:"currency"`
+	// Season, when set ("zima"), is the only season the world knows: the
+	// winter that never ends, the summer of a desert.
+	Season string `json:"season,omitempty"`
 	// Style is the card of the inspiration a generated world follows.
 	Style *StyleSpec `json:"style,omitempty"`
 	// Origin says where a generated world came from: the player's theme,

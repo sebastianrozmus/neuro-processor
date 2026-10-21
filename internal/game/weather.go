@@ -1,6 +1,11 @@
 package game
 
-import "github.com/sebastianrozmus/neuro-processor/internal/world"
+import (
+	"slices"
+	"strings"
+
+	"github.com/sebastianrozmus/neuro-processor/internal/world"
+)
 
 // The sky over the world: four seasons of daysPerSeason each, and a
 // weather rolled every morning that changes how far one sees, how fast
@@ -42,21 +47,30 @@ func seasonOf(day int) int {
 	return (max(day, 1) - 1) / daysPerSeason % len(Seasons)
 }
 
+// seasonNow is the season of the current day, or the world's only one.
+func (r *Realm) seasonNow() int {
+	if fixed := slices.Index(Seasons, strings.ToLower(strings.TrimSpace(r.world.Season))); fixed >= 0 {
+		return fixed
+	}
+
+	return seasonOf(r.day)
+}
+
 // season names the current season.
 func (r *Realm) season() string {
-	return Seasons[seasonOf(r.day)]
+	return Seasons[r.seasonNow()]
 }
 
 // winter reports whether it is winter.
 func (r *Realm) winter() bool {
-	return seasonOf(r.day) == len(Seasons)-1
+	return r.seasonNow() == len(Seasons)-1
 }
 
 // rollWeather picks the day's weather for the season.
 func (r *Realm) rollWeather() {
 	roll := r.rng.Intn(100)
 
-	for _, odds := range weatherOdds[seasonOf(r.day)] {
+	for _, odds := range weatherOdds[r.seasonNow()] {
 		if roll < odds.percent {
 			r.weather = odds.weather
 

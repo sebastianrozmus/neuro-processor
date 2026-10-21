@@ -179,6 +179,13 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 		intent = Intent{Action: ActionChat, Persuasion: intent.Persuasion}
 	}
 
+	// A companion is talked to in the role they had when the player spoke:
+	// the hire that makes them a companion is still a mercenary's deal.
+	role := ""
+	if kind, ok := r.mateOf(customer.shop); ok {
+		role = r.mateRole(kind)
+	}
+
 	decision := session.Apply(intent)
 	town := r.townOf(customer)
 
@@ -188,6 +195,12 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	threat, insult := threatening(folded), rude(folded)
 	if (threat || insult) && decision.Outcome == OutcomeChat {
 		decision.Mood = MoodOffended
+	}
+
+	// An apology, a threat or a question from outside the world is no
+	// occasion to recommend wares.
+	if _, quiet := aside(folded); decision.Outcome == OutcomeChat && (quiet || threat || insult) {
+		decision.Aside = true
 	}
 
 	switch decision.Outcome {
@@ -247,8 +260,8 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 
 	if r.investigation() {
 		request.Role = RoleWitness
-	} else if kind, ok := r.mateOf(customer.shop); ok {
-		request.Role = r.mateRole(kind)
+	} else if role != "" {
+		request.Role = role
 
 		// Small talk with a mercenary is not about the fee: quoting it
 		// anyway ("dołączam za 85 koron" to "dołącz za darmo") earns the

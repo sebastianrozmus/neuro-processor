@@ -725,6 +725,8 @@ func (d Decision) Brief() string {
 		brief = fmt.Sprintf("Gracz pyta o %s. Opis: %s Twoja aktualna cena: %s. Opowiedz krótko o przedmiocie i podaj cenę.", d.what(), d.Item.Description, d.amount(d.Price))
 	case outcome == OutcomeWares:
 		brief = "Gracz pyta, co masz na sprzedaż. " + d.waresBrief()
+	case outcome == OutcomeChat && d.Aside:
+		brief = "Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz w swojej roli na to, co powiedział. W tej kwestii niczego nie sprzedajesz."
 	case outcome == OutcomeChat:
 		brief = "Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedział. " +
 			"Jeśli pyta o towar, możesz polecić coś ze swojego towaru i podać jego cenę z listy. W tej kwestii niczego nie sprzedajesz."

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -41,13 +42,16 @@ func (r *Realm) mateOf(index int) (int, bool) {
 // own character.
 func (r *Realm) mateSpec(kind int) world.ShopSpec {
 	spec := r.world.Companions[kind]
-	greeting := "Siadaj. Jeśli szukasz kogoś do roboty, to trafiłeś; o cenie pogadamy."
+	// Every mercenary opening with the same line taught the model one
+	// mercenary; each picks one of a few by their trade.
+	lines := mateGreetings[spec.Role]
+	if spec.Legend || len(lines) == 0 {
+		lines = legendGreetings
+	}
 
-	switch {
-	case r.hired[kind] != "":
+	greeting := lines[len([]rune(spec.Name))%len(lines)]
+	if r.hired[kind] != "" {
 		greeting = "Słucham. Co robimy dalej?"
-	case spec.Legend:
-		greeting = "Siadaj. Ze mną nie chodzi się za darmo: żołd co dzień o świcie."
 	}
 
 	return world.ShopSpec{
@@ -57,6 +61,79 @@ func (r *Realm) mateSpec(kind int) world.ShopSpec {
 		Greeting: greeting,
 	}
 }
+
+// mateGround is the places a companion has been to: the first dangerous
+// ones on the map, as many as a keeper has leads.
+func (r *Realm) mateGround() []int {
+	var ground []int
+
+	for index, place := range r.places {
+		if place.Danger == 0 || len(ground) >= referrals {
+			continue
+		}
+
+		if _, ok := r.placeTile(index); ok {
+			ground = append(ground, index)
+		}
+	}
+
+	return ground
+}
+
+// mateKnows reports whether a companion knows a fact from their own road:
+// a place they have been to or a creature they have fought, which they
+// talk about themselves instead of sending the hero to a shop.
+func (r *Realm) mateKnows(fact *Fact) bool {
+	for _, index := range r.mateGround() {
+		if r.places[index].Name == fact.Subject {
+			return true
+		}
+	}
+
+	for _, monster := range r.world.Monsters {
+		if monster.Name == fact.Subject {
+			return true
+		}
+	}
+
+	return false
+}
+
+// gendered picks the form of a word for a woman or for a man.
+func gendered(she bool, his, hers string) string {
+	if she {
+		return hers
+	}
+
+	return his
+}
+
+// mateGreetings open a talk with a companion for hire, by their trade;
+// legendGreetings with a legend, who works for a daily wage.
+var (
+	mateGreetings = map[world.Role][]string{
+		world.RoleFighter: {
+			"Siadaj. Jeśli szukasz kogoś do roboty, to dobrze trafić; o cenie pogadamy.",
+			"Mów, z czym przychodzisz. Jeśli z robotą dla miecza, to słucham.",
+			"Siadaj, ławka wolna. Szukasz kogoś, kto stanie w pierwszym szeregu?",
+		},
+		world.RoleHealer: {
+			"Siadaj, tylko nie krwaw mi na stół. Szukasz kogoś, kto będzie łatał rany?",
+			"Witaj. Jeśli drużynie brakuje kogoś od opatrunków, to porozmawiajmy.",
+			"Siadaj. Rany, gorączki, złamania: od tego jestem, o cenie pogadamy.",
+		},
+		world.RoleMage: {
+			"Siadaj. Jeśli potrzebujesz czarów w drużynie, to jesteś pod dobrym stołem.",
+			"Mów śmiało, czego chcesz. Moja wiedza kosztuje, ale jest warta swojej ceny.",
+			"Siadaj. Szukasz kogoś, kto zna się na mocach? O cenie pogadamy.",
+		},
+	}
+	legendGreetings = []string{
+		"Siadaj. Ze mną nie chodzi się za darmo: żołd co dzień o świcie.",
+		"Mów krótko, z czym przychodzisz. Za moją służbę płaci się co dzień, bez wyjątków.",
+		"Siadaj. Wiesz, kim jestem, i wiesz, że żołd płaci się co rano.",
+	}
+)
 
 // WageName and HireName are the wares a companion for hire talks over: a
 // legend's daily wage, or the price of joining.
@@ -302,20 +379,18 @@ func (r *Realm) mateLore(leader *player, kind int, wares []Ware) string {
 	fmt.Fprintf(&lore, "Siedzisz w karczmie osady: %s. %s\n", built.PlaceAt(here).Name, built.PlaceAt(here).Description)
 	fmt.Fprintf(&lore, "Dzień %d. %s\n", r.day, r.sky())
 
+	she := speech.Feminine(spec.Name)
+
 	var dangers []string
 
-	for index, place := range r.places {
-		if place.Danger == 0 || len(dangers) >= referrals {
-			continue
-		}
-
-		if point, ok := r.placeTile(index); ok {
-			dangers = append(dangers, fmt.Sprintf("%s (%s, zagrożenie %d)", place.Name, bearing(here, point), place.Danger))
-		}
+	for _, index := range r.mateGround() {
+		point, _ := r.placeTile(index)
+		place := r.places[index]
+		dangers = append(dangers, fmt.Sprintf("%s (%s, zagrożenie %d)", place.Name, bearing(here, point), place.Danger))
 	}
 
 	if len(dangers) > 0 {
-		fmt.Fprintf(&lore, "Strony, w których bywałeś: %s. Najgroźniejsze (zagrożenie %d) omijasz, póki nie zmężniejesz.\n", join(dangers), world.MaxTier)
+		fmt.Fprintf(&lore, "Strony, w których %s: %s. Najgroźniejsze (zagrożenie %d) omijasz, póki nie nabierzesz sił.\n", gendered(she, "bywałeś", "bywałaś"), join(dangers), world.MaxTier)
 	}
 
 	monsters := make([]string, 0, len(built.Monsters))
@@ -324,7 +399,7 @@ func (r *Realm) mateLore(leader *player, kind int, wares []Ware) string {
 	}
 
 	if len(monsters) > 0 {
-		fmt.Fprintf(&lore, "Potwory, z którymi miałeś do czynienia: %s.\n", join(monsters))
+		fmt.Fprintf(&lore, "Potwory, z którymi %s do czynienia: %s.\n", gendered(she, "miałeś", "miałaś"), join(monsters))
 	}
 
 	fmt.Fprintf(&lore, "Największe zagrożenie: %s. %s Jego siedziba: %s.\n", built.Boss.Name, built.Boss.Description, bearing(here, built.Lair))

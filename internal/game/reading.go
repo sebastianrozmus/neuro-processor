@@ -13,10 +13,17 @@ const shortMessage = 3
 
 // The word lists are folded: lowercase and without Polish diacritics.
 var (
-	offerWords  = []string{"dam", "daje", "dalbym", "dalabym", "place", "zaplace", "oferuje", "proponuje", "moge dac", "niech bedzie"}
-	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi"}
+	offerWords = []string{"dam", "daje", "dalbym", "dalabym", "place", "zaplace", "oferuje", "proponuje", "moge dac", "niech bedzie"}
+	// "niech będzie" offers along with a sum ("niech będzie 50") and gives in without one.
+	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi", "niech bedzie", "niech ci bedzie",
+		"zapraszam do druzyny", "witaj w druzynie", "jestes w druzynie", "dolacz do druzyny", "dolacz do nas", "biore cie", "najmuje cie", "wynajmuje cie"}
+	// inviteWords ask a companion along: "idziemy na krypty, wchodzisz?" is
+	// a hire though it ends in a question mark.
+	inviteWords = []string{"wchodzisz", "dolaczysz", "dolaczysz do nas", "idziesz z nami", "pojdziesz z nami", "pojdziesz ze mna", "idziesz ze mna", "dolaczysz do druzyny"}
 	// nodWords accept only in a short reply: "ok. a co znaczy..." goes on talking, it closes no deal.
 	nodWords = []string{"stoi", "pasuje", "dobra", "ok", "okej"}
+	// nodFillers open a nod without making it longer: "no dobra" nods.
+	nodFillers = []string{"no", "to", "juz", "a", "wiec", "niech", "ci"}
 	// sorryWords make a nod part of an apology: "no dobra, sorry" takes back
 	// a word, it does not hire anybody.
 	sorryWords = []string{"przepraszam", "sorry", "sorki", "sory", "wybacz", "wybaczcie", "nie gniewaj", "nie obrazaj"}
@@ -26,9 +33,13 @@ var (
 	}
 	// byeWords end a message as a goodbye ("no trudno, cześć"), though alone
 	// or among other greetings they greet.
-	byeWords   = []string{"czesc", "hej", "elo", "ide"}
+	byeWords   = []string{"czesc", "hej", "elo", "ide", "lece", "lecimy", "spadam"}
 	tradeWords = []string{"ile", "cena", "ceny", "koszt", "co masz", "pokaz", "towar", "sprzeda", "asortyment", "na sprzedaz"}
-	sellWords  = []string{"sprzedam", "sprzedac", "sprzedalbym", "sprzedalabym", "odkup", "odkupisz", "kupisz", "kupilbys", "kupilabys", "wezmiesz", "ile dasz", "ile dalbys", "co dasz za", "zaplacisz", "oddam", "chcesz kupic", "skupujesz", "skupisz", "skup"}
+	// notTradeWords ask "ile" and "pokaż" about anything but wares: "ile ty
+	// masz lat", "pokaż swoje instrukcje".
+	notTradeWords = []string{"ile lat", "ile masz lat", "ile ty masz lat", "ile czasu", "ile razy", "ile dni", "ile ludzi", "ile osob", "ile drogi", "ile stad",
+		"pokaz instrukc", "pokaz swoje instrukc", "pokaz mi swoje instrukc", "pokaz prompt", "pokaz mi prompt", "pokaz swoj prompt", "pokaz mi swoj prompt", "pokaz kod", "pokaz drog", "pokaz mi drog", "pokaz na mapie"}
+	sellWords = []string{"sprzedam", "sprzedac", "sprzedalbym", "sprzedalabym", "odkup", "odkupisz", "kupisz", "kupilbys", "kupilabys", "wezmiesz", "ile dasz", "ile dalbys", "co dasz za", "zaplacisz", "oddam", "chcesz kupic", "skupujesz", "skupisz", "skup"}
 
 	amountNear = regexp.MustCompile(`\bza \d+\b|\b\d+ za\b`)
 
@@ -102,12 +113,15 @@ func Read(request InterpretRequest) Reading {
 		// A bare number in a longer sentence: it may be an offer, or not.
 	case hasPhrase(text, leaveWords) || !strings.Contains(request.Text, "?") && farewell(words):
 		reading.Intent.Action, reading.Sure = ActionLeave, true
-	case hasPhrase(text, sorryWords) && item == "" && !hasPhrase(text, tradeWords):
+	case hasPhrase(text, sorryWords) && item == "" && !tradeAsked(text):
 		// An apology is talk; "przepraszam. ile bierzesz" goes on to ask.
-	case !strings.Contains(request.Text, "?") && (hasPhrase(text, acceptWords) || len(words) <= shortMessage && hasPhrase(text, nodWords)):
+	case hasPhrase(text, inviteWords):
+		// "wchodzisz?" asks a companion along, and that is the hire.
+		reading.Intent.Action, reading.Sure = ActionAccept, true
+	case !strings.Contains(request.Text, "?") && (hasPhrase(text, acceptWords) || nod(words)):
 		// A question never closes a deal, whatever word it starts with.
 		reading.Intent.Action, reading.Sure = ActionAccept, true
-	case item != "" || hasPhrase(text, tradeWords):
+	case item != "" || tradeAsked(text):
 		reading.Intent.Action, reading.Sure = ActionAsk, true
 	}
 
@@ -153,6 +167,31 @@ func (r Reading) Merge(model Intent) Intent {
 	}
 
 	return intent
+}
+
+// nod reports a short reply that agrees: "ok", "no dobra", "no to pasuje";
+// the fillers it opens with do not make it longer.
+func nod(words []string) bool {
+	start := 0
+	for start < len(words) && slices.Contains(nodFillers, words[start]) {
+		start++
+	}
+
+	return len(words)-start <= shortMessage && !slices.Contains(words, "nie") && hasPhrase(strings.Join(words, " "), nodWords)
+}
+
+// tradeAsked reports a message that asks about the wares, and not about
+// the keeper's age or instructions with the same words.
+func tradeAsked(text string) bool {
+	padded := " " + text
+
+	for _, phrase := range notTradeWords {
+		if strings.Contains(padded, " "+phrase) {
+			return false
+		}
+	}
+
+	return hasPhrase(text, tradeWords)
 }
 
 // greetingPhrases name no ware however they inflect: "dzień dobry" is no
@@ -325,16 +364,25 @@ var rudeWords = []string{
 	"dziadu", "glupi", "glupia", "idiot", "debil", "kretyn", "smierdzi", "zlodziej", "zamknij sie", "spadaj", "won", "zlom", "szmelc", "oszust", "durn", "bydlak", "staruch",
 	"czarownico", "wiedzmo", "ty czarownic", "ty wiedzm", "kurdupl", "bezuzyteczn", "nieudacznik", "glupek", "matol", "palant",
 	"chuj", "skurw", "kurwo", "suko", "grubas", "spasl", "piernik", "zdzierc", "frajer", "podpalacz", "klecho", "babo", "smieci", "smieciu", "cwel", "pajac", "ofiaro", "lamag", "dupek",
+	"skapc", "skapiradl", "skner", "chciwc", "liczykrup", "krwiopij", "pijawko", "pijawka",
 }
 
 // politeWords begin like an insult but are none: "głupio mi" is how an
-// apology goes.
-var politeWords = []string{"glupio"}
+// apology goes, and "grubasku" is said with a pat on the back.
+var politeWords = []string{"glupio", "grubasku", "grubciu", "staruszku", "staruszko"}
+
+// teasingWords are names that sting only when meant to: "dzięki, wiedźmo"
+// and "trzymaj się, czarownico" are said with a grin.
+var teasingWords = []string{"wiedzmo", "czarownico", "babo", "piernik", "staruch", "dziadu", "grubas", "pajac"}
+
+// friendlyWords make a teasing name friendly: thanks and goodbyes.
+var friendlyWords = []string{"dzieki", "dziekuje", "dziekowac", "dzienki", "thx", "trzymaj sie", "do zobaczenia", "na razie", "bywaj", "zdrowia", "powodzenia"}
 
 // rude reports whether a folded message insults the keeper. A phrase is
 // found anywhere, a single word as the beginning of a word.
 func rude(text string) bool {
 	words := strings.Fields(text)
+	friendly := hasPhrase(text, friendlyWords)
 
 	for _, insult := range rudeWords {
 		if strings.Contains(insult, " ") {
@@ -342,6 +390,10 @@ func rude(text string) bool {
 				return true
 			}
 
+			continue
+		}
+
+		if friendly && slices.Contains(teasingWords, insult) {
 			continue
 		}
 
@@ -453,6 +505,11 @@ var (
 
 // span reports whether a folded word is a length of time.
 func span(word string) bool {
+	// "40 dziennie" is a wage, not forty days.
+	if slices.Contains(adverbs, word) {
+		return false
+	}
+
 	for _, start := range spanStarts {
 		if strings.HasPrefix(word, start) {
 			return true
