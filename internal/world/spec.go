@@ -265,6 +265,9 @@ type Spec struct {
 	// Season, when set ("zima"), is the only season the world knows: the
 	// winter that never ends, the summer of a desert.
 	Season string `json:"season,omitempty"`
+	// Weather, when set ("deszcz", "mgła", "upał", "śnieżyca"), is the sky
+	// that holds most days: the city where it never stops raining.
+	Weather string `json:"weather,omitempty"`
 	// Style is the card of the inspiration a generated world follows.
 	Style *StyleSpec `json:"style,omitempty"`
 	// Origin says where a generated world came from: the player's theme,

@@ -2651,6 +2651,23 @@ func TestKeepersHearWhatIsMeant(t *testing.T) {
 	}
 }
 
+func TestAWorldMayHaveItsUsualWeather(t *testing.T) {
+	realm := testRealm(t)
+	realm.world.Weather = "deszcz"
+
+	rain := 0
+	for range 200 {
+		realm.rollWeather()
+		if realm.weather == WeatherRain {
+			rain++
+		}
+	}
+
+	if rain < 110 {
+		t.Errorf("rain on %d days of 200 in a rainy world", rain)
+	}
+}
+
 func TestAWorldMayKeepOneSeason(t *testing.T) {
 	realm := testRealm(t)
 	realm.world.Season = "zima"

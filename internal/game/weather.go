@@ -66,9 +66,24 @@ func (r *Realm) winter() bool {
 	return r.seasonNow() == len(Seasons)-1
 }
 
-// rollWeather picks the day's weather for the season.
+// usualPercent is how often a world's usual weather holds.
+const usualPercent = 65
+
+// rollWeather picks the day's weather for the season, or most days the
+// world's usual one: the intro of a city "where it has rained for forty
+// days" was told "pogodnie" every morning.
 func (r *Realm) rollWeather() {
 	roll := r.rng.Intn(100)
+
+	if usual := Weather(strings.ToLower(strings.TrimSpace(r.world.Weather))); slices.Contains([]Weather{WeatherFog, WeatherRain, WeatherHeat, WeatherSnow}, usual) {
+		if roll < usualPercent {
+			r.weather = usual
+
+			return
+		}
+
+		roll = r.rng.Intn(100)
+	}
 
 	for _, odds := range weatherOdds[r.seasonNow()] {
 		if roll < odds.percent {
