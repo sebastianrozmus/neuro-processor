@@ -384,17 +384,25 @@ func namedItem(text string, wares []Ware) string {
 	words := strings.Fields(text)
 
 	for _, ware := range wares {
-		matched := 0
+		// What a ware is made of or comes from, after "z", names it only along
+		// with the ware itself: "kajmanów ubiłeś?" asks for no Napierśnik z
+		// Łuski Kajmana.
+		matched, head, tail := 0, false, false
 		for _, part := range strings.Fields(Fold(ware.Name)) {
+			if part == "z" || part == "ze" {
+				tail = true
+			}
+
 			if namesWord(words, part) {
 				matched++
+				head = head || !tail
 			}
 		}
 
 		complete := matched == len(strings.Fields(Fold(ware.Name)))
 
 		// More matched words win; at a tie, a name matched in full wins.
-		if matched > 0 && (matched > score || (matched == score && complete && !whole)) {
+		if matched > 0 && head && (matched > score || (matched == score && complete && !whole)) {
 			best, score, whole = ware.ID, matched, complete
 		}
 	}

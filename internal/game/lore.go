@@ -199,6 +199,8 @@ var plainWords = []string{
 	"masz", "macie", "mamy", "pani", "pana", "panu", "panie", "pania", "dzien", "dobry", "dobra", "dobre", "stara", "stare", "starej", "staremu", "starego",
 	// "boli mnie głowa" is no Gruby Bolo.
 	"boli", "bola", "bolal", "bolala", "bolalo", "bolec",
+	// "przyjęłaś na świat" is no Świątynia.
+	"swiat", "swiata", "swiecie", "swiatem",
 }
 
 // addressWords call the one spoken to by what follows: "panie rycerzu" is
@@ -277,6 +279,11 @@ func closely(text, word string) bool {
 
 	for _, part := range strings.Fields(Fold(text)) {
 		if !strings.HasPrefix(part, stem) && !strings.HasPrefix(fleeting(part), stem) {
+			continue
+		}
+
+		// A short word does not begin a long one: "żaba" is no "Zabójca".
+		if len(word) <= minQueryWord+1 && len(part) > longWord {
 			continue
 		}
 

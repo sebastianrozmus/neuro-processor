@@ -202,6 +202,8 @@ func TestRead(t *testing.T) {
 		{"dzięki wiedźmo", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
 		{"ty stary skąpcu", "", Intent{Action: ActionChat, Persuasion: -2}, true, Intent{Action: ActionChat, Persuasion: -2}},
 		{"a na złomowisku dronów?", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		// What a ware is made of does not name it alone.
+		{"dużo opon zebrałeś?", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
 		{"wypchaj się, smarkulo", "", Intent{Action: ActionChat, Persuasion: -2}, true, Intent{Action: ActionChat, Persuasion: -2}},
 		// "ile" and "pokaż" ask about other things than wares too.
 		{"ile ty masz lat?", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
