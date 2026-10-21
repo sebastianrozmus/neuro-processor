@@ -540,3 +540,34 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
 
     Typowe błędy MG to pominięte zdarzenie albo łup i dopisane stany zdrowia. W rozmowach: bełkot, pominięte polecenie [GRA] (cena, odesłanie), powtarzanie własnych zdań, uleganie prośbie o wiersz.
   - **Wniosek:** SFT od bazy na przebranym zbiorze bije całą linię DPO (run12h) i w walce, i w rozmowach. Druga epoka nic nie daje w automacie, a MG ma po niej więcej błędów (run14h 6 wobec 12 ciężkich). Rozmowy są po niej nieco lepsze w ocenie (3.79 wobec 3.46). Kandydat do gry: run14 albo run14h (zmiana modelu w `.env.local` tylko za zgodą). Dalej: run 15 (1 epoka, poprawiona tokenizacja, nowe światy, bez świata testu).
+
+- **run 15 (20–21.10): SFT od bazy, 1 epoka, bez świata testu. MG na poziomie run14, rozmowy słabsze w ślepej ocenie.**
+  - Dane (`D:/neuro-train/run15`, `build.py`, `select.py`):
+    - pula run14 bez Smoczej Góry (świat testu);
+    - limity: najwyżej 70 przykładów na postać, 12 na kartę;
+    - 3 nowe światy treningowe (`run15/worlds`: Szklana Rzeka, Mosiężne Kanały, Szlak Siedmiu Studni) i 24 postacie z rozmowami `talk/k21–k26`;
+    - ponownie odtworzone k01–k14 na poprawionym silniku (ae2cd2b, 6bff821);
+    - 109 przepisanych rund regeneracji (`gm-fix.jsonl`).
+    - Razem 2832 przykłady treningowe i 136 sprawdzających; tokenizacja na poprawce ff1f0f7.
+  - Trening: 1 epoka, 354 kroki, 204 min. eval_loss 0.912 → 0.892 → 0.879 → 0.869 → **0.863** (koniec), spadała do końca.
+  - `check.py`, bez uwag s7/s11: run15 88/91% (123–129 zn.), tyle samo co run14h (88/91%); run14 91/90%. Główna uwaga: powtórki (11/8).
+  - Ślepa ocena (pomocnik, `run15/blind/verdict-*.jsonl`, run15 wobec run14 i run14h; inny sędzia niż w run14, więc liczby nie są porównywalne 1:1 z poprzednim wpisem):
+
+    | model | MG: rundy bez ciężkich błędów | MG: ciężkie / lekkie | rozmowy: bez ciężkich | ocena 1–5 | najlepszy |
+    |---|---|---|---|---|---|
+    | run14h | 95% | 4 / 45 | 71% | 3.29 | 10 |
+    | run15 | 89% | 9 / 34 | 42% | 3.00 | 4 z 24 |
+    | run14 | 89% | 10 / 48 | 54% | 3.50 | 10 |
+
+    MG run15: 5 z 9 ciężkich błędów to dopisane stany zdrowia („zostaje z 4 zdrowia”), do tego 2 razy zły odbiorca leczenia. Ma najmniej lekkich błędów.
+    Rozmowy run15:
+    - wklejanie żołdu w każdej kwestii (Aldric);
+    - zmyślony własny pobyt („Byłem w kopalni”), mimo że karta daje tylko plotkę;
+    - bełkot z liczbami (Ozryk);
+    - napisany wiersz na prośbę;
+    - przyjęcie nowej zapłaty, choć postać już jest w drużynie.
+  - Uwaga: run14 i run14h trenowały na 4 z 6 postaci testu (wyciek). run15 widzi te postacie pierwszy raz, więc część przewagi run14 w rozmowach to zapamiętanie. 24 rozmowy i jeden sędzia to mała próba.
+  - **Wniosek:** do gry nadal run14h (MG najczystszy, rozmowy najczystsze). run15 pokazuje uczciwy poziom na nieznanych postaciach: walka się uogólnia, rozmowy dużo słabiej. Dalej:
+    - poprawić błędy czytania w silniku i ponownie przejrzeć dane;
+    - więcej rozmów z wieloma turami, w których cena pada tylko raz, a postać nie zna miejsca z własnej wizyty;
+    - pary DPO o podobnej długości na powtórki i zmyślone stany zdrowia.
