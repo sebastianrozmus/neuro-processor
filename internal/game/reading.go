@@ -39,7 +39,7 @@ var (
 	// byeWords end a message as a goodbye ("no trudno, cześć"), though alone
 	// or among other greetings they greet.
 	byeWords   = []string{"czesc", "hej", "elo", "ide", "lece", "lecimy", "spadam"}
-	tradeWords = []string{"cena", "ceny", "koszt", "co masz", "pokaz", "towar", "sprzeda", "asortyment", "na sprzedaz", "sprzedajesz", "sprzedajecie", "handlujesz", "co oferujesz"}
+	tradeWords = []string{"cena", "ceny", "koszt", "co masz", "towar", "sprzeda", "asortyment", "na sprzedaz", "sprzedajesz", "sprzedajecie", "handlujesz", "co oferujesz"}
 	// ileWords after "ile" ask a price: "ile za kaftan", "ile bierzesz";
 	// "ile wilków zabiłeś" asks something else.
 	ileWords = []string{"za", "to", "chcesz", "chce", "bierzesz", "bierze", "bierzecie", "kasuje", "liczy", "zyczy", "chcialby", "chcialaby", "dasz", "by", "bys", "liczysz", "kasujesz", "wolasz", "trzeba", "mam", "place", "zaplace", "zaplacic"}
@@ -209,7 +209,40 @@ func tradeAsked(text string) bool {
 		}
 	}
 
-	return hasPhrase(text, tradeWords) || priceAsked(strings.Fields(text))
+	words := strings.Fields(text)
+
+	return hasPhrase(text, tradeWords) || priceAsked(words) || showAsked(words)
+}
+
+// payWords with a sum offer money: "dobrze, zgoda na 130", "dorzucę 20".
+// A companion in the party has no wares to read an offer against, so
+// the rules read it from the words.
+var payWords = []string{"zgoda", "dam", "daje", "dorzuce", "doplace", "place", "zaplace", "bierz", "masz", "stoi"}
+
+func offersMoney(folded string) bool {
+	return strings.ContainsAny(folded, "0123456789") && (hasPhrase(folded, payWords) || hasPhrase(folded, acceptWords))
+}
+
+// showWords after "pokaż" ask for the wares: "pokaż co masz", "pokaż
+// towar". "Pokaż bliznę" asks for a scar, not a price.
+var (
+	showWords   = []string{"co", "cos", "swoj", "swoje", "swoja", "wszystko", "asortyment", "oferte", "czym", "jakie", "jaki"}
+	showFillers = []string{"mi", "nam", "no", "prosze", "to", "wiec", "a"}
+)
+
+func showAsked(words []string) bool {
+	for index, word := range words {
+		if word != "pokaz" && word != "pokazcie" && word != "pokazesz" {
+			continue
+		}
+
+		rest := slices.DeleteFunc(slices.Clone(words[index+1:]), func(w string) bool { return slices.Contains(showFillers, w) })
+		if len(rest) == 0 || slices.Contains(showWords, rest[0]) || strings.HasPrefix(rest[0], "towar") {
+			return true
+		}
+	}
+
+	return false
 }
 
 // priceAsked reports "ile" asking a price: alone at the end ("a ile?"), or

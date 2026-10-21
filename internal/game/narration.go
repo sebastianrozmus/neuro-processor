@@ -674,6 +674,10 @@ const (
 // shopkeepers. The shopkeeper's brief invites them to recommend wares
 // with prices, which sends a mercenary straight back to his wage when he
 // was asked about his axe.
+// paidMate is the hint for money offered to a companion already in the
+// party: the deal was made at the hire, and nothing more is taken.
+const paidMate = "Gracz proponuje ci pieniądze albo umowę, ale już jesteś w drużynie i umowa dawno stoi. Nie bierzesz żadnych pieniędzy, nie podajesz kwot i się nie targujesz: zbądź to krótko po swojemu."
+
 var chatBriefs = map[string]string{
 	RoleMercenary: "Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedział: o swojej broni, rzemiośle, drodze albo świecie. " +
 		"O cenie służby mów tylko, gdy o nią pyta. W tej kwestii niczego nie sprzedajesz.",
@@ -693,7 +697,7 @@ func (d Decision) BriefFor(role string) string {
 	// A mercenary's deal is a hire, not a sale: told to "potwierdź
 	// sprzedaż", models confirmed a sale and paid the player.
 	if role == RoleMercenary && d.Outcome == OutcomeSold {
-		brief := fmt.Sprintf("Gracz przyjmuje twoją cenę i płaci ci %s za %s. Umowa stoi: potwierdź, że dołączasz do drużyny. Pieniądze bierzesz ty, nie dajesz.", d.amount(d.Price), d.what())
+		brief := fmt.Sprintf("Gracz płaci ci %s za %s. Umowa stoi: potwierdź, że dołączasz do drużyny. Pieniądze bierzesz ty, nie dajesz.", d.amount(d.Price), d.what())
 		if d.Item.Name == WageName {
 			// A legend's wage is settled at dawn: nothing changes hands now.
 			brief = fmt.Sprintf("Gracz przyjmuje twoją stawkę %s %s za każdy dzień, płatne o świcie; nic z góry. Umowa stoi: potwierdź, że dołączasz do drużyny. Teraz nie bierzesz pieniędzy.", d.what(), d.amount(d.Price))

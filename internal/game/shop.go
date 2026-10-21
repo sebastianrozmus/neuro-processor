@@ -175,7 +175,11 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 
 	// A companion in the party sells nothing: "ile mamy bandaży?" and
 	// "dobra, ruszamy" are talk, not a question about wares or a deal.
+	// One who offers them money is told the deal stands: briefed as plain
+	// talk, "dobrze, zgoda na 130" got "130, umowa stoi!".
+	paying := false
 	if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == name && intent.Action != ActionLeave {
+		paying = offersMoney(Fold(text))
 		intent = Intent{Action: ActionChat, Persuasion: intent.Persuasion}
 	}
 
@@ -234,6 +238,9 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	request := session.NarrateRequest(text, decision)
 	request.Lore = r.lore(customer, session.Wares())
 	hint, lead, anchored := r.hint(customer, text, decision, session.Wares())
+	if paying {
+		hint, lead, anchored = paidMate, nil, false
+	}
 	request.Hint = hint
 	if anchored {
 		request.Anchored, request.Names = true, r.names()

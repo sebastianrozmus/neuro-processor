@@ -2313,6 +2313,13 @@ func TestCompanionsHaggleAtTheInn(t *testing.T) {
 		t.Errorf("after joining: role %q", narrate.Role)
 	}
 
+	// Money offered after the hire buys nothing: the companion is told the
+	// deal stands, and the gold stays with the hero.
+	gold := ala.gold
+	if decision, narrate, _ = realm.Haggle(hero, "dobrze, zgoda na 130", Intent{Action: ActionChat}); decision.Outcome != OutcomeChat || ala.gold != gold || !strings.Contains(narrate.Hint, "umowa dawno stoi") {
+		t.Errorf("paid after the hire: %+v, gold %d, hint %q", decision, ala.gold, narrate.Hint)
+	}
+
 	// A companion in the party talks for free; let go, they are for hire again.
 	realm.CloseShop(hero)
 	do(realm, hero, "rozmawiaj z bogną")
@@ -2338,7 +2345,7 @@ func TestCompanionsHaggleAtTheInn(t *testing.T) {
 		t.Fatalf("no talk with the legend: %+v, %v", view.Shop, view.Log)
 	}
 
-	gold := ala.gold
+	gold = ala.gold
 	realm.Haggle(hero, "dam 55 dziennie", Intent{Action: ActionOffer, Amount: 55})
 	decision, _, _ = realm.Haggle(hero, "dam 55 dziennie", Intent{Action: ActionOffer, Amount: 55})
 	if decision.Outcome != OutcomeSold || decision.Price != 55 || ala.gold != gold || len(ala.party) != 1 || ala.party[0].wage != 55 {
