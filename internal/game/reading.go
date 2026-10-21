@@ -11,6 +11,10 @@ import (
 // it to count as an offer without any other cue.
 const shortMessage = 3
 
+// laterLength is how long a message putting the talk off may be: "za
+// tydzień wrócę, za 5 lat będę bogaty" goes on talking.
+const laterLength = 6
+
 // The word lists are folded: lowercase and without Polish diacritics.
 var (
 	offerWords = []string{"dam", "daje", "dalbym", "dalabym", "place", "zaplace", "oferuje", "proponuje", "moge dac", "niech bedzie"}
@@ -18,8 +22,9 @@ var (
 	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi", "niech bedzie", "niech ci bedzie",
 		"zapraszam do druzyny", "witaj w druzynie", "jestes w druzynie", "dolacz do druzyny", "dolacz do nas", "biore cie", "najmuje cie", "wynajmuje cie"}
 	// inviteWords ask a companion along: "idziemy na krypty, wchodzisz?" is
-	// a hire though it ends in a question mark.
-	inviteWords = []string{"wchodzisz", "dolaczysz", "dolaczysz do nas", "idziesz z nami", "pojdziesz z nami", "pojdziesz ze mna", "idziesz ze mna", "dolaczysz do druzyny"}
+	// a hire though it ends in a question mark. "Pójdziesz ze mną?" only
+	// asks whether they would, and is talk.
+	inviteWords = []string{"wchodzisz", "wchodzisz w to"}
 	// nodWords accept only in a short reply: "ok. a co znaczy..." goes on talking, it closes no deal.
 	nodWords = []string{"stoi", "pasuje", "dobra", "ok", "okej"}
 	// nodFillers open a nod without making it longer: "no dobra" nods.
@@ -34,7 +39,12 @@ var (
 	// byeWords end a message as a goodbye ("no trudno, cześć"), though alone
 	// or among other greetings they greet.
 	byeWords   = []string{"czesc", "hej", "elo", "ide", "lece", "lecimy", "spadam"}
-	tradeWords = []string{"ile", "cena", "ceny", "koszt", "co masz", "pokaz", "towar", "sprzeda", "asortyment", "na sprzedaz"}
+	tradeWords = []string{"cena", "ceny", "koszt", "co masz", "pokaz", "towar", "sprzeda", "asortyment", "na sprzedaz", "sprzedajesz", "sprzedajecie", "handlujesz", "co oferujesz"}
+	// ileWords after "ile" ask a price: "ile za kaftan", "ile bierzesz";
+	// "ile wilków zabiłeś" asks something else.
+	ileWords = []string{"za", "to", "chcesz", "bierzesz", "bierzecie", "dasz", "by", "bys", "liczysz", "kasujesz", "wolasz", "trzeba", "mam", "place", "zaplace", "zaplacic"}
+	// laterWords put the talk off: "dobra, jutro wrócę" leaves, it hires no one.
+	laterWords = []string{"wroce", "jutro wroce", "wroce jutro", "przyjde jutro", "przyjde pozniej", "zajrze pozniej", "zajrze jutro"}
 	// notTradeWords ask "ile" and "pokaż" about anything but wares: "ile ty
 	// masz lat", "pokaż swoje instrukcje".
 	notTradeWords = []string{"ile lat", "ile masz lat", "ile ty masz lat", "ile czasu", "ile razy", "ile dni", "ile ludzi", "ile osob", "ile drogi", "ile stad",
@@ -65,9 +75,10 @@ type Reading struct {
 
 	// amount is a number found in the message; it is an offer for certain
 	// only when the wording says so.
-	amount  int
-	focused bool
-	rude    bool
+	amount   int
+	focused  bool
+	rude     bool
+	question bool
 }
 
 // Read applies the rules to a message.
@@ -89,9 +100,10 @@ func Read(request InterpretRequest) Reading {
 	amount, cued := amountIn(text, words, request.Currency)
 
 	reading := Reading{
-		Intent:  Intent{Action: ActionChat, ItemID: item, Quantity: quantity},
-		amount:  amount,
-		focused: request.FocusID != "",
+		Intent:   Intent{Action: ActionChat, ItemID: item, Quantity: quantity},
+		amount:   amount,
+		focused:  request.FocusID != "",
+		question: strings.Contains(request.Text, "?"),
 	}
 
 	// An insult is talk, whatever else it mentions, and the worst manners;
@@ -112,6 +124,8 @@ func Read(request InterpretRequest) Reading {
 	case amount > 0:
 		// A bare number in a longer sentence: it may be an offer, or not.
 	case hasPhrase(text, leaveWords) || !strings.Contains(request.Text, "?") && farewell(words):
+		reading.Intent.Action, reading.Sure = ActionLeave, true
+	case hasPhrase(text, laterWords) && len(words) <= laterLength && item == "" && !tradeAsked(text):
 		reading.Intent.Action, reading.Sure = ActionLeave, true
 	case hasPhrase(text, sorryWords) && item == "" && !tradeAsked(text):
 		// An apology is talk; "przepraszam. ile bierzesz" goes on to ask.
@@ -140,7 +154,8 @@ func (r Reading) Open(wordy bool) bool {
 func (r Reading) Alone() Intent {
 	intent := r.Intent
 
-	if !r.Sure && r.amount > 0 && (intent.ItemID != "" || r.focused) {
+	// "byłaś w schronie 7?" asks, it offers no 7.
+	if !r.Sure && r.amount > 0 && !r.question && (intent.ItemID != "" || r.focused) {
 		intent.Action, intent.Amount = ActionOffer, r.amount
 	}
 
@@ -177,21 +192,42 @@ func nod(words []string) bool {
 		start++
 	}
 
-	return len(words)-start <= shortMessage && !slices.Contains(words, "nie") && hasPhrase(strings.Join(words, " "), nodWords)
+	// "no dobra, dzięki" closes the talk, not a deal.
+	return len(words)-start <= shortMessage && !slices.Contains(words, "nie") && !hasPhrase(strings.Join(words, " "), thanksWords) && hasPhrase(strings.Join(words, " "), nodWords)
 }
 
 // tradeAsked reports a message that asks about the wares, and not about
 // the keeper's age or instructions with the same words.
 func tradeAsked(text string) bool {
-	padded := " " + text
+	padded := " " + text + " "
 
-	for _, phrase := range notTradeWords {
+	for _, phrase := range append(notTradeWords, metaWords...) {
 		if strings.Contains(padded, " "+phrase) {
 			return false
 		}
 	}
 
-	return hasPhrase(text, tradeWords)
+	return hasPhrase(text, tradeWords) || priceAsked(strings.Fields(text))
+}
+
+// priceAsked reports "ile" asking a price: alone at the end ("a ile?"), or
+// followed by a word of paying or cost.
+func priceAsked(words []string) bool {
+	for index, word := range words {
+		if word != "ile" {
+			continue
+		}
+
+		if index+1 == len(words) {
+			return true
+		}
+
+		if next := words[index+1]; slices.Contains(ileWords, next) || strings.HasPrefix(next, "koszt") || strings.HasPrefix(next, "plac") {
+			return true
+		}
+	}
+
+	return false
 }
 
 // greetingPhrases name no ware however they inflect: "dzień dobry" is no
@@ -272,6 +308,11 @@ func inflected(word, part string) bool {
 		return false
 	}
 
+	// Nor does a four-letter word name a long one: "dziś" is no "Dziewięćsił".
+	if len(word) == minQueryWord+1 && len(part)-len(word) > 3 {
+		return false
+	}
+
 	// Two long words that are forms of each other share more than four
 	// letters ("kolczudze", "kolczuga") or differ only in a short ending
 	// ("kurtek", "kurtka"): "księżyc" is no "Księga" and "sprzedaż" no
@@ -282,7 +323,7 @@ func inflected(word, part string) bool {
 
 	// An adverb is no adjective of a name: "a za 50 dziennie?" buys no
 	// twenty "Żołd dzienny".
-	if slices.Contains(adverbs, word) {
+	if slices.Contains(adverbs, word) || slices.Contains(thanksWords, word) {
 		return false
 	}
 
@@ -295,6 +336,9 @@ const (
 )
 
 var adverbs = []string{"dziennie", "tygodniowo", "miesiecznie", "nocnie"}
+
+// thanksWords thank, and name no ware: "dzięki" is no "Dziewięćsił".
+var thanksWords = []string{"dzieki", "dzienki", "dziekuje", "dziekujemy", "dziekowac"}
 
 // common is how many letters two words begin with alike.
 func common(a, b string) int {
@@ -381,6 +425,12 @@ var friendlyWords = []string{"dzieki", "dziekuje", "dziekowac", "dzienki", "thx"
 // rude reports whether a folded message insults the keeper. A phrase is
 // found anywhere, a single word as the beginning of a word.
 func rude(text string) bool {
+	// An apology may quote the insult it takes back: "przepraszam, że
+	// nazwałam cię kupą złomu".
+	if hasPhrase(text, sorryWords) {
+		return false
+	}
+
 	words := strings.Fields(text)
 	friendly := hasPhrase(text, friendlyWords)
 

@@ -5,12 +5,15 @@ import "strings"
 // masculineInA are men's names that end in a, as women's names do.
 var masculineInA = []string{"kuba", "barnaba", "bonawentura", "kosma", "jarema", "zawisza", "sasza", "misza", "grisza", "kosta", "nikita", "dyzma", "boryna"}
 
+// feminineNames are women's names that do not end in a.
+var feminineNames = []string{"tamar", "okoye", "miriam", "ruth", "ester", "judyt", "ines", "carmen", "noor", "nur", "ingrid", "astrid", "sigrid", "helga", "agnes", "rachel", "lilith", "iris", "beatrycze", "zuzanne"}
+
 // Titles tell more than the name after them: "Pani Kaliber" is a woman and
 // "Brat Jaromir" a man, while "Doktor Lena" is whatever Lena is.
 var (
 	feminineTitles  = []string{"pani", "siostra", "matka", "ciotka", "babka", "lady", "madame", "panna"}
 	masculineTitles = []string{"pan", "brat", "sir", "ojciec", "wuj", "wujek", "dziadek", "mistrz"}
-	neutralTitles   = []string{"doktor", "dr", "doktorka", "sierżant", "kapitan", "kapral", "porucznik", "profesor", "inżynier", "medyk", "kwatermistrz", "sanitariusz", "żerca", "kapłan"}
+	neutralTitles   = []string{"kapitan", "doktor", "dr", "doktorka", "sierżant", "kapral", "porucznik", "profesor", "inżynier", "medyk", "kwatermistrz", "sanitariusz", "żerca", "kapłan"}
 )
 
 // Feminine reports whether a character's name sounds like a woman's: its
@@ -32,7 +35,7 @@ func Feminine(name string) bool {
 			continue
 		}
 
-		return strings.HasSuffix(word, "a") && !contains(masculineInA, word)
+		return contains(feminineNames, word) || strings.HasSuffix(word, "a") && !contains(masculineInA, word)
 	}
 
 	return false

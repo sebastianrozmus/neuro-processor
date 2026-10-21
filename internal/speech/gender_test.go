@@ -9,6 +9,7 @@ func TestFeminine(t *testing.T) {
 		"Kuba Rozpruwacz": false, "Wędrowny Kupiec": false, "": false,
 		"Pani Kaliber": true, "Doktor Lena": true, "Brat Jaromir": false, "Żerca Bogumił": false, "Sanitariusz Kuba": false,
 		"Sanitariuszka Mira": true, "Kwatermistrz Vey": false, "Stara Jagna": true, "Sir Gniewomir Nieugięty": false,
+		"Kapitan Tamar Sokolica": true, "Sierżant Okoye": true,
 	} {
 		if got := Feminine(name); got != want {
 			t.Errorf("Feminine(%q) = %v", name, got)

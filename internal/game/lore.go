@@ -224,6 +224,18 @@ func (r *Realm) topical(words []string, keeper int, wares []Ware) []string {
 	name := strings.Join(called, " ")
 	kept := make([]string, 0, len(words))
 
+	// The whole name said out loud, "ty jesteś ta wiesza z kurhanów?", only
+	// calls the keeper.
+	if full := strings.Fields(Fold(r.keeperName(keeper))); len(full) > 1 {
+		for start := 0; start+len(full) <= len(words); start++ {
+			if slices.Equal(words[start:start+len(full)], full) {
+				words = append(append([]string(nil), words[:start]...), words[start+len(full):]...)
+
+				break
+			}
+		}
+	}
+
 	for index, word := range words {
 		switch {
 		case index > 0 && slices.Contains(addressWords, words[index-1]) && !slices.Contains(addressWords, word):
@@ -756,8 +768,8 @@ func waresAsked(words []string, wares []Ware) []string {
 // Words that step outside the story: the model's instructions, what it is,
 // or a task no one in the world would be asked for.
 var (
-	metaWords    = []string{"prompt", "instrukcj", "jestes botem", "jestes ai", "jestes programem", "jestes modelem", "model jezykow", "chatgpt", "chat gpt", "czatbot", "chatbot", "jako model", "zignoruj poprzed", "zapomnij o poprzed"}
-	offRoleWords = []string{"napisz wiersz", "napisz mi wiersz", "napisz piosenk", "napisz mi piosenk", "wiersz o", "wierszyk", "zaspiewaj", "zarapuj", "napisz kod", "napisz program", "przetlumacz", "rozwiaz zadanie", "zadanie domowe", "napisz wypracowanie", "napisz opowiadanie"}
+	metaWords    = []string{"prompt", "instrukcj", "botem", "bot ", "jestes ai", "ty ai ", "jakims ai", "modelem jezykowym", "zignoruj", "jestes programem", "jestes modelem", "model jezykow", "chatgpt", "chat gpt", "czatbot", "chatbot", "jako model", "zignoruj poprzed", "zapomnij o poprzed"}
+	offRoleWords = []string{"zwrotk", "linijk", "refren", "szant", "zaspiewa", "piosenk", "rymowank", "napisz mi", "napisz cos", "napisz wiersz", "napisz mi wiersz", "napisz piosenk", "napisz mi piosenk", "wiersz o", "wierszyk", "zaspiewaj", "zarapuj", "napisz kod", "napisz program", "przetlumacz", "rozwiaz zadanie", "zadanie domowe", "napisz wypracowanie", "napisz opowiadanie"}
 	// griefWords tell of a loss of the player's own.
 	griefWords = []string{"stracilem", "stracilam", "pochowalem", "pochowalam", "zginal mi", "zginela mi", "zgineli mi", "umarl mi", "umarla mi", "nie zyje moj", "nie zyje moja",
 		"zabili mi", "zabil mi", "zabila mi", "polegl mi", "polegla mi", "zginal moj", "zginela moja", "zgineli moi", "moj brat zginal", "moja siostra zginela"}
@@ -766,7 +778,7 @@ var (
 // aside answers what is not about the world at all, or is about the
 // player's own grief: no fact or ware is offered to any of it.
 func aside(folded string) (string, bool) {
-	padded := " " + folded
+	padded := " " + folded + " "
 
 	switch {
 	case slices.ContainsFunc(metaWords, func(phrase string) bool { return strings.Contains(padded, " "+phrase) }):
