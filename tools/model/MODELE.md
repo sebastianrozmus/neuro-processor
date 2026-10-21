@@ -611,3 +611,38 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
   - **Wniosek:** w automacie run16 jest najlepszy (najmniej powtórek), w ślepej ocenie MG i rozmów remisuje z run15, a run14h nadal prowadzi. Do gry dalej run14h (zmiana `.env.local` tylko za zgodą). Dalej:
     - run16d i run16dh (DPO z własnych odpowiedzi, `run16/dpo.sh`, w toku);
     - nowy test: te same kwestie gracza odtworzone na obecnym silniku, na postaciach spoza treningu wszystkich modeli.
+
+- **run 16d / run16dh (21.10): DPO na run16 z par z jego własnych odpowiedzi; nowy test `test16`. Na ślepo run16dh najlepszy z linii run16; MG prawie jak run14h, rozmowy najlepsze ze wszystkich.**
+  - DPO (`run16/dpo.sh`, `tools/eval/dpo_self.py`):
+    - run16 odegrał 168 rozmów i 48 świeżych walk (`dpo-scen.jsonl`, 1303 kwestie, k=3);
+    - par o podobnej długości wyszło tylko 135 (chosen śr. 133 zn., rejected 138), bo run16 rzadko się myli. Rodzaje błędów w odrzuconych: powtórka 30, liczba spoza 28, zdania 16, długie 15, słownie 14, brak kwoty 12, cena bez pytania 10;
+    - 1 epoka, lr 3e-5, beta 0.1, 17 kroków. Strata 0.693 → 0.678 (prawie bez ruchu), rewards/accuracies ok. 0.55;
+    - run16d to koniec treningu, run16dh to checkpoint-15.
+  - `check.py` na starym teście (s7/s11): run16 91/93%, run16d 89/93%, run16dh 91/93%.
+  - **Nowy test `run16/test16/test16.jsonl`** (dalej to ten test zamiast `run13/test.jsonl`):
+    - 12 rozmów starego testu, odtworzonych z tymi samymi kwestiami gracza na obecnym silniku (1a851e9);
+    - 12 rozmów w świeżym świecie „Zgasłe Szkiery” (`test16/worlds/szkiery.json`), którego żaden model nie widział i który leży poza katalogiem treningowym;
+    - te same 40 rund MG; razem 213 odpowiedzi na seed.
+  - `check.py` na test16, bez uwag s7/s11: run16 93/94%, run16dh 91/96%, run16d 87/93%, run15 91/90%, run14h 86/91%.
+  - Ślepa ocena na test16: 2 grupy po 3 modele, w każdej 2 sędziów MG i 4 rozmów. Brief `test16/brief-judge.md` ujednolica znaczniki nastroju (sprzeczne tylko np. [radość] przy obrażonej) i nazwy świata (nie są zmyśleniem). Wyniki w `test16/blindA`, `test16/blindB`. run16 jest w obu grupach jako kotwica; jego wynik powtórzył się (MG 13 ciężkich w obu, rozmowy 36 i 32).
+
+    | grupa | model | MG: rundy bez ciężkich | MG ciężkie / lekkie | rozmowy ciężkie | ocena 1–5 | najlepszy (z 48) |
+    |---|---|---|---|---|---|---|
+    | A | run14h | 94% | 6 / 33 | 42 | 2.96 | 10 |
+    | A | run15 | 90% | 9 / 25 | 45 | 2.98 | 12 |
+    | A | run16 | 85% | 13 / 33 | **36** | **3.29** | **26** |
+    | B | run16dh | **91%** | **7 / 28** | **26** | 3.21 | 16 |
+    | B | run16d | 82% | 14 / 29 | **26** | **3.38** | **20** |
+    | B | run16 | 85% | 13 / 40 | 32 | 3.15 | 12 |
+
+    - **Nowy świat** (ciężkie w rozmowach): A: run16 19, run14h 27, run15 29; B: run16dh 18, run16 19, run16d 20. Na nieznanych postaciach run16 wyraźnie bije run14h i run15.
+    - **Stare postacie:**
+      - A: run14h 15, run15 16, run16 17;
+      - B: run16d 6, run16dh 8, run16 13 (DPO pomaga głównie tu).
+    - Wspólne błędy wszystkich: kwota w odpowiedzi, gdy towarzysz z drużyny dostaje propozycję dopłaty (polecenie „umowa dawno stoi” powstało dziś i nikt go nie widział w treningu); zmyśleni krewni i spotkania (Hela, Oskar); obiecane leczenie; powtórzone frazy. MG: zły odbiorca mikstury, „dobija” przeżywającego, pominięta liczba.
+    - Uwaga: 135 par i ledwo ruszona strata to mało jak na taką różnicę w rozmowach; część może być szumem sędziów (48 rozmów, różni sędziowie w grupach). Spójny jest jednak kierunek MG run16dh (7 ciężkich, blisko run14h) i rozmów w obu wariantach DPO.
+  - **Wniosek:** do gry najlepszy jest **run16dh**: MG prawie na poziomie run14h, rozmowy lepsze niż run16, a run16 już lepszy niż run14h w nowym świecie. Gra ma dziś w `.env.local` run11; zmiana tylko za zgodą. Dalej (run 17):
+    - odtworzyć wszystkie rozmowy treningowe na silniku 1a851e9 i przejrzeć zmienione kwestie (dopłaty dla towarzysza, rany, komplementy, dowcip, „byłeś tam?”, najem jako służba, „ruszamy”);
+    - więcej przykładów bez zmyślonych krewnych i spotkań;
+    - więcej rund MG z miksturą i z wrogiem, który przeżywa;
+    - DPO z większej puli (więcej scenariuszy albo k=5), bo 135 par to za mało.
