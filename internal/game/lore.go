@@ -297,8 +297,9 @@ func closely(text, word string) bool {
 	return false
 }
 
-// backWords point back at what was just talked about.
-var backWords = []string{"tam", "tego", "go", "ja", "jej", "niego", "niej", "nia", "nim", "tym", "stamtad", "tamtedy", "takiego", "takie", "takiej", "srodku", "wewnatrz"}
+// backWords point back at what was just talked about; "ja" is left out,
+// since folded "ją" is the player's "ja".
+var backWords = []string{"tam", "tego", "go", "jej", "niego", "niej", "nia", "nim", "tym", "stamtad", "tamtedy", "takiego", "takie", "takiej", "srodku", "wewnatrz"}
 
 func backRef(words []string) bool {
 	text := strings.Join(words, " ")
