@@ -757,7 +757,14 @@ func waresAsked(words []string, wares []Ware) []string {
 	var fitting []string
 
 	for _, ware := range wares {
-		score := touches(words, ware.Name)*2 + touches(words, ware.Description)
+		// The ware itself, not what it is made of ("Napierśnik z Łuski
+		// Kajmana" for "widziałeś ojca kajmanów?"), and not one stray word
+		// of its description.
+		head, _, _ := strings.Cut(Fold(ware.Name), " z ")
+		score := touches(words, head) * 2
+		if described := touches(words, ware.Description); described >= 2 {
+			score += described
+		}
 		if slices.Contains(kinds, ware.Kind) {
 			score += 2
 		}
