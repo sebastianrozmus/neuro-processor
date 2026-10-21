@@ -362,6 +362,30 @@ func (r *Realm) dwellHint(customer *player, fact *Fact, known, she bool) string 
 	return fmt.Sprintf("Gracz dopytuje o: %s, o czym już mówiliście. Wiesz o tym tylko tyle: %s Sam%s tego nie %s: powiedz to po swojemu i nie zmyślaj wizyt, spotkań ani szczegółów.", fact.Subject, what, gendered(she, "", "a"), gendered(she, "widziałeś", "widziałaś"))
 }
 
+// calledBy is what names a person in a subject: "Iskra", not the Krater
+// she comes from. "Co wiesz o kraterze?" asks about the place; anything
+// else is the whole subject.
+func (r *Realm) calledBy(subject string) string {
+	name, _, found := strings.Cut(subject, " z ")
+	if !found {
+		return subject
+	}
+
+	for _, companion := range r.world.Companions {
+		if companion.Name == subject {
+			return name
+		}
+	}
+
+	for _, shop := range r.world.Shops {
+		if shop.Keeper == subject {
+			return name
+		}
+	}
+
+	return subject
+}
+
 // uncalled drops the words that call the keeper by name: "hej rozalka"
 // greets as "hej" does. A message of nothing but the name stays as it is.
 func (r *Realm) uncalled(words []string, keeper int) []string {
@@ -541,7 +565,8 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	bestScore, bestFull := 1, false
 
 	for _, fact := range known {
-		score, full := touches(topical, fact.Subject)*2+touches(topical, fact.Text), whole(topical, fact.Subject)
+		subject := r.calledBy(fact.Subject)
+		score, full := touches(topical, subject)*2+touches(topical, fact.Text), whole(topical, subject)
 		if score > bestScore || (best != nil && score == bestScore && full && !bestFull) {
 			best, bestScore, bestFull = fact, score, full
 		}

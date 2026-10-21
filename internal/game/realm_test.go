@@ -2623,6 +2623,18 @@ func TestKeepersHearWhatIsMeant(t *testing.T) {
 		t.Errorf("own past before hiring = %q", got)
 	}
 
+	// A place a person comes from is the place: "kraterze" asks about the
+	// Krater, not about Iskra z Krateru.
+	realm.add("Krater", "Szklana niecka po bombie.", "", herbalist)
+	realm.world.Companions[1].Name = "Iskra z Krateru"
+	realm.add("Iskra z Krateru", "Pirotechniczka spod Krateru, wysadza wszystko.", "", herbalist)
+	customer.shop = herbalist
+	if got := hint("co wiesz o kraterze?"); !strings.Contains(got, "wspomina o: Krater.") {
+		t.Errorf("the place a person comes from = %q", got)
+	}
+
+	customer.shop = realm.mateTalk(2)
+
 	// A word made from a name is not the name: a lighthouse keeper's girl has
 	// no past at the Great Lighthouse for it.
 	realm.world.Companions[2].Description = "Wróciła z kurhanów jako jedyna. Była służką latarnika."
