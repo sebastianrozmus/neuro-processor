@@ -246,6 +246,7 @@ func halfOf(words []string, request InterpretRequest, item string) (int, bool) {
 // "idziemy dalej". Fillers may follow them.
 var (
 	moveVerbs   = []string{"ruszamy", "ruszajmy", "idziemy", "chodzmy", "spadamy", "lecimy", "zwijamy", "zbieramy", "wyruszamy", "plyniemy", "odbijamy"}
+	moveAsks    = []string{"dokad", "ktoredy", "gdzie", "kiedy", "jak", "czemu", "dlaczego", "po", "czy", "jesli", "gdy", "kiedys", "bez", "nie", "dopiero"}
 	moveFillers = []string{"dalej", "rano", "juz", "stad", "wiec", "no", "sie", "w", "droge", "teraz", "zaraz", "o", "swicie"}
 )
 
@@ -254,7 +255,12 @@ func moving(text string) bool {
 		return false
 	}
 
+	// "gdzie najpierw idziemy" asks the way, even without a question mark.
 	words := strings.Fields(Fold(text))
+	if slices.ContainsFunc(words, func(word string) bool { return slices.Contains(askWords, word) || slices.Contains(moveAsks, word) }) {
+		return false
+	}
+
 	for len(words) > 0 && slices.Contains(moveFillers, words[len(words)-1]) {
 		words = words[:len(words)-1]
 	}

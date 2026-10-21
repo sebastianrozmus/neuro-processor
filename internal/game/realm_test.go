@@ -2325,6 +2325,11 @@ func TestCompanionsHaggleAtTheInn(t *testing.T) {
 		t.Errorf("paid after the hire: %+v, gold %d, hint %q", decision, ala.gold, narrate.Hint)
 	}
 
+	// A way asked about is talk, even without a question mark.
+	if decision, _, _ = realm.Haggle(hero, "gdzie najpierw idziemy", Intent{Action: ActionChat}); decision.Outcome == OutcomeFarewell {
+		t.Errorf("a question taken for setting off: %+v", decision)
+	}
+
 	// "Dobra, ruszamy" ends the talk with a companion, who goes along.
 	if decision, narrate, _ = realm.Haggle(hero, "dobra, ruszamy", Intent{Action: ActionChat}); decision.Outcome != OutcomeFarewell || !strings.Contains(narrate.Decision.BriefFor(narrate.Role), "ruszacie dalej") {
 		t.Errorf("setting off: %+v, %q", decision, narrate.Decision.BriefFor(narrate.Role))
