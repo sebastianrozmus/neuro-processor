@@ -2299,6 +2299,11 @@ func TestCompanionsHaggleAtTheInn(t *testing.T) {
 		t.Fatalf("a low offer: %+v", decision)
 	}
 
+	// The service is haggled over as a service, not as a thing on a shelf.
+	if brief := (Decision{Outcome: OutcomeCounter, Item: Ware{Name: HireName}, Offer: 10, Price: 50}).BriefFor(RoleMercenary); !strings.Contains(brief, "za twoją służbę") {
+		t.Errorf("a counter for a service: %q", brief)
+	}
+
 	decision, narrate, _ = realm.Haggle(hero, "zgoda", Intent{Action: ActionAccept})
 	if decision.Outcome != OutcomeSold || len(ala.party) != 1 || ala.gold != 200-decision.Price || !logged(realm, hero, "Bogna Topór dołącza do drużyny.") {
 		t.Fatalf("the deal: %+v, party %d, gold %d, %v", decision, len(ala.party), ala.gold, realm.View(hero).Log)
@@ -2318,6 +2323,11 @@ func TestCompanionsHaggleAtTheInn(t *testing.T) {
 	gold := ala.gold
 	if decision, narrate, _ = realm.Haggle(hero, "dobrze, zgoda na 130", Intent{Action: ActionChat}); decision.Outcome != OutcomeChat || ala.gold != gold || !strings.Contains(narrate.Hint, "umowa dawno stoi") {
 		t.Errorf("paid after the hire: %+v, gold %d, hint %q", decision, ala.gold, narrate.Hint)
+	}
+
+	// "Dobra, ruszamy" ends the talk with a companion, who goes along.
+	if decision, narrate, _ = realm.Haggle(hero, "dobra, ruszamy", Intent{Action: ActionChat}); decision.Outcome != OutcomeFarewell || !strings.Contains(narrate.Decision.BriefFor(narrate.Role), "ruszacie dalej") {
+		t.Errorf("setting off: %+v, %q", decision, narrate.Decision.BriefFor(narrate.Role))
 	}
 
 	// A companion in the party talks for free; let go, they are for hire again.
@@ -2563,6 +2573,8 @@ func TestKeepersHearWhatIsMeant(t *testing.T) {
 		"zginął mi brat w kurhanach": "o swojej stracie",
 		"wczoraj utonął mój brat":    "o swojej stracie",
 		"opowiedz jakiś kawał":       "prosi o żart",
+		"masz piękne oczy, wiesz?":   "komplementy",
+		"jestem ranny, zerkniesz?":   "zdrowie",
 		"przepraszam, poniosło mnie": "Gracz przeprasza",
 		"dawaj kij bo chatę spalę":   "",
 		"ty stary skąpcu":            "",
@@ -2594,6 +2606,14 @@ func TestKeepersHearWhatIsMeant(t *testing.T) {
 	customer.shop = realm.mateTalk(2)
 	if got := hint("byłaś w kurhanach?"); !strings.Contains(got, "To twoja własna przeszłość") {
 		t.Errorf("own past before hiring = %q", got)
+	}
+
+	// A word made from a name is not the name: a lighthouse keeper's girl has
+	// no past at the Great Lighthouse for it.
+	realm.world.Companions[2].Description = "Wróciła z kurhanów jako jedyna. Była służką latarnika."
+	realm.add("Wielka Latarnia", "Najstarsza latarnia na skale.", "", herbalist)
+	if got := hint("a wielka latarnia?"); strings.Contains(got, "własna przeszłość") {
+		t.Errorf("a word made from a name = %q", got)
 	}
 
 	realm.add("Moczary", "Bagno za lasem.", "", herbalist)

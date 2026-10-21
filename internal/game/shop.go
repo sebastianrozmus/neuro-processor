@@ -180,7 +180,12 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	paying := false
 	if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == name && intent.Action != ActionLeave {
 		paying = offersMoney(Fold(text))
-		intent = Intent{Action: ActionChat, Persuasion: intent.Persuasion}
+		action := ActionChat
+		if moving(text) {
+			action = ActionLeave
+		}
+
+		intent = Intent{Action: action, Persuasion: intent.Persuasion}
 	}
 
 	// A companion is talked to in the role they had when the player spoke:

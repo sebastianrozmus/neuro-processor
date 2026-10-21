@@ -242,6 +242,26 @@ func halfOf(words []string, request InterpretRequest, item string) (int, bool) {
 	return 0, false
 }
 
+// moveVerbs end a word to a companion with setting off: "dobra, ruszamy",
+// "idziemy dalej". Fillers may follow them.
+var (
+	moveVerbs   = []string{"ruszamy", "ruszajmy", "idziemy", "chodzmy", "spadamy", "lecimy", "zwijamy", "zbieramy", "wyruszamy", "plyniemy", "odbijamy"}
+	moveFillers = []string{"dalej", "rano", "juz", "stad", "wiec", "no", "sie", "w", "droge", "teraz", "zaraz", "o", "swicie"}
+)
+
+func moving(text string) bool {
+	if strings.Contains(text, "?") {
+		return false
+	}
+
+	words := strings.Fields(Fold(text))
+	for len(words) > 0 && slices.Contains(moveFillers, words[len(words)-1]) {
+		words = words[:len(words)-1]
+	}
+
+	return len(words) > 0 && len(words) <= 5 && slices.Contains(moveVerbs, words[len(words)-1])
+}
+
 // payWords with a sum offer money: "dobrze, zgoda na 130", "dorzucę 20".
 // A companion in the party has no wares to read an offer against, so
 // the rules read it from the words.

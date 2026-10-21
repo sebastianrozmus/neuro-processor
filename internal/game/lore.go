@@ -383,7 +383,28 @@ func (r *Realm) ownPast(mate world.CompanionSpec, fact *Fact) bool {
 		return false
 	}
 
-	return touches(strings.Fields(subject), mate.Description) > 0
+	for _, word := range strings.Fields(subject) {
+		if len(word) > minQueryWord && slices.ContainsFunc(strings.Fields(Fold(mate.Description)), func(part string) bool { return sameWord(word, part) }) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// endings are what Polish puts after a stem to inflect a noun or an
+// adjective, folded: "krypty", "kryptach", "Krateru".
+var endings = []string{"", "a", "e", "i", "y", "o", "u", "ie", "ia", "iu", "io", "ii", "ach", "ami", "om", "ow", "owi", "em", "ej", "ego", "emu", "ym", "ymi", "ych", "iach", "iami", "iom", "iow", "iem"}
+
+// sameWord reports two words that are one word inflected: "krypty" and
+// "krypt", but not "latarnia" and "latarnika", a man made from the word.
+func sameWord(word, part string) bool {
+	same := common(word, part)
+	if same < minQueryWord {
+		return false
+	}
+
+	return slices.Contains(endings, word[same:]) && slices.Contains(endings, part[same:])
 }
 
 // touches counts the player's words (long enough to mean something) that
@@ -450,6 +471,10 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 	if chat {
 		if hint, ok := aside(folded); ok {
+			return hint, nil, false
+		}
+
+		if hint, ok := r.wounds(customer, folded); ok {
 			return hint, nil, false
 		}
 	}
@@ -860,6 +885,37 @@ var (
 		"zabili mi", "zabil mi", "zabila mi", "polegl mi", "polegla mi", "zginal moj", "zginela moja", "zgineli moi", "moj brat zginal", "moja siostra zginela"}
 )
 
+// woundWords tell of the hero's own wounds: "jestem ranny, zerkniesz?".
+var woundWords = []string{"jestem ranny", "jestem ranna", "oberwalem", "oberwalam", "krwawie", "opatrzysz", "opatrz mnie", "opatrzyc", "boli mnie", "zerknac na rane", "zerkniesz na rane", "mam rane", "mam rany", "jestem poraniony", "jestem poraniona", "polatasz mnie", "wylecz mnie", "wyleczysz", "uleczysz", "ulecz mnie"}
+
+// wounds answers a hero who speaks of their wounds with how they really
+// are, and with what the game heals them by: told nothing, a healer before
+// the hire "stitched" a hero in perfect health.
+func (r *Realm) wounds(customer *player, folded string) (string, bool) {
+	if !hasPhrase(folded, woundWords) {
+		return "", false
+	}
+
+	state := "jest ranny"
+	switch limit := customer.maxHP(); {
+	case customer.hp >= limit:
+		state = "nie ma żadnych ran"
+	case customer.hp*3 < limit:
+		state = "jest ciężko ranny"
+	}
+
+	cure := "Poza walką nie leczysz: poradź odpoczynek w osadzie albo miksturę."
+	if kind, ok := r.mateOf(customer.shop); ok && r.world.Companions[kind].Role == world.RoleHealer {
+		cure = "Opatrujesz drużynę w walce; teraz możesz tylko obejrzeć rany i poradzić odpoczynek w osadzie albo miksturę."
+	}
+
+	return fmt.Sprintf("Gracz mówi o swoich ranach; naprawdę %s (zdrowie %d z %d). Odpowiedz na to po swojemu. %s Nie obiecuj leczenia, którego nie ma.", state, customer.hp, customer.maxHP(), cure), true
+}
+
+// flirtWords pay a compliment or flirt: given a fact to weave in, the
+// model answered "masz piękne oczy" with the mercenary at the inn.
+var flirtWords = []string{"piekne oczy", "ladne oczy", "sliczne oczy", "piekna jestes", "ladna jestes", "sliczna jestes", "przystojny jestes", "przystojniak", "podobasz mi sie", "kocham cie", "na randke", "randka", "randke", "buziaka", "buziak", "ladnie wygladasz", "pieknie wygladasz", "slicznotko", "przystojniaku", "piekna pani", "ladna pani"}
+
 // jokeWords ask for a joke: the model, given a fact to weave in, recited
 // the druids' circle instead of telling one.
 var jokeWords = []string{"kawal", "kawalu", "dowcip", "dowcipu", "dowcipy", "kawaly", "jakis zart", "znasz zart", "opowiedz zart", "rozsmiesz mnie", "cos smiesznego"}
@@ -893,6 +949,8 @@ func aside(folded string) (string, bool) {
 		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
 	case lossTold(strings.Fields(folded)):
 		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
+	case hasPhrase(folded, flirtWords):
+		return "Gracz flirtuje albo prawi ci komplementy. Odpowiedz po swojemu, jak każe charakter: z wdziękiem, zmieszaniem albo kpiną, krótko; bez plotek i bez polecania towaru.", true
 	case hasPhrase(folded, jokeWords):
 		return "Gracz prosi o żart. Opowiedz jeden krótki żart albo zabawną historyjkę po swojemu, z życia twojej postaci; bez nowych nazw miejsc i osób, i bez polecania towaru.", true
 	case hasPhrase(folded, sorryWords) && !tradeAsked(folded):

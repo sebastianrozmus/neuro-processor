@@ -706,7 +706,41 @@ func (d Decision) BriefFor(role string) string {
 		return brief + " Nastrój twojej postaci: " + string(d.Mood) + "."
 	}
 
+	if role == RoleMercenary {
+		if brief := d.hireBrief(); brief != "" {
+			return brief + " Nastrój twojej postaci: " + string(d.Mood) + "."
+		}
+	}
+
+	// A companion who hears "dobra, ruszamy" goes along: no goodbye.
+	if role == RoleCompanion && d.Outcome == OutcomeFarewell {
+		return "Gracz kończy rozmowę i ruszacie dalej. Odpowiedz jednym krótkim zdaniem jak ktoś, kto idzie z nim w drogę. Nie podawaj żadnych kwot. Nastrój twojej postaci: " + string(d.Mood) + "."
+	}
+
 	return d.Brief()
+}
+
+// hireBrief is the haggling over a mercenary's service told as such: told
+// "Opowiedz krótko o przedmiocie" about «Umowa najmu», models described a
+// contract on parchment.
+func (d Decision) hireBrief() string {
+	service, rate := "twoją służbę", d.amount(d.Price)
+	if d.Item.Name == WageName {
+		service, rate = "twój dzienny żołd", d.amount(d.Price)+" za każdy dzień, płatne o świcie, nic z góry"
+	}
+
+	switch d.Outcome {
+	case OutcomeInfo:
+		return fmt.Sprintf("Gracz pyta o cenę twojej służby. Twoja aktualna cena: %s. Podaj ją po swojemu i powiedz krótko, co za nią dostanie.", rate)
+	case OutcomeCounter:
+		return fmt.Sprintf("Gracz proponuje %s za %s. To za mało. Odrzuć ofertę i podaj swoją nową cenę: %s.", d.amount(d.Offer), service, d.amount(d.Price))
+	case OutcomeInsulted:
+		return fmt.Sprintf("Gracz proponuje śmiesznie niską kwotę %s za %s. To cię uraża. Nie schodzisz z ceny, nadal żądasz %s.", d.amount(d.Offer), service, d.amount(d.Price))
+	case OutcomeNoGold:
+		return fmt.Sprintf("Gracz chce cię wynająć (twoja cena: %s), ale ma przy sobie tylko %d. Wytknij mu, że go nie stać. Nie dołączasz.", d.amount(d.Price), d.Gold)
+	}
+
+	return ""
 }
 
 func (d Decision) Brief() string {
