@@ -571,3 +571,43 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
     - poprawić błędy czytania w silniku i ponownie przejrzeć dane;
     - więcej rozmów z wieloma turami, w których cena pada tylko raz, a postać nie zna miejsca z własnej wizyty;
     - pary DPO o podobnej długości na powtórki i zmyślone stany zdrowia.
+
+- **run 16 (21.10): SFT od bazy, 1 epoka, dane po poprawkach czytania w silniku. Automat najlepszy z dotychczasowych, w ślepej ocenie na poziomie run15.**
+  - Silnik (neuro-processor 3949508 … „Polecanie towaru…”): poprawki czytania gracza.
+    - Fałszywe nazwy: „boli” to nie Bolo, „dzięki” to nie Dziewięćsił, „kajmanów” to nie napierśnik.
+    - Cena: „ile” jest pytaniem o cenę tylko przy cenie.
+    - Liczby: kwota w pytaniu nie jest ofertą, za to „40 dziennie” jest ofertą żołdu.
+    - Zamknięcie targu: „niech będzie” i „wchodzisz?” zamykają targ.
+    - Pożegnania i obelgi: „dzięki, lecę” to pożegnanie, a obelgi bywają żartem.
+    - Prośby spoza gry (wiersz, prompt, bot, żałoba, przeprosiny) dostają własne polecenie bez towaru i plotki.
+    - Najemnik mówi o swoich miejscach i potworach zamiast odsyłać do kupca, a najem prosi o potwierdzenie dołączenia.
+    - Formy żeńskie w poleceniach.
+  - Dane (`D:/neuro-train/run16`):
+    - wszystkie rozmowy k01–k14 i k21–k26 odtworzone na nowym silniku i przejrzane w 7 rundach, aż `select.py` pokazał 0 zmienionych kwestii;
+    - nowe paczki k31–k34 na słabości run15: cena raz, zero zmyślonych wizyt, odmowa wiersza, bez dopłat dla towarzysza z drużyny;
+    - 2 nowe światy (Szmaragdowe Dorzecze, Neon i Deszcz) z rozmowami k27–k30;
+    - pory roku w specyfikacji świata.
+    - Razem 3395 przykładów treningowych i 182 sprawdzające.
+  - Trening: 1 epoka, 425 kroków, 4 h 25 min. eval_loss 1.002 → 0.952 → 0.919 → 0.905 → 0.885 → 0.875 → 0.871 → 0.869 → **0.870** (płasko na końcu).
+  - `check.py`, bez uwag s7/s11: **run16 91/93%** (125–129 zn.), run15 88/91%, run14h 88/91%. Powtórki 7/4, a w run15 było 11/8.
+  - Ślepa ocena: 5 sędziów (pomocnicy), MG w 2 częściach, rozmowy w 3, `run16/blind/verdict-*.jsonl`. Sędzia MG widział już STAN PO RUNDZIE (`run16/blind.py`), więc poprawne „zostaje mu 12” nie liczy się jako zmyślenie. Inni sędziowie niż w run15, więc liczby porównuj tylko w obrębie tabeli.
+
+    | model | MG: rundy bez ciężkich błędów | MG: ciężkie / lekkie | rozmowy: bez ciężkich | ciężkie / lekkie | ocena 1–5 | najlepszy |
+    |---|---|---|---|---|---|---|
+    | run14h | 95% | 5 / 41 | 29% | 27 / 72 | 3.08 | 13 z 24 |
+    | run16 | 90% | 8 / 43 | 12% | 39 / 70 | 2.96 | 6 |
+    | run15 | 89% | 9 / 25 | 25% | 37 / 74 | 2.96 | 5 |
+
+    Uwagi o ocenie:
+    - Ci sędziowie byli dużo surowsi (np. znaczniki nastroju inne niż spokój przy „spokojna” to u nich częsty ciężki błąd). Każdy rozstrzygał to trochę inaczej, ale tak samo dla wszystkich liter w swojej części.
+    - Ciężkie błędy MG run16: zły sprawca lub cel (leczenie miksturą), „dobija” wroga, który przeżywa, pominięta liczba.
+    - Rozmowy run16:
+      - znaczniki nastroju;
+      - żołd wklejany w kwestiach bez pytania (Aldric);
+      - przyjęcie 130 przez Mirę, choć jest już w drużynie (wszystkie trzy modele);
+      - zmyślona przeszłość (Borin, Elira);
+      - pojedynczy bełkot.
+    - **Test jest przestarzały:** `run13/test.jsonl` ma zamrożone polecenia [GRA] ze starego silnika. Nie ma w nich reguły „O cenie służby mów tylko, gdy o nią pyta” (w danych run16 jest 467 razy) ani nowych poleceń najemnika i próśb spoza gry. Do tego run14h znał 4 z 6 postaci testu. Ten test nie mierzy więc tego, czego uczono run16.
+  - **Wniosek:** w automacie run16 jest najlepszy (najmniej powtórek), w ślepej ocenie MG i rozmów remisuje z run15, a run14h nadal prowadzi. Do gry dalej run14h (zmiana `.env.local` tylko za zgodą). Dalej:
+    - run16d i run16dh (DPO z własnych odpowiedzi, `run16/dpo.sh`, w toku);
+    - nowy test: te same kwestie gracza odtworzone na obecnym silniku, na postaciach spoza treningu wszystkich modeli.
