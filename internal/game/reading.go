@@ -100,8 +100,10 @@ func Read(request InterpretRequest) Reading {
 	}
 
 	amount, cued := amountIn(text, words, request.Currency)
+	halved := false
 	if amount == 0 {
 		amount, cued = halfOf(words, request, item)
+		halved = hasPhrase(text, halfWords)
 	}
 
 	reading := Reading{
@@ -121,6 +123,9 @@ func Read(request InterpretRequest) Reading {
 	}
 
 	switch {
+	case halved && amount == 0:
+		// "dam połowę" of nothing named: an offer the merchant asks about.
+		reading.Intent.Action, reading.Sure = ActionOffer, true
 	case hasPhrase(text, sellWords):
 		// Selling: the number is the sum asked for, whatever the wording.
 		reading.Intent.Action, reading.Intent.ItemID, reading.Intent.Amount, reading.Sure = ActionSell, owned, amount, true
@@ -231,6 +236,25 @@ func halfOf(words []string, request InterpretRequest, item string) (int, bool) {
 	id := item
 	if id == "" {
 		id = request.FocusID
+	}
+
+	// "połowę za najtańszy": the cheapest, or the dearest, of the wares.
+	if id == "" && len(request.Wares) > 0 {
+		for _, word := range words {
+			cheap, dear := strings.HasPrefix(word, "najtansz"), strings.HasPrefix(word, "najdrozsz")
+			if !cheap && !dear {
+				continue
+			}
+
+			pick := request.Wares[0]
+			for _, ware := range request.Wares[1:] {
+				if (cheap && ware.Price < pick.Price) || (dear && ware.Price > pick.Price) {
+					pick = ware
+				}
+			}
+
+			return pick.Price / 2, true
+		}
 	}
 
 	for _, ware := range request.Wares {

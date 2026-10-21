@@ -84,8 +84,14 @@ func TestHalfThePriceIsAnOffer(t *testing.T) {
 		}
 	}
 
-	// Without a ware in view half of nothing is no offer.
-	if got := Read(InterpretRequest{Text: "dam połowę", Wares: wares}).Alone(); got.Action == ActionOffer {
+	// The cheapest ware may be named by being the cheapest.
+	if got := Read(InterpretRequest{Text: "dam połowę ceny za najtańszy", Wares: wares}).Alone(); got.Action != ActionOffer || got.Amount != 20 {
+		t.Errorf("half of the cheapest: %+v", got)
+	}
+
+	// Without a ware in view half of nothing is an offer of no sum: the
+	// merchant asks which ware is meant.
+	if got := Read(InterpretRequest{Text: "dam połowę", Wares: wares}).Alone(); got.Action != ActionOffer || got.Amount != 0 {
 		t.Errorf("half of what: %+v", got)
 	}
 }
