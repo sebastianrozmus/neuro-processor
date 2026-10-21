@@ -89,3 +89,18 @@ func TestHalfThePriceIsAnOffer(t *testing.T) {
 		t.Errorf("half of what: %+v", got)
 	}
 }
+
+func TestMoneyToACompanionNeedsNoSum(t *testing.T) {
+	for text, want := range map[string]bool{
+		"dobrze, zgoda na 130":       true,
+		"trzymaj, 30 dinarow ekstra": true,
+		"podwyzka od jutra":          true,
+		"a za darmo od jutra?":       true,
+		"zostalo nam 5 sztuk zlota":  false,
+		"dobra, ruszamy":             false,
+	} {
+		if got := offersMoney(Fold(text)); got != want {
+			t.Errorf("%q = %v, want %v", text, got, want)
+		}
+	}
+}

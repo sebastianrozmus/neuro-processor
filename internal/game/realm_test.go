@@ -2579,6 +2579,10 @@ func TestKeepersHearWhatIsMeant(t *testing.T) {
 		"wczoraj utonął mój brat":    "o swojej stracie",
 		"opowiedz jakiś kawał":       "prosi o żart",
 		"masz piękne oczy, wiesz?":   "komplementy",
+		"ładnie dziś wyglądasz":      "komplementy",
+		"wczoraj utonął mi brat":     "o swojej stracie",
+		"masz dzieci?":               "prywatne sprawy",
+		"zart jakis znasz?":          "prosi o żart",
 		"jestem ranny, zerkniesz?":   "zdrowie",
 		"przepraszam, poniosło mnie": "Gracz przeprasza",
 		"dawaj kij bo chatę spalę":   "",
@@ -2592,6 +2596,12 @@ func TestKeepersHearWhatIsMeant(t *testing.T) {
 	// "Hej Thorin" only greets, whatever the name.
 	if name := strings.Fields(realm.keeperName(customer.shop))[0]; !strings.Contains(hint("hej "+strings.ToLower(name)), "tylko się wita") {
 		t.Errorf("a greeting by name = %q", hint("hej "+name))
+	}
+
+	// Asked whether they were somewhere they only know about, a keeper is
+	// told not to make up a visit.
+	if got := hint("widziałeś kiedyś pająka kurhanowego?"); !strings.Contains(got, "nie zmyślaj wizyt") {
+		t.Errorf("a visit asked = %q", got)
 	}
 
 	// "Byłeś tam?" right after the barrows is about the barrows, and the

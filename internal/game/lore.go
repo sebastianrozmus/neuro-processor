@@ -193,7 +193,7 @@ var plainWords = []string{
 	"inny", "inna", "inne", "innego", "innej", "umiem", "umiesz", "umie", "jestem", "jestes", "tylko", "nikt", "nikogo",
 	"tutaj", "teraz", "bardzo", "jeszcze", "mnie", "ciebie", "sobie", "kiedy", "gdzie", "ktory", "ktora", "ktore",
 	"moze", "wiem", "wiesz", "sposob", "sposobu", "tego", "temu", "bylo", "beda", "chce", "chcesz", "musze", "mozesz",
-	"starczy", "wystarczy", "starucho", "staruchu", "staruszko", "stary", "staruszku",
+	"starczy", "wystarczy", "starucho", "staruchu", "staruszko", "stary", "staruszku", "zlota", "zloty", "zlote", "zloto", "zlotko", "przeciez", "dlugo", "dluzej", "dlugi",
 	"stalo", "stala", "stanie", "stalem", "stalam",
 	// "masz ładne oczy" is no Łowca w Masce, "dzień dobry, pani" no Pani Kaliber, "stara baba" no Stara Rafineria.
 	"masz", "macie", "mamy", "pani", "pana", "panu", "panie", "pania", "dzien", "dobry", "dobra", "dobre", "stara", "stare", "starej", "staremu", "starego",
@@ -298,7 +298,7 @@ func closely(text, word string) bool {
 }
 
 // backWords point back at what was just talked about.
-var backWords = []string{"tam", "tego", "go", "ja", "jej", "niego", "niej", "nia", "nim", "tym", "stamtad", "tamtedy", "takiego", "takie", "takiej"}
+var backWords = []string{"tam", "tego", "go", "ja", "jej", "niego", "niej", "nia", "nim", "tym", "stamtad", "tamtedy", "takiego", "takie", "takiej", "srodku", "wewnatrz"}
 
 func backRef(words []string) bool {
 	text := strings.Join(words, " ")
@@ -307,6 +307,25 @@ func backRef(words []string) bool {
 	}
 
 	return len(words) <= 8 && slices.ContainsFunc(words, func(word string) bool { return slices.Contains(backWords, strings.Trim(word, ".,!?")) })
+}
+
+// visitWords ask whether the keeper has been somewhere or met something.
+var visitWords = []string{"byles", "bylas", "byl", "byla", "byliscie", "widziales", "widzialas", "spotkales", "spotkalas", "walczyles", "walczylas", "zabiles", "zabilas", "chodziles", "chodzilas", "plywales", "plywalas"}
+
+func visited(words []string) bool {
+	return slices.ContainsFunc(words, func(word string) bool { return slices.Contains(visitWords, strings.Trim(word, ".,!?")) })
+}
+
+// ownRoad reports a fact a companion knows from their own road or past.
+func (r *Realm) ownRoad(customer *player, fact *Fact) bool {
+	kind, ok := r.mateOf(customer.shop)
+	if !ok {
+		return false
+	}
+
+	spec := r.world.Companions[kind]
+
+	return r.ownPast(spec, fact) || r.mateKnows(spec, fact)
 }
 
 // dwell remembers the fact the player asked about in this talk.
@@ -536,7 +555,12 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		r.learn(customer, best)
 		r.dwell(customer, best)
 
-		return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s", best.Subject, r.told(best)), nil, true
+		visit := ""
+		if visited(words) && !r.ownRoad(customer, best) {
+			visit = fmt.Sprintf(" Gracz pyta, czy %s tam albo to %s: nie mów, że tak, jeśli twoja karta tego nie mówi; nie zmyślaj wizyt ani spotkań.", gendered(she, "byłeś", "byłaś"), gendered(she, "widziałeś", "widziałaś"))
+		}
+
+		return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s%s", best.Subject, r.told(best), visit), nil, true
 	}
 
 	if fact := gap; fact != nil {
@@ -879,7 +903,7 @@ func waresAsked(words []string, wares []Ware) []string {
 // or a task no one in the world would be asked for.
 var (
 	metaWords    = []string{"prompt", "instrukcj", "botem", "bot ", "jestes ai", "ty ai ", "jakims ai", "modelem jezykowym", "zignoruj", "jestes programem", "jestes modelem", "model jezykow", "chatgpt", "chat gpt", "czatbot", "chatbot", "jako model", "zignoruj poprzed", "zapomnij o poprzed"}
-	offRoleWords = []string{"zwrotk", "linijk", "refren", "szant", "zaspiewaj", "zaspiewasz", "zaspiewalbys", "zaspiewalabys", "zaspiewacie", "piosenk", "rymowank", "napisz mi", "napisz cos", "napisz wiersz", "napisz mi wiersz", "napisz piosenk", "napisz mi piosenk", "wiersz o", "wierszyk", "zaspiewaj", "zarapuj", "napisz kod", "napisz program", "przetlumacz", "rozwiaz zadanie", "zadanie domowe", "napisz wypracowanie", "napisz opowiadanie"}
+	offRoleWords = []string{"tylko jedno zdanie", "chociaz jedno zdanie", "jedno zdanie chociaz", "zwrotk", "linijk", "refren", "szant", "zaspiewaj", "zaspiewasz", "zaspiewalbys", "zaspiewalabys", "zaspiewacie", "piosenk", "rymowank", "napisz mi", "napisz cos", "napisz wiersz", "napisz mi wiersz", "napisz piosenk", "napisz mi piosenk", "wiersz o", "wierszyk", "zaspiewaj", "zarapuj", "napisz kod", "napisz program", "przetlumacz", "rozwiaz zadanie", "zadanie domowe", "napisz wypracowanie", "napisz opowiadanie"}
 	// griefWords tell of a loss of the player's own.
 	griefWords = []string{"stracilem", "stracilam", "pochowalem", "pochowalam", "zginal mi", "zginela mi", "zgineli mi", "umarl mi", "umarla mi", "nie zyje moj", "nie zyje moja",
 		"zabili mi", "zabil mi", "zabila mi", "polegl mi", "polegla mi", "zginal moj", "zginela moja", "zgineli moi", "moj brat zginal", "moja siostra zginela"}
@@ -912,13 +936,32 @@ func (r *Realm) wounds(customer *player, folded string) (string, bool) {
 	return fmt.Sprintf("Gracz mówi o swoich ranach; naprawdę %s (zdrowie %d z %d). Odpowiedz na to po swojemu. %s Nie obiecuj leczenia, którego nie ma.", state, customer.hp, customer.maxHP(), cure), true
 }
 
+// familyWords ask about the keeper's own family and past: told nothing,
+// the model gave a healer a drowned son and a dead husband.
+var familyWords = []string{"masz dzieci", "dzieci masz", "masz zone", "zone masz", "masz meza", "meza masz", "ma pani meza", "ma pan zone", "ma pani dzieci", "ma pan dzieci", "masz rodzine", "rodzine masz", "masz rodzenstwo", "masz brata", "masz siostre", "masz chlopa", "masz babe", "twoja rodzina", "twoi rodzice", "twoja zona", "twoj maz", "twoje dzieci", "kogo stracil", "kogo stracila", "kogo stracilas", "kogo straciles", "kogo pani stracila", "kogo pan stracil", "jestes zonaty", "jestes zamezna", "masz kogos", "jakas rodzine", "skad jestes", "skad pochodzisz", "skad masz blizne", "skad masz te blizne", "skad ta blizna", "skad blizna"}
+
+// praised reports a compliment in any order: "ładnie dziś wyglądasz,
+// babciu", "masz fajne oczy".
+func praised(words []string) bool {
+	fine := slices.ContainsFunc(words, func(word string) bool {
+		return slices.Contains([]string{"ladne", "ladnie", "piekne", "pieknie", "fajne", "fajnie", "sliczne", "slicznie", "cudne", "cudnie"}, word)
+	})
+
+	return fine && slices.ContainsFunc(words, func(word string) bool {
+		return slices.Contains([]string{"oczy", "wygladasz", "usmiech", "wlosy", "buzke"}, word)
+	}) || hasPhrase(strings.Join(words, " "), []string{"slodka jestes", "slodki jestes", "jestes slodka", "jestes slodki"})
+}
+
 // flirtWords pay a compliment or flirt: given a fact to weave in, the
 // model answered "masz piękne oczy" with the mercenary at the inn.
-var flirtWords = []string{"piekne oczy", "ladne oczy", "sliczne oczy", "piekna jestes", "ladna jestes", "sliczna jestes", "przystojny jestes", "przystojniak", "podobasz mi sie", "kocham cie", "na randke", "randka", "randke", "buziaka", "buziak", "ladnie wygladasz", "pieknie wygladasz", "slicznotko", "przystojniaku", "piekna pani", "ladna pani"}
+var flirtWords = []string{"piekne oczy", "ladne oczy", "sliczne oczy", "piekna jestes", "ladna jestes", "sliczna jestes", "przystojny jestes", "przystojniak", "podobasz mi sie", "kocham cie", "na randke", "randka", "randke", "buziaka", "buziak", "ladnie wygladasz", "pieknie wygladasz", "slicznotko", "przystojniaku", "piekna pani", "ladna pani", "jestes kochana", "jestes kochany", "ladnie ci", "pieknie ci", "slicznie ci", "jestes zlota", "jestes zloty", "jestes piekna", "jestes sliczna", "jestes sliczny", "ladna jestes", "ladne masz oczy", "piekne masz oczy", "sliczne masz oczy", "ladne oczy masz"}
 
 // jokeWords ask for a joke: the model, given a fact to weave in, recited
 // the druids' circle instead of telling one.
-var jokeWords = []string{"kawal", "kawalu", "dowcip", "dowcipu", "dowcipy", "kawaly", "jakis zart", "znasz zart", "opowiedz zart", "rozsmiesz mnie", "cos smiesznego"}
+var jokeWords = []string{"kawal", "kawalu", "dowcip", "dowcipu", "dowcipy", "kawaly", "jakis zart", "zart jakis", "znasz zart", "znasz jakis zart", "opowiedz zart", "rozsmiesz mnie", "cos smiesznego", "zartu", "zarty"}
+
+// kinWords name the player's own people in a word of loss.
+var kinWords = []string{"brat", "brata", "siostra", "siostre", "ojciec", "ojca", "matka", "matke", "mama", "tata", "syn", "syna", "corka", "corke", "zona", "zone", "maz", "meza", "dziadek", "babcia", "przyjaciel", "przyjaciela", "przyjaciolka"}
 
 // lossTold reports the player's own dead: one of theirs ("mój brat",
 // "moja żona") and a word of dying, "wczoraj utonął mój brat".
@@ -926,8 +969,8 @@ func lossTold(words []string) bool {
 	mine, died := false, false
 
 	for _, word := range words {
-		mine = mine || slices.Contains([]string{"moj", "moja", "moi", "mojego", "mojej", "moje"}, word)
-		for _, stem := range []string{"utonal", "utonel", "utopil", "zginal", "zginel", "umarl", "zmarl", "polegl"} {
+		mine = mine || slices.Contains([]string{"moj", "moja", "moi", "mojego", "mojej", "moje", "mi"}, word) || slices.Contains(kinWords, word)
+		for _, stem := range []string{"utonal", "utonel", "utopil", "zginal", "zginel", "umarl", "zmarl", "polegl", "zamarzl", "zabili mi", "zagryzl mi"} {
 			died = died || strings.HasPrefix(word, stem)
 		}
 	}
@@ -949,7 +992,9 @@ func aside(folded string) (string, bool) {
 		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
 	case lossTold(strings.Fields(folded)):
 		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
-	case hasPhrase(folded, flirtWords):
+	case hasPhrase(folded, familyWords):
+		return "Gracz pyta o twoje prywatne sprawy: rodzinę, bliskich, skąd jesteś, skąd blizna. Mów tylko to, co o tym jest w twojej karcie; jeśli nic tam nie ma, nie wymyślaj krewnych, zmarłych ani zdarzeń: zbądź to po swojemu, krótko, albo odwróć pytanie.", true
+	case hasPhrase(folded, flirtWords) || praised(strings.Fields(folded)):
 		return "Gracz flirtuje albo prawi ci komplementy. Odpowiedz po swojemu, jak każe charakter: z wdziękiem, zmieszaniem albo kpiną, krótko; bez plotek i bez polecania towaru.", true
 	case hasPhrase(folded, jokeWords):
 		return "Gracz prosi o żart. Opowiedz jeden krótki żart albo zabawną historyjkę po swojemu, z życia twojej postaci; bez nowych nazw miejsc i osób, i bez polecania towaru.", true

@@ -271,11 +271,21 @@ func moving(text string) bool {
 // payWords with a sum offer money: "dobrze, zgoda na 130", "dorzucę 20".
 // A companion in the party has no wares to read an offer against, so
 // the rules read it from the words.
-var payWords = []string{"zgoda", "dam", "daje", "dorzuce", "doplace", "place", "zaplace", "bierz", "masz", "stoi"}
+var payWords = []string{"zgoda", "dam", "daje", "dorzuce", "doplace", "place", "zaplace", "bierz", "masz", "stoi", "trzymaj", "wez", "lap"}
 
 func offersMoney(folded string) bool {
+	if slices.ContainsFunc(strings.Fields(folded), func(word string) bool {
+		return slices.ContainsFunc(raiseWords, func(stem string) bool { return strings.HasPrefix(word, stem) })
+	}) || hasPhrase(folded, []string{"za darmo", "bez zaplaty", "ostatnie slowo"}) {
+		return true
+	}
+
 	return strings.ContainsAny(folded, "0123456789") && (hasPhrase(folded, payWords) || hasPhrase(folded, acceptWords))
 }
+
+// raiseWords are money to a companion without a sum: "podwyżka od jutra",
+// "masz napiwek", "premia za węgorza".
+var raiseWords = []string{"podwyzk", "napiwk", "napiwek", "premi", "doplat", "ekstra", "zaplat", "zold", "wyplat"}
 
 // showWords after "pokaż" ask for the wares: "pokaż co masz", "pokaż
 // towar". "Pokaż bliznę" asks for a scar, not a price.

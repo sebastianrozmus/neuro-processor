@@ -395,13 +395,23 @@ func (r *Realm) mateLore(leader *player, kind int, wares []Ware) string {
 		fmt.Fprintf(&lore, "Strony, w których %s: %s. Najgroźniejsze (zagrożenie %d) omijasz, póki nie nabierzesz sił.\n", gendered(she, "bywałeś", "bywałaś"), join(dangers), world.MaxTier)
 	}
 
-	monsters := make([]string, 0, len(built.Monsters))
+	// The card says what the hints say: a creature above their tier they
+	// know from tales only, or the model is told both.
+	var monsters, tales []string
 	for _, monster := range built.Monsters {
-		monsters = append(monsters, monster.Name)
+		if monster.Tier <= spec.Tier {
+			monsters = append(monsters, monster.Name)
+		} else {
+			tales = append(tales, monster.Name)
+		}
 	}
 
 	if len(monsters) > 0 {
 		fmt.Fprintf(&lore, "Potwory, z którymi %s do czynienia: %s.\n", gendered(she, "miałeś", "miałaś"), join(monsters))
+	}
+
+	if len(tales) > 0 {
+		fmt.Fprintf(&lore, "Znasz tylko z opowieści, sam%s nie %s: %s.\n", gendered(she, "", "a"), gendered(she, "walczyłeś", "walczyłaś"), join(tales))
 	}
 
 	fmt.Fprintf(&lore, "Największe zagrożenie: %s. %s Jego siedziba: %s.\n", built.Boss.Name, built.Boss.Description, bearing(here, built.Lair))
