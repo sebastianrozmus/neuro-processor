@@ -154,6 +154,9 @@ type talk struct {
 	// so that "a co słyszałeś?" stays on it; leadKeeper who knows it.
 	lead       *Fact
 	leadKeeper int
+	// topic is the fact the player last asked about, so that "byłeś
+	// tam?" right after is still about it.
+	topic *Fact
 }
 
 type monster struct {

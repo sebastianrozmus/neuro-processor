@@ -297,6 +297,68 @@ func closely(text, word string) bool {
 	return false
 }
 
+// backWords point back at what was just talked about.
+var backWords = []string{"tam", "tego", "go", "ja", "jej", "niego", "niej", "nia", "nim", "tym", "stamtad", "tamtedy", "takiego", "takie", "takiej"}
+
+func backRef(words []string) bool {
+	text := strings.Join(words, " ")
+	if hasPhrase(text, []string{"co tam", "jak tam"}) {
+		return false
+	}
+
+	return len(words) <= 8 && slices.ContainsFunc(words, func(word string) bool { return slices.Contains(backWords, strings.Trim(word, ".,!?")) })
+}
+
+// dwell remembers the fact the player asked about in this talk.
+func (r *Realm) dwell(customer *player, fact *Fact) {
+	if current := customer.talks[customer.shop]; current != nil {
+		current.topic = fact
+	}
+}
+
+func (r *Realm) topicOf(customer *player) *Fact {
+	if current := customer.talks[customer.shop]; current != nil {
+		return current.topic
+	}
+
+	return nil
+}
+
+// dwellHint keeps a follow-up on the fact before it. A companion who has
+// been there talks as one who was; anybody else says what they know and
+// that they were not there.
+func (r *Realm) dwellHint(customer *player, fact *Fact, known, she bool) string {
+	if kind, ok := r.mateOf(customer.shop); ok {
+		if spec := r.world.Companions[kind]; r.ownPast(spec, fact) || r.mateKnows(spec, fact) {
+			return fmt.Sprintf("Gracz dopytuje o: %s. Znasz to z własnej drogi: %s Odpowiedz krótko jak ktoś, kto się z tym zetknął; nie zmyślaj szczegółów spoza tego.", fact.Subject, r.told(fact))
+		}
+	}
+
+	what := "„" + crumb(fact) + "”."
+	if known {
+		what = r.told(fact)
+	}
+
+	return fmt.Sprintf("Gracz dopytuje o: %s, o czym już mówiliście. Wiesz o tym tylko tyle: %s Sam%s tego nie %s: powiedz to po swojemu i nie zmyślaj wizyt, spotkań ani szczegółów.", fact.Subject, what, gendered(she, "", "a"), gendered(she, "widziałeś", "widziałaś"))
+}
+
+// uncalled drops the words that call the keeper by name: "hej rozalka"
+// greets as "hej" does. A message of nothing but the name stays as it is.
+func (r *Realm) uncalled(words []string, keeper int) []string {
+	name := Fold(r.keeperName(keeper))
+	kept := slices.DeleteFunc(slices.Clone(words), func(word string) bool {
+		word = strings.Trim(word, ".,!?")
+
+		return len(word) > minQueryWord && closely(name, word)
+	})
+
+	if len(kept) == 0 {
+		return words
+	}
+
+	return kept
+}
+
 // ownPast tells whether a fact is part of a companion's own story: a place
 // or a thing their description names, as the crypts Gniewomir came back
 // from. A creature or a person is not: the knight is no Upiorny Rycerz, and
@@ -394,7 +456,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 	// A bare greeting is answered in one sentence: the model has never seen
 	// one, and given three sentences and a random fact it drifts.
-	if chat && greeting(words) {
+	if chat && greeting(r.uncalled(words, customer.shop)) {
 		if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == "" {
 			return "Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem po swojemu: odwzajemnij powitanie i zapytaj, czy szuka kogoś do drużyny. Nic więcej.", nil, false
 		}
@@ -447,16 +509,19 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	gap, keeper := r.gapFor(customer, customer.shop, topical)
 	if best != nil && (bestFull || gap == nil || !whole(topical, gap.Subject)) {
 		r.learn(customer, best)
+		r.dwell(customer, best)
 
 		return fmt.Sprintf("Gracz wspomina o: %s. Co o tym wiesz: %s", best.Subject, r.told(best)), nil, true
 	}
 
 	if fact := gap; fact != nil {
+		r.dwell(customer, fact)
 		if kind, ok := r.mateOf(customer.shop); ok {
 			// Gniewomir came back from the crypts and Iskra lived through
 			// the Krater: their own past is no rumour heard at the inn,
 			// whether they are hired yet or not.
-			if spec := r.world.Companions[kind]; r.ownPast(spec, fact) {
+			spec := r.world.Companions[kind]
+			if r.ownPast(spec, fact) {
 				r.learn(customer, fact)
 
 				return fmt.Sprintf("Gracz mówi o: %s. To twoja własna przeszłość: %s Inni wiedzą o tym tyle: „%s”. Odpowiedz jak ktoś, kto to przeżył, ale nie zmyślaj szczegółów spoza tego i nie odsyłaj go do nikogo.", fact.Subject, spec.Description, crumb(fact)), nil, true
@@ -465,7 +530,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 			// The places a companion has been to and the creatures they
 			// have fought are in their card: they talk about those
 			// themselves, as one who was there.
-			if r.mateKnows(fact) {
+			if r.mateKnows(spec, fact) {
 				r.learn(customer, fact)
 
 				return fmt.Sprintf("Gracz mówi o: %s. Znasz to z własnej drogi: %s Odpowiedz krótko jak ktoś, kto się z tym zetknął; nie zmyślaj szczegółów spoza tego i nie odsyłaj go do nikogo.", fact.Subject, r.told(fact)), nil, true
@@ -487,6 +552,12 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	// drifting to a random fact; "dobre mają piwo?" is another topic.
 	if last := customer.talks[customer.shop]; last != nil && last.lead != nil && decision.Outcome == OutcomeChat && followUp(words, last.lead) {
 		return r.referral(last.lead, last.leadKeeper, true, she), &lead{fact: last.lead, keeper: last.leadKeeper}, true
+	}
+
+	// "Byłeś tam?" right after the lighthouse is about the lighthouse: told
+	// nothing, the model made up a visit.
+	if topic := r.topicOf(customer); topic != nil && decision.Outcome == OutcomeChat && strings.Contains(text, "?") && backRef(words) {
+		return r.dwellHint(customer, topic, slices.Contains(known, topic), she), nil, true
 	}
 
 	if customer.inn && decision.Outcome == OutcomeChat {
@@ -789,6 +860,25 @@ var (
 		"zabili mi", "zabil mi", "zabila mi", "polegl mi", "polegla mi", "zginal moj", "zginela moja", "zgineli moi", "moj brat zginal", "moja siostra zginela"}
 )
 
+// jokeWords ask for a joke: the model, given a fact to weave in, recited
+// the druids' circle instead of telling one.
+var jokeWords = []string{"kawal", "kawalu", "dowcip", "dowcipu", "dowcipy", "kawaly", "jakis zart", "znasz zart", "opowiedz zart", "rozsmiesz mnie", "cos smiesznego"}
+
+// lossTold reports the player's own dead: one of theirs ("mój brat",
+// "moja żona") and a word of dying, "wczoraj utonął mój brat".
+func lossTold(words []string) bool {
+	mine, died := false, false
+
+	for _, word := range words {
+		mine = mine || slices.Contains([]string{"moj", "moja", "moi", "mojego", "mojej", "moje"}, word)
+		for _, stem := range []string{"utonal", "utonel", "utopil", "zginal", "zginel", "umarl", "zmarl", "polegl"} {
+			died = died || strings.HasPrefix(word, stem)
+		}
+	}
+
+	return mine && died
+}
+
 // aside answers what is not about the world at all, or is about the
 // player's own grief: no fact or ware is offered to any of it.
 func aside(folded string) (string, bool) {
@@ -801,6 +891,10 @@ func aside(folded string) (string, bool) {
 		return "Gracz prosi o coś, czego twoja postać nie robi: wiersza, piosenki albo zadania nie dostanie. Odmów po swojemu, krótko i w roli, i nie spełniaj prośby nawet trochę.", true
 	case slices.ContainsFunc(griefWords, func(phrase string) bool { return strings.Contains(padded, " "+phrase) }):
 		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
+	case lossTold(strings.Fields(folded)):
+		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
+	case hasPhrase(folded, jokeWords):
+		return "Gracz prosi o żart. Opowiedz jeden krótki żart albo zabawną historyjkę po swojemu, z życia twojej postaci; bez nowych nazw miejsc i osób, i bez polecania towaru.", true
 	case hasPhrase(folded, sorryWords) && !tradeAsked(folded):
 		return "Gracz przeprasza. Przyjmij przeprosiny po swojemu, krótko: chłodno, jeśli wcześniej cię obraził, życzliwie, jeśli nie. Nie dodawaj nowych tematów.", true
 	}

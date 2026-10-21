@@ -73,3 +73,19 @@ func TestSessionWordsFromTest13(t *testing.T) {
 		t.Error("a question without a mark is not asked")
 	}
 }
+
+func TestHalfThePriceIsAnOffer(t *testing.T) {
+	wares := []Ware{{ID: "umowa", Name: "Umowa najmu", Price: 130}, {ID: "harpun", Name: "Harpun", Price: 40}}
+
+	for text, want := range map[string]int{"drogo. dam połowę": 65, "dam pół ceny": 65, "połowa za harpun": 20} {
+		got := Read(InterpretRequest{Text: text, Wares: wares, FocusID: "umowa"}).Alone()
+		if got.Action != ActionOffer || got.Amount != want {
+			t.Errorf("%q = %+v, want an offer of %d", text, got, want)
+		}
+	}
+
+	// Without a ware in view half of nothing is no offer.
+	if got := Read(InterpretRequest{Text: "dam połowę", Wares: wares}).Alone(); got.Action == ActionOffer {
+		t.Errorf("half of what: %+v", got)
+	}
+}

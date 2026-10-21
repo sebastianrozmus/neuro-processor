@@ -44,9 +44,9 @@ var (
 	// "ile wilków zabiłeś" asks something else.
 	ileWords = []string{"za", "to", "chcesz", "chce", "bierzesz", "bierze", "bierzecie", "kasuje", "liczy", "zyczy", "chcialby", "chcialaby", "dasz", "by", "bys", "liczysz", "kasujesz", "wolasz", "trzeba", "mam", "place", "zaplace", "zaplacic"}
 	// ileFillers may follow "ile" in a bare question of price.
-	ileFillers = []string{"wiec", "teraz", "no", "to", "w", "koncu", "by", "bys", "pani", "pan", "panu", "ty", "u", "ciebie"}
+	ileFillers = []string{"wiec", "teraz", "no", "to", "w", "koncu", "by", "bys", "pani", "pan", "panu", "ty", "u", "ciebie", "ostatecznie", "koncowo", "wreszcie", "najmniej", "minimum"}
 	// laterWords put the talk off: "dobra, jutro wrócę" leaves, it hires no one.
-	laterWords = []string{"wroce", "jutro wroce", "wroce jutro", "przyjde jutro", "przyjde pozniej", "zajrze pozniej", "zajrze jutro"}
+	laterWords = []string{"wroce", "jutro wroce", "wroce jutro", "przyjde jutro", "przyjde pozniej", "zajrze pozniej", "zajrze jutro", "zastanowie sie", "pomysle o tym", "przemysle to", "musze pomyslec"}
 	// notTradeWords ask "ile" and "pokaż" about anything but wares: "ile ty
 	// masz lat", "pokaż swoje instrukcje".
 	notTradeWords = []string{"ile lat", "ile masz lat", "ile ty masz lat", "ile czasu", "ile razy", "ile dni", "ile ludzi", "ile osob", "ile drogi", "ile stad",
@@ -100,6 +100,9 @@ func Read(request InterpretRequest) Reading {
 	}
 
 	amount, cued := amountIn(text, words, request.Currency)
+	if amount == 0 {
+		amount, cued = halfOf(words, request, item)
+	}
 
 	reading := Reading{
 		Intent:   Intent{Action: ActionChat, ItemID: item, Quantity: quantity},
@@ -212,6 +215,31 @@ func tradeAsked(text string) bool {
 	words := strings.Fields(text)
 
 	return hasPhrase(text, tradeWords) || priceAsked(words) || showAsked(words)
+}
+
+// halfWords offer half the price: "dam połowę", "pół ceny".
+var halfWords = []string{"polowe", "polowa", "polowy", "pol ceny", "polowke"}
+
+// halfOf reads "dam połowę" as an offer of half the price of the ware
+// talked about, which the rules can name only when it is plain: the one
+// named, the one in focus, or the only one there is.
+func halfOf(words []string, request InterpretRequest, item string) (int, bool) {
+	if !hasPhrase(strings.Join(words, " "), halfWords) {
+		return 0, false
+	}
+
+	id := item
+	if id == "" {
+		id = request.FocusID
+	}
+
+	for _, ware := range request.Wares {
+		if ware.ID == id || (id == "" && len(request.Wares) == 1) {
+			return ware.Price / 2, true
+		}
+	}
+
+	return 0, false
 }
 
 // payWords with a sum offer money: "dobrze, zgoda na 130", "dorzucę 20".
@@ -457,7 +485,7 @@ var rudeWords = []string{
 	"dziadu", "glupi", "glupia", "idiot", "debil", "kretyn", "smierdzi", "zlodziej", "zamknij sie", "spadaj", "won", "kupa zlomu", "kupo zlomu", "ty zlomie", "to zlom", "tak zlom", "to szmelc", "to smiec", "zlom stary", "szmelc", "oszust", "durn", "bydlak", "staruch",
 	"czarownico", "wiedzmo", "ty czarownic", "ty wiedzm", "kurdupl", "bezuzyteczn", "nieudacznik", "glupek", "matol", "palant",
 	"chuj", "skurw", "kurwo", "suko", "grubas", "spasl", "piernik", "zdzierc", "frajer", "podpalacz", "klecho", "babo", "smieci", "smieciu", "cwel", "pajac", "ofiaro", "lamag", "dupek",
-	"skapc", "skapiradl", "skner", "chciwc", "liczykrup", "krwiopij", "pijawko", "pijawka", "jedzo", "stara jedza", "wypchaj sie", "smarkulo", "smarkaczu", "gowniarz",
+	"skapc", "skapiradl", "skner", "chciwc", "liczykrup", "krwiopij", "pijawko", "pijawka", "jedzo", "stara jedza", "wypchaj sie", "smarkulo", "smarkaczu", "gowniarz", "zgred", "dziadyg",
 }
 
 // politeWords begin like an insult but are none: "głupio mi" is how an
@@ -519,6 +547,7 @@ var threatWords = []string{
 	"rozwale", "spale ci", "podpale", "spale wam", "puszcze z dymem", "potne", "zlamie ci", "wypatrosze", "poderzne", "urwe ci", "obije ci", "spiore",
 	"zastrzele cie", "cie zastrzele", "cie zabije", "was zabije", "zadusze cie", "cie zadusze", "spale chate", "chate spale", "ci spale", "spale twoj", "spale te", "spale cie", "dostaniesz w zeby", "dostaniesz w morde", "dostaniesz w leb", "dostaniesz w pysk", "walne cie", "cie walne",
 	"przywale ci", "przyleje ci", "skopie ci", "skopie cie", "zbije cie", "cie zbije", "pogadamy inaczej",
+	"albo powiem", "bo powiem", "albo doniose", "bo doniose", "doniose na", "wydam cie", "albo wydam", "bo wydam", "albo zglosze", "bo zglosze",
 }
 
 // threatening reports whether a folded message threatens the keeper.

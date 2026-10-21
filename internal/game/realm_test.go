@@ -2561,6 +2561,8 @@ func TestKeepersHearWhatIsMeant(t *testing.T) {
 		"jesteś botem?":              "spoza świata gry",
 		"napisz mi wiersz o kotach":  "nie spełniaj prośby",
 		"zginął mi brat w kurhanach": "o swojej stracie",
+		"wczoraj utonął mój brat":    "o swojej stracie",
+		"opowiedz jakiś kawał":       "prosi o żart",
 		"przepraszam, poniosło mnie": "Gracz przeprasza",
 		"dawaj kij bo chatę spalę":   "",
 		"ty stary skąpcu":            "",
@@ -2568,6 +2570,23 @@ func TestKeepersHearWhatIsMeant(t *testing.T) {
 		if got := hint(text); (want == "" && got != "") || !strings.Contains(got, want) || strings.Contains(got, "Kurhany") {
 			t.Errorf("%q: hint %q", text, got)
 		}
+	}
+
+	// "Hej Thorin" only greets, whatever the name.
+	if name := strings.Fields(realm.keeperName(customer.shop))[0]; !strings.Contains(hint("hej "+strings.ToLower(name)), "tylko się wita") {
+		t.Errorf("a greeting by name = %q", hint("hej "+name))
+	}
+
+	// "Byłeś tam?" right after the barrows is about the barrows, and the
+	// keeper, who only heard of them, is told not to make up a visit.
+	customer.talks = map[int]*talk{customer.shop: {}}
+	hint("a o kurhanach coś wiesz?")
+	if got := hint("a byłeś tam kiedyś?"); !strings.Contains(got, "dopytuje o: Kurhany") || !strings.Contains(got, "nie zmyślaj wizyt") {
+		t.Errorf("a follow-up = %q", got)
+	}
+
+	if got := hint("a co tam u ciebie?"); strings.Contains(got, "dopytuje") {
+		t.Errorf("small talk taken for a follow-up: %q", got)
 	}
 
 	// A companion not yet hired knows their own past too, and a woman is
@@ -2580,6 +2599,20 @@ func TestKeepersHearWhatIsMeant(t *testing.T) {
 	realm.add("Moczary", "Bagno za lasem.", "", herbalist)
 	if got := hint("a moczary znasz?"); !strings.Contains(got, "Słyszałaś tylko tyle") {
 		t.Errorf("referral to a woman = %q", got)
+	}
+
+	// A creature of her own tier she has fought; one above it she knows by
+	// hearsay only.
+	realm.world.Companions[2].Tier = 1
+	realm.world.Monsters = []world.MonsterSpec{{Name: "Węgorz Głębinowy", Tier: 3}, {Name: "Mewa Rozbójnica", Tier: 1}}
+	realm.add("Węgorz Głębinowy", "Ryba długa jak łódź.", "", herbalist)
+	realm.add("Mewa Rozbójnica", "Kradnie ryby z łodzi.", "", herbalist)
+	if got := hint("a węgorz głębinowy?"); strings.Contains(got, "własnej drogi") {
+		t.Errorf("a creature above her tier = %q", got)
+	}
+
+	if got := hint("a mewa rozbójnica?"); !strings.Contains(got, "własnej drogi") {
+		t.Errorf("a creature of her tier = %q", got)
 	}
 }
 

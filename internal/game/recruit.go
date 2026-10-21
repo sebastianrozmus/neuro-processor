@@ -83,16 +83,18 @@ func (r *Realm) mateGround() []int {
 // mateKnows reports whether a companion knows a fact from their own road:
 // a place they have been to or a creature they have fought, which they
 // talk about themselves instead of sending the hero to a shop.
-func (r *Realm) mateKnows(fact *Fact) bool {
+func (r *Realm) mateKnows(mate world.CompanionSpec, fact *Fact) bool {
 	for _, index := range r.mateGround() {
 		if r.places[index].Name == fact.Subject {
 			return true
 		}
 	}
 
+	// A creature above their own tier they know by hearsay only: the
+	// seventeen-year-old smuggler has not fought the deep eel.
 	for _, monster := range r.world.Monsters {
 		if monster.Name == fact.Subject {
-			return true
+			return monster.Tier <= mate.Tier
 		}
 	}
 
