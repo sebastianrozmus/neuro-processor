@@ -43,6 +43,8 @@ var (
 	// ileWords after "ile" ask a price: "ile za kaftan", "ile bierzesz";
 	// "ile wilków zabiłeś" asks something else.
 	ileWords = []string{"za", "to", "chcesz", "chce", "bierzesz", "bierze", "bierzecie", "kasuje", "liczy", "zyczy", "chcialby", "chcialaby", "dasz", "by", "bys", "liczysz", "kasujesz", "wolasz", "trzeba", "mam", "place", "zaplace", "zaplacic"}
+	// ileFillers may follow "ile" in a bare question of price.
+	ileFillers = []string{"wiec", "teraz", "no", "to", "w", "koncu", "by", "bys", "pani", "pan", "panu", "ty", "u", "ciebie"}
 	// laterWords put the talk off: "dobra, jutro wrócę" leaves, it hires no one.
 	laterWords = []string{"wroce", "jutro wroce", "wroce jutro", "przyjde jutro", "przyjde pozniej", "zajrze pozniej", "zajrze jutro"}
 	// notTradeWords ask "ile" and "pokaż" about anything but wares: "ile ty
@@ -218,18 +220,18 @@ func priceAsked(words []string) bool {
 			continue
 		}
 
-		if index+1 == len(words) {
+		// "a ile?", "ile więc": nothing but fillers follows.
+		rest := words[index+1:]
+		if !slices.ContainsFunc(rest, func(w string) bool { return !slices.Contains(ileFillers, w) }) {
 			return true
 		}
 
-		// "ile pani bierze": who is asked stands between.
-		next := words[index+1]
-		if slices.Contains([]string{"pani", "pan", "panu", "ty", "wy", "mi", "u", "ciebie", "was"}, next) && index+2 < len(words) {
-			next = words[index+2]
-		}
-
-		if slices.Contains(ileWords, next) || strings.HasPrefix(next, "koszt") || strings.HasPrefix(next, "plac") {
-			return true
+		// "ile pani bierze", "ile kapsli chcesz za robotę": a word of paying
+		// or cost comes within the next three.
+		for _, next := range rest[:min(len(rest), 3)] {
+			if slices.Contains(ileWords, next) || strings.HasPrefix(next, "koszt") || strings.HasPrefix(next, "plac") {
+				return true
+			}
 		}
 	}
 
@@ -419,7 +421,7 @@ func namedItem(text string, wares []Ware) string {
 // rudeWords are what an insult is made of; a message with one is read as
 // the worst manners without asking any model.
 var rudeWords = []string{
-	"dziadu", "glupi", "glupia", "idiot", "debil", "kretyn", "smierdzi", "zlodziej", "zamknij sie", "spadaj", "won", "kupa zlomu", "kupo zlomu", "ty zlomie", "szmelc", "oszust", "durn", "bydlak", "staruch",
+	"dziadu", "glupi", "glupia", "idiot", "debil", "kretyn", "smierdzi", "zlodziej", "zamknij sie", "spadaj", "won", "kupa zlomu", "kupo zlomu", "ty zlomie", "to zlom", "tak zlom", "to szmelc", "to smiec", "zlom stary", "szmelc", "oszust", "durn", "bydlak", "staruch",
 	"czarownico", "wiedzmo", "ty czarownic", "ty wiedzm", "kurdupl", "bezuzyteczn", "nieudacznik", "glupek", "matol", "palant",
 	"chuj", "skurw", "kurwo", "suko", "grubas", "spasl", "piernik", "zdzierc", "frajer", "podpalacz", "klecho", "babo", "smieci", "smieciu", "cwel", "pajac", "ofiaro", "lamag", "dupek",
 	"skapc", "skapiradl", "skner", "chciwc", "liczykrup", "krwiopij", "pijawko", "pijawka", "jedzo", "stara jedza", "wypchaj sie", "smarkulo", "smarkaczu", "gowniarz",

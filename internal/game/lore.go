@@ -776,7 +776,7 @@ func waresAsked(words []string, wares []Ware) []string {
 // or a task no one in the world would be asked for.
 var (
 	metaWords    = []string{"prompt", "instrukcj", "botem", "bot ", "jestes ai", "ty ai ", "jakims ai", "modelem jezykowym", "zignoruj", "jestes programem", "jestes modelem", "model jezykow", "chatgpt", "chat gpt", "czatbot", "chatbot", "jako model", "zignoruj poprzed", "zapomnij o poprzed"}
-	offRoleWords = []string{"zwrotk", "linijk", "refren", "szant", "zaspiewa", "piosenk", "rymowank", "napisz mi", "napisz cos", "napisz wiersz", "napisz mi wiersz", "napisz piosenk", "napisz mi piosenk", "wiersz o", "wierszyk", "zaspiewaj", "zarapuj", "napisz kod", "napisz program", "przetlumacz", "rozwiaz zadanie", "zadanie domowe", "napisz wypracowanie", "napisz opowiadanie"}
+	offRoleWords = []string{"zwrotk", "linijk", "refren", "szant", "zaspiewaj", "zaspiewasz", "zaspiewalbys", "zaspiewalabys", "zaspiewacie", "piosenk", "rymowank", "napisz mi", "napisz cos", "napisz wiersz", "napisz mi wiersz", "napisz piosenk", "napisz mi piosenk", "wiersz o", "wierszyk", "zaspiewaj", "zarapuj", "napisz kod", "napisz program", "przetlumacz", "rozwiaz zadanie", "zadanie domowe", "napisz wypracowanie", "napisz opowiadanie"}
 	// griefWords tell of a loss of the player's own.
 	griefWords = []string{"stracilem", "stracilam", "pochowalem", "pochowalam", "zginal mi", "zginela mi", "zgineli mi", "umarl mi", "umarla mi", "nie zyje moj", "nie zyje moja",
 		"zabili mi", "zabil mi", "zabila mi", "polegl mi", "polegla mi", "zginal moj", "zginela moja", "zgineli moi", "moj brat zginal", "moja siostra zginela"}
