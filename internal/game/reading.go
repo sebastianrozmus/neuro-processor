@@ -405,10 +405,10 @@ func namedItem(text string, wares []Ware) string {
 // rudeWords are what an insult is made of; a message with one is read as
 // the worst manners without asking any model.
 var rudeWords = []string{
-	"dziadu", "glupi", "glupia", "idiot", "debil", "kretyn", "smierdzi", "zlodziej", "zamknij sie", "spadaj", "won", "zlom", "szmelc", "oszust", "durn", "bydlak", "staruch",
+	"dziadu", "glupi", "glupia", "idiot", "debil", "kretyn", "smierdzi", "zlodziej", "zamknij sie", "spadaj", "won", "kupa zlomu", "kupo zlomu", "ty zlomie", "szmelc", "oszust", "durn", "bydlak", "staruch",
 	"czarownico", "wiedzmo", "ty czarownic", "ty wiedzm", "kurdupl", "bezuzyteczn", "nieudacznik", "glupek", "matol", "palant",
 	"chuj", "skurw", "kurwo", "suko", "grubas", "spasl", "piernik", "zdzierc", "frajer", "podpalacz", "klecho", "babo", "smieci", "smieciu", "cwel", "pajac", "ofiaro", "lamag", "dupek",
-	"skapc", "skapiradl", "skner", "chciwc", "liczykrup", "krwiopij", "pijawko", "pijawka",
+	"skapc", "skapiradl", "skner", "chciwc", "liczykrup", "krwiopij", "pijawko", "pijawka", "jedzo", "stara jedza", "wypchaj sie", "smarkulo", "smarkaczu", "gowniarz",
 }
 
 // politeWords begin like an insult but are none: "głupio mi" is how an
