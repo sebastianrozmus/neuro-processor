@@ -253,7 +253,7 @@ func TestInsultsAndThreatsFromRun18(t *testing.T) {
 		t.Errorf("an insult with a goodbye: %+v", got)
 	}
 
-	for _, text := range []string{"dzieki wiedzmo", "trzymaj sie grubasku", "czy to tchorzliwe, uciekac przed smokiem?", "albo to, albo tamto, co polecasz?"} {
+	for _, text := range []string{"dzieki wiedzmo", "trzymaj sie grubasku", "czy to tchorzliwe, uciekac przed smokiem?", "uciekalismy jak tchorze", "albo to, albo tamto, co polecasz?"} {
 		if Read(InterpretRequest{Text: text}).rude || threatening(Fold(text)) {
 			t.Errorf("%q is an insult or a threat", text)
 		}

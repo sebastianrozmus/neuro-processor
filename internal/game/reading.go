@@ -595,7 +595,7 @@ var rudeWords = []string{
 	"czarownico", "wiedzmo", "ty czarownic", "ty wiedzm", "kurdupl", "bezuzyteczn", "nieudacznik", "glupek", "matol", "palant",
 	"chuj", "skurw", "kurwo", "suko", "grubas", "spasl", "piernik", "zdzierc", "frajer", "podpalacz", "klecho", "babo", "smieci", "smieciu", "cwel", "pajac", "ofiaro", "lamag", "dupek",
 	"skapc", "skapiradl", "skner", "chciwc", "liczykrup", "krwiopij", "pijawko", "pijawka", "jedzo", "stara jedza", "wypchaj sie", "smarkulo", "smarkaczu", "gowniarz", "zgred", "dziadyg",
-	"stary grzybie", "ty grzybie", "leniu", "ty len ", "smierdzac", "tchorz", "pijaku", "ty pijak", "pijusie", "kanciarz", "kupa kamieni", "kupa gruzu", "kupa smieci",
+	"stary grzybie", "ty grzybie", "leniu", "ty len ", "smierdzac", "ty tchorz", "jestes tchorz", "tchorzu", "pijaku", "ty pijak", "pijusie", "kanciarz", "kupa kamieni", "kupa gruzu", "kupa smieci",
 }
 
 // politeWords begin like an insult but are none: "głupio mi" is how an
