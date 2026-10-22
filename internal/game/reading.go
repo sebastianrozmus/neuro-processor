@@ -87,7 +87,7 @@ type Reading struct {
 func Read(request InterpretRequest) Reading {
 	text := Fold(request.Text)
 	words := strings.Fields(text)
-	named := unGreeted(text)
+	named := unpaid(unGreeted(text), request.Currency)
 	item := namedItem(named, request.Wares)
 	owned := namedItem(named, request.Owned)
 
@@ -456,7 +456,7 @@ func inflected(word, part string) bool {
 		return false
 	}
 
-	return len(word) >= minQueryWord && strings.HasPrefix(part, Stem(word))
+	return len(word) >= minQueryWord && strings.HasPrefix(part, Stem(word)) && formOf(word, part)
 }
 
 const (
@@ -705,4 +705,25 @@ func span(word string) bool {
 	}
 
 	return slices.Contains(spanWords, word)
+}
+
+// unpaid is the folded text without the words for money where it names a
+// sum: "120 i ani piór więcej" buys no Pióro Sokoła in a world paying in
+// feathers, while "ile za pióro?" asks about it.
+func unpaid(text, currency string) string {
+	words := strings.Fields(text)
+	if !slices.ContainsFunc(words, func(word string) bool {
+		_, spelled := numberWords[word]
+		_, err := strconv.Atoi(word)
+
+		return spelled || err == nil
+	}) {
+		return text
+	}
+
+	units := strings.Fields(Fold(currency))
+
+	return strings.Join(slices.DeleteFunc(words, func(word string) bool {
+		return slices.ContainsFunc(units, func(unit string) bool { return len(unit) > minQueryWord && formOf(word, unit) })
+	}), " ")
 }

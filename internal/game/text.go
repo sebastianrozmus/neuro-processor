@@ -1,6 +1,7 @@
 package game
 
 import (
+	"slices"
 	"strings"
 	"unicode"
 )
@@ -73,6 +74,55 @@ func Matches(name, query string) bool {
 // forms share.
 func Stem(word string) string {
 	return word[:min(len(word), max(minStem, min(maxStem, len(word)-1)))]
+}
+
+// inflections are what Polish puts after a stem to inflect a noun or an
+// adjective, folded: "krypty", "kryptach", "Krateru", "popielnego".
+var inflections = []string{
+	"", "a", "e", "i", "y", "o", "u", "ie", "ia", "iu", "io", "ii", "ach", "ami", "om", "ow", "owi", "owie", "em", "ej", "ego", "emu", "ym", "ymi", "ych",
+	"iach", "iami", "iom", "iow", "iem", "iego", "iemu", "im", "imi", "ich", "iej",
+}
+
+// alternations are the consonants a stem swaps before an ending:
+// "kolczuga" and "kolczudze", "krater" and "kraterze".
+var alternations = [][2]string{{"g", "dz"}, {"g", "z"}, {"k", "c"}, {"k", "cz"}, {"ch", "sz"}, {"r", "rz"}, {"t", "c"}, {"d", "dz"}, {"st", "sc"}}
+
+// formOf reports whether a player's word is a form of a word of a name:
+// the two are one stem of three letters or more with an ending each, or
+// with consonants that alternate before the ending. A word that only
+// begins like the name is none: "kawał" is no "Kawa", "służbę" no
+// "Śluza", "dzieci" no "dzienny" and "strzygę" no "Strzygoń", while
+// "kurtek" is "kurtka" and "kolczudze" is "Kolczuga".
+func formOf(word, part string) bool {
+	for _, w := range []string{word, fleeting(word)} {
+		for _, p := range []string{part, fleeting(part)} {
+			for same := common(w, p); same >= minStem; same-- {
+				if inflects(w[same:], p[same:]) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+// inflects reports whether two remainders of one stem are endings, maybe
+// after consonants that alternate.
+func inflects(a, b string) bool {
+	if slices.Contains(inflections, a) && slices.Contains(inflections, b) {
+		return true
+	}
+
+	for _, pair := range alternations {
+		for _, swap := range [][2]string{pair, {pair[1], pair[0]}} {
+			if strings.HasPrefix(a, swap[0]) && strings.HasPrefix(b, swap[1]) && slices.Contains(inflections, a[len(swap[0]):]) && slices.Contains(inflections, b[len(swap[1]):]) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func join(names []string) string {

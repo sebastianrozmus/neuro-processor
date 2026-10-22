@@ -388,7 +388,7 @@ func (r *Realm) gapFor(hero *player, keeper int, words []string) (*Fact, int) {
 		for _, fact := range r.wisdom.facts {
 			// Nobody is sent to ask about themselves: "Borin, dokąd idziemy?"
 			// is no question about Borin Kamienna Pięść.
-			if fact.known[keeper] || !r.open(fact, hero) || !leads(fact.Subject, word) || fact.Subject == r.keeperName(keeper) {
+			if fact.known[keeper] || !r.open(fact, hero) || !leads(r.calledBy(fact.Subject), word) || !firmLead(r.calledBy(fact.Subject), word, words) || fact.Subject == r.keeperName(keeper) {
 				continue
 			}
 
@@ -422,7 +422,8 @@ func leads(subject, word string) bool {
 			shared++
 		}
 
-		if shared >= max(minQueryWord+1, min(leadPrefix, len(part)-1, len(word)-1)) {
+		// "chodź" leads to no "Chodniki", nor "strzygę" to the "Strzygoń".
+		if shared >= max(minQueryWord+1, min(leadPrefix, len(part)-1, len(word)-1)) && formOf(word, part) {
 			return true
 		}
 	}
@@ -644,4 +645,20 @@ func (r *Realm) told(fact *Fact) string {
 	}
 
 	return fact.Text
+}
+
+// firmLead reports whether a word that leads to a subject leads there
+// along with the subject's noun: "popielnego upiora" leads to no Popielne
+// Zbocza, "popielne zbocza" do.
+func firmLead(subject, word string, words []string) bool {
+	parts := slices.DeleteFunc(strings.Fields(Fold(subject)), func(part string) bool { return len(part) <= minQueryWord })
+	if len(parts) < 2 || len(parts) > nameWords {
+		return true
+	}
+
+	noun := func(word string) bool {
+		return slices.ContainsFunc(parts, func(part string) bool { return !namingAdjective(part) && leads(part, word) })
+	}
+
+	return nounForm(word) || noun(word) || slices.ContainsFunc(words, noun)
 }

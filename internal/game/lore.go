@@ -278,7 +278,8 @@ func closely(text, word string) bool {
 	stem := Stem(word)
 
 	for _, part := range strings.Fields(Fold(text)) {
-		if !strings.HasPrefix(part, stem) && !strings.HasPrefix(fleeting(part), stem) {
+		// "grocie" is "Grota", though its stem begins no word of it.
+		if !strings.HasPrefix(part, stem) && !strings.HasPrefix(fleeting(part), stem) && (len(word) <= minQueryWord+1 || !formOf(word, part)) {
 			continue
 		}
 
@@ -288,6 +289,11 @@ func closely(text, word string) bool {
 		}
 
 		if same := common(word, part); len(word) >= longWord && len(part) >= longWord && same < longStem && len(word)-same > 2 {
+			continue
+		}
+
+		// "chodź" is no "Chodniki" and "służbę" no "Śluza".
+		if !formOf(word, part) {
 			continue
 		}
 
@@ -365,7 +371,14 @@ func (r *Realm) dwellHint(customer *player, fact *Fact, known, she bool) string 
 // calledBy is what names a person in a subject: "Iskra", not the Krater
 // she comes from. "Co wiesz o kraterze?" asks about the place; anything
 // else is the whole subject.
+//
+// Whatever a subject is without does not name it either: "kasty" asks
+// about no Oskar Bez Kasty, "głowę" about no Dzwonnik bez Głowy.
 func (r *Realm) calledBy(subject string) string {
+	if at := strings.Index(" "+strings.ToLower(subject)+" ", " bez "); at > 0 {
+		return subject[:at-1]
+	}
+
 	name, _, found := strings.Cut(subject, " z ")
 	if !found {
 		return subject
@@ -427,10 +440,15 @@ func (r *Realm) ownPast(mate world.CompanionSpec, fact *Fact) bool {
 		return false
 	}
 
+	// The head of the name, not a word of it: the "Siwy tropiciel" never was
+	// in the Siwy Żleb, nor the magister's pupil in the Pracownia Zbiegłego
+	// Magistra. The head is the first word that is no adjective.
 	for _, word := range strings.Fields(subject) {
-		if len(word) > minQueryWord && slices.ContainsFunc(strings.Fields(Fold(mate.Description)), func(part string) bool { return sameWord(word, part) }) {
-			return true
+		if len(word) <= minQueryWord || namingAdjective(word) {
+			continue
 		}
+
+		return slices.ContainsFunc(strings.Fields(Fold(mate.Description)), func(part string) bool { return sameWord(word, part) || formOf(part, word) })
 	}
 
 	return false
@@ -457,8 +475,14 @@ func sameWord(word, part string) bool {
 func touches(words []string, text string) int {
 	count := 0
 
+	// An adjective of a name counts only along with a word naming the rest
+	// of it: "popielnego upiora" is no Popielne Zbocza.
+	firm := slices.ContainsFunc(words, func(word string) bool {
+		return len(word) >= minQueryWord+1 && closely(text, word) && !lone(text, word)
+	})
+
 	for index, word := range words {
-		if len(word) < minQueryWord+1 || !closely(text, word) {
+		if len(word) < minQueryWord+1 || !closely(text, word) || (!firm && lone(text, word)) {
 			continue
 		}
 
@@ -470,6 +494,36 @@ func touches(words []string, text string) int {
 	}
 
 	return count
+}
+
+// nameWords is how many words a text may have to be a name, whose
+// adjective alone does not name it.
+const nameWords = 4
+
+// lone reports a word that names only the adjectives of a name of several
+// words: "obsydianowy miecz" is no Obsydianowa Grota, and "kurhanowy" is
+// no Pająk Kurhanowy.
+func lone(text, word string) bool {
+	parts := slices.DeleteFunc(strings.Fields(Fold(text)), func(part string) bool { return len(part) <= minQueryWord })
+	if len(parts) < 2 || len(parts) > nameWords {
+		return false
+	}
+
+	return !nounForm(word) && !slices.ContainsFunc(parts, func(part string) bool { return !namingAdjective(part) && closely(part, word) })
+}
+
+// nounEnds end a noun and never an adjective: "kurhanach" names the
+// Kurhany, whatever the ending of their name looks like.
+var nounEnds = []string{"ach", "ami", "om", "ow", "owi"}
+
+func nounForm(word string) bool {
+	return slices.ContainsFunc(nounEnds, func(end string) bool { return strings.HasSuffix(word, end) })
+}
+
+// namingAdjective reports a word of a name that looks like an adjective
+// and is not a plural noun: "Popielne", but not "Kurhany".
+func namingAdjective(part string) bool {
+	return adjective(part) && !strings.HasSuffix(part, "any")
 }
 
 // kindWords are folded beginnings of the words a player uses for a kind of
