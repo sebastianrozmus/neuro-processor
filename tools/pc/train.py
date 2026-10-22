@@ -109,7 +109,7 @@ def train_dpo(args, model, tokenizer):
     model = FastLanguageModel.get_peft_model(
         model, r=args.rank, lora_alpha=args.rank, lora_dropout=0, bias="none",
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-        use_gradient_checkpointing="unsloth", random_state=7,
+        use_gradient_checkpointing="unsloth", random_state=args.seed,
     )
     trainer = DPOTrainer(
         model=model, ref_model=None, processing_class=tokenizer,
@@ -123,7 +123,7 @@ def train_dpo(args, model, tokenizer):
             # evaluation is saved and the best one can be picked by the eval logps, not only by the margin.
             logging_steps=5, eval_strategy="steps", eval_steps=max(steps // 4, 5), save_strategy="steps",
             save_steps=max(steps // 4, 5), save_total_limit=4,
-            report_to="none", seed=7,
+            report_to="none", seed=args.seed,
         ),
     )
     print("przed treningiem:", trainer.evaluate(), flush=True)
@@ -154,6 +154,7 @@ def main():
     parser.add_argument("--dry", action="store_true", help="only check the data and the template, no training")
     parser.add_argument("--dpo", action="store_true", help="train DPO pairs on a merged --base instead of SFT")
     parser.add_argument("--beta", type=float, default=0.1)
+    parser.add_argument("--seed", type=int, default=7, help="seed of the trainer (data order, LoRA init)")
     args = parser.parse_args()
 
     from unsloth import FastLanguageModel  # imported first, as Unsloth asks
@@ -186,7 +187,7 @@ def main():
     model = FastLanguageModel.get_peft_model(
         model, r=args.rank, lora_alpha=args.rank, lora_dropout=0, bias="none",
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-        use_gradient_checkpointing="unsloth", random_state=7,
+        use_gradient_checkpointing="unsloth", random_state=args.seed,
     )
     if args.resume:
         from peft import set_peft_model_state_dict
@@ -210,7 +211,7 @@ def main():
             num_train_epochs=args.epochs, learning_rate=args.rate, lr_scheduler_type="cosine", warmup_steps=max(1, round(steps * 0.03)),
             optim="adamw_8bit", weight_decay=0.0, bf16=torch.cuda.is_bf16_supported(), fp16=not torch.cuda.is_bf16_supported(),
             logging_steps=10, eval_strategy="steps", eval_steps=max(steps // 8, 25), save_steps=max(steps // 4, 50), save_total_limit=3,
-            report_to="none", seed=7,
+            report_to="none", seed=args.seed,
         ),
     )
 
