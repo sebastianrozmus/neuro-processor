@@ -392,3 +392,14 @@ func TestLegendWhoDoesNotHaggleFromRun18(t *testing.T) {
 		t.Error("every legend holds the wage")
 	}
 }
+
+// "dam 20 mniej" offers the price less twenty, not twenty.
+func TestLessThanThePriceFromRun18(t *testing.T) {
+	wares := []Ware{{ID: "coat", Name: "Kaftan", Price: 60}, {ID: "rope", Name: "Lina", Price: 15}}
+
+	for text, want := range map[string]int{"dam 20 mniej": 40, "a 10 mniej?": 50, "dam 10 mniej za line": 5} {
+		if got := Read(InterpretRequest{Text: text, Wares: wares, FocusID: "coat"}).Alone(); got.Action != ActionOffer || got.Amount != want {
+			t.Errorf("%q = %+v, want an offer of %d", text, got, want)
+		}
+	}
+}

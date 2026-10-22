@@ -103,6 +103,9 @@ func Read(request InterpretRequest) Reading {
 	}
 
 	amount, cued := amountIn(text, words, request.Currency)
+	if less, ok := under(words, request, item); ok {
+		amount, cued = less, true
+	}
 	halved := false
 	if amount == 0 {
 		amount, cued = halfOf(words, request, item)
@@ -789,4 +792,28 @@ func twoWares(text string, wares []Ware, first string) bool {
 	}
 
 	return false
+}
+
+// under reads "dam 20 mniej" as the price of the ware talked about less
+// the sum: offered as a bare 20, it was a laughable offer.
+func under(words []string, request InterpretRequest, item string) (int, bool) {
+	for index := 0; index+1 < len(words); index++ {
+		less, err := strconv.Atoi(words[index])
+		if err != nil || (words[index+1] != "mniej" && words[index+1] != "taniej") {
+			continue
+		}
+
+		id := item
+		if id == "" {
+			id = request.FocusID
+		}
+
+		for _, ware := range request.Wares {
+			if ware.ID == id && ware.Price > less {
+				return ware.Price - less, true
+			}
+		}
+	}
+
+	return 0, false
 }
