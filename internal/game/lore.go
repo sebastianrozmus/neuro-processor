@@ -218,7 +218,9 @@ func (r *Realm) topical(words []string, keeper int, wares []Ware) []string {
 
 	parts := strings.Fields(Fold(r.keeperName(keeper)))
 	for index, part := range parts {
-		if index == 0 || !slices.Contains([]string{"z", "ze", "od", "spod", "znad"}, parts[index-1]) {
+		// Nor is what they deal with, in the genitive: Orsan Zabójca Jaguarów
+		// is asked about a jaguar, he is not called one.
+		if (index == 0 || !slices.Contains([]string{"z", "ze", "od", "spod", "znad"}, parts[index-1])) && (index == 0 || !nounForm(part)) {
 			called = append(called, part)
 		}
 	}
@@ -443,12 +445,27 @@ func (r *Realm) ownPast(mate world.CompanionSpec, fact *Fact) bool {
 	// The head of the name, not a word of it: the "Siwy tropiciel" never was
 	// in the Siwy Żleb, nor the magister's pupil in the Pracownia Zbiegłego
 	// Magistra. The head is the first word that is no adjective.
+	described := func(words []string) func(string) bool {
+		return func(word string) bool {
+			return slices.ContainsFunc(words, func(part string) bool { return sameWord(word, part) || formOf(part, word) })
+		}
+	}
+
+	// A proper name the card writes out names the past whatever its place
+	// in the subject: the deserter of "ochrony Zenitu" knows the Wieża
+	// Zenitu, the monk "Białej Pani" her spring.
+	if slices.ContainsFunc(strings.Fields(subject), func(word string) bool {
+		return len(word) > minQueryWord && described(properNames(mate.Description))(word)
+	}) {
+		return true
+	}
+
 	for _, word := range strings.Fields(subject) {
 		if len(word) <= minQueryWord || namingAdjective(word) {
 			continue
 		}
 
-		return slices.ContainsFunc(strings.Fields(Fold(mate.Description)), func(part string) bool { return sameWord(word, part) || formOf(part, word) })
+		return described(strings.Fields(Fold(mate.Description)))(word)
 	}
 
 	return false
@@ -473,10 +490,17 @@ func sameWord(word, part string) bool {
 // begin a word of a text. A plain word counts only next to one that names
 // the text too: "Stary Bór", but not "ty stary kurduplu".
 func touches(words []string, text string) int {
+	return touchesName(words, text, true)
+}
+
+// touchesName is touches, with the adjectives of a name counted alone or
+// not: a person's name has none, "Bogna" is no adjective.
+func touchesName(words []string, text string, adjectives bool) int {
 	count := 0
 
 	// An adjective of a name counts only along with a word naming the rest
 	// of it: "popielnego upiora" is no Popielne Zbocza.
+	lone := func(text, word string) bool { return adjectives && lone(text, word) }
 	firm := slices.ContainsFunc(words, func(word string) bool {
 		return len(word) >= minQueryWord+1 && closely(text, word) && !lone(text, word)
 	})
@@ -509,15 +533,23 @@ func lone(text, word string) bool {
 		return false
 	}
 
+	// A name that looks like adjectives only ("Mangrowe Rozlewiska") has
+	// none the rules could tell.
+	if !slices.ContainsFunc(parts, func(part string) bool { return !namingAdjective(part) }) {
+		return false
+	}
+
 	return !nounForm(word) && !slices.ContainsFunc(parts, func(part string) bool { return !namingAdjective(part) && closely(part, word) })
 }
 
 // nounEnds end a noun and never an adjective: "kurhanach" names the
-// Kurhany, whatever the ending of their name looks like.
-var nounEnds = []string{"ach", "ami", "om", "ow", "owi"}
+// Kurhany and "ochronie" the Android Ochrony, whatever the ending of
+// their name looks like. "-ie" after k or g ends adjectives too: "wielkie".
+var nounEnds = []string{"ach", "ami", "om", "ow", "owi", "u", "em", "iem", "ie"}
 
 func nounForm(word string) bool {
-	return slices.ContainsFunc(nounEnds, func(end string) bool { return strings.HasSuffix(word, end) })
+	return slices.ContainsFunc(nounEnds, func(end string) bool { return strings.HasSuffix(word, end) }) &&
+		!strings.HasSuffix(word, "kie") && !strings.HasSuffix(word, "gie") && !strings.HasSuffix(word, "emu")
 }
 
 // namingAdjective reports a word of a name that looks like an adjective
@@ -579,7 +611,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 			}
 		}
 
-		if hint, ok := r.wounds(customer, folded); ok {
+		if hint, ok := r.wounds(customer, text); ok {
 			return hint, nil, false
 		}
 
@@ -633,7 +665,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 	for _, fact := range known {
 		subject := r.calledBy(fact.Subject)
-		score, full := touches(topical, subject)*2+touches(topical, fact.Text), whole(topical, subject)
+		score, full := touchesName(topical, subject, !r.person(fact.Subject))*2+touches(topical, fact.Text), whole(topical, subject)
 		if score > bestScore || (best != nil && score == bestScore && full && !bestFull) {
 			best, bestScore, bestFull = fact, score, full
 		}
@@ -1010,13 +1042,18 @@ var (
 )
 
 // woundWords tell of the hero's own wounds: "jestem ranny, zerkniesz?".
-var woundWords = []string{"ledwo stoje", "ledwo zyje", "ledwo chodze", "boli jak", "jak boli", "ale boli", "mnie boli", "slabo mi", "jestem ranny", "jestem ranna", "oberwalem", "oberwalam", "krwawie", "opatrzysz", "opatrz mnie", "opatrzyc", "boli mnie", "zerknac na rane", "zerkniesz na rane", "mam rane", "mam rany", "jestem poraniony", "jestem poraniona", "polatasz mnie", "wylecz mnie", "wyleczysz", "uleczysz", "ulecz mnie"}
+var woundWords = []string{"ledwo stoje", "ledwo zyje", "ledwo chodze", "slabo mi", "jestem ranny", "jestem ranna", "oberwalem", "oberwalam", "krwawie", "opatrzysz", "opatrz mnie", "opatrzyc", "boli mnie", "zerknac na rane", "zerkniesz na rane", "mam rane", "mam rany", "jestem poraniony", "jestem poraniona", "polatasz mnie", "wylecz mnie", "wyleczysz", "uleczysz", "ulecz mnie"}
+
+// painWords tell of pain without a question: "kurwa, jak boli"; "to ramię
+// boli, jak pada?" asks about the keeper's arm.
+var painWords = []string{"boli jak", "jak boli", "ale boli", "mnie boli", "ale mnie boli"}
 
 // wounds answers a hero who speaks of their wounds with how they really
 // are, and with what the game heals them by: told nothing, a healer before
 // the hire "stitched" a hero in perfect health.
-func (r *Realm) wounds(customer *player, folded string) (string, bool) {
-	if !hasPhrase(folded, woundWords) {
+func (r *Realm) wounds(customer *player, text string) (string, bool) {
+	folded := Fold(text)
+	if !hasPhrase(folded, woundWords) && (strings.Contains(text, "?") || !hasPhrase(folded, painWords)) {
 		return "", false
 	}
 
@@ -1123,7 +1160,10 @@ var (
 	kinStems   = []string{"rodzin", "rodzic", "dziec", "dzieck", "wnuk", "wnucz", "zon", "maz", "meza", "mezem", "mezu", "dziewczyn", "chlopak", "narzeczon", "corki", "corka", "corke", "corek", "coreczk", "syn", "synow", "synek", "synem", "synk", "blizn"}
 	titleStems = []string{"brat", "bracie", "siostr", "ojc", "ojciec", "matk", "matce", "mama", "mame", "mamy", "tata", "tate", "taty"}
 	ownWords   = []string{"twoj", "twoja", "twoje", "twoi", "twojego", "twojej", "twoim", "twoich", "twojemu", "masz", "macie", "ma"}
-	mineWords  = []string{"moj", "moja", "moje", "moi", "mojego", "mojej", "moim", "moich", "mojemu", "nasz", "nasza", "nasze", "naszego", "naszej"}
+	// lifeVerbs may follow a word of kin without making it a name: "twoja
+	// matka jeszcze żyje?".
+	lifeVerbs = []string{"gdzie", "teraz", "jeszcze", "zyje", "zyja", "umarl", "umarla", "mieszka", "pochodzi", "robi", "robil", "robila"}
+	mineWords = []string{"moj", "moja", "moje", "moi", "mojego", "mojej", "moim", "moich", "mojemu", "nasz", "nasza", "nasze", "naszego", "naszej"}
 	// lifeWords ask about the keeper's own road: where from, who taught
 	// them, why they ran or were thrown out, what they miss.
 	lifeWords = []string{"skad jestes", "skad pochodzisz", "skad uciekles", "skad uciekla", "skad ucieklas", "kto cie uczyl", "kto cie nauczyl", "kto cie zrobil", "kto cie stworzyl", "za co cie wyrzucili", "czemu cie wyrzucili", "dlaczego cie wyrzucili", "ile masz lat", "ile ty masz lat", "tesknisz", "teskni pan", "teskni pani"}
@@ -1153,7 +1193,10 @@ func privateAsked(words []string, question bool) bool {
 
 	titled := stem(titleStems)
 	for index, word := range words {
-		if titled(word) && (index > 0 && words[index-1] == "o" || slices.ContainsFunc(words, func(word string) bool { return slices.Contains(ownWords, word) })) {
+		// "o matce grzybni", "o ojcu kajmanów" ask about the Matka Grzybnia and
+		// the Ojciec Kajmanów: a title before a name is the name.
+		named := index+1 < len(words) && len(words[index+1]) > minQueryWord+1 && !slices.Contains(lifeVerbs, words[index+1])
+		if titled(word) && !named && (index > 0 && words[index-1] == "o" || slices.ContainsFunc(words, func(word string) bool { return slices.Contains(ownWords, word) })) {
 			return true
 		}
 	}
@@ -1242,4 +1285,28 @@ func thanked(words []string) bool {
 	}
 
 	return thanks
+}
+
+// person reports a subject that is somebody's name: a keeper's, a
+// companion's or a townsperson's. Its words are names, not adjectives.
+func (r *Realm) person(subject string) bool {
+	for _, companion := range r.world.Companions {
+		if companion.Name == subject {
+			return true
+		}
+	}
+
+	for _, shop := range r.world.Shops {
+		if shop.Keeper == subject {
+			return true
+		}
+	}
+
+	for _, person := range r.world.People {
+		if person.Name == subject {
+			return true
+		}
+	}
+
+	return subject == caravanKeeper
 }

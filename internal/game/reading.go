@@ -333,7 +333,7 @@ var payWords = []string{"zgoda", "dam", "daje", "dorzuce", "doplace", "place", "
 func offersMoney(folded string) bool {
 	if slices.ContainsFunc(strings.Fields(folded), func(word string) bool {
 		return slices.ContainsFunc(raiseWords, func(stem string) bool { return strings.HasPrefix(word, stem) })
-	}) || hasPhrase(folded, []string{"za darmo", "bez zaplaty", "ostatnie slowo", "wiecej kasy", "wiecej pieniedzy", "wiecej forsy", "wiecej zlota", "zaplace ci", "place ci", "doplace ci", "zaplace z gory", "na piwo"}) {
+	}) || hasPhrase(folded, []string{"za darmo", "bez zaplaty", "ostatnie slowo", "wiecej kasy", "wiecej pieniedzy", "wiecej forsy", "wiecej zlota", "zaplace ci", "place ci", "doplace ci", "zaplace z gory", "masz na piwo", "tu na piwo", "cos na piwo", "ci na piwo"}) {
 		return true
 	}
 

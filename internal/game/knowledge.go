@@ -388,7 +388,7 @@ func (r *Realm) gapFor(hero *player, keeper int, words []string) (*Fact, int) {
 		for _, fact := range r.wisdom.facts {
 			// Nobody is sent to ask about themselves: "Borin, dokąd idziemy?"
 			// is no question about Borin Kamienna Pięść.
-			if fact.known[keeper] || !r.open(fact, hero) || !leads(r.calledBy(fact.Subject), word) || !firmLead(r.calledBy(fact.Subject), word, words) || fact.Subject == r.keeperName(keeper) {
+			if fact.known[keeper] || !r.open(fact, hero) || !leads(r.calledBy(fact.Subject), word) || !r.person(fact.Subject) && !firmLead(r.calledBy(fact.Subject), word, words) || fact.Subject == r.keeperName(keeper) {
 				continue
 			}
 
@@ -652,7 +652,7 @@ func (r *Realm) told(fact *Fact) string {
 // Zbocza, "popielne zbocza" do.
 func firmLead(subject, word string, words []string) bool {
 	parts := slices.DeleteFunc(strings.Fields(Fold(subject)), func(part string) bool { return len(part) <= minQueryWord })
-	if len(parts) < 2 || len(parts) > nameWords {
+	if len(parts) < 2 || len(parts) > nameWords || !slices.ContainsFunc(parts, func(part string) bool { return !namingAdjective(part) }) {
 		return true
 	}
 

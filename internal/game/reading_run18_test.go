@@ -403,3 +403,52 @@ func TestLessThanThePriceFromRun18(t *testing.T) {
 		}
 	}
 }
+
+// Second looks at the replayed packs of run 18: what the first fixes
+// broke and put right again.
+func TestNamesAfterTheReplayFromRun18(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	armory := realm.shopOfKind(world.ShopArmory)
+	realm.add("Matka Grzybnia", "Prastara grzybnia.", "", armory)
+	realm.add("Android Ochrony", "Uprzejmy głos i pałka.", "", armory)
+	realm.add("Bogna Topór", "Była strażniczka.", "", armory)
+	realm.add("Mangrowe Rozlewiska", "Korzenie sterczą z wody.", "", armory)
+	realm.world.Companions[0].Name = "Bogna Topór"
+	customer := realm.players[hero]
+	customer.shop = armory
+
+	for text, want := range map[string]string{
+		"co wiesz o matce grzybni?": "Matka Grzybnia", "w ochronie tez tak bylo?": "Android Ochrony", "co myslisz o bognie?": "Bogna Topór",
+		"a bogna da rade?": "Bogna Topór", "a mangrowe rozlewiska?": "Mangrowe Rozlewiska",
+	} {
+		if got, _, _ := realm.hint(customer, text, Decision{Outcome: OutcomeChat}, nil); !strings.Contains(got, want) {
+			t.Errorf("%q: %q", text, got)
+		}
+	}
+
+	// A word of a keeper's name in the genitive is what they deal with,
+	// not what they are called: Orsan Zabójca Jaguarów asked about a jaguar.
+	realm.add("Czarny Jaguar", "Jaguar czarny jak noc.", "", armory)
+	realm.world.Shops[armory].Keeper = "Orsan Zabójca Jaguarów"
+	if got, _, _ := realm.hint(customer, "czarny jaguar cie kiedys dopadl?", Decision{Outcome: OutcomeChat}, nil); !strings.Contains(got, "Czarny Jaguar") {
+		t.Errorf("a jaguar to the jaguar slayer: %q", got)
+	}
+
+	if offersMoney(Fold("w sumie jestes za mloda na piwo")) {
+		t.Error("too young for beer is money")
+	}
+
+	customer.hp = 6
+	if got, _, _ := realm.hint(customer, "to ramie boli jak pada?", Decision{Outcome: OutcomeChat}, nil); strings.Contains(got, "ranach") {
+		t.Errorf("the keeper's arm is the hero's wound: %q", got)
+	}
+
+	// A proper name in the card is the past: the deserter of Zenit's guard
+	// knows the Wieża Zenitu, the monk of the Biała Pani her spring.
+	for description, subject := range map[string]string{"Dezerter z ochrony Zenitu, który uciekł.": "Wieża Zenitu", "Wędrowny mnich Białej Pani.": "Źródło Białej Pani"} {
+		if !realm.ownPast(world.CompanionSpec{Description: description}, &Fact{Subject: subject}) {
+			t.Errorf("%q is no past of %q", subject, description)
+		}
+	}
+}
