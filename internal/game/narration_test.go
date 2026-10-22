@@ -62,9 +62,15 @@ func TestNumbersOK(t *testing.T) {
 func TestNarrateRetriesThenFallsBack(t *testing.T) {
 	request := counterRequest()
 
-	narrator := &scriptedNarrator{replies: []string{"  «Zgoda, 80!»  "}}
-	if text, err := Narrate(context.Background(), narrator, request); err != nil || text != "Zgoda, 80!" {
+	narrator := &scriptedNarrator{replies: []string{"  «Za 80? Daj 140!»  "}}
+	if text, err := Narrate(context.Background(), narrator, request); err != nil || text != "Za 80? Daj 140!" {
 		t.Errorf("consistent reply: got %q, %v", text, err)
+	}
+
+	// A counter-offer that leaves out the new price reads as a yes.
+	narrator = &scriptedNarrator{replies: []string{"Zgoda, 80!", "Za 80? Nie. Daj 140."}}
+	if text, err := Narrate(context.Background(), narrator, request); err != nil || text != "Za 80? Nie. Daj 140." || narrator.corrections[1] != priceCorrection+"140." {
+		t.Errorf("a counter without its price: got %q, %v (%q)", text, err, narrator.corrections)
 	}
 
 	narrator = &scriptedNarrator{replies: []string{"Oddam za 99.", "Daj 140."}}
@@ -110,16 +116,17 @@ func TestNarrateRetriesThenFallsBack(t *testing.T) {
 }
 
 func TestNarrateKeepsRepliesShort(t *testing.T) {
-	long := "Raz. Dwa! Trzy? Cztery… Pięć. Sześć."
+	long := "Raz za 140. Dwa! Trzy? Cztery… Pięć. Sześć."
 
 	request := counterRequest()
 	narrator := &scriptedNarrator{replies: []string{long}}
 
-	if text, _ := Narrate(context.Background(), narrator, request); text != "Raz. Dwa! Trzy?" {
+	if text, _ := Narrate(context.Background(), narrator, request); text != "Raz za 140. Dwa! Trzy?" {
 		t.Errorf("trade reply = %q", text)
 	}
 
 	request.Decision = Decision{Outcome: OutcomeChat}
+	narrator = &scriptedNarrator{replies: []string{"Raz. Dwa! Trzy? Cztery… Pięć. Sześć."}}
 	if text, _ := Narrate(context.Background(), narrator, request); text != "Raz. Dwa! Trzy? Cztery…" {
 		t.Errorf("chat reply = %q", text)
 	}
@@ -419,6 +426,50 @@ func TestTheMasterKeepsEveryBlow(t *testing.T) {
 	narrator = &scriptedNarrator{replies: []string{"Kasia tnie Topielca za 7, ten oddaje za 9 i pada w muł."}}
 	if text, err := Narrate(context.Background(), narrator, request); err != nil || narrator.calls != 1 || text == "" {
 		t.Errorf("a fall the rules made: %q, %v after %d calls", text, err, narrator.calls)
+	}
+}
+
+func TestTalkKeepsToTheBrief(t *testing.T) {
+	// Told not to ask, a line with a question gets a second try; if that
+	// asks too, it is spoken anyway: a question spoils it less than a
+	// canned line.
+	quiet := NarrateRequest{Decision: Decision{Outcome: OutcomeChat}, Hint: "Gracz zagaduje bez konkretnego pytania. Odpowiedz krótko i po swojemu na to, co powiedział; nie pytaj go o nic."}
+	narrator := &scriptedNarrator{replies: []string{"[kpina] A co cię to obchodzi?", "[kpina] Obchodzi mnie to tyle, co zeszłoroczny śnieg."}}
+	if text, err := Narrate(context.Background(), narrator, quiet); err != nil || text != "[kpina] Obchodzi mnie to tyle, co zeszłoroczny śnieg." || narrator.corrections[1] != asksCorrection {
+		t.Errorf("a question when told not to ask: %q, %v (%q)", text, err, narrator.corrections)
+	}
+
+	narrator = &scriptedNarrator{replies: []string{"[kpina] A co cię to obchodzi?", "[kpina] Po co ci to wiedzieć?"}}
+	if text, err := Narrate(context.Background(), narrator, quiet); text != "[kpina] Po co ci to wiedzieć?" || !errors.Is(err, ErrInconsistent) {
+		t.Errorf("two questions: %q, %v", text, err)
+	}
+
+	// A line that repeats four words of the speaker's own earlier one is
+	// told which, and tries again; the player's words may be repeated.
+	talk := NarrateRequest{Decision: Decision{Outcome: OutcomeChat}, History: []Line{
+		{Player: true, Text: "nie gwiżdż pod dachem"},
+		{Text: "[gniew] Nie gwiżdż pod moim dachem, bo to ściąga sztorm."},
+	}}
+	narrator = &scriptedNarrator{replies: []string{"[gniew] Mówiłem: nie gwiżdż pod moim dachem.", "[gniew] Raz już cię prosiłem, drugi raz nie poproszę."}}
+	if text, err := Narrate(context.Background(), narrator, talk); err != nil || text != "[gniew] Raz już cię prosiłem, drugi raz nie poproszę." || narrator.corrections[1] != echoCorrection+"„nie gwizdz pod moim”." {
+		t.Errorf("a repeated phrase: %q, %v (%q)", text, err, narrator.corrections)
+	}
+
+	if echo("[spokój] Nie gwiżdż pod dachem, mówię ci.", talk.History[:1]) != "" || echo("Borin Kamienna Pięść stoi.", []Line{{Text: "Borin Kamienna Pięść leży."}}) != "" {
+		t.Error("the player's words or a name count as an echo")
+	}
+
+	// Money offered to a companion in the party: no amount at all, not
+	// even the one the rules made, and no deal in the canned line.
+	paid := NarrateRequest{Decision: Decision{Outcome: OutcomeCounter, Offer: 50, Price: 129}, Role: RoleCompanion, Hint: paidMate, Quiet: true}
+	narrator = &scriptedNarrator{replies: []string{"[kpina] Umowa zawarta, 129, więcej nie zejdę.", "[kpina] Schowaj sakiewkę, umowa dawno stoi."}}
+	if text, err := Narrate(context.Background(), narrator, paid); err != nil || text != "[kpina] Schowaj sakiewkę, umowa dawno stoi." {
+		t.Errorf("an amount for a companion: %q, %v", text, err)
+	}
+
+	narrator = &scriptedNarrator{replies: []string{"[kpina] 129 i ani grosza mniej.", "[kpina] Dobra, 50."}}
+	if text, _ := Narrate(context.Background(), narrator, paid); strings.ContainsAny(text, "0123456789") {
+		t.Errorf("the companion's canned line quotes money: %q", text)
 	}
 }
 

@@ -905,6 +905,12 @@ func TestFunctionKeysPickCards(t *testing.T) {
 type moodyBrain struct{ llm.Mock }
 
 func (moodyBrain) Narrate(_ context.Context, request game.NarrateRequest) (string, error) {
+	// A short line with the price: the canned one runs past three sentences
+	// and loses the price it has to quote.
+	if price := request.Decision.Price; price > 0 {
+		return fmt.Sprintf("[kpina] Za %d i ani grosza mniej.", price), nil
+	}
+
 	return "[kpina] " + request.Decision.Fallback(), nil
 }
 

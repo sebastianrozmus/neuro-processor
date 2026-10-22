@@ -246,7 +246,7 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	if paying {
 		hint, lead, anchored = paidMate, nil, false
 	}
-	request.Hint = hint
+	request.Hint, request.Quiet = hint, paying
 	if anchored {
 		request.Anchored, request.Names = true, r.names()
 	}

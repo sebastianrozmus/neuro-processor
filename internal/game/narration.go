@@ -42,6 +42,17 @@ const lostCorrection = "Twoja poprzednia odpowiedź była zła: pominęła obra�
 const fallenCorrection = "Twoja poprzednia odpowiedź była zła: ktoś w niej pada, ginie albo ucieka, a w bloku [GRA] tego nie ma. " +
 	"Opisz rundę jeszcze raz: kto w bloku [GRA] nie pada, ten dalej walczy."
 
+// priceCorrection is what a narrator hears after leaving out the price the
+// rules told it to quote; the price follows.
+const priceCorrection = "Twoja poprzednia odpowiedź była zła: nie podała ceny, którą kazano ci podać. Napisz ją jeszcze raz i podaj cyframi: "
+
+// asksCorrection is what a narrator hears after asking when told not to.
+const asksCorrection = "Twoja poprzednia odpowiedź była zła: zadała pytanie, a miałeś o nic nie pytać. Napisz ją jeszcze raz bez żadnego pytania."
+
+// echoCorrection is what a narrator hears after repeating its own words;
+// the phrase follows.
+const echoCorrection = "Twoja poprzednia odpowiedź była zła: powtórzyła słowa z twojej wcześniejszej odpowiedzi. Powiedz to inaczej, bez frazy: "
+
 // correction is what a narrator hears after quoting a number it should not.
 const correction = "Twoja poprzednia odpowiedź była zła: podała liczbę słownie albo taką, której nie ma w bloku [GRA]. " +
 	"Napisz ją jeszcze raz. Liczby wolno ci podać tylko te z bloku [GRA] i tylko cyframi."
@@ -108,6 +119,9 @@ type NarrateRequest struct {
 	// Names are the names of the world, which an anchored reply may use
 	// besides what it was told.
 	Names []string
+	// Quiet is set when the reply may quote no amount at all: money offered
+	// to a companion whose deal stands long since.
+	Quiet bool
 	// Lead is the journal line of a referral in this reply ("Trop: …"),
 	// for the screen to show; a reply with a lead teaches the world no
 	// new fact.
@@ -216,7 +230,15 @@ const (
 	reasonStrangers = "nazwa spoza świata"
 	reasonLost      = "pominięte obrażenia z rundy"
 	reasonFallen    = "ktoś pada albo ucieka poza protokołem"
+	reasonPrice     = "brak ceny, którą kazano podać"
+	reasonAsks      = "pytanie, choć kazano nie pytać"
+	reasonEcho      = "powtarza własne słowa"
 )
+
+// soft are the reasons a line is still spoken for when every try had one
+// of them: a mangled or made-up name, a question too many or a phrase said
+// before spoil a line less than a canned one does.
+var soft = []string{reasonNames, reasonStrangers, reasonAsks, reasonEcho}
 
 // Narrate asks the narrator for a reply and checks it against the decision.
 // The reply is cleaned up and cut to a few sentences. If it quotes amounts
@@ -235,6 +257,11 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 	known := request.Lore + " " + request.Merchant.Persona
 	allowed := append(request.Decision.Numbers(), numbersIn(known)...)
 	allowed = slices.DeleteFunc(allowed, func(number int) bool { return slices.Contains(request.Forbidden, number) })
+	if request.Quiet {
+		allowed = nil
+	}
+
+	brief := request.Decision.BriefFor(request.Role) + " " + request.Hint
 	known = Fold(known)
 
 	// An anchored reply may name what it was told and what the world has.
@@ -298,6 +325,12 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 			reason = reasonLost
 		case request.Decision.Outcome == OutcomeScene && fells(text, request.Decision.Scene):
 			reason = reasonFallen
+		case !request.Quiet && !request.Decision.quotes(text):
+			reason = reasonPrice
+		case strings.Contains(brief, "nie pytaj") && strings.Contains(text, "?"):
+			reason = reasonAsks
+		case echo(text, request.History) != "":
+			reason = reasonEcho
 		default:
 			return fitMood(text, request.Decision.Mood), nil
 		}
@@ -314,6 +347,15 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 
 		if reason == reasonFallen {
 			request.Correction = fallenCorrection
+		}
+
+		switch reason {
+		case reasonPrice:
+			request.Correction = priceCorrection + strconv.Itoa(request.Decision.Price) + "."
+		case reasonAsks:
+			request.Correction = asksCorrection
+		case reasonEcho:
+			request.Correction = echoCorrection + "„" + echo(text, request.History) + "”."
 		}
 
 		if reason == reasonStrangers {
@@ -363,6 +405,79 @@ func fells(text, scene string) bool {
 	return felled.MatchString(Fold(text))
 }
 
+// quotes reports whether a line says the price its decision has to quote:
+// the new price of a counter-offer, the price asked, paid or offered. A
+// line about several pieces may give the price of one instead.
+func (d Decision) quotes(text string) bool {
+	switch d.Outcome {
+	case OutcomeSold, OutcomeCounter, OutcomeInsulted, OutcomeShort, OutcomeInfo, OutcomeBought, OutcomeBid:
+	default:
+		return true
+	}
+
+	if d.Price <= 0 {
+		return true
+	}
+
+	said := numbersIn(text)
+	if slices.Contains(said, d.Price) {
+		return true
+	}
+
+	return d.Quantity > 1 && (slices.Contains(said, d.Item.Price) || slices.Contains(said, d.Price/d.Quantity) || slices.Contains(said, (d.Price+d.Quantity-1)/d.Quantity))
+}
+
+// echo returns four words in a row that a line repeats from the speaker's
+// own earlier lines, or "". Names are left out of it: "Borin Kamienna
+// Pięść" said twice is no parroting.
+func echo(text string, history []Line) string {
+	said := map[string]bool{}
+
+	for _, line := range history {
+		if !line.Player {
+			for _, phrase := range phrases(line.Text) {
+				said[phrase] = true
+			}
+		}
+	}
+
+	for _, phrase := range phrases(text) {
+		if said[phrase] {
+			return phrase
+		}
+	}
+
+	return ""
+}
+
+// phrases lists the runs of four words in a line, folded, with at most one
+// capitalised word besides the first of the line.
+func phrases(text string) []string {
+	if _, rest, tagged := strings.Cut(text, "] "); tagged && strings.HasPrefix(text, "[") {
+		text = rest
+	}
+
+	words := strings.FieldsFunc(text, func(char rune) bool { return !unicode.IsLetter(char) })
+
+	var out []string
+
+	for start := 0; start+4 <= len(words); start++ {
+		capitals := 0
+
+		for k, word := range words[start : start+4] {
+			if start+k > 0 && unicode.IsUpper([]rune(word)[0]) {
+				capitals++
+			}
+		}
+
+		if capitals < 2 {
+			out = append(out, Fold(strings.Join(words[start:start+4], " ")))
+		}
+	}
+
+	return out
+}
+
 // namesOnly reports attempts that were all refused for a name alone.
 func namesOnly(attempts []Attempt) bool {
 	for _, attempt := range attempts {
@@ -384,7 +499,7 @@ func kept(attempts []Attempt) (string, bool) {
 	}
 
 	for _, attempt := range attempts {
-		if attempt.Reason != reasonNames && attempt.Reason != reasonStrangers {
+		if !slices.Contains(soft, attempt.Reason) {
 			return "", false
 		}
 	}
@@ -474,6 +589,10 @@ func Noteworthy(text string) bool {
 // for small talk one that fits who is speaking, since a mercenary does
 // not "handluje".
 func fallbackFor(request NarrateRequest) string {
+	if request.Quiet {
+		return "Schowaj to. Umowa stoi, więcej nie biorę."
+	}
+
 	if request.Decision.Outcome == OutcomeChat {
 		switch request.Role {
 		case RoleMercenary:
