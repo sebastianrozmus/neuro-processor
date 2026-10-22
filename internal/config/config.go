@@ -28,6 +28,10 @@ type Config struct {
 	TalkBaseURL string
 	TalkAPIKey  string
 	TalkModel   string
+	// MasterModel, on the talking model's server, narrates fights instead of
+	// TalkModel; empty leaves the fights to TalkModel. One fine-tune may
+	// word the characters better and the fights worse than another.
+	MasterModel string
 	// WorldBaseURL, WorldAPIKey and WorldModel name a model that only
 	// generates worlds, run in WorldContext tokens; empty WorldModel leaves
 	// that to the main model.
@@ -122,6 +126,7 @@ func Load() Config {
 		TalkBaseURL:   get("NEURO_TALK_BASE_URL", get("NEURO_LLM_BASE_URL", defaultBaseURL)),
 		TalkAPIKey:    get("NEURO_TALK_API_KEY", get("NEURO_LLM_API_KEY", "")),
 		TalkModel:     get("NEURO_TALK_MODEL", ""),
+		MasterModel:   get("NEURO_GM_MODEL", ""),
 		WorldBaseURL:  get("NEURO_WORLD_BASE_URL", get("NEURO_LLM_BASE_URL", defaultBaseURL)),
 		WorldAPIKey:   get("NEURO_WORLD_API_KEY", get("NEURO_LLM_API_KEY", "")),
 		WorldModel:    get("NEURO_WORLD_MODEL", ""),

@@ -49,7 +49,20 @@ def faults(messages, reply):
         issues.append("dlugie")
     if len(speech) < TOO_SHORT and not scenario["gm"]:
         issues.append("krotkie")
+    if scenario["gm"] and lost_left_out(gra, speech):
+        issues.append("GM:pominieta-liczba")
     return issues
+
+
+def lost_left_out(gra, speech):
+    """A narration that skips a blow the rules dealt: the blind judges of run 17
+    found this the most common heavy fault of the master (a hit with its number
+    gone, "Szczur gryzie" with no 6). A lost number may not be left out even
+    though the prompt lets the master skip numbers: a judge reads it as a hit
+    that did not happen."""
+    lost = re.findall(r"traci (\d+) zdrowia", gra)
+    said = set(re.findall(r"\d+", speech))
+    return any(n not in said for n in lost)
 
 
 def sample(args):

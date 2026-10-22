@@ -88,6 +88,11 @@ func run(listen, name string) error {
 			talk, talkWindow = cfg.TalkModel, cfg.TalkContext
 		}
 
+		master := talk
+		if cfg.MasterModel != "" {
+			master = cfg.MasterModel
+		}
+
 		world := cfg.Model
 		if cfg.WorldModel != "" {
 			world = cfg.WorldModel
@@ -96,7 +101,7 @@ func run(listen, name string) error {
 		split = &llm.Split{
 			Mind:   role(llm.RoleMind, cfg.BaseURL, cfg.APIKey, cfg.Model, cfg.Context),
 			Voice:  role(llm.RoleTalk, cfg.TalkBaseURL, cfg.TalkAPIKey, talk, talkWindow),
-			Master: role(llm.RoleFight, cfg.TalkBaseURL, cfg.TalkAPIKey, talk, talkWindow),
+			Master: role(llm.RoleFight, cfg.TalkBaseURL, cfg.TalkAPIKey, master, talkWindow),
 			World:  role(llm.RoleWorlds, cfg.WorldBaseURL, cfg.WorldAPIKey, world, cfg.WorldContext),
 			Images: role(llm.RoleImages, cfg.BaseURL, cfg.APIKey, cfg.Model, cfg.Context),
 		}

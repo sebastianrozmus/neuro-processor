@@ -218,6 +218,7 @@ Gra łączy się z dowolnym serwerem zgodnym z API OpenAI (`/chat/completions`),
 | `NEURO_LLM_MAX_TOKENS` | limit długości kwestii; przyspiesza małe modele lokalne, np. `220` |
 | `NEURO_LLM_CONTEXT` | okno kontekstu w tokenach, o które gra prosi Ollamę dla głównego modelu; domyślnie `8192`, `0` zostawia ustawienie serwera. Inne serwery nie są o nie pytane |
 | `NEURO_TALK_CONTEXT` | to samo dla drugiego modelu (`NEURO_TALK_MODEL`); domyślnie ustawienie serwera, bo kwestie mieszczą się w nim z zapasem |
+| `NEURO_GM_MODEL` | osobny model Mistrza Gry do opisu walk, na serwerze `NEURO_TALK_BASE_URL` (np. `neuro-npc-run16dh`); pusty: walki opisuje `NEURO_TALK_MODEL`. Wybór w Esc → Ustawienia ma pierwszeństwo |
 | `NEURO_WORLD_MODEL` | osobny model tylko do generowania światów (np. `neuro-npc-run7`); polecenia dalej czyta główny model. Pusty: światy robi główny model. Opcjonalnie `NEURO_WORLD_BASE_URL`, `NEURO_WORLD_API_KEY` (domyślnie jak główny) i `NEURO_WORLD_CONTEXT` (domyślnie jak `NEURO_LLM_CONTEXT`) |
 | `NEURO_TTS` | głos na start, zanim gracz wybierze inny w menu (Esc → Ustawienia; wybór zapisuje się w `settings.json` w katalogu danych): `1` — głos systemowy, `chatterbox` — Chatterbox z klonowanym głosem i słyszalnymi nastrojami (środowisko: `tools/speech/setup-tts.sh`); domyślnie wyłączone |
 | `NEURO_TTS_URL` | adres serwera Chatterbox, który gra sama uruchamia; domyślnie `http://127.0.0.1:7790` |

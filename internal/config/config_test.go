@@ -51,3 +51,16 @@ func TestLoadFallsBackToDataDirectory(t *testing.T) {
 		t.Errorf("working directory should win: model %q, talk %q", cfg.Model, cfg.TalkModel)
 	}
 }
+
+func TestFightsMayHaveAModelOfTheirOwn(t *testing.T) {
+	t.Setenv("NEURO_TALK_MODEL", "neuro-npc-run17")
+	t.Setenv("NEURO_GM_MODEL", "neuro-npc-run16dh")
+	if cfg := Load(); cfg.TalkModel != "neuro-npc-run17" || cfg.MasterModel != "neuro-npc-run16dh" {
+		t.Errorf("talk %q, master %q", cfg.TalkModel, cfg.MasterModel)
+	}
+
+	t.Setenv("NEURO_GM_MODEL", "")
+	if cfg := Load(); cfg.MasterModel != "" {
+		t.Errorf("an empty NEURO_GM_MODEL should leave the fights to the talking model, got %q", cfg.MasterModel)
+	}
+}
