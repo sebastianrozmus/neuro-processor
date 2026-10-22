@@ -19,8 +19,10 @@ const laterLength = 6
 var (
 	offerWords = []string{"dam", "daje", "dalbym", "dalabym", "place", "zaplace", "oferuje", "proponuje", "moge dac", "niech bedzie"}
 	// "niech będzie" offers along with a sum ("niech będzie 50") and gives in without one.
-	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi", "niech bedzie", "niech ci bedzie",
+	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi", "niech bedzie", "niech ci bedzie", "place", "zaplace", "dam tyle", "wchodze",
 		"zapraszam do druzyny", "witaj w druzynie", "jestes w druzynie", "dolacz do druzyny", "dolacz do nas", "biore cie", "najmuje cie", "wynajmuje cie"}
+	// askForWords ask for a named ware, and that buys it: "daj grzaniec".
+	askForWords = []string{"daj", "dawaj", "poprosze", "podaj"}
 	// inviteWords ask a companion along: "idziemy na krypty, wchodzisz?" is
 	// a hire though it ends in a question mark. "Pójdziesz ze mną?" only
 	// asks whether they would, and is talk.
@@ -45,7 +47,7 @@ var (
 	// "ile wilków zabiłeś" asks something else.
 	ileWords = []string{"za", "to", "chcesz", "chce", "bierzesz", "bierze", "bierzecie", "kasuje", "liczy", "zyczy", "chcialby", "chcialaby", "dasz", "by", "bys", "liczysz", "kasujesz", "wolasz", "trzeba", "mam", "place", "zaplace", "zaplacic"}
 	// ileFillers may follow "ile" in a bare question of price.
-	ileFillers = []string{"wiec", "teraz", "no", "to", "w", "koncu", "by", "bys", "pani", "pan", "panu", "ty", "u", "ciebie", "ostatecznie", "koncowo", "wreszcie", "najmniej", "minimum"}
+	ileFillers = []string{"wiec", "teraz", "no", "to", "w", "koncu", "naprawde", "serio", "by", "bys", "pani", "pan", "panu", "ty", "u", "ciebie", "ostatecznie", "koncowo", "wreszcie", "najmniej", "minimum"}
 	// laterWords put the talk off: "dobra, jutro wrócę" leaves, it hires no one.
 	laterWords = []string{"wroce", "jutro wroce", "wroce jutro", "przyjde jutro", "przyjde pozniej", "zajrze pozniej", "zajrze jutro", "zastanowie sie", "pomysle o tym", "przemysle to", "musze pomyslec"}
 	// thinkWords put the deal off without leaving: "dobra, pomyślę" hires no one.
@@ -168,6 +170,9 @@ func Read(request InterpretRequest) Reading {
 		// An apology is talk; "przepraszam. ile bierzesz" goes on to ask.
 	case hasPhrase(text, inviteWords):
 		// "wchodzisz?" asks a companion along, and that is the hire.
+		reading.Intent.Action, reading.Sure = ActionAccept, true
+	case !strings.Contains(request.Text, "?") && item != "" && slices.ContainsFunc(words, func(word string) bool { return slices.Contains(askForWords, word) }):
+		// "dobra, daj grzaniec" buys it.
 		reading.Intent.Action, reading.Sure = ActionAccept, true
 	case !strings.Contains(request.Text, "?") && (hasPhrase(text, acceptWords) || nod(words)):
 		// A question never closes a deal, whatever word it starts with.

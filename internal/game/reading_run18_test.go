@@ -452,3 +452,31 @@ func TestNamesAfterTheReplayFromRun18(t *testing.T) {
 		}
 	}
 }
+
+func TestPluralNamesAfterTheReplayFromRun18(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	armory := realm.shopOfKind(world.ShopArmory)
+	realm.add("Ruiny Przedmieść", "Zawalone bloki.", "", armory)
+	realm.add("Wilcze Wykroty", "Powalone świerki.", "", armory)
+	customer := realm.players[hero]
+	customer.shop = armory
+
+	hint := func(text string) string {
+		got, _, _ := realm.hint(customer, text, Decision{Outcome: OutcomeChat}, nil)
+
+		return got
+	}
+
+	if got := hint("oddam jak wroce z ruin"); !strings.Contains(got, "Ruiny Przedmieść") {
+		t.Errorf("the ruins: %q", got)
+	}
+
+	if got := hint("potrzebuje czegos na wilki"); strings.Contains(got, "wspomina o: Wilcze Wykroty") {
+		t.Errorf("wolves are the wolf hollows: %q", got)
+	}
+
+	if got := hint("a pixel? troche dzieciak"); strings.Contains(got, "prywatne") {
+		t.Errorf("a kid is a child: %q", got)
+	}
+}

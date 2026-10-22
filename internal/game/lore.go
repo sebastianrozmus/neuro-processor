@@ -553,9 +553,21 @@ func nounForm(word string) bool {
 }
 
 // namingAdjective reports a word of a name that looks like an adjective
-// and is not a plural noun: "Popielne", but not "Kurhany".
+// and is not a plural noun: "Popielne" and "Zielony", but not "Kurhany",
+// "Ruiny" or "Rozlewiska". An adjective in -ny has a consonant or an o
+// before it.
 func namingAdjective(part string) bool {
-	return adjective(part) && !strings.HasSuffix(part, "any")
+	if !adjective(part) || strings.HasSuffix(part, "iska") || strings.HasSuffix(part, "isko") {
+		return false
+	}
+
+	for _, end := range []string{"ny", "na", "ne"} {
+		if before := strings.TrimSuffix(part, end); before != part && before != "" {
+			return !strings.ContainsRune("aeiuy", rune(before[len(before)-1]))
+		}
+	}
+
+	return true
 }
 
 // kindWords are folded beginnings of the words a player uses for a kind of
@@ -1157,7 +1169,7 @@ func aside(text string) (string, bool) {
 // called ("siostro, co wiesz…?"), so they ask about family only along
 // with a word for the keeper's own: "twój ojciec", "masz brata", "o ojcu".
 var (
-	kinStems   = []string{"rodzin", "rodzic", "dziec", "dzieck", "wnuk", "wnucz", "zon", "maz", "meza", "mezem", "mezu", "dziewczyn", "chlopak", "narzeczon", "corki", "corka", "corke", "corek", "coreczk", "syn", "synow", "synek", "synem", "synk", "blizn"}
+	kinStems   = []string{"rodzin", "rodzic", "dzieci", "dzieck", "wnuk", "wnucz", "zon", "meza", "mezem", "mezu", "mezowi", "dziewczyn", "chlopak", "narzeczon", "corki", "corka", "corke", "corek", "coreczk", "syn", "synow", "synek", "synem", "synk", "blizn"}
 	titleStems = []string{"brat", "bracie", "siostr", "ojc", "ojciec", "matk", "matce", "mama", "mame", "mamy", "tata", "tate", "taty"}
 	ownWords   = []string{"twoj", "twoja", "twoje", "twoi", "twojego", "twojej", "twoim", "twoich", "twojemu", "masz", "macie", "ma"}
 	// lifeVerbs may follow a word of kin without making it a name: "twoja
@@ -1181,13 +1193,15 @@ func privateAsked(words []string, question bool) bool {
 	stem := func(stems []string) func(string) bool {
 		return func(word string) bool {
 			return slices.ContainsFunc(stems, func(stem string) bool {
-				// "zon" is a stem of "żona", not of "zony" in a long word.
-				return strings.HasPrefix(word, stem) && len(word)-len(stem) <= 3
+				// "zon" is a stem of "żona", not of "zony" in a long word, and
+				// "dzieciak" calls somebody a kid.
+				return strings.HasPrefix(word, stem) && len(word)-len(stem) <= 3 && !strings.HasPrefix(word, "dzieciak") && !strings.HasPrefix(word, "dzieciuch")
 			})
 		}
 	}
 
-	if slices.ContainsFunc(words, stem(kinStems)) {
+	// "mąż" folds like "maź": only the word itself.
+	if slices.ContainsFunc(words, stem(kinStems)) || slices.Contains(words, "maz") && question {
 		return true
 	}
 

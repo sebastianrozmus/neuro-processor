@@ -678,3 +678,20 @@ func TestSceneBriefWithoutDice(t *testing.T) {
 		t.Errorf("brief = %q, want %q", brief, want)
 	}
 }
+
+func TestReadAfterTheReplayFromRun18(t *testing.T) {
+	wares := []Ware{{ID: "mead", Name: "Grzaniec z Miodem", Price: 15}, {ID: "hire", Name: HireName, Price: 70}}
+
+	for text, want := range map[string]Intent{
+		"dobra, daj grzaniec":   {Action: ActionAccept, ItemID: "mead"},
+		"dobra, placę":          {Action: ActionAccept},
+		"dobra, dam tyle":       {Action: ActionAccept},
+		"dobra, ile naprawde":   {Action: ActionAsk},
+		"daj mi chwile":         {Action: ActionChat},
+		"zaplace ci jutro, ok?": {Action: ActionChat},
+	} {
+		if got := Read(InterpretRequest{Text: text, Wares: wares, FocusID: "hire"}).Alone(); got != want {
+			t.Errorf("%q = %+v, want %+v", text, got, want)
+		}
+	}
+}

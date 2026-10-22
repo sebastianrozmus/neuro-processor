@@ -85,7 +85,7 @@ var inflections = []string{
 
 // alternations are the consonants a stem swaps before an ending:
 // "kolczuga" and "kolczudze", "krater" and "kraterze".
-var alternations = [][2]string{{"g", "dz"}, {"g", "z"}, {"k", "c"}, {"k", "cz"}, {"ch", "sz"}, {"r", "rz"}, {"t", "c"}, {"d", "dz"}, {"st", "sc"}}
+var alternations = [][2]string{{"g", "dz"}, {"k", "c"}, {"ch", "sz"}, {"r", "rz"}, {"t", "c"}, {"d", "dz"}, {"st", "sc"}}
 
 // formOf reports whether a player's word is a form of a word of a name:
 // the two are one stem of three letters or more with an ending each, or
