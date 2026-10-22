@@ -83,8 +83,11 @@ func TestWorldFiles(t *testing.T) {
 	}
 
 	for _, spec := range extraWorlds(t) {
-		t.Logf("%s (%s): %d osad, %d miejsc, %d sklepów, %d towarzyszy, %d przedmiotów, %d artefaktów, %d potworów",
-			spec.Name, spec.Mode, len(spec.Places), len(spec.Sites), len(spec.Shops), len(spec.Companions), len(spec.Items), len(spec.Artifacts), len(spec.Monsters))
+		// Places are the settlements and the dangerous places both; sites
+		// are the special tiles.
+		towns := len(spec.TownPlaces())
+		t.Logf("%s (%s): %d osad, %d miejsc groźnych, %d miejsc specjalnych, %d sklepów, %d towarzyszy, %d przedmiotów, %d artefaktów, %d potworów",
+			spec.Name, spec.Mode, towns, len(spec.Places)-towns, len(spec.Sites), len(spec.Shops), len(spec.Companions), len(spec.Items), len(spec.Artifacts), len(spec.Monsters))
 
 		built, err := world.Build(spec)
 		if err != nil {
