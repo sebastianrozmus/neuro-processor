@@ -1004,7 +1004,7 @@ var (
 )
 
 // woundWords tell of the hero's own wounds: "jestem ranny, zerkniesz?".
-var woundWords = []string{"jestem ranny", "jestem ranna", "oberwalem", "oberwalam", "krwawie", "opatrzysz", "opatrz mnie", "opatrzyc", "boli mnie", "zerknac na rane", "zerkniesz na rane", "mam rane", "mam rany", "jestem poraniony", "jestem poraniona", "polatasz mnie", "wylecz mnie", "wyleczysz", "uleczysz", "ulecz mnie"}
+var woundWords = []string{"ledwo stoje", "ledwo zyje", "ledwo chodze", "boli jak", "jak boli", "ale boli", "mnie boli", "slabo mi", "jestem ranny", "jestem ranna", "oberwalem", "oberwalam", "krwawie", "opatrzysz", "opatrz mnie", "opatrzyc", "boli mnie", "zerknac na rane", "zerkniesz na rane", "mam rane", "mam rany", "jestem poraniony", "jestem poraniona", "polatasz mnie", "wylecz mnie", "wyleczysz", "uleczysz", "ulecz mnie"}
 
 // wounds answers a hero who speaks of their wounds with how they really
 // are, and with what the game heals them by: told nothing, a healer before

@@ -326,3 +326,18 @@ func TestInsultingGoodbyeFromRun18(t *testing.T) {
 		t.Errorf("%+v: %q", decision, request.Hint)
 	}
 }
+
+// The hero's own pain is the wounds, however said.
+func TestWoundsFromRun18(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	customer := realm.players[hero]
+	customer.shop = realm.mateTalk(1)
+	customer.hp = 6
+
+	for _, text := range []string{"ledwo stoje", "boli jak cholera", "kurwa jak boli", "ale mnie boli", "ledwo zyje"} {
+		if got, _, _ := realm.hint(customer, text, Decision{Outcome: OutcomeChat}, nil); !strings.Contains(got, "zdrowie 6 z") {
+			t.Errorf("%q: %q", text, got)
+		}
+	}
+}
