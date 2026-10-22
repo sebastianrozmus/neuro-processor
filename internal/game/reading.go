@@ -19,8 +19,8 @@ const laterLength = 6
 var (
 	offerWords = []string{"dam", "daje", "dalbym", "dalabym", "place", "zaplace", "oferuje", "proponuje", "moge dac", "niech bedzie"}
 	// "niech będzie" offers along with a sum ("niech będzie 50") and gives in without one.
-	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi", "niech bedzie", "niech ci bedzie", "place", "zaplace", "dam tyle", "wchodze",
-		"zapraszam do druzyny", "witaj w druzynie", "jestes w druzynie", "dolacz do druzyny", "dolacz do nas", "biore cie", "najmuje cie", "wynajmuje cie"}
+	acceptWords = []string{"biore", "wezme", "zgoda", "zgadzam", "kupuje", "kupie", "umowa stoi", "niech bedzie", "niech ci bedzie", "place", "dam tyle", "wchodze",
+		"zapraszam do druzyny", "witaj w druzynie", "jestes w druzynie", "dolacz do druzyny", "dolacz do nas", "biore cie", "najmuje cie", "wynajmuje cie", "wynajme cie", "najme cie"}
 	// askForWords ask for a named ware, and that buys it: "daj grzaniec".
 	askForWords = []string{"daj", "dawaj", "poprosze", "podaj"}
 	// inviteWords ask a companion along: "idziemy na krypty, wchodzisz?" is
@@ -174,7 +174,7 @@ func Read(request InterpretRequest) Reading {
 	case !strings.Contains(request.Text, "?") && item != "" && slices.ContainsFunc(words, func(word string) bool { return slices.Contains(askForWords, word) }):
 		// "dobra, daj grzaniec" buys it.
 		reading.Intent.Action, reading.Sure = ActionAccept, true
-	case !strings.Contains(request.Text, "?") && (hasPhrase(text, acceptWords) || nod(words)):
+	case !strings.Contains(request.Text, "?") && (hasPhrase(text, acceptWords) || nod(words, hiring(request.Wares))):
 		// A question never closes a deal, whatever word it starts with.
 		reading.Intent.Action, reading.Sure = ActionAccept, true
 	case item != "" || tradeAsked(text):
@@ -228,7 +228,7 @@ func (r Reading) Merge(model Intent) Intent {
 
 // nod reports a short reply that agrees: "ok", "no dobra", "no to pasuje";
 // the fillers it opens with do not make it longer.
-func nod(words []string) bool {
+func nod(words []string, hiring bool) bool {
 	start := 0
 	for start < len(words) && slices.Contains(nodFillers, words[start]) {
 		start++
@@ -239,7 +239,10 @@ func nod(words []string) bool {
 	// of a nod nods.
 	rest := words[start:]
 
-	return len(rest) > 0 && len(rest) <= shortMessage && !slices.ContainsFunc(rest, func(word string) bool { return !slices.Contains(nodWords, word) && !slices.Contains(nodFillers, word) })
+	// To one for hire, setting off together agrees: "dobra, płyniemy razem".
+	return len(rest) > 0 && len(rest) <= shortMessage && !slices.ContainsFunc(rest, func(word string) bool {
+		return !slices.Contains(nodWords, word) && !slices.Contains(nodFillers, word) && !(hiring && (slices.Contains(moveVerbs, word) || word == "razem" || word == "jedziemy"))
+	})
 }
 
 // tradeAsked reports a message that asks about the wares, and not about
@@ -526,7 +529,7 @@ func common(a, b string) int {
 }
 
 // adjectiveEnds are the endings of the folded adjectives in names of wares.
-var adjectiveEnds = []string{"ny", "na", "ne", "wy", "wa", "we", "ski", "ska", "skie", "cki", "cka", "ckie"}
+var adjectiveEnds = []string{"ny", "na", "ne", "wy", "wa", "we", "ski", "ska", "skie", "cki", "cka", "ckie", "aly", "ala", "ale"}
 
 // adjective reports whether a folded word of a name looks like an adjective.
 func adjective(word string) bool {
@@ -821,4 +824,9 @@ func under(words []string, request InterpretRequest, item string) (int, bool) {
 	}
 
 	return 0, false
+}
+
+// hiring reports a talk whose only ware is somebody's service.
+func hiring(wares []Ware) bool {
+	return len(wares) > 0 && !slices.ContainsFunc(wares, func(ware Ware) bool { return ware.Name != HireName && ware.Name != WageName })
 }

@@ -34,8 +34,13 @@ func Fold(text string) string {
 }
 
 // fleeting drops the vowel that Polish loses in declension (Marek, Marka;
-// Paweł, Pawła): the e before a final consonant.
+// Paweł, Pawła): the e before a final consonant. After a soft i it goes
+// too (kupiec, kupca; ojciec, ojca).
 func fleeting(word string) string {
+	if base, found := strings.CutSuffix(word, "iec"); found && len(base) >= 2 {
+		return strings.TrimSuffix(base, "c") + "c"
+	}
+
 	runes := []rune(word)
 	if n := len(runes); n >= 4 && runes[n-2] == 'e' && !strings.ContainsRune("aeiouy", runes[n-1]) {
 		return string(runes[:n-2]) + string(runes[n-1])

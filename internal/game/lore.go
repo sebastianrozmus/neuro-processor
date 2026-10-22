@@ -498,15 +498,10 @@ func touches(words []string, text string) int {
 func touchesName(words []string, text string, adjectives bool) int {
 	count := 0
 
-	// An adjective of a name counts only along with a word naming the rest
-	// of it: "popielnego upiora" is no Popielne Zbocza.
-	lone := func(text, word string) bool { return adjectives && lone(text, word) }
-	firm := slices.ContainsFunc(words, func(word string) bool {
-		return len(word) >= minQueryWord+1 && closely(text, word) && !lone(text, word)
-	})
-
 	for index, word := range words {
-		if len(word) < minQueryWord+1 || !closely(text, word) || (!firm && lone(text, word)) {
+		// An adjective of a name before another noun names that noun:
+		// "popielnego upiora" is no Popielne Zbocza.
+		if len(word) < minQueryWord+1 || !closely(text, word) || (adjectives && lone(text, words, index)) {
 			continue
 		}
 
@@ -524,12 +519,13 @@ func touchesName(words []string, text string, adjectives bool) int {
 // adjective alone does not name it.
 const nameWords = 4
 
-// lone reports a word that names only the adjectives of a name of several
-// words: "obsydianowy miecz" is no Obsydianowa Grota, and "kurhanowy" is
-// no Pająk Kurhanowy.
-func lone(text, word string) bool {
+// lone reports a word that names only an adjective of a name of several
+// words and goes on to another noun: "obsydianowy miecz" is no Obsydianowa
+// Grota. "Mewy nie dziobały" are the Szponiasta Mewa, however the words
+// of the name end.
+func lone(text string, words []string, index int) bool {
 	parts := slices.DeleteFunc(strings.Fields(Fold(text)), func(part string) bool { return len(part) <= minQueryWord })
-	if len(parts) < 2 || len(parts) > nameWords {
+	if len(parts) < 2 || len(parts) > nameWords || nounForm(words[index]) || index+1 >= len(words) {
 		return false
 	}
 
@@ -539,7 +535,13 @@ func lone(text, word string) bool {
 		return false
 	}
 
-	return !nounForm(word) && !slices.ContainsFunc(parts, func(part string) bool { return !namingAdjective(part) && closely(part, word) })
+	if slices.ContainsFunc(parts, func(part string) bool { return !namingAdjective(part) && closely(part, words[index]) }) {
+		return false
+	}
+
+	next := words[index+1]
+
+	return len(next) > minQueryWord && !slices.Contains(plainWords, next) && !questionWord(next) && !slices.Contains(askWords, next) && !closely(text, next)
 }
 
 // nounEnds end a noun and never an adjective: "kurhanach" names the
@@ -1195,7 +1197,7 @@ func privateAsked(words []string, question bool) bool {
 			return slices.ContainsFunc(stems, func(stem string) bool {
 				// "zon" is a stem of "żona", not of "zony" in a long word, and
 				// "dzieciak" calls somebody a kid.
-				return strings.HasPrefix(word, stem) && len(word)-len(stem) <= 3 && !strings.HasPrefix(word, "dzieciak") && !strings.HasPrefix(word, "dzieciuch")
+				return strings.HasPrefix(word, stem) && len(word)-len(stem) <= 3 && !strings.HasPrefix(word, "dzieciak") && !strings.HasPrefix(word, "dzieciuch") && !strings.HasPrefix(word, "dziecin")
 			})
 		}
 	}

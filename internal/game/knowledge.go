@@ -647,18 +647,11 @@ func (r *Realm) told(fact *Fact) string {
 	return fact.Text
 }
 
-// firmLead reports whether a word that leads to a subject leads there
-// along with the subject's noun: "popielnego upiora" leads to no Popielne
+// firmLead reports whether a word that leads to a subject is not just its
+// adjective before another noun: "popielnego upiora" leads to no Popielne
 // Zbocza, "popielne zbocza" do.
 func firmLead(subject, word string, words []string) bool {
-	parts := slices.DeleteFunc(strings.Fields(Fold(subject)), func(part string) bool { return len(part) <= minQueryWord })
-	if len(parts) < 2 || len(parts) > nameWords || !slices.ContainsFunc(parts, func(part string) bool { return !namingAdjective(part) }) {
-		return true
-	}
+	index := slices.Index(words, word)
 
-	noun := func(word string) bool {
-		return slices.ContainsFunc(parts, func(part string) bool { return !namingAdjective(part) && leads(part, word) })
-	}
-
-	return nounForm(word) || noun(word) || slices.ContainsFunc(words, noun)
+	return index < 0 || !lone(subject, words, index)
 }

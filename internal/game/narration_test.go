@@ -695,3 +695,16 @@ func TestReadAfterTheReplayFromRun18(t *testing.T) {
 		}
 	}
 }
+
+func TestHireNodsAfterTheReplayFromRun18(t *testing.T) {
+	hire := []Ware{{ID: "hire", Name: HireName, Price: 70}}
+	for _, text := range []string{"dobra, wynajme cie", "dobra, plyniemy razem", "spoko, idziemy", "to idziemy"} {
+		if got := Read(InterpretRequest{Text: text, Wares: hire}).Alone(); got.Action != ActionAccept {
+			t.Errorf("%q to a mercenary = %+v", text, got)
+		}
+	}
+
+	if got := Read(InterpretRequest{Text: "dobra, idziemy", Wares: []Ware{{ID: "k", Name: "Kij", Price: 5}}, FocusID: "k"}).Alone(); got.Action == ActionAccept {
+		t.Errorf("going along buys a stick: %+v", got)
+	}
+}

@@ -480,3 +480,15 @@ func TestPluralNamesAfterTheReplayFromRun18(t *testing.T) {
 		t.Errorf("a kid is a child: %q", got)
 	}
 }
+
+func TestFleetingIeFromRun18(t *testing.T) {
+	for word, part := range map[string]string{"ojca": "ojciec", "kupca": "kupiec", "marka": "marek"} {
+		if !formOf(word, part) {
+			t.Errorf("%q is no form of %q", word, part)
+		}
+	}
+
+	if got := Read(InterpretRequest{Text: "a moze zaplace z gory za tydzien", Wares: []Ware{{ID: "w", Name: WageName, Price: 65}}, FocusID: "w"}).Alone(); got.Action == ActionAccept {
+		t.Errorf("paying up front some day is a deal: %+v", got)
+	}
+}
