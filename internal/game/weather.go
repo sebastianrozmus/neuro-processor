@@ -61,9 +61,9 @@ func (r *Realm) season() string {
 	return Seasons[r.seasonNow()]
 }
 
-// winter reports whether it is winter.
+// winter reports whether it is winter; under the ground it never is.
 func (r *Realm) winter() bool {
-	return r.seasonNow() == len(Seasons)-1
+	return !r.world.Skyless && r.seasonNow() == len(Seasons)-1
 }
 
 // usualPercent is how often a world's usual weather holds.
@@ -73,6 +73,13 @@ const usualPercent = 65
 // world's usual one: the intro of a city "where it has rained for forty
 // days" was told "pogodnie" every morning.
 func (r *Realm) rollWeather() {
+	// Under the ground the day is as the one before.
+	if r.world.Skyless {
+		r.weather = WeatherClear
+
+		return
+	}
+
 	roll := r.rng.Intn(100)
 
 	if usual := Weather(strings.ToLower(strings.TrimSpace(r.world.Weather))); slices.Contains([]Weather{WeatherFog, WeatherRain, WeatherHeat, WeatherSnow}, usual) {
@@ -98,8 +105,13 @@ func (r *Realm) rollWeather() {
 	r.weather = WeatherClear
 }
 
-// sky words the season and the weather.
+// sky words the season and the weather, or nothing in a world without a
+// sky: a mine told "Pora roku: wiosna, pogoda: pogodnie" is no mine.
 func (r *Realm) sky() string {
+	if r.world.Skyless {
+		return ""
+	}
+
 	return "Pora roku: " + r.season() + ", pogoda: " + string(r.weather) + "."
 }
 

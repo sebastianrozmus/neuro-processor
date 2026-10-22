@@ -379,7 +379,7 @@ func (r *Realm) mateLore(leader *player, kind int, wares []Ware) string {
 	fmt.Fprintf(&lore, "Twoje rzemiosło: %s.\n", craft(spec))
 	fmt.Fprintf(&lore, "Świat: %s. %s\n", built.Name, built.Intro)
 	fmt.Fprintf(&lore, "Siedzisz w karczmie osady: %s. %s\n", built.PlaceAt(here).Name, built.PlaceAt(here).Description)
-	fmt.Fprintf(&lore, "Dzień %d. %s\n", r.day, r.sky())
+	fmt.Fprintln(&lore, strings.TrimSpace(fmt.Sprintf("Dzień %d. %s", r.day, r.sky())))
 
 	she := speech.Feminine(spec.Name)
 

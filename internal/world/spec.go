@@ -268,6 +268,10 @@ type Spec struct {
 	// Weather, when set ("deszcz", "mgła", "upał", "śnieżyca"), is the sky
 	// that holds most days: the city where it never stops raining.
 	Weather string `json:"weather,omitempty"`
+	// Skyless marks a world with no sky over it: under the ground, aboard a
+	// ship among the stars. It has no seasons and no weather, and the
+	// keepers are told none.
+	Skyless bool `json:"skyless,omitempty"`
 	// Style is the card of the inspiration a generated world follows.
 	Style *StyleSpec `json:"style,omitempty"`
 	// Origin says where a generated world came from: the player's theme,

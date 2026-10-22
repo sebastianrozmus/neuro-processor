@@ -422,7 +422,11 @@ func (r *Realm) newDay(hero *player) {
 	hero.day++
 	hero.steps = 0
 	r.worldDay(hero.day)
-	r.tell(hero, fmt.Sprintf("Zaczyna się dzień %d (%s). Pogoda: %s.", hero.day, r.season(), r.weather))
+	if r.world.Skyless {
+		r.tell(hero, fmt.Sprintf("Zaczyna się dzień %d.", hero.day))
+	} else {
+		r.tell(hero, fmt.Sprintf("Zaczyna się dzień %d (%s). Pogoda: %s.", hero.day, r.season(), r.weather))
+	}
 	r.payWages(hero)
 	r.fire(hero, onDay, "")
 }

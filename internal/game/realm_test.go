@@ -2700,3 +2700,37 @@ func TestAWorldMayKeepOneSeason(t *testing.T) {
 		t.Errorf("a winter world in spring: %q", realm.sky())
 	}
 }
+
+// A world with no sky (under the ground, aboard a ship) has no season and
+// no weather, and nobody is told of one.
+func TestASkylessWorldHasNoWeather(t *testing.T) {
+	realm := testRealm(t)
+	realm.world.Skyless = true
+	hero := enlist(realm, "Ala")
+
+	for range 50 {
+		realm.rollWeather()
+		if realm.weather != WeatherClear || realm.slow() || realm.blind() {
+			t.Fatalf("weather under the ground: %q", realm.weather)
+		}
+	}
+
+	realm.day = 35
+	if realm.winter() || realm.sky() != "" {
+		t.Errorf("a season under the ground: winter %v, %q", realm.winter(), realm.sky())
+	}
+
+	customer := realm.players[hero]
+	if lore := realm.lore(customer, nil); strings.Contains(lore, "Pora roku") || strings.Contains(lore, "pogoda") {
+		t.Errorf("the lore tells the sky: %q", lore)
+	}
+
+	if view := realm.View(hero); view.Season != "" || view.Weather != "" {
+		t.Errorf("the view shows the sky: %q, %q", view.Season, view.Weather)
+	}
+
+	realm.newDay(customer)
+	if log := lastLog(realm, hero); strings.Contains(log, "Pogoda") {
+		t.Errorf("a new day tells the weather: %q", log)
+	}
+}

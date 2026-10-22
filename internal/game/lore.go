@@ -51,7 +51,7 @@ func (r *Realm) lore(customer *player, wares []Ware) string {
 		fmt.Fprintf(&lore, "Osada, w której mieszkasz: %s. %s\n", built.PlaceAt(here).Name, built.PlaceAt(here).Description)
 	}
 
-	fmt.Fprintf(&lore, "Dzień %d. %s\n", r.day, r.sky())
+	fmt.Fprintln(&lore, strings.TrimSpace(fmt.Sprintf("Dzień %d. %s", r.day, r.sky())))
 
 	if customer.inn {
 		fmt.Fprintf(&lore, "Jest wieczór: kram zamknięty, siedzisz w karczmie przy stole, a gracz przysiadł się do ciebie. Nie handlujesz po godzinach (zaproś rano), za to chętniej gadasz i powtarzasz, co %s od sąsiadów.\n",

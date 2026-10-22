@@ -238,6 +238,10 @@ func (r *Realm) View(name string) View {
 		Weather:  r.weather,
 	}
 
+	if r.world.Skyless {
+		view.Season, view.Weather = "", ""
+	}
+
 	if r.caravan != nil && r.revealed[r.world.Index(r.caravan.pos)] {
 		view.Marks[r.world.Index(r.caravan.pos)].Caravan = true
 	}

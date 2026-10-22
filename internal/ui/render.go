@@ -412,7 +412,11 @@ func (g Game) bagView() string {
 		head = append(head, warnStyle.Render(fmt.Sprintf("Legenda na żołdzie: %d %s dziennie, płatne o świcie.", who.wage, g.view.World.Currency)))
 	}
 
-	if who.day > 0 {
+	switch {
+	case who.day > 0 && g.view.Season == "":
+		// A world without a sky has days but no seasons.
+		head = append(head, labelStyle.Render(fmt.Sprintf("Dzień %d w tym świecie.", who.day)))
+	case who.day > 0:
 		head = append(head, labelStyle.Render(fmt.Sprintf("Dzień %d w tym świecie, %s.", who.day, who.sky)))
 	}
 
