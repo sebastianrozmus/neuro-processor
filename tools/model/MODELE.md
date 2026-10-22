@@ -646,3 +646,28 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
     - więcej przykładów bez zmyślonych krewnych i spotkań;
     - więcej rund MG z miksturą i z wrogiem, który przeżywa;
     - DPO z większej puli (więcej scenariuszy albo k=5), bo 135 par to za mało.
+
+- **run 17 (22.10): SFT od Bielika na danych odtworzonych na silniku b0b79a3 i przejrzanych. Rozmowy trochę lepsze niż run16dh, MG wyraźnie gorszy; gra zostaje na run16dh.**
+  - Dane (`D:\neuro-train\run17`):
+    - wszystkie rozmowy treningowe odtworzone na b0b79a3 i przejrzane w 9 częściach, aż przegląd przestał cokolwiek zmieniać (rundy: 300 → 1 → 109 → 0 zmienionych kwestii);
+    - nowe paczki: k35 (krewni, spotkania, „byłeś tam?”), k36 (towarzysze: dopłaty, rany, dowcip, „ruszamy”), k37 (najemnicy), k38 (kupcy);
+    - 227 nowych rund MG (`run17/gm/`: mikstury, wróg, który przeżywa) obok rund z run14;
+    - świat „Zgasłe Szkiery” wyłączony z danych. Razem 3846 przykładów treningowych i 274 sprawdzające.
+  - Trening: 1 epoka, lr 1e-4, r16, 481 kroków, ok. 5 h. eval_loss 0.902 → 0.864 → 0.843 → 0.823 → 0.812 → 0.803 → 0.796 → 0.795 → **0.794** (zbiór sprawdzający inny niż w run16, więc nie porównuj wprost z 0.870).
+  - **Test `run17/test17/test17.jsonl`:** to test16 odtworzony na silniku b0b79a3 (te same kwestie gracza, 40 rund MG, 24 rozmowy, w tym 12 w świecie „Zgasłe Szkiery”; 213 odpowiedzi na seed).
+  - `check.py`, bez uwag s7/s11: run17 93/94% (powtórki 8/6, brak kwoty 1/4), run16dh 92/94% (powtórki 11/8, brak kwoty 0/0).
+  - Ślepa ocena (`test17/blind`, 2 modele A/B, 2 sędziów MG i 4 rozmów, brief `test17/brief-judge.md` jak w test16, tylko dla dwóch liter):
+
+    | model | MG: rundy bez ciężkich | MG ciężkie / lekkie | rozmowy: bez ciężkich | ciężkie / lekkie | ocena 1–5 | najlepszy (z 48, 9 remisów) |
+    |---|---|---|---|---|---|---|
+    | run16dh | **92%** | **6 / 34** | 46% | 34 / 118 | 3.29 | **21** |
+    | run17 | 84% | 16 / 43 | **52%** | **28** / 119 | **3.35** | 20 |
+
+    - Rozmowy, ciężkie: nowy świat run17 20, run16dh 23; stare postacie run17 8, run16dh 11. Run17 lepiej trzyma zakazy z najmu i drużyny (Mira w drużynie bez kwot, Hela bez obiecanego leczenia) i handel u Thorina i Ozryka. Gorzej: Wawrzyn (powtórzone frazy „nie gwiżdż…”, brak ceny), Oskar (zdanie bez sensu), Elira (bełkot). Wciąż u obu: zmyśleni krewni i spotkania przy pytaniach o prywatne sprawy, powtórki fraz.
+    - MG run17 (16 ciężkich): pominięte trafienia z liczbą (e03, e04, e06, e08), zły cel lub sprawca (Żmija i Szczur, Rycerz i Jaromir), cios liczony dwa razy (troll), pudło zamiast trafienia, pozostałe zdrowie podane jako strata. Run16dh: 6 ciężkich, jak w test16 (7).
+    - Różnica w rozmowach (28 vs 34) jest mała jak na 48 przebiegów i jednego sędziego na część, a „najlepszy” to remis. Różnica w MG (16 vs 6) jest wyraźna.
+  - **Wniosek:** run17 nie zastępuje run16dh, bo ten sam model (`NEURO_TALK_MODEL`) gra też MG, a tam run17 się cofnął. Prawdopodobne przyczyny: rund MG jest mniej więcej tyle, co w run16, ale przykładów rozmów przybyło, więc MG ma mniejszy udział; nowe rundy z miksturą mogły rozmyć opis zwykłych ciosów; brak DPO (run16dh to run16 + DPO). Dalej (run 18):
+    - odtworzyć dane na silniku z pogodą, „dam połowę” bez towaru i kraterem (3ae4f40, 899dc52, e206d2b);
+    - zwiększyć udział MG (np. powielić rundy z run14 albo dołożyć świeże z protokołem wielu zdarzeń) i sprawdzić MG osobno przed rozmowami;
+    - DPO na run17 (jak run16dh) z naciskiem na rundy MG z pominiętą liczbą i złym sprawcą;
+    - rozważyć osobny model MG w konfiguracji (dziś jeden `NEURO_TALK_MODEL` dla rozmów i MG).
