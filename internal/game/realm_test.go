@@ -589,13 +589,13 @@ func TestShops(t *testing.T) {
 		t.Fatalf("the first offer is taken at once: %+v", decision)
 	}
 
-	decision, narrate, ok := realm.Haggle(hero, "dam 30 za kij", Intent{Action: ActionOffer, ItemID: "item-1", Amount: 30})
+	decision, narrate, ok := realm.Haggle(hero, "dam 37 za kij", Intent{Action: ActionOffer, ItemID: "item-1", Amount: 37})
 	if !ok || decision.Outcome != OutcomeSold || narrate.Merchant.Name != "Kowal" {
 		t.Fatalf("decision = %+v", decision)
 	}
 
 	view := realm.View(hero)
-	if view.Me.Gold != startGold-30 || len(view.Me.Bag) != 1 || view.Me.Bag[0].Name != "Kij" || len(view.Shop.Wares) != 5 {
+	if view.Me.Gold != startGold-37 || len(view.Me.Bag) != 1 || view.Me.Bag[0].Name != "Kij" || len(view.Shop.Wares) != 5 {
 		t.Errorf("after buying: gold %d, bag %+v", view.Me.Gold, view.Me.Bag)
 	}
 
@@ -2372,17 +2372,18 @@ func TestCompanionsHaggleAtTheInn(t *testing.T) {
 
 	gold = ala.gold
 	realm.Haggle(hero, "dam 55 dziennie", Intent{Action: ActionOffer, Amount: 55})
-	decision, _, _ = realm.Haggle(hero, "dam 55 dziennie", Intent{Action: ActionOffer, Amount: 55})
-	if decision.Outcome != OutcomeSold || decision.Price != 55 || ala.gold != gold || len(ala.party) != 1 || ala.party[0].wage != 55 {
+	// The counter, 62, taken closes the deal; nothing under it does.
+	decision, _, _ = realm.Haggle(hero, "dam 62 dziennie", Intent{Action: ActionOffer, Amount: 62})
+	if decision.Outcome != OutcomeSold || decision.Price != 62 || ala.gold != gold || len(ala.party) != 1 || ala.party[0].wage != 62 {
 		t.Fatalf("the legend's wage: %+v, gold %d, party %d", decision, ala.gold, len(ala.party))
 	}
 
-	if me := realm.View(hero).Me; len(me.Party) != 1 || me.Party[0].Wage != 55 || !logged(realm, hero, "Umowa: 55 kapsli za każdy dzień") {
+	if me := realm.View(hero).Me; len(me.Party) != 1 || me.Party[0].Wage != 62 || !logged(realm, hero, "Umowa: 62 kapsli za każdy dzień") {
 		t.Errorf("the view of the wage: %+v", me.Party)
 	}
 
 	restored, err := Restore(realm.State(hero), 1)
-	if err != nil || len(restored.players[hero].party) != 1 || restored.players[hero].party[0].wage != 55 {
+	if err != nil || len(restored.players[hero].party) != 1 || restored.players[hero].party[0].wage != 62 {
 		t.Errorf("the wage was not saved: %v", err)
 	}
 

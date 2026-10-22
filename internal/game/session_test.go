@@ -92,8 +92,8 @@ func TestPersuasionDiscountIsCapped(t *testing.T) {
 		t.Errorf("offer below the capped floor = %s, want %s", got, OutcomeCounter)
 	}
 
-	if got := session.Apply(Intent{Action: ActionOffer, ItemID: "a", Amount: 90}).Outcome; got != OutcomeSold {
-		t.Errorf("offer at the capped floor = %s, want %s", got, OutcomeSold)
+	if got := session.floor(session.stock[0]); got != 90 {
+		t.Errorf("the capped floor = %d, want 90", got)
 	}
 }
 
@@ -120,20 +120,34 @@ func TestMerchantWalksAwayWhenPatienceRunsOut(t *testing.T) {
 	}
 }
 
-// The first offer under the price only starts the haggling; the same offer
-// again, at or above the floor, closes it, and the price is reset after.
-func TestFairOfferSellsTheSecondTime(t *testing.T) {
+// The first offer under the price only starts the haggling. An offer under
+// the counter, however fair, never closes it: the merchant gives a little
+// more and loses patience. Taking the counter closes it, and the price is
+// reset after.
+func TestNoDealUnderTheCounter(t *testing.T) {
 	session := NewSession(testMerchant(), 300)
 
-	if got := session.Apply(Intent{Action: ActionOffer, ItemID: "a", Amount: 100}); got.Outcome != OutcomeCounter || session.Patience() != 4 {
+	if got := session.Apply(Intent{Action: ActionOffer, ItemID: "a", Amount: 100}); got.Outcome != OutcomeCounter || got.Price != 170 || session.Patience() != 4 {
 		t.Fatalf("first offer at floor: %+v, patience %d", got, session.Patience())
 	}
 
-	if got := session.Apply(Intent{Action: ActionOffer, ItemID: "a", Amount: 100}); got.Outcome != OutcomeSold || got.Price != 100 {
-		t.Fatalf("second offer at floor: %+v", got)
+	// Run 18: countered with 36, „30 i koniec” bought for 30.
+	got := session.Apply(Intent{Action: ActionOffer, ItemID: "a", Amount: 100})
+	if got.Outcome != OutcomeCounter || got.Price != 149 || session.Patience() != 3 {
+		t.Fatalf("second offer at floor: %+v, patience %d", got, session.Patience())
 	}
 
-	if got := session.Apply(Intent{Action: ActionOffer, ItemID: "b", Amount: 40}); got.Outcome != OutcomeCounter {
+	// Countered with 61, „dobra 60” bought for 60: one under the counter is
+	// still under it.
+	if got = session.Apply(Intent{Action: ActionOffer, ItemID: "a", Amount: 148}); got.Outcome != OutcomeCounter || got.Price != 149 {
+		t.Fatalf("one under the counter: %+v", got)
+	}
+
+	if got = session.Apply(Intent{Action: ActionOffer, ItemID: "a", Amount: 149}); got.Outcome != OutcomeSold || got.Price != 149 {
+		t.Fatalf("the counter taken: %+v", got)
+	}
+
+	if got = session.Apply(Intent{Action: ActionOffer, ItemID: "b", Amount: 40}); got.Outcome != OutcomeCounter {
 		t.Errorf("another item is haggled anew: %+v", got)
 	}
 }
@@ -143,7 +157,7 @@ func TestFocusCarriesOverBetweenTurns(t *testing.T) {
 	session.Apply(Intent{Action: ActionAsk, ItemID: "b"})
 	session.Apply(Intent{Action: ActionOffer, Amount: 30})
 
-	decision := session.Apply(Intent{Action: ActionOffer, Amount: 30})
+	decision := session.Apply(Intent{Action: ActionOffer, Amount: 44})
 	if decision.Outcome != OutcomeSold || decision.Item.ID != "b" {
 		t.Errorf("decision = %+v, want the sceptre sold", decision)
 	}
@@ -184,12 +198,12 @@ func TestBuyingSeveralPieces(t *testing.T) {
 			t.Fatalf("offering 100 for five: %+v", decision)
 		}
 
-		decision = session.Apply(Intent{Action: ActionOffer, Amount: 132})
-		if decision.Outcome != OutcomeSold || decision.Quantity != 5 || decision.Price != 132 {
-			t.Fatalf("offering the floor for five: %+v", decision)
+		decision = session.Apply(Intent{Action: ActionOffer, Amount: 185})
+		if decision.Outcome != OutcomeSold || decision.Quantity != 5 || decision.Price != 185 {
+			t.Fatalf("taking the counter for five: %+v", decision)
 		}
 
-		if session.Gold != 868 || len(session.Inventory) != 5 {
+		if session.Gold != 815 || len(session.Inventory) != 5 {
 			t.Errorf("gold %d, %d pieces", session.Gold, len(session.Inventory))
 		}
 

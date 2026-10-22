@@ -342,8 +342,8 @@ func TestShopBuyAndEquip(t *testing.T) {
 		model = enter(model, "dam 20 za kord")
 		assertShows(t, model, "counter offer", "Twoja oferta: 20", "●●●●●○")
 
-		model = enter(model, "dam 30 za kord")
-		assertShows(t, model, "purchase", "Kupiono: Zardzewiały Kord za 30 szt. złota.")
+		model = enter(model, "dam 34 za kord")
+		assertShows(t, model, "purchase", "Kupiono: Zardzewiały Kord za 34 szt. złota.")
 		assertFits(t, model, size, "shop after a purchase")
 
 		model = press(model, tea.KeyEsc, tea.KeyTab)
@@ -360,11 +360,11 @@ func TestShopBuyAndEquip(t *testing.T) {
 
 		me := model.(Game).view.Me
 		// A warrior's strength adds two to every blow.
-		if me.Weapon != "Zardzewiały Kord" || me.Gold != 30 || me.Attack != 8 {
+		if me.Weapon != "Zardzewiały Kord" || me.Gold != 26 || me.Attack != 8 {
 			t.Errorf("%v: after equipping: %+v", size, me)
 		}
 
-		assertShows(t, model, "hero panel", "Zardzewiały Kord", "30 szt. złota")
+		assertShows(t, model, "hero panel", "Zardzewiały Kord", "26 szt. złota")
 
 		model = enter(model, "pogadaj z borzywojem")
 		if got := strings.Count(model.View(), "Stal sama się nie sprzeda"); got != 1 {

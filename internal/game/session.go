@@ -49,7 +49,7 @@ type Session struct {
 	// quantity is how many pieces of the focused item the talk is about.
 	quantity int
 	// countered marks the items the merchant has already answered an
-	// offer for: only then does an offer under the asking price sell.
+	// offer for: another offer under the counter only wears their patience.
 	countered map[string]bool
 	history   []Line
 }
@@ -261,10 +261,19 @@ func (s *Session) offer(item *Item, amount int) Decision {
 		return s.sell(*item, amount, ask)
 	}
 
-	// The first offer under the price is never taken at once: the merchant
-	// haggles back, and only the next fair one closes the deal.
+	// An offer under the price is never taken: the merchant haggles back,
+	// and the deal closes only at the counter. Once countered, an offer
+	// under it, however fair, gets a little more off and costs patience,
+	// but never the deal at the player's sum: countered with 36, „30 i
+	// koniec” bought for 30.
 	if amount >= floor && s.countered[item.ID] {
-		return s.sell(*item, amount, amount)
+		s.concede(item, amount, max(floor, amount+1))
+
+		if s.irritate(1) {
+			return s.decide(OutcomeWalkedAway, item, amount)
+		}
+
+		return s.decide(OutcomeCounter, item, amount)
 	}
 
 	s.countered[item.ID] = true
