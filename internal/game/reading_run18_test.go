@@ -95,3 +95,45 @@ func TestOwnPastNeedsTheHeadWordFromRun18(t *testing.T) {
 		t.Error("the magister is the past, not his workshop")
 	}
 }
+
+// A count said in words is a count: "dwa za 20?", "dwie lunety za 100?".
+func TestSpelledCountsFromRun18(t *testing.T) {
+	wares := []Ware{
+		{ID: "glass", Name: "Luneta", Price: 60}, {ID: "vinegar", Name: "Ocet Siedmiu Złodziei", Price: 15}, {ID: "tea", Name: "Herbata z Chmur", Price: 15},
+		{ID: "coat", Name: "Kaftan", Price: 25}, {ID: "hook", Name: "Bosak", Price: 30}, {ID: "jacket", Name: "Kurtka", Price: 45},
+	}
+
+	for _, test := range []struct {
+		text, focus, item string
+		quantity, amount  int
+	}{
+		{"dwa za 20?", "vinegar", "", 2, 20},
+		{"a dwa za 20?", "vinegar", "", 2, 20},
+		{"dwie lunety za 100?", "", "glass", 2, 100},
+		{"dwa octy za 20", "", "vinegar", 2, 20},
+		{"trzy herbaty za 30", "", "tea", 3, 30},
+		{"dwie herbaty za 30", "", "tea", 2, 30},
+		{"to trzy za 35", "tea", "", 3, 35},
+		{"dwa kaftany za 40?", "", "coat", 2, 40},
+		{"2 sztuki za 20", "vinegar", "", 2, 20},
+	} {
+		reading := Read(InterpretRequest{Text: test.text, Wares: wares, FocusID: test.focus})
+		got := reading.Alone()
+		if got.Quantity != test.quantity || got.Amount != test.amount || got.ItemID != test.item || got.Action != ActionOffer {
+			t.Errorf("%q = %+v, want %d pieces for %d", test.text, got, test.quantity, test.amount)
+		}
+	}
+
+	// Two wares for one sum are not one ware: the keeper asks which.
+	for _, text := range []string{"biore bosak i kurtke za 70", "kurtka i bosak razem za 70"} {
+		if got := Read(InterpretRequest{Text: text, Wares: wares}).Alone(); got.Action != ActionOffer || got.Amount != 0 || got.ItemID != "" {
+			t.Errorf("%q = %+v, want an unclear offer", text, got)
+		}
+	}
+
+	session := NewSession(Merchant{Items: []Item{{ID: "hook", Name: "Bosak", ListPrice: 30, MinPrice: 20}, {ID: "jacket", Name: "Kurtka", ListPrice: 45, MinPrice: 30}}}, 200)
+	session.Apply(Intent{Action: ActionAsk, ItemID: "jacket"})
+	if got := session.Apply(Read(InterpretRequest{Text: "biore bosak i kurtke za 70", Wares: session.Wares(), FocusID: session.Focus()}).Alone()); got.Outcome != OutcomeUnclear {
+		t.Errorf("two wares for one sum: %+v", got)
+	}
+}

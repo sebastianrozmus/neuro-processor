@@ -62,7 +62,7 @@ var (
 		"siedemdziesiat": 70, "osiemdziesiat": 80, "dziewiecdziesiat": 90,
 		"sto": 100, "dwiescie": 200, "trzysta": 300, "czterysta": 400, "piecset": 500,
 		"szescset": 600, "siedemset": 700, "osiemset": 800, "dziewiecset": 900,
-		"jeden": 1, "dwa": 2, "trzy": 3, "cztery": 4, "piec": 5, "szesc": 6, "siedem": 7, "osiem": 8, "dziewiec": 9,
+		"jeden": 1, "dwa": 2, "dwie": 2, "trzy": 3, "cztery": 4, "piec": 5, "szesc": 6, "siedem": 7, "osiem": 8, "dziewiec": 9,
 	}
 )
 
@@ -129,6 +129,10 @@ func Read(request InterpretRequest) Reading {
 	case hasPhrase(text, sellWords):
 		// Selling: the number is the sum asked for, whatever the wording.
 		reading.Intent.Action, reading.Intent.ItemID, reading.Intent.Amount, reading.Sure = ActionSell, owned, amount, true
+	case (amount > 0 || hasPhrase(text, acceptWords)) && item != "" && twoWares(named, request.Wares, item):
+		// "biorę bosak i kurtkę za 70" buys neither for the sum: the keeper
+		// asks which one is meant.
+		reading.Intent.Action, reading.Intent.ItemID, reading.Intent.Amount, reading.Sure = ActionOffer, "", 0, true
 	case amount > 0 && cued:
 		reading.Intent.Action, reading.Intent.Amount, reading.Sure = ActionOffer, amount, true
 	case amount > 0:
@@ -393,6 +397,13 @@ func quantityIn(words []string, wares []Ware, currency string) (int, int) {
 		if count > 0 && (pieces || namesWare(next, wares)) {
 			return min(count, MaxQuantity), index
 		}
+
+		// "dwa za 20?", "to trzy za 35": a count in words before the sum.
+		if spelled := numberWords[words[index]]; spelled > 0 && spelled < 10 && next == "za" && index+2 < len(words) {
+			if sum, err := strconv.Atoi(words[index+2]); err == nil && sum > spelled {
+				return spelled, index
+			}
+		}
 	}
 
 	return 0, -1
@@ -456,7 +467,8 @@ func inflected(word, part string) bool {
 		return false
 	}
 
-	return len(word) >= minQueryWord && strings.HasPrefix(part, Stem(word)) && formOf(word, part)
+	// "octy" are "Ocet": the stem may begin the name without its fleeting e.
+	return len(word) >= minQueryWord && (strings.HasPrefix(part, Stem(word)) || strings.HasPrefix(fleeting(part), Stem(word))) && formOf(word, part)
 }
 
 const (
@@ -726,4 +738,27 @@ func unpaid(text, currency string) string {
 	return strings.Join(slices.DeleteFunc(words, func(word string) bool {
 		return slices.ContainsFunc(units, func(unit string) bool { return len(unit) > minQueryWord && formOf(word, unit) })
 	}), " ")
+}
+
+// twoWares reports a message that names another ware whole besides the
+// first: "bosak i kurtkę". Words naming the first do not count, so that
+// "wielka mikstura" names no other Mikstura.
+func twoWares(text string, wares []Ware, first string) bool {
+	words := strings.Fields(text)
+
+	for _, ware := range wares {
+		if ware.ID == first {
+			words = slices.DeleteFunc(words, func(word string) bool { return namesWare(word, []Ware{ware}) })
+		}
+	}
+
+	for _, ware := range wares {
+		head, _, _ := strings.Cut(Fold(ware.Name), " z ")
+		parts := slices.DeleteFunc(strings.Fields(head), func(part string) bool { return len(part) < minQueryWord })
+		if ware.ID != first && len(parts) > 0 && !slices.ContainsFunc(parts, func(part string) bool { return !namesWord(words, part) }) {
+			return true
+		}
+	}
+
+	return false
 }
