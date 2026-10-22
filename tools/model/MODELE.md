@@ -672,3 +672,22 @@ Tabelę z wynikami wypisuje `python3 tools/bench/compare.py`.
     - DPO na run17 (jak run16dh) z naciskiem na rundy MG z pominiętą liczbą i złym sprawcą;
     - rozważyć osobny model MG w konfiguracji (dziś jeden `NEURO_TALK_MODEL` dla rozmów i MG).
   - **Druga, niezależna ślepa ocena tych samych odpowiedzi** (`test17/blind2`: nowi sędziowie, inne losowanie liter): MG run16dh 8 ciężkich (90% rund bez ciężkich), run17 17 (82%); rozmowy run17 33 ciężkie, ocena 3.38, najlepszy 28; run16dh 37, ocena 3.23, najlepszy 19 (stare postacie 14 vs 17, nowy świat 19 vs 20). Zgodność sędziów „czy jest ciężki błąd”: MG 157 ze 160, rozmowy 78 z 96. Obraz z pierwszej oceny się potwierdza: run17 (samo SFT) mówi trochę lepiej od run16dh (SFT + DPO) w obu ocenach, a walki opisuje wyraźnie gorzej; to różnica DPO, nie danych (run16 → run16dh dało w MG 13 → 7). Stąd run17d/run17dh (`run17/dpo.sh`, nowa reguła `GM:pominieta-liczba` w `dpo_self.py`) i `NEURO_GM_MODEL` (a215626).
+
+- **run17d / run17dh i wspólna ślepa ocena siedmiu modeli (22.10). Nic nie bije run16dh; gra zostaje na run16dh.**
+  - run17d/run17dh: DPO na run17 (`run17/dpo.sh`: 239 par z samoodtworzenia, w tym 45 GM i nowa reguła `GM:pominieta-liczba`; k=4, lr 3e-5, beta 0.1; run17dh to połowa, checkpoint-21). `check.py` na test17 s7/s11, bez uwag: run17d 92/–, run17dh 93/92, run17 93/94, run16dh 92/94, run16 91/92, run16d 92/92, run14h 85/92%; same różnice szumu.
+  - Ocena (`run17/test17/joint*`, `joint.py`, `joint_score.py`, brief `brief-joint.md`): dwie grupy po 4 modele, run16dh w każdej pozycji jako kotwica, 80 rund MG i 48 rozmów (test17 s7+s11), dwie niezależne rundy sędziów z innym losowaniem liter (2 sędziów MG i 4 rozmów na grupę i rundę). Pary: na ilu pozycjach model był lepszy / gorszy od run16dh tego samego sędziego (MG: mniej / więcej ciężkich; rozmowy: ocena, przy remisie ciężkie), test znaków.
+
+    | model | MG ciężkie (r1 / r2) | MG pary z run16dh | rozmowy ciężkie | ocena 1–5 | rozmowy pary z run16dh |
+    |---|---|---|---|---|---|
+    | run16dh (g1 / g2) | 6/5 · 5/7 | — | 53 · 54 | 3.25 · 3.25 | — |
+    | run14h | **4/6** | 11 / 8, p=0.65 | 64 | 2.96 | 31 / 46, p=0.11 |
+    | run17dh | 9/8 | 9 / 13, p=0.52 | 64 | 3.15 | 33 / 34 |
+    | run17d | 11/10 | 8 / 17, p=0.11 | 56 | 3.28 | 34 / 34 |
+    | run17 | 14/15 | 9 / 23, **p=0.02** | 57 | 3.31 | 38 / 30, p=0.40 |
+    | run16d | 11/13 | 5 / 15, **p=0.04** | 55 | 3.28 | 32 / 32 |
+    | run16 | 11/13 | 7 / 17, p=0.06 | 65 | 3.17 | 33 / 37 |
+
+  - **MG:** run16dh i run14h to jedyna para z ok. 10 ciężkimi na 160 opisów; reszta 17–29. DPO run17 → run17d → run17dh zmniejsza błędy MG (29 → 21 → 17), ale do run16dh nie dochodzi. Dziwne: pełne DPO run16d jest w MG gorsze niż połowa run16dh (24 vs 12), więc „połowa” to nie przypadek dwa razy z rzędu.
+  - **Rozmowy:** wszystkie poza run14h i run16 w granicach szumu (3.15–3.31, pary ok. 50/50). run14h mówi wyraźnie gorzej (więcej lekkich: 242, „najgorszy” 17 razy), więc nie nadaje się do rozmów, choć do walk tak.
+  - Wspólne błędy wszystkich modeli (sędziowie, obie rundy): zmyśleni krewni i spotkania przy pytaniach prywatnych (Hela, Mira, Wawrzyn — często u wszystkich czterech liter naraz), kwoty mimo zakazu w kwestii 7 najmu Miry i w drużynie Antka, powtórki fraz z własnych odpowiedzi, przekręcone cechy potworów (Tarcza, Widmo, Mgielnik); w MG „dobija”, gdy wróg żyje, zgubione liczby z Podmuchu, pudło zamiast trafienia. To błędy danych/zadania, nie konkretnego runu.
+  - **Wniosek:** run16dh zostaje (rozmowy i MG). Osobny model MG nic dziś nie daje: jedyny kandydat run14h jest w MG równy run16dh (11 / 8, p=0.65), a kosztowałby przeładowanie 11B przy walce. Dalej wg planu G/G2 w `ANALIZA-2026-10-22.md`: sampling i kwantyzacja run16dh, test18, Bielik 4.5B / Minitron 7B jako Mind+MG (mindeval).
