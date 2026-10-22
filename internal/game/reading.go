@@ -319,7 +319,9 @@ func moving(text string) bool {
 	return len(words) > 0 && len(words) <= 5 && slices.Contains(moveVerbs, words[len(words)-1])
 }
 
-// payWords with a sum offer money: "dobrze, zgoda na 130", "dorzucę 20".
+// payWords with a sum offer money: "dobrze, zgoda na 130", "dorzucę 20";
+// some words offer it without one: "chcesz więcej kasy?", "zapłacę ci za
+// tydzień z góry", "masz tu coś na piwo".
 // A companion in the party has no wares to read an offer against, so
 // the rules read it from the words.
 var payWords = []string{"zgoda", "dam", "daje", "dorzuce", "doplace", "place", "zaplace", "bierz", "masz", "stoi", "trzymaj", "wez", "lap"}
@@ -327,7 +329,7 @@ var payWords = []string{"zgoda", "dam", "daje", "dorzuce", "doplace", "place", "
 func offersMoney(folded string) bool {
 	if slices.ContainsFunc(strings.Fields(folded), func(word string) bool {
 		return slices.ContainsFunc(raiseWords, func(stem string) bool { return strings.HasPrefix(word, stem) })
-	}) || hasPhrase(folded, []string{"za darmo", "bez zaplaty", "ostatnie slowo"}) {
+	}) || hasPhrase(folded, []string{"za darmo", "bez zaplaty", "ostatnie slowo", "wiecej kasy", "wiecej pieniedzy", "wiecej forsy", "wiecej zlota", "zaplace ci", "place ci", "doplace ci", "zaplace z gory", "na piwo"}) {
 		return true
 	}
 

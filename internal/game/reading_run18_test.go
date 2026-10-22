@@ -341,3 +341,15 @@ func TestWoundsFromRun18(t *testing.T) {
 		}
 	}
 }
+
+// Money for a companion needs no "dam": "chcesz więcej kasy?".
+func TestMoneyToACompanionFromRun18(t *testing.T) {
+	for text, want := range map[string]bool{
+		"chcesz wiecej kasy?": true, "chcesz wiecej kasy mlody?": true, "zaplace ci za tydzien z gory": true, "masz tu 20 na piwo": true,
+		"masz tu cos na piwo": true, "kasy nam brakuje na mikstury": false, "dobra, ruszamy": false, "ile mamy pieniedzy?": false, "zejdziemy z gory?": false,
+	} {
+		if got := offersMoney(Fold(text)); got != want {
+			t.Errorf("%q = %v, want %v", text, got, want)
+		}
+	}
+}
