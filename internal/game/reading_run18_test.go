@@ -225,3 +225,104 @@ func TestOutsideTheWorldFromRun18(t *testing.T) {
 		t.Errorf("pressed for instructions: %q", got)
 	}
 }
+
+func TestInsultsAndThreatsFromRun18(t *testing.T) {
+	for _, text := range []string{
+		"ty stary grzybie", "ty leniu smierdzacy", "jestes tchorz i tyle", "ziemek, ty tchorzu", "ty pijaku jeden", "jestes kanciarzem",
+		"ta wasza gora to tylko kupa kamieni haha", "trzymaj sie, babo z lopata",
+	} {
+		if !Read(InterpretRequest{Text: text}).rude {
+			t.Errorf("%q is no insult", text)
+		}
+	}
+
+	for _, text := range []string{
+		"zaraz cie zgniote maly", "albo oddasz za 30 albo wrzuce cie do kanalu", "gadaj co wiesz albo ci przyloze", "jak mnie zdradzisz to cie utopie",
+	} {
+		if !threatening(Fold(text)) {
+			t.Errorf("%q is no threat", text)
+		}
+	}
+
+	if got := Read(InterpretRequest{Text: "albo oddasz za 30 albo wrzuce cie do kanalu", FocusID: "x"}).Alone(); got.Action != ActionChat || got.Amount != 0 {
+		t.Errorf("a threat is an offer: %+v", got)
+	}
+
+	// An insult with a goodbye still goes; the keeper hears both.
+	if got := Read(InterpretRequest{Text: "trzymaj sie, babo z lopata"}); got.Intent.Action != ActionLeave || !got.rude {
+		t.Errorf("an insult with a goodbye: %+v", got)
+	}
+
+	for _, text := range []string{"dzieki wiedzmo", "trzymaj sie grubasku", "czy to tchorzliwe, uciekac przed smokiem?", "albo to, albo tamto, co polecasz?"} {
+		if Read(InterpretRequest{Text: text}).rude || threatening(Fold(text)) {
+			t.Errorf("%q is an insult or a threat", text)
+		}
+	}
+
+	for _, text := range []string{"jestes przystojny wiesz?", "kochasz mnie choc troche?"} {
+		if got, _ := aside(text); !strings.Contains(got, "flirtuje") {
+			t.Errorf("%q: %q", text, got)
+		}
+	}
+}
+
+// What a keeper's card says stings them is an insult: "szarlatan" to the
+// one who takes offence at it.
+func TestCardWordsStingFromRun18(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	customer := realm.players[hero]
+	realm.world.Companions[0].Description = "Obraża się śmiertelnie, gdy ktoś nazwie go szarlatanem."
+	realm.world.Companions[1].Description = "Złośliwa, zakłada się o wszystko i nie znosi, gdy ktoś nazywa ją piratką."
+	realm.world.Companions[2].Description = "Ma wnuczkę i nie znosi, gdy ktoś nazywa statek puszką."
+	realm.Join(hero, "")
+
+	for kind, text := range map[int]string{0: "ty szarlatanie", 1: "ty jestes ta piratka?"} {
+		customer.shop = realm.mateTalk(kind)
+		customer.talks = map[int]*talk{customer.shop: {session: NewSession(realm.mateMerchant(customer, kind), 100)}}
+		_, request, _ := realm.Haggle(hero, text, Intent{Action: ActionChat})
+		if !strings.Contains(request.Hint, "Gracz cię obraża") {
+			t.Errorf("%q: %q", text, request.Hint)
+		}
+	}
+
+	customer.shop = realm.mateTalk(2)
+	customer.talks = map[int]*talk{customer.shop: {session: NewSession(realm.mateMerchant(customer, 2), 100)}}
+	if _, request, _ := realm.Haggle(hero, "ta puszka to statek?", Intent{Action: ActionChat}); strings.Contains(request.Hint, "obraża") {
+		t.Errorf("a word about the ship stings her: %q", request.Hint)
+	}
+}
+
+// An apology does not swallow the question after it.
+func TestApologyKeepsTheQuestionFromRun18(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	realm.add("Wąż z Krateru", "Wielki wąż w kraterze.", "", realm.shopOfKind(world.ShopArmory))
+	customer := realm.players[hero]
+	customer.shop = realm.shopOfKind(world.ShopArmory)
+	customer.talks = map[int]*talk{customer.shop: {session: NewSession(Merchant{}, 0)}}
+
+	_, request, _ := realm.Haggle(hero, "dobra, sorry. widzialas weza z krateru?", Intent{Action: ActionChat})
+	if !strings.Contains(request.Hint, "Wąż z Krateru") || !strings.Contains(request.Hint, "przeprosin") {
+		t.Errorf("an apology with a question: %q", request.Hint)
+	}
+
+	if got, _ := aside("przepraszam, ponioslo mnie"); !strings.Contains(got, "Gracz przeprasza") {
+		t.Errorf("a plain apology: %q", got)
+	}
+}
+
+// A goodbye with an insult is both: the keeper says goodbye offended.
+func TestInsultingGoodbyeFromRun18(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	customer := realm.players[hero]
+	customer.shop = realm.shopOfKind(world.ShopArmory)
+	customer.talks = map[int]*talk{customer.shop: {session: NewSession(Merchant{}, 0)}}
+
+	text := "trzymaj sie, babo z lopata"
+	decision, request, _ := realm.Haggle(hero, text, Read(InterpretRequest{Text: text}).Alone())
+	if decision.Outcome != OutcomeFarewell || !strings.Contains(request.Hint, "Gracz cię obraża") {
+		t.Errorf("%+v: %q", decision, request.Hint)
+	}
+}

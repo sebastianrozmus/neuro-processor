@@ -121,6 +121,11 @@ func Read(request InterpretRequest) Reading {
 		reading.Intent.Persuasion, reading.rude = -2, true
 		reading.Intent.Action, reading.Sure = ActionChat, true
 
+		// "trzymaj się, babo z łopatą" goes, and the keeper hears the insult.
+		if hasPhrase(text, leaveWords) {
+			reading.Intent.Action = ActionLeave
+		}
+
 		return reading
 	}
 
@@ -576,11 +581,12 @@ var rudeWords = []string{
 	"czarownico", "wiedzmo", "ty czarownic", "ty wiedzm", "kurdupl", "bezuzyteczn", "nieudacznik", "glupek", "matol", "palant",
 	"chuj", "skurw", "kurwo", "suko", "grubas", "spasl", "piernik", "zdzierc", "frajer", "podpalacz", "klecho", "babo", "smieci", "smieciu", "cwel", "pajac", "ofiaro", "lamag", "dupek",
 	"skapc", "skapiradl", "skner", "chciwc", "liczykrup", "krwiopij", "pijawko", "pijawka", "jedzo", "stara jedza", "wypchaj sie", "smarkulo", "smarkaczu", "gowniarz", "zgred", "dziadyg",
+	"stary grzybie", "ty grzybie", "leniu", "ty len ", "smierdzac", "tchorz", "pijaku", "ty pijak", "pijusie", "kanciarz", "kupa kamieni", "kupa gruzu", "kupa smieci",
 }
 
 // politeWords begin like an insult but are none: "głupio mi" is how an
 // apology goes, and "grubasku" is said with a pat on the back.
-var politeWords = []string{"glupio", "grubasku", "grubciu", "staruszku", "staruszko"}
+var politeWords = []string{"glupio", "grubasku", "grubciu", "staruszku", "staruszko", "tchorzliwe", "tchorzliwy", "tchorzliwa", "tchorzliwie", "tchorzostwo"}
 
 // teasingWords are names that sting only when meant to: "dzięki, wiedźmo"
 // and "trzymaj się, czarownico" are said with a grin.
@@ -610,12 +616,12 @@ func rude(text string) bool {
 			continue
 		}
 
-		if friendly && slices.Contains(teasingWords, insult) {
-			continue
-		}
+		teasing := friendly && slices.Contains(teasingWords, insult)
 
-		for _, word := range words {
-			if strings.HasPrefix(word, insult) && !slices.Contains(politeWords, word) {
+		for index, word := range words {
+			// "trzymaj się, babo z łopatą" mocks, goodbye or not.
+			mocked := index+1 < len(words) && (words[index+1] == "z" || words[index+1] == "ze")
+			if strings.HasPrefix(word, insult) && !slices.Contains(politeWords, word) && (!teasing || mocked) {
 				return true
 			}
 		}
@@ -637,6 +643,7 @@ var threatWords = []string{
 	"rozwale", "spale ci", "podpale", "spale wam", "puszcze z dymem", "potne", "zlamie ci", "wypatrosze", "poderzne", "urwe ci", "obije ci", "spiore",
 	"zastrzele cie", "cie zastrzele", "cie zabije", "was zabije", "zadusze cie", "cie zadusze", "spale chate", "chate spale", "ci spale", "spale twoj", "spale te", "spale cie", "dostaniesz w zeby", "dostaniesz w morde", "dostaniesz w leb", "dostaniesz w pysk", "walne cie", "cie walne",
 	"przywale ci", "przyleje ci", "skopie ci", "skopie cie", "zbije cie", "cie zbije", "pogadamy inaczej",
+	"zgniote", "rozgniote", "rozdepcze", "zmiazdze", "wrzuce cie", "cie wrzuce", "utopie cie", "cie utopie", "przyloze", "ci przyloze",
 	"albo powiem", "bo powiem", "albo doniose", "bo doniose", "doniose na", "wydam cie", "albo wydam", "bo wydam", "albo zglosze", "bo zglosze",
 }
 

@@ -563,7 +563,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 	// An insult or a threat is answered as such, and nothing is offered
 	// to it: no wares to "dawaj miksturę, bo chatę spalę", no gossip.
-	if chat && (rude(folded) || threatening(folded)) {
+	if chat && (rude(folded) || threatening(folded) || r.stung(customer.shop, folded)) {
 		return "", nil, false
 	}
 
@@ -1048,7 +1048,7 @@ func praised(words []string) bool {
 
 // flirtWords pay a compliment or flirt: given a fact to weave in, the
 // model answered "masz piękne oczy" with the mercenary at the inn.
-var flirtWords = []string{"piekne oczy", "ladne oczy", "sliczne oczy", "piekna jestes", "ladna jestes", "sliczna jestes", "przystojny jestes", "przystojniak", "podobasz mi sie", "kocham cie", "na randke", "randka", "randke", "buziaka", "buziak", "ladnie wygladasz", "pieknie wygladasz", "slicznotko", "przystojniaku", "piekna pani", "ladna pani", "jestes kochana", "jestes kochany", "ladnie ci", "pieknie ci", "slicznie ci", "jestes zlota", "jestes zloty", "jestes piekna", "jestes sliczna", "jestes sliczny", "ladna jestes", "ladne masz oczy", "piekne masz oczy", "sliczne masz oczy", "ladne oczy masz"}
+var flirtWords = []string{"piekne oczy", "ladne oczy", "sliczne oczy", "piekna jestes", "ladna jestes", "sliczna jestes", "przystojny jestes", "przystojniak", "podobasz mi sie", "kocham cie", "na randke", "randka", "randke", "buziaka", "buziak", "ladnie wygladasz", "pieknie wygladasz", "slicznotko", "przystojniaku", "piekna pani", "ladna pani", "jestes kochana", "jestes kochany", "ladnie ci", "pieknie ci", "slicznie ci", "jestes zlota", "jestes zloty", "jestes piekna", "jestes sliczna", "jestes sliczny", "ladna jestes", "ladne masz oczy", "piekne masz oczy", "sliczne masz oczy", "ladne oczy masz", "jestes przystojny", "jestes przystojna", "kochasz mnie"}
 
 // jokeWords ask for a joke: the model, given a fact to weave in, recited
 // the druids' circle instead of telling one.
@@ -1100,7 +1100,9 @@ func aside(text string) (string, bool) {
 		return "Gracz flirtuje albo prawi ci komplementy. Odpowiedz po swojemu, jak każe charakter: z wdziękiem, zmieszaniem albo kpiną, krótko; bez plotek i bez polecania towaru.", true
 	case hasPhrase(folded, jokeWords):
 		return "Gracz prosi o żart. Opowiedz jeden krótki żart albo zabawną historyjkę po swojemu, z życia twojej postaci; bez nowych nazw miejsc i osób, i bez polecania towaru.", true
-	case hasPhrase(folded, sorryWords) && !tradeAsked(folded):
+	// "dobra, sorry. widziałaś węża z krateru?" goes on to ask: the question
+	// is answered, the apology taken in passing.
+	case hasPhrase(folded, sorryWords) && !tradeAsked(folded) && !strings.Contains(text, "?"):
 		return "Gracz przeprasza. Przyjmij przeprosiny po swojemu, krótko: chłodno, jeśli wcześniej cię obraził, życzliwie, jeśli nie. Nie dodawaj nowych tematów.", true
 	}
 

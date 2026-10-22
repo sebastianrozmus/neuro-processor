@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
@@ -195,13 +196,20 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 		role = r.mateRole(kind)
 	}
 
+	// What the keeper's card says stings them is an insult: "ty szarlatanie" to
+	// one who takes offence at "szarlatan" asks about no ware.
+	stung := r.stung(customer.shop, Fold(text))
+	if stung && intent.Action != ActionLeave {
+		intent = Intent{Action: ActionChat, Persuasion: -2}
+	}
+
 	decision := session.Apply(intent)
 	town := r.townOf(customer)
 
 	// An insult or a threat leaves the keeper offended whatever their
 	// patience: told "spokojna", the model shrugged off "milcz starucho".
 	folded := Fold(text)
-	threat, insult := threatening(folded), rude(folded)
+	threat, insult := threatening(folded), rude(folded) || stung
 	if (threat || insult) && decision.Outcome == OutcomeChat {
 		decision.Mood = MoodOffended
 	}
@@ -288,13 +296,18 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	switch {
 	case threat && decision.Outcome == OutcomeChat:
 		request.Hint = "Gracz ci grozi. Nie dajesz się zastraszyć: odpowiedz twardo, z gniewem albo z kpiną, i niczego mu nie dajesz ani nie sprzedajesz. " + request.Hint
-	case insult && decision.Outcome == OutcomeChat:
+	case insult && (decision.Outcome == OutcomeChat || decision.Outcome == OutcomeFarewell):
 		hurt := "urażony"
 		if speech.Feminine(r.keeperName(customer.shop)) {
 			hurt = "urażona"
 		}
 
 		request.Hint = "Gracz cię obraża. Odpowiedz " + hurt + ", zimno albo z gniewem; nie udawaj, że nic się nie stało. " + request.Hint
+	}
+
+	// An apology before a question or a deal is taken in passing.
+	if hasPhrase(folded, sorryWords) && !strings.HasPrefix(request.Hint, "Gracz przeprasza") && !threat && !insult {
+		request.Hint = strings.TrimSpace("Gracz zaczyna od przeprosin: przyjmij je krótko po swojemu, a potem odpowiedz na resztę. " + request.Hint)
 	}
 
 	if afterHours {
