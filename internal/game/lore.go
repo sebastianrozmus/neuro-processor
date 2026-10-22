@@ -317,7 +317,7 @@ func backRef(words []string) bool {
 }
 
 // visitWords ask whether the keeper has been somewhere or met something.
-var visitWords = []string{"byles", "bylas", "byl", "byla", "byliscie", "widziales", "widzialas", "spotkales", "spotkalas", "walczyles", "walczylas", "zabiles", "zabilas", "chodziles", "chodzilas", "plywales", "plywalas"}
+var visitWords = []string{"byles", "bylas", "byl", "byla", "byliscie", "widziales", "widzialas", "widzial", "widziala", "widzieliscie", "spotkales", "spotkalas", "spotkal", "spotkala", "walczyles", "walczylas", "walczyl", "walczyla", "walczyliscie", "zabiles", "zabilas", "chodziles", "chodzilas", "plywales", "plywalas"}
 
 func visited(words []string) bool {
 	return slices.ContainsFunc(words, func(word string) bool { return slices.Contains(visitWords, strings.Trim(word, ".,!?")) })
@@ -568,7 +568,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	}
 
 	if chat {
-		if hint, ok := aside(folded); ok {
+		if hint, ok := aside(text); ok {
 			return hint, nil, false
 		}
 
@@ -687,6 +687,12 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	// nothing, the model made up a visit.
 	if topic := r.topicOf(customer); topic != nil && decision.Outcome == OutcomeChat && strings.Contains(text, "?") && backRef(words) {
 		return r.dwellHint(customer, topic, slices.Contains(known, topic), she), nil, true
+	}
+
+	// "Walczyłaś z homunkulusami?" about nothing the keeper knows: told
+	// nothing, the model made up the fight.
+	if decision.Outcome == OutcomeChat && strings.Contains(text, "?") && visited(slices.DeleteFunc(slices.Clone(words), func(word string) bool { return word == "byl" || word == "byla" })) {
+		return fmt.Sprintf("Gracz pyta, czy coś %s albo gdzieś %s. Nie mów, że tak, jeśli twoja karta tego nie mówi; nie zmyślaj wizyt ani spotkań. Odpowiedz krótko po swojemu.", gendered(she, "widziałeś", "widziałaś"), gendered(she, "byłeś", "byłaś")), nil, false
 	}
 
 	if customer.inn && decision.Outcome == OutcomeChat {
@@ -1046,21 +1052,29 @@ var kinWords = []string{"brat", "brata", "siostra", "siostre", "ojciec", "ojca",
 // lossTold reports the player's own dead: one of theirs ("mój brat",
 // "moja żona") and a word of dying, "wczoraj utonął mój brat".
 func lossTold(words []string) bool {
-	mine, died := false, false
+	mine, died, killed := false, false, false
 
 	for _, word := range words {
 		mine = mine || slices.Contains([]string{"moj", "moja", "moi", "mojego", "mojej", "moje", "mi"}, word) || slices.Contains(kinWords, word)
 		for _, stem := range []string{"utonal", "utonel", "utopil", "zginal", "zginel", "umarl", "zmarl", "polegl", "zamarzl", "zabili mi", "zagryzl mi"} {
 			died = died || strings.HasPrefix(word, stem)
 		}
+		killed = killed || slices.Contains([]string{"zabili", "zabil", "zabila", "zamordowali", "zamordowal", "zagryzl", "zagryzly", "pozarl"}, word)
 	}
 
-	return mine && died
+	// "syna mi tam zabili": a killing is a loss only with "mi" or "mój",
+	// never with a name of kin alone ("kto zabił twojego ojca?").
+	my := slices.ContainsFunc(words, func(word string) bool {
+		return slices.Contains([]string{"moj", "moja", "moi", "mojego", "mojej", "moje", "mi"}, word)
+	})
+
+	return mine && died || my && killed
 }
 
 // aside answers what is not about the world at all, or is about the
 // player's own grief: no fact or ware is offered to any of it.
-func aside(folded string) (string, bool) {
+func aside(text string) (string, bool) {
+	folded := Fold(text)
 	padded := " " + folded + " "
 
 	switch {
@@ -1072,7 +1086,7 @@ func aside(folded string) (string, bool) {
 		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
 	case lossTold(strings.Fields(folded)):
 		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
-	case hasPhrase(folded, familyWords):
+	case hasPhrase(folded, familyWords) || privateAsked(strings.Fields(folded), strings.Contains(text, "?") || asked(text)):
 		return "Gracz pyta o twoje prywatne sprawy: rodzinę, bliskich, skąd jesteś, skąd blizna. Mów tylko to, co o tym jest w twojej karcie; jeśli nic tam nie ma, nie wymyślaj krewnych, zmarłych ani zdarzeń: zbądź to po swojemu, krótko, albo odwróć pytanie.", true
 	case hasPhrase(folded, flirtWords) || praised(strings.Fields(folded)):
 		return "Gracz flirtuje albo prawi ci komplementy. Odpowiedz po swojemu, jak każe charakter: z wdziękiem, zmieszaniem albo kpiną, krótko; bez plotek i bez polecania towaru.", true
@@ -1083,4 +1097,69 @@ func aside(folded string) (string, bool) {
 	}
 
 	return "", false
+}
+
+// Words of the keeper's own life, folded. kinStems name family whoever
+// is called by them; titleStems are also how a monk, a nun or a priest is
+// called ("siostro, co wiesz…?"), so they ask about family only along
+// with a word for the keeper's own: "twój ojciec", "masz brata", "o ojcu".
+var (
+	kinStems   = []string{"rodzin", "rodzic", "dziec", "dzieck", "wnuk", "wnucz", "zon", "maz", "meza", "mezem", "mezu", "dziewczyn", "chlopak", "narzeczon", "corki", "corka", "corke", "corek", "coreczk", "syn", "synow", "synek", "synem", "synk", "blizn"}
+	titleStems = []string{"brat", "bracie", "siostr", "ojc", "ojciec", "matk", "matce", "mama", "mame", "mamy", "tata", "tate", "taty"}
+	ownWords   = []string{"twoj", "twoja", "twoje", "twoi", "twojego", "twojej", "twoim", "twoich", "twojemu", "masz", "macie", "ma"}
+	mineWords  = []string{"moj", "moja", "moje", "moi", "mojego", "mojej", "moim", "moich", "mojemu", "nasz", "nasza", "nasze", "naszego", "naszej"}
+	// lifeWords ask about the keeper's own road: where from, who taught
+	// them, why they ran or were thrown out, what they miss.
+	lifeWords = []string{"skad jestes", "skad pochodzisz", "skad uciekles", "skad uciekla", "skad ucieklas", "kto cie uczyl", "kto cie nauczyl", "kto cie zrobil", "kto cie stworzyl", "za co cie wyrzucili", "czemu cie wyrzucili", "dlaczego cie wyrzucili", "ile masz lat", "ile ty masz lat", "tesknisz", "teskni pan", "teskni pani"}
+)
+
+// privateAsked reports a question about the keeper's own life in any
+// word order: "a rodzinę jakąś masz?", "skąd ty w ogóle jesteś?", "a
+// żonę?". The player's own people ("moja siostra zaginęła") are not the
+// keeper's.
+func privateAsked(words []string, question bool) bool {
+	if !question || slices.ContainsFunc(words, func(word string) bool { return slices.Contains(mineWords, word) }) {
+		return false
+	}
+
+	stem := func(stems []string) func(string) bool {
+		return func(word string) bool {
+			return slices.ContainsFunc(stems, func(stem string) bool {
+				// "zon" is a stem of "żona", not of "zony" in a long word.
+				return strings.HasPrefix(word, stem) && len(word)-len(stem) <= 3
+			})
+		}
+	}
+
+	if slices.ContainsFunc(words, stem(kinStems)) {
+		return true
+	}
+
+	titled := stem(titleStems)
+	for index, word := range words {
+		if titled(word) && (index > 0 && words[index-1] == "o" || slices.ContainsFunc(words, func(word string) bool { return slices.Contains(ownWords, word) })) {
+			return true
+		}
+	}
+
+	// "skąd ty w ogóle jesteś", "skąd siostra jest": where from, in any order.
+	if slices.Contains(words, "skad") && slices.ContainsFunc(words, func(word string) bool {
+		return slices.Contains([]string{"jestes", "jest", "pochodzisz", "pochodzi", "jestescie"}, word)
+	}) && !slices.ContainsFunc(words, func(word string) bool {
+		return slices.Contains(backWords, word) || slices.Contains([]string{"ta", "ten", "to"}, word)
+	}) {
+		return true
+	}
+
+	text := strings.Join(words, " ")
+	for _, phrase := range lifeWords {
+		if strings.Contains(" "+text+" ", " "+phrase) {
+			return true
+		}
+	}
+
+	// "kto cię uczył": the words may stand apart.
+	return hasPhrase(text, []string{"cie"}) && slices.ContainsFunc(words, func(word string) bool {
+		return slices.ContainsFunc([]string{"uczyl", "nauczyl", "wyrzucil", "wygnal", "wychowal"}, func(stem string) bool { return strings.HasPrefix(word, stem) })
+	})
 }

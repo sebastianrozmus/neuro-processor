@@ -208,7 +208,7 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 
 	// An apology, a threat or a question from outside the world is no
 	// occasion to recommend wares.
-	if _, quiet := aside(folded); decision.Outcome == OutcomeChat && (quiet || threat || insult) {
+	if _, quiet := aside(text); decision.Outcome == OutcomeChat && (quiet || threat || insult) {
 		decision.Aside = true
 	}
 

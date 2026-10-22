@@ -137,3 +137,52 @@ func TestSpelledCountsFromRun18(t *testing.T) {
 		t.Errorf("two wares for one sum: %+v", got)
 	}
 }
+
+// What is asked about the keeper's own life is private, in any order and
+// any form: told nothing, the model makes up a family.
+func TestPrivateQuestionsFromRun18(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	realm.add("Kurhany", "Omszałe kopce dawnych władców doliny.", "", realm.shopOfKind(world.ShopArmory))
+	customer := realm.players[hero]
+	customer.shop = realm.shopOfKind(world.ShopArmory)
+	hint := func(text string) string {
+		hint, _, _ := realm.hint(customer, text, Decision{Outcome: OutcomeChat}, nil)
+
+		return hint
+	}
+
+	for _, text := range []string{
+		"skad masz ta blizne na rece?", "skad masz ta blizne na policzku?", "skad masz ta blizne na lokciu", "masz wnuki?", "a rodzine jakas masz?", "ma pan rodzine?",
+		"masz rodzicow?", "rodzice saule gdzie sa?", "twoj ojciec tez byl taki twardy?", "opowiedz mi o ojcu", "a zone?", "a zona cie nie goni do domu o tej porze?",
+		"zona cie nie szuka?", "a dziewczyne masz?", "masz chlopaka?", "jak maja na imie twoje corki?", "a gdzie ten syn teraz?", "widziales syna przed wyjsciem?",
+		"skad ty w ogole jestes?", "a skad w ogole jestes?", "skad pan w ogole jest?", "skad siostra jest?", "siostra skad jest?", "ma siostra rodzine?",
+		"tesknisz za gora?", "kto cie uczyl?", "kto cie zrobil?", "skad uciekles?", "za co cie wyrzucili?", "ile masz lat?", "ile ty masz lat",
+		"masz rodzine jakas? wnuki?", "skad jestes oskar?", "masz dzieci?",
+	} {
+		if got := hint(text); !strings.Contains(got, "prywatne sprawy") {
+			t.Errorf("%q: hint %q", text, got)
+		}
+	}
+
+	// A sister called by her title, and the player's own people, are no
+	// question about the keeper's family.
+	for _, text := range []string{"siostro, co wiesz o kurhanach?", "moja siostra zaginela, widziales ja?", "brat jaromir mowil o kurhanach?"} {
+		if got := hint(text); strings.Contains(got, "prywatne sprawy") {
+			t.Errorf("%q: hint %q", text, got)
+		}
+	}
+
+	// The player's own dead in any order.
+	if got := hint("syna mi tam zabili w listopadzie"); !strings.Contains(got, "o swojej stracie") {
+		t.Errorf("a loss: %q", got)
+	}
+
+	// Asked whether they saw or fought something, a keeper is told not to
+	// make up a visit, whatever the thing.
+	for _, text := range []string{"widzial pan rektora?", "walczylas z homunkulusami?", "widziales go dzis?", "spotkales kiedys wilkolaka?"} {
+		if got := hint(text); !strings.Contains(got, "nie zmyślaj wizyt") {
+			t.Errorf("%q: hint %q", text, got)
+		}
+	}
+}
