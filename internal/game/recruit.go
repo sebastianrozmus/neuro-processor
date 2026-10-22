@@ -148,11 +148,18 @@ const (
 // of joining, or for a legend the daily wage.
 func hireWare(kind int, spec world.CompanionSpec) Item {
 	if spec.Legend {
+		// "Nie targuje się" in the card holds the wage: told to counter 61,
+		// the model broke the card.
+		floor := max(1, spec.Wage()*wageFloorPercent/100)
+		if strings.Contains(Fold(spec.Description), "nie targuje") {
+			floor = spec.Wage()
+		}
+
 		return Item{
 			ID: fmt.Sprintf("%s%d", wagePrefix, kind), Name: WageName,
 			Description: fmt.Sprintf("%s idzie z tobą za dzienny żołd, płatny o świcie.", spec.Name),
 			Aliases:     []string{"zold", "dzien", "umow", "najem", "sluzb"},
-			ListPrice:   spec.Wage(), MinPrice: max(1, spec.Wage()*wageFloorPercent/100),
+			ListPrice:   spec.Wage(), MinPrice: floor,
 		}
 	}
 

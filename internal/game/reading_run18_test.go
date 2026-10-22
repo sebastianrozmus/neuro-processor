@@ -373,3 +373,22 @@ func TestThanksFromRun18(t *testing.T) {
 		}
 	}
 }
+
+// A legend whose card says they do not haggle holds the wage.
+func TestLegendWhoDoesNotHaggleFromRun18(t *testing.T) {
+	spec := world.CompanionSpec{Name: "Zorza", Description: "Stara pilotka. Nie targuje się: płacisz albo szukasz innej.", Role: world.RoleFighter, Tier: 2, Legend: true}
+	ware := hireWare(0, spec)
+	if ware.MinPrice != ware.ListPrice {
+		t.Fatalf("the floor of a legend who does not haggle: %d of %d", ware.MinPrice, ware.ListPrice)
+	}
+
+	session := NewSession(Merchant{Items: []Item{ware}, Patience: 4}, 500)
+	if got := session.Apply(Intent{Action: ActionOffer, ItemID: ware.ID, Amount: ware.ListPrice - 4}); got.Outcome != OutcomeCounter || got.Price != ware.ListPrice {
+		t.Errorf("an offer under the wage: %+v", got)
+	}
+
+	spec.Description = "Stara pilotka."
+	if ware = hireWare(0, spec); ware.MinPrice == ware.ListPrice {
+		t.Error("every legend holds the wage")
+	}
+}
