@@ -232,6 +232,17 @@ func TestRead(t *testing.T) {
 		{"dobra, jutro wrócę", "rura", Intent{Action: ActionLeave}, true, Intent{Action: ActionLeave}},
 		// An apology quoting the insult is an apology; "dziś" names no ware.
 		{"przepraszam że nazwałam cię kupą złomu", "", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		// Run 18: "dobra" goes on to ask or put off, it agrees to nothing.
+		{"dobra, pomysle", "rura", Intent{Action: ActionChat}, true, Intent{Action: ActionChat}},
+		{"dobra. ile bierzesz", "rura", Intent{Action: ActionAsk}, true, Intent{Action: ActionAsk}},
+		{"dobra, ile kurtka", "rura", Intent{Action: ActionAsk, ItemID: "kurtka"}, true, Intent{Action: ActionAsk, ItemID: "kurtka"}},
+		{"dobra, ile chcesz", "rura", Intent{Action: ActionAsk}, true, Intent{Action: ActionAsk}},
+		{"dobra spokojnie, zartowalam", "rura", Intent{Action: ActionChat}, false, Intent{Action: ActionChat}},
+		{"dobra, co masz", "rura", Intent{Action: ActionAsk}, true, Intent{Action: ActionAsk}},
+		{"ok, zobacze jeszcze", "rura", Intent{Action: ActionChat}, true, Intent{Action: ActionChat}},
+		{"dobrze, umowa", "rura", Intent{Action: ActionAccept}, true, Intent{Action: ActionAccept}},
+		{"ok", "rura", Intent{Action: ActionAccept}, true, Intent{Action: ActionAccept}},
+		{"ok biore jedna kurtke, bywaj", "rura", Intent{Action: ActionAccept, ItemID: "kurtka"}, true, Intent{Action: ActionAccept, ItemID: "kurtka"}},
 	}
 
 	// Where money is counted in pieces, "sztuk" after a number means money.

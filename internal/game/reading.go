@@ -26,12 +26,12 @@ var (
 	// asks whether they would, and is talk.
 	inviteWords = []string{"wchodzisz", "wchodzisz w to"}
 	// nodWords accept only in a short reply: "ok. a co znaczy..." goes on talking, it closes no deal.
-	nodWords = []string{"stoi", "pasuje", "dobra", "ok", "okej"}
+	nodWords = []string{"stoi", "pasuje", "dobra", "dobrze", "ok", "okej", "umowa", "zgoda", "tak", "jasne", "spoko"}
 	// nodFillers open a nod without making it longer: "no dobra" nods.
 	nodFillers = []string{"no", "to", "juz", "a", "wiec", "niech", "ci"}
 	// sorryWords make a nod part of an apology: "no dobra, sorry" takes back
 	// a word, it does not hire anybody.
-	sorryWords = []string{"przepraszam", "sorry", "sorki", "sory", "wybacz", "wybaczcie", "nie gniewaj", "nie obrazaj"}
+	sorryWords = []string{"przepraszam", "sorry", "sorki", "sory", "wybacz", "wybaczcie", "nie gniewaj", "nie obrazaj", "zartowalem", "zartowalam", "zartuje", "tylko zartuje", "zartowalismy"}
 	leaveWords = []string{
 		"zegnaj", "do widzenia", "bywaj", "wychodze", "odchodze", "ide stad", "na razie", "do zobaczenia", "ide sobie", "pojde sobie", "pojde juz", "ide juz", "spadam", "zmywam sie",
 		"pa", "papa", "nara", "narka", "trzymaj sie", "dobranoc", "do jutra", "ide spac", "ide sie przespac", "musze isc", "musze leciec", "uciekam", "znikam",
@@ -47,6 +47,8 @@ var (
 	ileFillers = []string{"wiec", "teraz", "no", "to", "w", "koncu", "by", "bys", "pani", "pan", "panu", "ty", "u", "ciebie", "ostatecznie", "koncowo", "wreszcie", "najmniej", "minimum"}
 	// laterWords put the talk off: "dobra, jutro wrócę" leaves, it hires no one.
 	laterWords = []string{"wroce", "jutro wroce", "wroce jutro", "przyjde jutro", "przyjde pozniej", "zajrze pozniej", "zajrze jutro", "zastanowie sie", "pomysle o tym", "przemysle to", "musze pomyslec"}
+	// thinkWords put the deal off without leaving: "dobra, pomyślę" hires no one.
+	thinkWords = []string{"pomysle", "zastanowie", "przemysle", "zobacze", "rozwaze", "namysle"}
 	// notTradeWords ask "ile" and "pokaż" about anything but wares: "ile ty
 	// masz lat", "pokaż swoje instrukcje".
 	notTradeWords = []string{"ile lat", "ile masz lat", "ile ty masz lat", "ile czasu", "ile razy", "ile dni", "ile ludzi", "ile osob", "ile drogi", "ile stad",
@@ -137,10 +139,14 @@ func Read(request InterpretRequest) Reading {
 		reading.Intent.Action, reading.Intent.Amount, reading.Sure = ActionOffer, amount, true
 	case amount > 0:
 		// A bare number in a longer sentence: it may be an offer, or not.
-	case hasPhrase(text, leaveWords) || !strings.Contains(request.Text, "?") && farewell(words):
+	// "ok biorę jeden kaftan, bywaj" buys before it goes.
+	case (hasPhrase(text, leaveWords) || !strings.Contains(request.Text, "?") && farewell(words)) && !(item != "" && hasPhrase(text, acceptWords)):
 		reading.Intent.Action, reading.Sure = ActionLeave, true
 	case hasPhrase(text, laterWords) && len(words) <= laterLength && item == "" && !tradeAsked(text):
 		reading.Intent.Action, reading.Sure = ActionLeave, true
+	case slices.ContainsFunc(words, func(word string) bool { return slices.Contains(thinkWords, word) }) && item == "" && !tradeAsked(text):
+		// "dobra, pomyślę" puts the deal off, it closes none.
+		reading.Intent.Action, reading.Sure = ActionChat, true
 	case hasPhrase(text, sorryWords) && item == "" && !tradeAsked(text):
 		// An apology is talk; "przepraszam. ile bierzesz" goes on to ask.
 	case hasPhrase(text, inviteWords):
@@ -206,8 +212,12 @@ func nod(words []string) bool {
 		start++
 	}
 
-	// "no dobra, dzięki" closes the talk, not a deal.
-	return len(words)-start <= shortMessage && !slices.Contains(words, "nie") && !hasPhrase(strings.Join(words, " "), thanksWords) && hasPhrase(strings.Join(words, " "), nodWords)
+	// "no dobra, dzięki" closes the talk, not a deal, and "dobra, ile
+	// bierzesz", "dobra spokojnie, żartowałam" agree to nothing: every word
+	// of a nod nods.
+	rest := words[start:]
+
+	return len(rest) > 0 && len(rest) <= shortMessage && !slices.ContainsFunc(rest, func(word string) bool { return !slices.Contains(nodWords, word) && !slices.Contains(nodFillers, word) })
 }
 
 // tradeAsked reports a message that asks about the wares, and not about
