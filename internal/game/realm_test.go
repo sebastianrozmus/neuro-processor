@@ -1140,7 +1140,8 @@ func TestKeepersTalkItemsIntoTheWorld(t *testing.T) {
 	}
 }
 
-// echoNarrator answers with a fixed line and keeps the requests it saw.
+// echoNarrator answers with a fixed line and keeps the requests it saw. A
+// round's line names its blows, as the master has to.
 type echoNarrator struct {
 	mu       sync.Mutex
 	line     string
@@ -1152,6 +1153,15 @@ func (n *echoNarrator) Narrate(_ context.Context, request NarrateRequest) (strin
 	defer n.mu.Unlock()
 
 	n.requests = append(n.requests, request)
+
+	var blows []string
+	for _, match := range lost.FindAllStringSubmatch(request.Decision.Scene, -1) {
+		blows = append(blows, match[1])
+	}
+
+	if len(blows) > 0 {
+		return n.line + " Ciosy za " + strings.Join(blows, ", ") + ".", nil
+	}
 
 	return n.line, nil
 }

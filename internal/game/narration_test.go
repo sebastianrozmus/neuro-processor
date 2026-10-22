@@ -391,6 +391,37 @@ func TestMangledNamesEarnASecondTry(t *testing.T) {
 	}
 }
 
+func TestTheMasterKeepsEveryBlow(t *testing.T) {
+	scene := "Kasia atakuje: Topielec traci 7 zdrowia. Topielec atakuje: Kasia traci 9 zdrowia."
+	request := NarrateRequest{Decision: Decision{Outcome: OutcomeScene, Scene: scene}}
+
+	// A hit without its number reads as one that did not happen.
+	narrator := &scriptedNarrator{replies: []string{"Kasia tnie Topielca za 7, a ten oddaje.", "Kasia tnie Topielca za 7, Topielec oddaje jej za 9."}}
+	text, err := Narrate(context.Background(), narrator, request)
+	if err != nil || text != "Kasia tnie Topielca za 7, Topielec oddaje jej za 9." || narrator.calls != 2 || narrator.corrections[1] != lostCorrection+"9." {
+		t.Errorf("a skipped blow: %q, %v after %d calls (%q)", text, err, narrator.calls, narrator.corrections)
+	}
+
+	// No one falls or flees unless the rules say so.
+	narrator = &scriptedNarrator{replies: []string{"Kasia dobija Topielca za 7, on oddaje za 9.", "Kasia tnie Topielca za 7, a on ledwo stoi i oddaje za 9."}}
+	if text, err := Narrate(context.Background(), narrator, request); err != nil || narrator.calls != 2 || text != "Kasia tnie Topielca za 7, a on ledwo stoi i oddaje za 9." || narrator.corrections[1] != fallenCorrection {
+		t.Errorf("a made-up kill: %q, %v after %d calls", text, err, narrator.calls)
+	}
+
+	// Two bad tries leave the round to the rules' own lines.
+	narrator = &scriptedNarrator{replies: []string{"Kasia tnie Topielca.", "Topielec pada pod ciosem Kasi za 7 i 9."}}
+	if text, err := Narrate(context.Background(), narrator, request); text != "" || !errors.Is(err, ErrInconsistent) {
+		t.Errorf("two bad tries: %q, %v", text, err)
+	}
+
+	// A round in which someone does fall may say so.
+	request.Decision.Scene = scene + " Topielec pada."
+	narrator = &scriptedNarrator{replies: []string{"Kasia tnie Topielca za 7, ten oddaje za 9 i pada w muł."}}
+	if text, err := Narrate(context.Background(), narrator, request); err != nil || narrator.calls != 1 || text == "" {
+		t.Errorf("a fall the rules made: %q, %v after %d calls", text, err, narrator.calls)
+	}
+}
+
 func TestRefusedLinesSayWhy(t *testing.T) {
 	narrator := &scriptedNarrator{replies: []string{"[spokój] Piwo warzą 2 wsie dalej.", "[spokój] Pytaj Wedronowego Kupuca."}}
 	request := NarrateRequest{Decision: Decision{Outcome: OutcomeChat}, Role: RoleMercenary, Required: []string{"Wędrowny Kupiec"}}

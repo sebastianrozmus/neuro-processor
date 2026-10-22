@@ -32,12 +32,27 @@ const nameCorrection = "Twoja poprzednia odpowiedź była zła: przekręciła al
 // line that had a fact to tell.
 const strangerCorrection = "Twoja poprzednia odpowiedź była zła: wymyśliła nazwy, których nie ma w świecie: "
 
+// lostCorrection is what the master hears after leaving out a blow the
+// rules dealt; the numbers it skipped follow.
+const lostCorrection = "Twoja poprzednia odpowiedź była zła: pominęła obrażenia z bloku [GRA]. " +
+	"Opisz rundę jeszcze raz i podaj cyframi każdą stratę zdrowia, także: "
+
+// fallenCorrection is what the master hears after felling, killing or
+// routing someone the rules left standing.
+const fallenCorrection = "Twoja poprzednia odpowiedź była zła: ktoś w niej pada, ginie albo ucieka, a w bloku [GRA] tego nie ma. " +
+	"Opisz rundę jeszcze raz: kto w bloku [GRA] nie pada, ten dalej walczy."
+
 // correction is what a narrator hears after quoting a number it should not.
 const correction = "Twoja poprzednia odpowiedź była zła: podała liczbę słownie albo taką, której nie ma w bloku [GRA]. " +
 	"Napisz ją jeszcze raz. Liczby wolno ci podać tylko te z bloku [GRA] i tylko cyframi."
 
 var (
 	digits = regexp.MustCompile(`\d+`)
+	// lost finds the blows of a round: "Topielec traci 7 zdrowia".
+	lost = regexp.MustCompile(`traci (\d+) zdrowia`)
+	// felled are folded words that end someone's part in a fight; only
+	// the rules may say that, with "pada", "ucieka" or a victory.
+	felled = regexp.MustCompile(`\b(ginie|zgin\w*|pada|padl\w*|zabit\w*|zabij\w*|pokonan\w*|nie zyje|dobij\w*|wykancz\w*|uciek\w*)\b`)
 	markup = regexp.MustCompile(`<[^>]*>`)
 
 	// spelledStems are folded pieces of Polish words for the numbers from
@@ -199,6 +214,8 @@ const (
 	reasonNumbers   = "liczba spoza bloku [GRA] albo napisana słownie"
 	reasonNames     = "imię przekręcone albo pominięte"
 	reasonStrangers = "nazwa spoza świata"
+	reasonLost      = "pominięte obrażenia z rundy"
+	reasonFallen    = "ktoś pada albo ucieka poza protokołem"
 )
 
 // Narrate asks the narrator for a reply and checks it against the decision.
@@ -277,6 +294,10 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 			reason = reasonNames
 		case len(made) > 0:
 			reason = reasonStrangers
+		case request.Decision.Outcome == OutcomeScene && len(skipped(text, request.Decision.Scene)) > 0:
+			reason = reasonLost
+		case request.Decision.Outcome == OutcomeScene && fells(text, request.Decision.Scene):
+			reason = reasonFallen
 		default:
 			return fitMood(text, request.Decision.Mood), nil
 		}
@@ -285,6 +306,14 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 		request.Correction = correction
 		if reason == reasonNames {
 			request.Correction = nameCorrection + join(append(append([]string(nil), request.Required...), request.Guarded...)) + "."
+		}
+
+		if reason == reasonLost {
+			request.Correction = lostCorrection + join(skipped(text, request.Decision.Scene)) + "."
+		}
+
+		if reason == reasonFallen {
+			request.Correction = fallenCorrection
 		}
 
 		if reason == reasonStrangers {
@@ -304,6 +333,34 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 	}
 
 	return fallbackFor(request), problem
+}
+
+// skipped lists the blows of a round that a narration of it leaves out:
+// a hit without its number reads as one that did not happen. The master
+// may leave other numbers out, but not these.
+func skipped(text, scene string) []string {
+	said := numbersIn(text)
+
+	var left []string
+
+	for _, match := range lost.FindAllStringSubmatch(scene, -1) {
+		number, err := strconv.Atoi(match[1])
+		if err == nil && !slices.Contains(said, number) && !slices.Contains(left, match[1]) {
+			left = append(left, match[1])
+		}
+	}
+
+	return left
+}
+
+// fells reports a narration that has someone fall, die or flee in a round
+// where the rules had no one do so.
+func fells(text, scene string) bool {
+	if folded := Fold(scene); strings.Contains(folded, "pada") || strings.Contains(folded, "uciek") || strings.Contains(folded, "zwyciestwo") {
+		return false
+	}
+
+	return felled.MatchString(Fold(text))
 }
 
 // namesOnly reports attempts that were all refused for a name alone.
