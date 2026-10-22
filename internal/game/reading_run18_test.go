@@ -353,3 +353,23 @@ func TestMoneyToACompanionFromRun18(t *testing.T) {
 		}
 	}
 }
+
+// Thanks are answered as thanks, and thanks for everything end the talk.
+func TestThanksFromRun18(t *testing.T) {
+	for _, text := range []string{"dobra, dzieki za wszystko", "dziekuje za wszystko"} {
+		if got := Read(InterpretRequest{Text: text}).Intent.Action; got != ActionLeave {
+			t.Errorf("%q = %s, want leave", text, got)
+		}
+	}
+
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	realm.add("Kurhany", "Omszałe kopce.", "", realm.shopOfKind(world.ShopArmory))
+	customer := realm.players[hero]
+	customer.shop = realm.shopOfKind(world.ShopArmory)
+	for _, text := range []string{"dziekuje", "dzieki bardzo", "no dobra, dzieki " + strings.ToLower(strings.Fields(realm.keeperName(customer.shop))[0])} {
+		if got, _, _ := realm.hint(customer, text, Decision{Outcome: OutcomeChat}, nil); !strings.Contains(got, "Gracz dziękuje") {
+			t.Errorf("%q: %q", text, got)
+		}
+	}
+}

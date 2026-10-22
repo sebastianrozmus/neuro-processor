@@ -35,6 +35,7 @@ var (
 	leaveWords = []string{
 		"zegnaj", "do widzenia", "bywaj", "wychodze", "odchodze", "ide stad", "na razie", "do zobaczenia", "ide sobie", "pojde sobie", "pojde juz", "ide juz", "spadam", "zmywam sie",
 		"pa", "papa", "nara", "narka", "trzymaj sie", "dobranoc", "do jutra", "ide spac", "ide sie przespac", "musze isc", "musze leciec", "uciekam", "znikam",
+		"dzieki za wszystko", "dziekuje za wszystko", "dziekujemy za wszystko",
 	}
 	// byeWords end a message as a goodbye ("no trudno, cześć"), though alone
 	// or among other greetings they greet.

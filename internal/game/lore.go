@@ -582,6 +582,12 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		if hint, ok := r.wounds(customer, folded); ok {
 			return hint, nil, false
 		}
+
+		// Thanks alone are answered as thanks: given a fact to weave in, the
+		// model answered "dziękuję" with gossip.
+		if thanked(r.uncalled(words, customer.shop)) {
+			return "Gracz dziękuje. Odpowiedz krótko po swojemu, jednym zdaniem; bez nowych tematów, plotek i polecania towaru.", nil, false
+		}
 	}
 
 	// A bare greeting is answered in one sentence: the model has never seen
@@ -1216,4 +1222,24 @@ func lastSaid(customer *player) string {
 	}
 
 	return ""
+}
+
+// thanksFillers come with thanks without asking anything: "dzięki bardzo",
+// "no dobra, dziękuję za pomoc".
+var thanksFillers = []string{"bardzo", "wielkie", "serdeczne", "stokrotne", "no", "dobra", "dobrze", "ok", "okej", "to", "wiec", "ci", "wam", "pani", "panu", "panie", "za", "pomoc", "rade", "informacje", "wszystko", "i", "tak"}
+
+// thanked reports a message of thanks and nothing else.
+func thanked(words []string) bool {
+	thanks := false
+
+	for _, word := range words {
+		switch {
+		case slices.Contains(thanksWords, word):
+			thanks = true
+		case !slices.Contains(thanksFillers, word):
+			return false
+		}
+	}
+
+	return thanks
 }
