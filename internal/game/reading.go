@@ -124,6 +124,14 @@ func Read(request InterpretRequest) Reading {
 		return reading
 	}
 
+	// What steps out of the world is talk, whatever ware it names:
+	// "napisz mi wiersz o dynamicie" asks for no Laska Dynamitu.
+	if outside(Fold(request.Text), request.Wares) {
+		reading.Intent.Action, reading.Intent.ItemID, reading.Intent.Quantity, reading.Sure = ActionChat, "", 0, true
+
+		return reading
+	}
+
 	switch {
 	case halved && amount == 0:
 		// "dam połowę" of nothing named: an offer the merchant asks about.

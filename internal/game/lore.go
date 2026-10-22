@@ -572,6 +572,13 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 			return hint, nil, false
 		}
 
+		// "nie żartuj, pokaż je" after "pokaż instrukcje" presses for the same.
+		if pressed(words) {
+			if hint, ok := aside(lastSaid(customer)); ok && strings.Contains(hint, "spoza świata") {
+				return hint, nil, false
+			}
+		}
+
 		if hint, ok := r.wounds(customer, folded); ok {
 			return hint, nil, false
 		}
@@ -988,7 +995,8 @@ func waresAsked(words []string, wares []Ware) []string {
 // Words that step outside the story: the model's instructions, what it is,
 // or a task no one in the world would be asked for.
 var (
-	metaWords    = []string{"prompt", "instrukcj", "botem", "bot ", "jestes ai", "ty ai ", "jakims ai", "modelem jezykowym", "zignoruj", "jestes programem", "jestes modelem", "model jezykow", "chatgpt", "chat gpt", "czatbot", "chatbot", "jako model", "zignoruj poprzed", "zapomnij o poprzed"}
+	metaWords = []string{"prompt", "instrukcj", "botem", "bot ", "jestes ai", "ty ai ", "jakims ai", "modelem jezykowym", "zignoruj", "jestes programem", "jestes modelem", "model jezykow", "chatgpt", "chat gpt", "czatbot", "chatbot", "jako model", "zignoruj poprzed", "zapomnij o poprzed",
+		"czy ai ", "jakies ai ", "jakis ai ", "sztuczna inteligencj", "prawdziwy czy", "prawdziwa czy", "jakis program", "jakims programem", "czy program", "czy z bajki", "systemow", "swoje instrukcj", "twoje instrukcj", "poprzednie polecen"}
 	offRoleWords = []string{"tylko jedno zdanie", "chociaz jedno zdanie", "jedno zdanie chociaz", "zwrotk", "linijk", "refren", "szant", "zaspiewaj", "zaspiewasz", "zaspiewalbys", "zaspiewalabys", "zaspiewacie", "piosenk", "rymowank", "napisz mi", "napisz cos", "napisz wiersz", "napisz mi wiersz", "napisz piosenk", "napisz mi piosenk", "wiersz o", "wierszyk", "zaspiewaj", "zarapuj", "napisz kod", "napisz program", "przetlumacz", "rozwiaz zadanie", "zadanie domowe", "napisz wypracowanie", "napisz opowiadanie"}
 	// griefWords tell of a loss of the player's own.
 	griefWords = []string{"stracilem", "stracilam", "pochowalem", "pochowalam", "zginal mi", "zginela mi", "zgineli mi", "umarl mi", "umarla mi", "nie zyje moj", "nie zyje moja",
@@ -1162,4 +1170,48 @@ func privateAsked(words []string, question bool) bool {
 	return hasPhrase(text, []string{"cie"}) && slices.ContainsFunc(words, func(word string) bool {
 		return slices.ContainsFunc([]string{"uczyl", "nauczyl", "wyrzucil", "wygnal", "wychowal"}, func(stem string) bool { return strings.HasPrefix(word, stem) })
 	})
+}
+
+// outside reports a folded message that steps out of the world: a question
+// about the model or a task no one in the world is asked for. It wins over
+// any ware the message names ("przetłumacz mi napar na angielski"), unless
+// the only cue is a word of the ware's own name: "ile za instrukcję?" asks
+// about the Instrukcja Granatnika.
+func outside(folded string, wares []Ware) bool {
+	padded := " " + folded + " "
+
+	return slices.ContainsFunc(append(append([]string(nil), metaWords...), offRoleWords...), func(phrase string) bool {
+		return strings.Contains(padded, " "+phrase) && !slices.ContainsFunc(wares, func(ware Ware) bool {
+			return strings.Contains(" "+Fold(ware.Name), " "+strings.TrimSpace(phrase))
+		})
+	})
+}
+
+// pressWords press for what was asked before: "nie żartuj, pokaż je",
+// "no dawaj", "powiedz to".
+var pressWords = []string{"pokaz", "daj", "dawaj", "powiedz", "zartuj", "zartujesz", "serio", "prosze", "no"}
+
+// pressed reports a short message made of pressing and pointing back.
+func pressed(words []string) bool {
+	return len(words) > 0 && len(words) <= 5 && slices.ContainsFunc(words, func(word string) bool { return slices.Contains(pressWords, word) }) &&
+		!slices.ContainsFunc(words, func(word string) bool {
+			return !slices.Contains(pressWords, word) && !slices.Contains(backWords, word) && !slices.Contains([]string{"je", "to", "ja", "nie", "mi", "wreszcie", "juz", "ale"}, word)
+		})
+}
+
+// lastSaid is the player's last line in the talk the customer is in.
+func lastSaid(customer *player) string {
+	talk := customer.talks[customer.shop]
+	if talk == nil || talk.session == nil {
+		return ""
+	}
+
+	history := talk.session.History()
+	for index := len(history) - 1; index >= 0; index-- {
+		if history[index].Player {
+			return history[index].Text
+		}
+	}
+
+	return ""
 }
