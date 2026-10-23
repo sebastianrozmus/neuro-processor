@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
@@ -105,8 +106,9 @@ func (r *Realm) roam() {
 			continue
 		}
 
+		// Guards of a captive stay where they are.
 		from := world.Point{X: index % world.Width, Y: index / world.Width}
-		if r.fights[from] != nil {
+		if r.fights[from] != nil || slices.ContainsFunc(r.monsters[index], func(foe *monster) bool { return foe.pinned }) {
 			continue
 		}
 

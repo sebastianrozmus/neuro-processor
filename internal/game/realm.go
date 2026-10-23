@@ -174,6 +174,8 @@ type monster struct {
 	hp     int
 	maxHP  int
 	attack int
+	// pinned guards a captive and never roams.
+	pinned bool
 }
 
 // NewRealm starts a world. The seed drives combat rolls and loot.

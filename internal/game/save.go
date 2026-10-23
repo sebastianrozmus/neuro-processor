@@ -81,6 +81,11 @@ type QuestState struct {
 	Finished bool   `json:"finished,omitempty"`
 	Paid     bool   `json:"paid,omitempty"`
 	Day      int    `json:"day"`
+	// A rescue's relation, the tile the captive is held on and the
+	// settlement they go back to; saves from before rescues have none.
+	Relation string       `json:"relation,omitempty"`
+	Pos      *world.Point `json:"pos,omitempty"`
+	Town     int          `json:"town,omitempty"`
 }
 
 // FactState is a saved fact with who knows it.
@@ -175,6 +180,8 @@ type MonsterState struct {
 	HP   int    `json:"hp"`
 	Boss bool   `json:"boss,omitempty"`
 	Name string `json:"name,omitempty"`
+	// Pinned guards a captive and never roams.
+	Pinned bool `json:"pinned,omitempty"`
 }
 
 // State captures the game so it can be saved. Host names the player whose
@@ -215,10 +222,17 @@ func (r *Realm) State(host string) State {
 	}
 
 	for _, job := range r.quests {
-		state.Quests = append(state.Quests, QuestState{
+		saved := QuestState{
 			Keeper: job.keeper, Kind: string(job.kind), Subject: job.subject, Monster: job.monster, Count: job.count, Done: job.done,
 			Reward: job.reward, Item: job.item, Taker: job.taker, Finished: job.finished, Paid: job.paid, Day: job.day,
-		})
+		}
+
+		if job.kind == questRescue {
+			pos := job.pos
+			saved.Relation, saved.Pos, saved.Town = job.relation, &pos, job.town
+		}
+
+		state.Quests = append(state.Quests, saved)
 	}
 
 	for _, fact := range r.wisdom.facts {
@@ -243,7 +257,7 @@ func (r *Realm) State(host string) State {
 			// Fights are not saved, so the survivors recover as they do
 			// when a fight is abandoned.
 			if foe.hp > 0 {
-				saved := MonsterState{Kind: foe.kind, HP: foe.maxHP}
+				saved := MonsterState{Kind: foe.kind, HP: foe.maxHP, Pinned: foe.pinned}
 				if foe.boss && foe.kind >= 0 {
 					saved.Boss, saved.Name = true, foe.name
 				}
@@ -340,15 +354,26 @@ func Restore(state State, seed int64) (*Realm, error) {
 		realm.heir = &heir{kind: state.Heir.Kind, due: state.Heir.Due}
 	}
 
+	// A keeper is a shop, the caravan or a companion at the inn.
 	for _, saved := range state.Quests {
-		if saved.Keeper < 0 || saved.Keeper > len(built.Shops) || saved.Monster < 0 || saved.Monster >= max(len(built.Monsters), 1) {
+		if saved.Keeper < 0 || saved.Keeper > len(built.Shops)+len(built.Companions) || saved.Monster < 0 || saved.Monster >= max(len(built.Monsters), 1) {
 			continue
 		}
 
-		realm.quests = append(realm.quests, &quest{
+		job := &quest{
 			id: len(realm.quests) + 1, keeper: saved.Keeper, kind: questKind(saved.Kind), subject: saved.Subject, monster: saved.Monster,
 			count: saved.Count, done: saved.Done, reward: saved.Reward, item: saved.Item, taker: saved.Taker, finished: saved.Finished, paid: saved.Paid, day: saved.Day,
-		})
+		}
+
+		if job.kind == questRescue {
+			if saved.Pos == nil || !built.In(*saved.Pos) || saved.Town < 0 || saved.Town >= len(built.Towns) {
+				continue
+			}
+
+			job.relation, job.pos, job.town = saved.Relation, *saved.Pos, saved.Town
+		}
+
+		realm.quests = append(realm.quests, job)
 	}
 
 	if len(state.Facts) > 0 {
@@ -413,7 +438,7 @@ func Restore(state State, seed int64) (*Realm, error) {
 				}
 			}
 
-			foe.hp = min(saved.HP, foe.maxHP)
+			foe.hp, foe.pinned = min(saved.HP, foe.maxHP), saved.Pinned
 			realm.monsters[index] = append(realm.monsters[index], foe)
 		}
 	}

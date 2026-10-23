@@ -10,14 +10,16 @@ import (
 // Quests grow out of the knowledge graph: a fact a keeper has sat on for
 // a couple of days turns into a job for whoever walks in. A fact about
 // monsters asks for a hunt; one about a place or a site asks for a visit.
-// The keeper pays in gold from the till, sometimes with a thing from the
-// shelf, and the settlement remembers who did it.
+// A keeper who tells of someone dear gone missing asks for a rescue (see
+// rescue.go). The keeper pays in gold from the till, sometimes with a
+// thing from the shelf, and the settlement remembers who did it.
 
 type questKind string
 
 const (
-	questHunt  questKind = "hunt"
-	questVisit questKind = "visit"
+	questHunt   questKind = "hunt"
+	questVisit  questKind = "visit"
+	questRescue questKind = "rescue"
 )
 
 const (
@@ -46,6 +48,12 @@ type quest struct {
 	finished bool
 	paid     bool
 	day      int
+	// A rescue's subject is the missing person and monster the kind that
+	// leads the guards: relation is who the person is to the keeper, pos
+	// the tile they are held on and town the settlement they go back to.
+	relation string
+	pos      world.Point
+	town     int
 }
 
 // QuestView is a job as the journal shows it.
@@ -166,6 +174,8 @@ func (r *Realm) questText(job *quest) string {
 	switch job.kind {
 	case questHunt:
 		text = fmt.Sprintf("ubij %d sztuk: %s", job.count, job.subject)
+	case questRescue:
+		text = r.rescueText(job)
 	default:
 		text = "dotrzyj do miejsca: " + job.subject + ", i wróć"
 	}
@@ -178,20 +188,31 @@ func (r *Realm) questText(job *quest) string {
 	return fmt.Sprintf("%s. Nagroda: %s", text, reward)
 }
 
-// offerQuest tells a customer about the keeper's job, if one is posted.
-func (r *Realm) offerQuest(customer *player, keeper int) {
-	job := r.openQuest(keeper)
-	if job == nil {
-		return
+// openQuests are all of a keeper's jobs still posted or being done: a
+// posted job and a rescue may be open side by side.
+func (r *Realm) openQuests(keeper int) []*quest {
+	var open []*quest
+
+	for _, job := range r.quests {
+		if job.keeper == keeper && !job.paid {
+			open = append(open, job)
+		}
 	}
 
-	switch {
-	case job.taker == "":
-		r.tell(customer, fmt.Sprintf("Zlecenie od %s: %s. Podejmiesz się poleceniem «przyjmij».", r.shopSpec(keeper).Keeper, r.questText(job)))
-	case job.taker == customer.name && job.finished:
-		r.payQuest(customer, job)
-	case job.taker == customer.name:
-		r.tell(customer, "Twoje zlecenie stąd: "+r.questText(job)+". "+r.progress(job))
+	return open
+}
+
+// offerQuest tells a customer about the keeper's jobs, if any are open.
+func (r *Realm) offerQuest(customer *player, keeper int) {
+	for _, job := range r.openQuests(keeper) {
+		switch {
+		case job.taker == "":
+			r.tell(customer, fmt.Sprintf("Zlecenie od %s: %s. Podejmiesz się poleceniem «przyjmij».", r.shopSpec(keeper).Keeper, r.questText(job)))
+		case job.taker == customer.name && job.finished:
+			r.payQuest(customer, job)
+		case job.taker == customer.name:
+			r.tell(customer, "Twoje zlecenie stąd: "+r.questText(job)+". "+r.progress(job))
+		}
 	}
 }
 
@@ -225,6 +246,8 @@ func (r *Realm) progress(job *quest) string {
 		return "Wykonane: wróć po nagrodę."
 	case job.kind == questHunt:
 		return fmt.Sprintf("Ubite: %d z %d.", job.done, job.count)
+	case job.kind == questRescue:
+		return "Strażnicy wciąż stoją."
 	}
 
 	return "Jeszcze tam nie dotarłeś."
@@ -257,6 +280,11 @@ func (r *Realm) reached(hero *player) {
 	}
 
 	for _, job := range r.quests {
+		// Guards beaten by somebody else leave the captive for the taker.
+		if job.taker == hero.name && job.kind == questRescue && !job.finished && job.pos == hero.pos && r.alive(hero.pos) == 0 {
+			r.free(hero, job)
+		}
+
 		if job.taker != hero.name || job.kind != questVisit || job.finished {
 			continue
 		}
@@ -287,6 +315,12 @@ func (r *Realm) payQuest(hero *player, job *quest) {
 		r.tell(hero, "Do tego dostajesz: "+item.Name+".")
 	}
 
+	if job.kind == questRescue {
+		r.rescued(hero, job)
+
+		return
+	}
+
 	r.esteem(hero, r.townOf(hero), questStanding, "Wieść o wykonanej robocie się niesie.")
 
 	if fact := r.add(job.subject, fmt.Sprintf("%s wykonał zlecenie %s: %s.", hero.name, keeper, r.questText(job)), keeper, r.everyone()...); fact != nil {
@@ -294,21 +328,25 @@ func (r *Realm) payQuest(hero *player, job *quest) {
 	}
 }
 
-// questLore tells a keeper about their job and the customer's part in it.
+// questLore tells a keeper about their jobs and the customer's part in
+// them.
 func (r *Realm) questLore(customer *player, keeper int) string {
-	job := r.openQuest(keeper)
-	if job == nil {
-		return ""
+	var lines []string
+
+	for _, job := range r.openQuests(keeper) {
+		switch {
+		case job.kind == questRescue:
+			lines = append(lines, r.rescueLore(customer, job))
+		case job.taker == "":
+			lines = append(lines, "Masz zlecenie do oddania: "+r.questText(job)+". Wspomnij o nim, jeśli rozmowa na to pozwala.")
+		case job.taker == customer.name:
+			lines = append(lines, "Gracz wykonuje twoje zlecenie ("+r.questText(job)+"). "+r.progress(job))
+		default:
+			lines = append(lines, "Twoje zlecenie wziął już ktoś inny: "+job.taker+".")
+		}
 	}
 
-	switch {
-	case job.taker == "":
-		return "Masz zlecenie do oddania: " + r.questText(job) + ". Wspomnij o nim, jeśli rozmowa na to pozwala."
-	case job.taker == customer.name:
-		return "Gracz wykonuje twoje zlecenie (" + r.questText(job) + "). " + r.progress(job)
-	}
-
-	return "Twoje zlecenie wziął już ktoś inny: " + job.taker + "."
+	return strings.Join(lines, "\n")
 }
 
 // Quests lists a player's jobs and the ones on offer where they stand.

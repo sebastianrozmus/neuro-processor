@@ -146,8 +146,10 @@ type ShopView struct {
 type Mark struct {
 	Monsters int
 	Boss     bool
-	// Caravan marks the wandering merchant.
+	// Caravan marks the wandering merchant; Rescue the captive the viewer
+	// has promised to free.
 	Caravan bool
+	Rescue  bool
 }
 
 // View is a snapshot of the world as one player sees it. It shares nothing
@@ -269,6 +271,12 @@ func (r *Realm) View(name string) View {
 	view.Tile = r.world.At(viewer.pos)
 	view.Place = view.PlaceAt(viewer.pos)
 	view.Quests = r.questViews(viewer)
+
+	for _, job := range r.quests {
+		if job.kind == questRescue && job.taker == viewer.name && !job.finished {
+			view.Marks[r.world.Index(job.pos)].Rescue = true
+		}
+	}
 	view.People = personNames(r.peopleAt(viewer.pos, viewer))
 	view.Hour, view.HoursLeft = r.hourName(viewer), r.hoursLeft(viewer)
 	view.Ground = append([]world.ItemSpec(nil), r.ground[r.world.Index(viewer.pos)]...)

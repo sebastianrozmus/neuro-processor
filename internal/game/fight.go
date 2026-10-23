@@ -846,6 +846,16 @@ func (r *Realm) victory(current *fight) {
 		r.aftermath(fallen)
 	}
 
+	// A captive held here goes free with whoever of the fight came for
+	// them; it is not part of the round, so the narrator is not told.
+	for _, name := range current.members {
+		for _, job := range r.quests {
+			if job.kind == questRescue && job.taker == name && !job.finished && job.pos == current.pos {
+				r.free(r.players[name], job)
+			}
+		}
+	}
+
 	r.narrateRound(current, append([]string(nil), current.members...))
 }
 
