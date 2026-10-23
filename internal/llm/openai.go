@@ -396,6 +396,46 @@ func (c *Client) Note(ctx context.Context, request game.NoteRequest) (game.FactS
 	return found.FactSpec, found.Found && found.Subject != "" && found.Text != "", nil
 }
 
+// SelfNote asks the model what a companion's line said about themselves,
+// so that they can keep to it later.
+func (c *Client) SelfNote(ctx context.Context, request game.SelfNoteRequest) ([]string, error) {
+	content, err := c.chat(ctx, chatRequest{
+		Model: c.model(), op: "selfnote", who: request.Speaker, said: request.Said,
+		Messages: []message{
+			{Role: "system", Content: selfNoteInstructions},
+			{Role: "user", Content: selfNotePrompt(request)},
+		},
+		ResponseFormat: map[string]any{
+			"type": "json_schema",
+			"json_schema": map[string]any{
+				"name":   "self_facts",
+				"strict": true,
+				"schema": selfNoteSchema(),
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var found struct {
+		Facts []string `json:"facts"`
+	}
+
+	if err := json.Unmarshal([]byte(extractJSON(content)), &found); err != nil {
+		return nil, fmt.Errorf("model returned invalid self facts: %w", err)
+	}
+
+	var facts []string
+	for _, fact := range found.Facts {
+		if fact = strings.TrimSpace(fact); fact != "" {
+			facts = append(facts, fact)
+		}
+	}
+
+	return facts, nil
+}
+
 // Rewrite words a description of the world again with the Mind: the same
 // meaning and names in cleaner Polish, for the inspector's refresh.
 func (c *Client) Rewrite(ctx context.Context, request game.RewriteRequest) (string, error) {

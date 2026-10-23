@@ -270,3 +270,38 @@ func noteSchema() map[string]any {
 		"quote":   map[string]any{"type": "string"},
 	})
 }
+
+const selfNoteInstructions = `Czytasz kwestię towarzysza albo najemnika z gry tekstowej i wypisujesz, co powiedział w niej O SOBIE SAMYM: ` +
+	`o swojej rodzinie i bliskich, o swoim ciele (blizny, rany, znaki), o przeszłości, pochodzeniu, nauczycielach i nawykach. ` +
+	`Zwracasz obiekt JSON: facts to lista nowych faktów, najwyżej 3. Każdy fakt to jedno krótkie zdanie po polsku w trzeciej osobie, ` +
+	`z imieniem mówiącego albo zaimkiem (on, ona), bez zwrotów do gracza, na przykład: „Bogna ma starszego brata Radka, kowala.” ` +
+	`Zapisujesz tylko to, co mówiący naprawdę powiedział w tej kwestii, tymi samymi imionami, nazwami i liczbami; niczego nie dopowiadasz. ` +
+	`Pomijasz to, co już jest w karcie albo na liście tego, co już o sobie mówił, i wszystko, co mówi o graczu, o świecie, o cenach, towarze, ` +
+	`służbie i walce. Gdy w kwestii nic takiego nie ma, facts to pusta lista.`
+
+func selfNotePrompt(request game.SelfNoteRequest) string {
+	var prompt strings.Builder
+
+	fmt.Fprintf(&prompt, "Mówiący: %s\nKarta: %s\n\nCo już o sobie mówił:\n", request.Speaker, request.Card)
+	if len(request.Known) == 0 {
+		prompt.WriteString("- nic\n")
+	}
+
+	for _, fact := range request.Known {
+		fmt.Fprintf(&prompt, "- %s\n", fact)
+	}
+
+	if request.Said != "" {
+		fmt.Fprintf(&prompt, "\nGracz powiedział:\n%s\n", request.Said)
+	}
+
+	fmt.Fprintf(&prompt, "\nKwestia mówiącego:\n%s", request.Reply)
+
+	return prompt.String()
+}
+
+func selfNoteSchema() map[string]any {
+	return object(map[string]any{
+		"facts": list(map[string]any{"type": "string"}),
+	})
+}

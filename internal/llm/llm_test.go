@@ -841,3 +841,39 @@ func TestSourceGivesEveryProofAClue(t *testing.T) {
 		t.Errorf("alike = %d, %d", alike("znikające fundusze z kościelnego rachunku", "fundusze kościelne"), alike("molo", "port"))
 	}
 }
+
+func TestSelfNote(t *testing.T) {
+	seen := map[string]any{}
+	client := serve(t, http.StatusOK, `{"facts":["Bogna ma starszego brata Radka.","  "]}`, &seen)
+
+	request := game.SelfNoteRequest{Speaker: "Bogna Topór", Card: "Bogna Topór, wojownik. Bije mocno.", Known: []string{"Bogna pochodzi z gór."}, Said: "masz rodzeństwo?", Reply: "Mam brata, Radka."}
+	facts, err := client.SelfNote(context.Background(), request)
+	if err != nil || len(facts) != 1 || facts[0] != "Bogna ma starszego brata Radka." {
+		t.Errorf("self note = %q, %v", facts, err)
+	}
+
+	format, _ := json.Marshal(seen["response_format"])
+	for _, fragment := range []string{`"facts"`, `"array"`, `"strict":true`} {
+		if !strings.Contains(string(format), fragment) {
+			t.Errorf("response_format misses %s", fragment)
+		}
+	}
+
+	messages, _ := json.Marshal(seen["messages"])
+	for _, fragment := range []string{"O SOBIE SAMYM", "Mówiący: Bogna Topór", "Bogna pochodzi z gór.", "masz rodzeństwo?", "Mam brata, Radka."} {
+		if !strings.Contains(string(messages), fragment) {
+			t.Errorf("the model was not shown %q: %s", fragment, messages)
+		}
+	}
+
+	// The Split asks the Mind.
+	split := Split{Mind: serve(t, http.StatusOK, `{"facts":[]}`, nil), Voice: serve(t, http.StatusBadGateway, "", nil)}
+	if facts, err := split.SelfNote(context.Background(), request); err != nil || len(facts) != 0 {
+		t.Errorf("split self note = %q, %v", facts, err)
+	}
+
+	client = serve(t, http.StatusBadGateway, "", nil)
+	if _, err := client.SelfNote(context.Background(), request); err == nil {
+		t.Error("a failing server should be an error")
+	}
+}

@@ -112,6 +112,11 @@ func (s Split) Note(ctx context.Context, request game.NoteRequest) (game.FactSpe
 	return s.Mind.Note(ctx, request)
 }
 
+// SelfNote asks the Mind what a companion said about themselves.
+func (s Split) SelfNote(ctx context.Context, request game.SelfNoteRequest) ([]string, error) {
+	return s.Mind.SelfNote(ctx, request)
+}
+
 // Rewrite has the Mind word a description again.
 func (s Split) Rewrite(ctx context.Context, request game.RewriteRequest) (string, error) {
 	return s.Mind.Rewrite(ctx, request)
