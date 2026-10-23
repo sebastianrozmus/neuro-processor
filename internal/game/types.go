@@ -185,6 +185,9 @@ type Decision struct {
 	Currency string
 	// Scene is what happened in a round of combat, for OutcomeScene.
 	Scene string
+	// Part marks a Scene that is one part of a round told in several
+	// (RoundParts): the master answers it more briefly.
+	Part bool
 	// Aside marks talk that is no occasion to sell: an apology, a
 	// threat, a question from outside the world.
 	Aside bool

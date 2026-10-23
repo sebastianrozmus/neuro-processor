@@ -58,20 +58,38 @@ func (r *Realm) narrateRound(current *fight, members []string) {
 		return
 	}
 
-	request := NarrateRequest{
-		Merchant: Merchant{Name: MasterName, Persona: masterPersona, Currency: r.world.Currency},
-		Lore:     r.sceneLore(current, members),
-		Decision: Decision{Outcome: OutcomeScene, Scene: strings.Join(current.events, " "), Currency: r.world.Currency},
-		Guarded:  r.fighters(members),
+	// A long round is told in parts, one call each, every part checked
+	// against its own events: told at once, five events and more came out
+	// with blows missed or turned into misses.
+	parts := RoundParts(strings.Join(current.events, " "))
+	requests := make([]NarrateRequest, 0, len(parts))
+	lore, guarded := r.sceneLore(current, members), r.fighters(members)
+
+	for _, part := range parts {
+		requests = append(requests, NarrateRequest{
+			Merchant: Merchant{Name: MasterName, Persona: masterPersona, Currency: r.world.Currency},
+			Lore:     lore,
+			Decision: Decision{Outcome: OutcomeScene, Scene: part, Part: len(parts) > 1, Currency: r.world.Currency},
+			Guarded:  guarded,
+		})
 	}
+
 	current.events, current.narrating = nil, true
 	master, record := r.master, r.record
 
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), masterTimeout)
-		defer cancel()
+		var (
+			answered []NarrateRequest
+			told     []string
+		)
 
-		text, err := Narrate(ctx, master, request)
+		for _, request := range requests {
+			// A part the master failed is left to the rules' own lines,
+			// which the player sees anyway.
+			if text, err := narratePart(master, request); err == nil && text != "" {
+				answered, told = append(answered, request), append(told, text)
+			}
+		}
 
 		r.mu.Lock()
 		defer r.mu.Unlock()
@@ -79,23 +97,37 @@ func (r *Realm) narrateRound(current *fight, members []string) {
 
 		current.narrating = false
 
-		if err != nil || text == "" {
+		if len(told) == 0 {
 			return
 		}
 
-		if record != nil {
-			record(request, text)
-		}
+		said := make([]string, 0, len(told))
 
-		// The master narrates in no particular mood; a tag is dropped.
-		_, text = speech.SplitMood(text)
+		for index, text := range told {
+			if record != nil {
+				record(answered[index], text)
+			}
+
+			// The master narrates in no particular mood; a tag is dropped.
+			_, text = speech.SplitMood(text)
+			said = append(said, text)
+		}
 
 		for _, name := range members {
 			if listener := r.players[name]; listener != nil {
-				r.tell(listener, MasterMark+text)
+				r.tell(listener, MasterMark+strings.Join(said, " "))
 			}
 		}
 	}()
+}
+
+// narratePart has the master tell a round, or one part of it, each part
+// with time of its own.
+func narratePart(master Narrator, request NarrateRequest) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), masterTimeout)
+	defer cancel()
+
+	return Narrate(ctx, master, request)
 }
 
 // sceneLore words the state of a fight for the game master.

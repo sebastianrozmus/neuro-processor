@@ -957,7 +957,7 @@ func (d Decision) Brief() string {
 	case outcome == OutcomeUnwanted:
 		brief = fmt.Sprintf("Gracz chce ci sprzedać %s, ale ty takimi rzeczami nie handlujesz. Odmów i powiedz, czym handlujesz. Nie podawaj żadnych kwot.", d.what())
 	case outcome == OutcomeScene:
-		return "Przebieg rundy: " + withoutDice(d.Scene)
+		return RoundPrefix + withoutDice(d.Scene)
 	}
 
 	if d.Quantity > 1 && d.Outcome != OutcomeShort {

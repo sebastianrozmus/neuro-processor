@@ -917,3 +917,16 @@ func TestQuestHook(t *testing.T) {
 		t.Error("a failing server should be an error")
 	}
 }
+
+func TestRoundPartAsksForTwoSentences(t *testing.T) {
+	scene := "Ala atakuje: Goblin traci 4 zdrowia. Goblin atakuje: Ala. Pudło."
+
+	for part, want := range map[bool]string{false: game.ReplyLimit, true: game.PartLimit} {
+		request := game.NarrateRequest{Decision: game.Decision{Outcome: game.OutcomeScene, Scene: scene, Part: part}}
+		transcript := Transcript(request, "")
+
+		if got := transcript[1]["content"]; got != game.VerdictMark+" "+game.RoundPrefix+scene+" "+want {
+			t.Errorf("part %v: user line = %q", part, got)
+		}
+	}
+}

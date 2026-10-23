@@ -1198,7 +1198,13 @@ func TestGameMasterNarratesRounds(t *testing.T) {
 	}
 
 	master.mu.Lock()
-	request := master.requests[0]
+	request, calls := master.requests[0], len(master.requests)
+
+	// A round of PartedRound events or more is told in parts, a call each.
+	var scenes []string
+	for _, part := range master.requests {
+		scenes = append(scenes, part.Decision.Scene)
+	}
 	master.mu.Unlock()
 
 	if request.Decision.Outcome != OutcomeScene || request.Merchant.Name != MasterName {
@@ -1211,8 +1217,9 @@ func TestGameMasterNarratesRounds(t *testing.T) {
 		}
 	}
 
-	if !strings.Contains(request.Decision.Scene, "Ala atakuje: Szczur Polny traci") || !strings.Contains(request.Decision.Brief(), "Przebieg rundy:") {
-		t.Errorf("scene = %q", request.Decision.Scene)
+	if scene := strings.Join(scenes, " "); !strings.Contains(scene, "Ala atakuje: Szczur Polny traci") || !strings.Contains(request.Decision.Brief(), "Przebieg rundy:") ||
+		calls != len(RoundParts(scene)) {
+		t.Errorf("scenes = %q", scenes)
 	}
 
 	// The master may quote the round's own numbers and nothing else.
@@ -1223,7 +1230,7 @@ func TestGameMasterNarratesRounds(t *testing.T) {
 	recordMu.Lock()
 	defer recordMu.Unlock()
 
-	if len(recorded) != 1 || !logged(realm, ala, MasterMark) {
+	if len(recorded) != calls || !logged(realm, ala, MasterMark) {
 		t.Errorf("recorded %d lines", len(recorded))
 	}
 }
