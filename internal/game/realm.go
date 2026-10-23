@@ -70,7 +70,8 @@ type Realm struct {
 	dropped []string
 	// hired maps a companion to the player they follow.
 	hired map[int]string
-	// bios is what each companion has said about themselves, by name.
+	// bios is what each companion and shopkeeper said about themselves,
+	// by name.
 	bios  map[string][]*bioFact
 	talks int
 	won   bool

@@ -42,7 +42,7 @@ type State struct {
 	Markup map[string]int `json:"markup,omitempty"`
 	Slain  map[string]int `json:"slain,omitempty"`
 	Facts  []FactState    `json:"facts,omitempty"`
-	// Bios are what companions have said about themselves.
+	// Bios are what companions and shopkeepers said about themselves.
 	Bios []BioState `json:"bios,omitempty"`
 	// Weather is the sky of the day; Caravan where the merchant on the
 	// road is; Heir the threat growing; Quests the keepers' jobs.
@@ -232,9 +232,9 @@ func (r *Realm) State(host string) State {
 		state.Facts = append(state.Facts, saved)
 	}
 
-	for _, spec := range r.world.Companions {
-		for _, fact := range r.bios[spec.Name] {
-			state.Bios = append(state.Bios, BioState{Name: spec.Name, Text: fact.text, Day: fact.day, Heard: sortedNames(fact.heard)})
+	for _, speaker := range r.bioSpeakers() {
+		for _, fact := range r.bios[speaker] {
+			state.Bios = append(state.Bios, BioState{Name: speaker, Text: fact.text, Day: fact.day, Heard: sortedNames(fact.heard)})
 		}
 	}
 
@@ -368,9 +368,10 @@ func Restore(state State, seed int64) (*Realm, error) {
 		}
 	}
 
-	// Saves from before bios have none: companions start with a blank past.
+	// Saves from before bios have none: everyone starts with a blank past.
+	speakers := realm.bioSpeakers()
 	for _, saved := range state.Bios {
-		if slices.ContainsFunc(built.Companions, func(spec world.CompanionSpec) bool { return spec.Name == saved.Name }) {
+		if slices.Contains(speakers, saved.Name) {
 			realm.remember(saved.Name, saved.Text, saved.Day, saved.Heard...)
 		}
 	}

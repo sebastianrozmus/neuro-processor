@@ -62,6 +62,14 @@ func (r *Realm) lore(customer *player, wares []Ware) string {
 		lore.WriteString(job + "\n")
 	}
 
+	// What they made up about themselves before is canon now, as for a
+	// companion.
+	if speaker, ok := r.bioName(customer.shop); ok {
+		if told := r.bioTexts(speaker); len(told) > 0 {
+			fmt.Fprintf(&lore, "Co już o sobie %s (to prawda, trzymaj się tego): %s\n", gendered(speech.Feminine(speaker), "mówiłeś", "mówiłaś"), strings.Join(told, " "))
+		}
+	}
+
 	var neighbours []string
 
 	for index, shop := range built.Shops {
@@ -615,9 +623,10 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 	if chat {
 		if hint, ok := aside(text); ok {
-			// A companion may make up their past, once, and keeps to it.
-			if kind, isMate := r.mateOf(customer.shop); isMate && hint == privateHint {
-				hint = r.bioHint(kind, text)
+			// A companion or a shopkeeper may make up their past, once,
+			// and keeps to it.
+			if speaker, ok := r.bioName(customer.shop); ok && hint == privateHint {
+				hint = r.bioHint(speaker, text)
 			}
 
 			return hint, nil, false
@@ -1171,8 +1180,9 @@ func aside(text string) (string, bool) {
 	return "", false
 }
 
-// privateHint answers a keeper asked about their own life. A companion,
-// who remembers what they said of themselves, gets bioHint instead.
+// privateHint answers a keeper asked about their own life. A companion or
+// a shopkeeper, who remembers what they said of themselves, gets bioHint
+// instead: this is for the people of a case and the caravan's merchant.
 const privateHint = "Gracz pyta o twoje prywatne sprawy: rodzinę, bliskich, skąd jesteś, skąd blizna. Mów tylko to, co o tym jest w twojej karcie; jeśli nic tam nie ma, nie wymyślaj krewnych, zmarłych ani zdarzeń: zbądź to po swojemu, krótko, albo odwróć pytanie."
 
 // Private reports a question about the keeper's own life: family, where

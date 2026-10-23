@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
 func TestPersonalCues(t *testing.T) {
@@ -73,7 +75,7 @@ func bogna(t *testing.T) (*Realm, string) {
 	return realm, hero
 }
 
-func TestSelfNoteAsksOnlyCompanionsAboutTheirLife(t *testing.T) {
+func TestSelfNoteAsksCompanionsAndShopkeepersAboutTheirLife(t *testing.T) {
 	realm, hero := bogna(t)
 
 	request, ok := realm.SelfNoteRequest(hero, "co słychać?", "[smutek] Mam brata, Radka, kowala.")
@@ -90,14 +92,72 @@ func TestSelfNoteAsksOnlyCompanionsAboutTheirLife(t *testing.T) {
 		t.Error("a line about the world was read as one about herself")
 	}
 
-	// A shopkeeper's life is not noted this way.
+	// A shopkeeper's life is noted too, with the shop as the card.
 	shop := realm.players[hero]
 	realm.mu.Lock()
-	shop.shop = 0
+	shop.shop = 1
+	realm.mu.Unlock()
+
+	request, ok = realm.SelfNoteRequest(hero, "ma pani dzieci?", "Córkę, Zosię. Nurkuje po skarby.")
+	if !ok || request.Speaker != "Jagna" || !strings.HasPrefix(request.Card, "Jagna, Chata Zielarki.") {
+		t.Errorf("a shopkeeper's line: %+v, %v", request, ok)
+	}
+
+	// The caravan's merchant has no past to keep.
+	realm.mu.Lock()
+	shop.shop = realm.caravanShop()
 	realm.mu.Unlock()
 
 	if _, ok := realm.SelfNoteRequest(hero, "masz dzieci?", "Mam córkę, Zosię."); ok {
-		t.Error("a shopkeeper's line was read for a bio")
+		t.Error("the caravan's line was read for a bio")
+	}
+}
+
+func TestBioSpeakersNeverShareAName(t *testing.T) {
+	realm := partyRealm(t)
+	realm.world.Shops = append(realm.world.Shops,
+		world.ShopSpec{Name: "Kram", Keeper: "Wiesza"}, world.ShopSpec{Name: "Budka", Keeper: "Olek"}, world.ShopSpec{Name: "Buda", Keeper: "Olek"})
+
+	if speakers := strings.Join(realm.bioSpeakers(), ","); speakers != "Bogna Topór,Brat Jaromir,Wiesza,Kowal,Jagna" {
+		t.Errorf("speakers = %s", speakers)
+	}
+
+	if name, ok := realm.bioName(2); ok || name != "Wiesza" {
+		t.Errorf("a keeper named like a companion has a bio: %q, %v", name, ok)
+	}
+}
+
+func TestShopkeepersKeepToWhatTheySaid(t *testing.T) {
+	realm := testRealm(t)
+	hero := enlist(realm, "Ala")
+	do(realm, hero, "idź do zielarki")
+
+	// Nothing said yet: she may make one thing up, as a companion may.
+	_, narrate, _ := realm.Haggle(hero, "ma pani dzieci?", Intent{Action: ActionChat})
+	if !strings.Contains(narrate.Hint, "możesz wymyślić jedną konkretną rzecz") || strings.Contains(narrate.Hint, "nie wymyślaj krewnych") {
+		t.Errorf("a shopkeeper's private hint = %q", narrate.Hint)
+	}
+
+	realm.LearnSelf(hero, "Jagna", []string{"Jagna ma córkę Zosię, która nurkuje po skarby."}, "Córkę, Zosię. Nurkuje po skarby.")
+
+	_, narrate, _ = realm.Haggle(hero, "co słychać?", Intent{Action: ActionChat})
+	if !strings.Contains(narrate.Lore, "Co już o sobie mówiłaś (to prawda, trzymaj się tego): Jagna ma córkę Zosię, która nurkuje po skarby.\n") {
+		t.Errorf("lore = %q", narrate.Lore)
+	}
+
+	_, narrate, _ = realm.Haggle(hero, "a gdzie teraz jest twoja córka?", Intent{Action: ActionChat})
+	if !strings.Contains(narrate.Hint, "Już o tym mówiłaś: Jagna ma córkę Zosię") {
+		t.Errorf("hint about the daughter = %q", narrate.Hint)
+	}
+
+	// It lasts through a save.
+	restored, err := Restore(realm.State(hero), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if told := restored.bioTexts("Jagna"); len(told) != 1 {
+		t.Errorf("restored bio = %q", told)
 	}
 }
 
@@ -192,9 +252,9 @@ func TestCompanionsKeepToWhatTheySaid(t *testing.T) {
 		t.Errorf("hint about the scar = %q", narrate.Hint)
 	}
 
-	// A shopkeeper still says only what is in the card.
+	// Anyone else, a witness of a case, still says only what is in the card.
 	if hint, _ := aside("masz dzieci?"); hint != privateHint || !strings.Contains(hint, "nie wymyślaj krewnych") {
-		t.Errorf("a shopkeeper's private hint = %q", hint)
+		t.Errorf("the plain private hint = %q", hint)
 	}
 }
 

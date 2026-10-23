@@ -9,13 +9,14 @@ import (
 	"unicode/utf8"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/speech"
-	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
-// A companion may make up a brother, a scar or a village they come from:
-// the card says little of their life and a player asks. What they say
-// about themselves is noted by the Mind and kept, so that the brother
-// named today is the same brother tomorrow and after a save.
+// A companion or a shopkeeper may make up a brother, a scar or a village
+// they come from: the card says little of their life and a player asks.
+// What they say about themselves is noted by the Mind and kept, so that
+// the brother named today is the same brother tomorrow and after a save.
+// The people of a case never make anything up, and the caravan's merchant
+// is nobody in particular, so neither has a bio.
 
 const (
 	// maxBio is how much a companion remembers saying of themselves. The
@@ -36,15 +37,15 @@ type bioFact struct {
 	heard map[string]bool
 }
 
-// SelfNoteRequest asks a model what a companion has just said about
-// themselves.
+// SelfNoteRequest asks a model what a companion or a shopkeeper has just
+// said about themselves.
 type SelfNoteRequest struct {
-	// Speaker is the companion's name, Card who they are.
+	// Speaker is their name, Card who they are.
 	Speaker string
 	Card    string
 	// Known is what they have said of themselves before.
 	Known []string
-	// Said is the player's line, Reply the companion's answer to it.
+	// Said is the player's line, Reply the speaker's answer to it.
 	Said  string
 	Reply string
 }
@@ -173,7 +174,67 @@ func bioSentence(text string) string {
 	return capitalized(text)
 }
 
-// bioTexts are what a companion has said of themselves, oldest first.
+// bioSpeakers lists who may have a bio, in a fixed order: the companions,
+// then the shopkeepers whose name is nobody else's, so that a keeper and a
+// companion of one name never share a past.
+func (r *Realm) bioSpeakers() []string {
+	speakers := make([]string, 0, len(r.world.Companions)+len(r.world.Shops))
+	for _, spec := range r.world.Companions {
+		speakers = append(speakers, spec.Name)
+	}
+
+	for _, shop := range r.world.Shops {
+		alike := 0
+		for _, other := range r.world.Shops {
+			if other.Keeper == shop.Keeper {
+				alike++
+			}
+		}
+
+		if alike == 1 && !slices.Contains(speakers, shop.Keeper) {
+			speakers = append(speakers, shop.Keeper)
+		}
+	}
+
+	return speakers
+}
+
+// bioName is the name the keeper of a talk keeps a bio under: a companion
+// or a shopkeeper, never the caravan's merchant or the people of a case.
+func (r *Realm) bioName(index int) (string, bool) {
+	if r.investigation() || index < 0 {
+		return "", false
+	}
+
+	if kind, ok := r.mateOf(index); ok {
+		return r.world.Companions[kind].Name, true
+	}
+
+	if index >= len(r.world.Shops) {
+		return "", false
+	}
+
+	// A keeper's place on the list is past the companions, or they have
+	// none.
+	name := r.world.Shops[index].Keeper
+
+	return name, slices.Index(r.bioSpeakers(), name) >= len(r.world.Companions)
+}
+
+// bioCard is who the keeper of a talk is, as the Mind is shown it.
+func (r *Realm) bioCard(index int) string {
+	if kind, ok := r.mateOf(index); ok {
+		spec := r.world.Companions[kind]
+
+		return fmt.Sprintf("%s, %s. %s", spec.Name, roleName(spec.Role), spec.Description)
+	}
+
+	shop := r.world.Shops[index]
+
+	return fmt.Sprintf("%s, %s. %s", shop.Keeper, shop.Name, shop.Persona)
+}
+
+// bioTexts are what a speaker has said of themselves, oldest first.
 func (r *Realm) bioTexts(speaker string) []string {
 	texts := make([]string, 0, len(r.bios[speaker]))
 	for _, fact := range r.bios[speaker] {
@@ -183,7 +244,7 @@ func (r *Realm) bioTexts(speaker string) []string {
 	return texts
 }
 
-// remember keeps a fact a companion said of themselves, heard by a
+// remember keeps a fact a speaker said of themselves, heard by a
 // player. It reports whether the fact is new; one said before is only
 // heard again.
 func (r *Realm) remember(speaker, text string, day int, heard ...string) bool {
@@ -216,38 +277,37 @@ func (r *Realm) remember(speaker, text string, day int, heard ...string) bool {
 	return true
 }
 
-// SelfNoteRequest is the request to read what the companion a player
-// talks with has just said about themselves, when their line or the
-// player's question is about their own life. It reports false for any
-// other talk.
+// SelfNoteRequest is the request to read what the companion or the
+// shopkeeper a player talks with has just said about themselves, when
+// their line or the player's question is about their own life. It
+// reports false for any other talk.
 func (r *Realm) SelfNoteRequest(name, said, reply string) (SelfNoteRequest, bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	customer := r.active(name)
-	if customer == nil || r.investigation() {
+	if customer == nil {
 		return SelfNoteRequest{}, false
 	}
 
-	kind, ok := r.mateOf(customer.shop)
+	speaker, ok := r.bioName(customer.shop)
 	if !ok {
 		return SelfNoteRequest{}, false
 	}
 
-	spec := r.world.Companions[kind]
 	_, line := speech.SplitMood(reply)
 
-	if strings.TrimSpace(line) == "" || len(r.bios[spec.Name]) >= maxBio || !Personal(line, spec.Name) && !Private(said) {
+	if strings.TrimSpace(line) == "" || len(r.bios[speaker]) >= maxBio || !Personal(line, speaker) && !Private(said) {
 		return SelfNoteRequest{}, false
 	}
 
 	return SelfNoteRequest{
-		Speaker: spec.Name, Card: fmt.Sprintf("%s, %s. %s", spec.Name, roleName(spec.Role), spec.Description),
-		Known: r.bioTexts(spec.Name), Said: said, Reply: line,
+		Speaker: speaker, Card: r.bioCard(customer.shop),
+		Known: r.bioTexts(speaker), Said: said, Reply: line,
 	}, true
 }
 
-// LearnSelf keeps what a companion said about themselves in a line, as
+// LearnSelf keeps what a speaker said about themselves in a line, as
 // the Mind read it: only facts grounded in the line, not about the
 // player, money or the hire, and not said before. It returns the facts
 // kept, which the player is told.
@@ -256,7 +316,7 @@ func (r *Realm) LearnSelf(name, speaker string, facts []string, line string) []s
 	defer r.mu.Unlock()
 
 	customer := r.active(name)
-	if customer == nil || !slices.ContainsFunc(r.world.Companions, func(spec world.CompanionSpec) bool { return spec.Name == speaker }) {
+	if customer == nil || !slices.Contains(r.bioSpeakers(), speaker) {
 		return nil
 	}
 
@@ -290,18 +350,17 @@ func (r *Realm) LearnSelf(name, speaker string, facts []string, line string) []s
 	return kept
 }
 
-// bioHint answers a companion asked about their own life: keep to what
-// they said before, or, when they said nothing of it, make up one thing
-// that fits their card and keep to that.
-func (r *Realm) bioHint(kind int, text string) string {
-	spec := r.world.Companions[kind]
-	she := speech.Feminine(spec.Name)
+// bioHint answers a companion or a shopkeeper asked about their own life:
+// keep to what they said before, or, when they said nothing of it, make
+// up one thing that fits their card and keep to that.
+func (r *Realm) bioHint(speaker, text string) string {
+	she := speech.Feminine(speaker)
 	said := gendered(she, "mówiłeś", "mówiłaś")
-	skip := strings.Fields(Fold(spec.Name))
+	skip := strings.Fields(Fold(speaker))
 
 	var touched []string
 
-	for _, fact := range r.bios[spec.Name] {
+	for _, fact := range r.bios[speaker] {
 		if shares(text, fact.text, skip) {
 			touched = append(touched, fact.text)
 		}
@@ -314,22 +373,22 @@ func (r *Realm) bioHint(kind int, text string) string {
 
 	hint := "Gracz pyta o twoje prywatne sprawy: rodzinę, bliskich, skąd jesteś, skąd blizna. Jeśli twoja karta o tym milczy, możesz wymyślić jedną konkretną rzecz, " +
 		"która do niej pasuje (imię, miejsce albo zdarzenie), i od teraz to prawda o tobie. Tylko jedną, bez długiej historii; możesz też zbyć pytanie, jeśli tak każe charakter."
-	if len(r.bios[spec.Name]) > 0 {
+	if len(r.bios[speaker]) > 0 {
 		hint += " Nie zaprzeczaj temu, co już o sobie " + said + "."
 	}
 
 	return hint
 }
 
-// bioJournal is what a player has heard companions say of themselves,
-// for the journal.
+// bioJournal is what a player has heard companions and shopkeepers say
+// of themselves, for the journal.
 func (r *Realm) bioJournal(name string) []FactView {
 	var journal []FactView
 
-	for _, spec := range r.world.Companions {
-		for _, fact := range r.bios[spec.Name] {
+	for _, speaker := range r.bioSpeakers() {
+		for _, fact := range r.bios[speaker] {
 			if fact.heard[name] {
-				journal = append(journal, FactView{Subject: spec.Name + " o sobie", Text: fact.text, Day: fact.day})
+				journal = append(journal, FactView{Subject: speaker + " o sobie", Text: fact.text, Day: fact.day})
 			}
 		}
 	}
