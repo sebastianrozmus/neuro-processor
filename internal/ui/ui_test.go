@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -1337,4 +1338,90 @@ func TestCompanionsRememberWhatTheySayOfThemselves(t *testing.T) {
 
 func slicesEqual(a, b []string) bool {
 	return strings.Join(a, "\x00") == strings.Join(b, "\x00")
+}
+
+// worriedBrain talks like the mock, but a shopkeeper fears for her
+// daughter near a monster in every idle line, and its Mind hears it.
+type worriedBrain struct {
+	llm.Mock
+	monster string
+	asked   []game.QuestHookRequest
+	fail    bool
+}
+
+func (b *worriedBrain) Narrate(ctx context.Context, request game.NarrateRequest) (string, error) {
+	if request.Decision.Outcome == game.OutcomeChat && request.Role == "" {
+		return "[strach] Moja Zosia nie wróciła. Kręci się koło " + b.monster + ".", nil
+	}
+
+	return b.Mock.Narrate(ctx, request)
+}
+
+func (b *worriedBrain) QuestHook(_ context.Context, request game.QuestHookRequest) (game.QuestHook, error) {
+	b.asked = append(b.asked, request)
+	if b.fail {
+		return game.QuestHook{}, errors.New("mind is down")
+	}
+
+	return game.QuestHook{Found: true, Person: "Zosia", Relation: "córka", Monster: b.monster, Quote: "Kręci się koło " + b.monster}, nil
+}
+
+// worriedTalk sits a hero down with the first shopkeeper of a world and
+// asks after her daughter.
+func worriedTalk(t *testing.T, fail bool) (*game.Realm, *worriedBrain, tea.Model, world.ShopSpec) {
+	t.Helper()
+
+	realm := newRealm(t, 0)
+	brain := &worriedBrain{monster: realm.World().Monsters[0].Name, fail: fail}
+	model, _ := NewGame(realm, realm.Join("Seba", "wojownik"), brain, avatars.Open(""), nil, nil, nil, nil).Update(tea.WindowSizeMsg{Width: sizes[1][0], Height: sizes[1][1]})
+	shop := realm.World().Shops[0]
+
+	model = enter(model, "idź do "+shop.Name)
+	if view := model.(Game).view.Shop; view == nil || view.Keeper != shop.Keeper {
+		t.Fatalf("no talk with %s: %+v", shop.Keeper, model.(Game).view.Log)
+	}
+
+	model = say(model, "a gdzie teraz jest twoja córka?")
+
+	if len(brain.asked) != 1 || brain.asked[0].Speaker != shop.Keeper || !slices.Contains(brain.asked[0].Monsters, brain.monster) {
+		t.Fatalf("the mind was asked %+v", brain.asked)
+	}
+
+	return realm, brain, model, shop
+}
+
+func TestAKeeperAfraidForHerDaughterGivesARescue(t *testing.T) {
+	realm, brain, model, shop := worriedTalk(t, false)
+	name := model.(Game).name
+
+	shown := false
+	for _, line := range model.(Game).shop.lines {
+		shown = shown || strings.HasPrefix(line.text, "Nowe zlecenie od "+shop.Keeper+": odnajdź i uwolnij Zosię (córka)") && strings.HasSuffix(line.text, "(dziennik)")
+	}
+
+	if !shown {
+		t.Errorf("the rescue was not shown in the talk: %+v", model.(Game).shop.lines)
+	}
+
+	quests := realm.Quests(name)
+	if len(quests) != 1 || !quests[0].Taken || !strings.Contains(quests[0].Text, "strzeże jej "+brain.monster) {
+		t.Fatalf("quests = %+v", quests)
+	}
+
+	// While it is open, the keeper is asked no more.
+	if _, ok := realm.QuestHookRequest(name, "a gdzie teraz jest twoja córka?", "Moja Zosia nie wróciła. Kręci się koło "+brain.monster+"."); ok {
+		t.Error("a keeper with a rescue open would be asked again")
+	}
+
+	// A Mind that fails gives nothing and says nothing.
+	realm, _, model, _ = worriedTalk(t, true)
+	if quests := realm.Quests(model.(Game).name); len(quests) != 0 {
+		t.Errorf("a rescue from a failed mind: %+v", quests)
+	}
+
+	for _, line := range model.(Game).shop.lines {
+		if strings.Contains(line.text, "Nowe zlecenie") || strings.Contains(line.text, "mind is down") {
+			t.Errorf("a failed hook showed: %q", line.text)
+		}
+	}
 }

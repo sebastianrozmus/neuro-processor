@@ -75,6 +75,13 @@ type selfNotedMsg struct {
 	line    string
 }
 
+// questHookedMsg carries the call for help heard in a keeper's line.
+type questHookedMsg struct {
+	speaker string
+	hook    game.QuestHook
+	line    string
+}
+
 // inventedMsg carries what a keeper's line turned out to offer.
 type inventedMsg struct {
 	item    world.ItemSpec
@@ -319,6 +326,28 @@ func selfNote(brain game.Brain, request game.SelfNoteRequest) tea.Cmd {
 		}
 
 		return selfNotedMsg{speaker: request.Speaker, facts: facts, line: request.Reply}
+	}
+}
+
+// questHook asks the model, when it can, whether a keeper has just told
+// of someone dear gone missing. A model that fails hears nothing,
+// silently.
+func questHook(brain game.Brain, request game.QuestHookRequest) tea.Cmd {
+	hooker, ok := brain.(game.QuestHooker)
+	if !ok {
+		return nil
+	}
+
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), talkTimeout)
+		defer cancel()
+
+		hook, err := hooker.QuestHook(ctx, request)
+		if err != nil {
+			hook = game.QuestHook{}
+		}
+
+		return questHookedMsg{speaker: request.Speaker, hook: hook, line: request.Reply}
 	}
 }
 

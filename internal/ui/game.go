@@ -287,6 +287,11 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				commands = append(commands, selfNote(g.brain, request))
 			}
 
+			// A keeper afraid for someone dear gives the player a rescue.
+			if request, ok := g.realm.QuestHookRequest(g.name, msg.said, msg.text); ok {
+				commands = append(commands, questHook(g.brain, request))
+			}
+
 			return g, tea.Batch(commands...)
 		}
 
@@ -307,6 +312,13 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case notedMsg:
 		if msg.found && g.realm.Learn(g.name, msg.fact, msg.line) {
 			g.shop.say(speakerSystem, "Zapamiętujesz: "+msg.fact.Subject+". (dziennik)")
+			g.refresh()
+		}
+
+		return g, nil
+	case questHookedMsg:
+		if told, ok := g.realm.SpawnRescue(g.name, msg.speaker, msg.hook, msg.line); ok {
+			g.shop.say(speakerSystem, told+" (dziennik)")
 			g.refresh()
 		}
 

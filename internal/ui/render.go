@@ -111,6 +111,8 @@ func (g Game) cell(point world.Point) string {
 		marker = meMarker.Render("@")
 	case g.someoneAt(point):
 		marker = friendMarker.Render("&")
+	case mark.Rescue:
+		marker = foeMarker.Render("!")
 	case mark.Boss:
 		marker = foeMarker.Render("B")
 	case mark.Monsters > 0:
@@ -531,7 +533,7 @@ func (g Game) helpView() string {
 	case g.view.Tile.Town >= 0:
 		help = "idź do X (budynek) · najmij X · zlecenia · przyjmij · odpocznij · zapisz · pomoc   Strzałki ruch · Tab plecak · F4 bestiariusz · F1-F3 karty"
 	default:
-		help = "idź na północ / n · rozejrzyj się · podnieś X · pomoc   Strzałki ruch · Tab plecak · F4 bestiariusz   @ ty  & drużyna  m wrogowie  B boss  ⌂ osada  ? + miejsca  $ karawana"
+		help = "idź na północ / n · rozejrzyj się · podnieś X · pomoc   Strzałki ruch · Tab plecak · F4 bestiariusz   @ ty  & drużyna  m wrogowie  B boss  ! jeniec  ⌂ osada  ? + miejsca  $ karawana"
 	}
 
 	if g.hearing != "" {
