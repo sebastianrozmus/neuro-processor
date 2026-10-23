@@ -877,3 +877,43 @@ func TestSelfNote(t *testing.T) {
 		t.Error("a failing server should be an error")
 	}
 }
+
+func TestQuestHook(t *testing.T) {
+	seen := map[string]any{}
+	client := serve(t, http.StatusOK, `{"found":true,"person":"Zosia","relation":"córka","monster":"Nurek bez Twarzy","place":"","quote":"kręci się koło Nurka bez Twarzy"}`, &seen)
+
+	request := game.QuestHookRequest{
+		Speaker: "Hanna", Card: "Hanna, Kram. Gadatliwa.", Known: []string{"Hanna ma córkę Zosię."}, Said: "a gdzie teraz jest?",
+		Reply: "Boję się, że kręci się koło Nurka bez Twarzy.", Monsters: []string{"Nurek bez Twarzy", "Szczur"}, Places: []string{"Bagna"},
+	}
+
+	hook, err := client.QuestHook(context.Background(), request)
+	if err != nil || !hook.Found || hook.Person != "Zosia" || hook.Relation != "córka" || hook.Monster != "Nurek bez Twarzy" || hook.Quote == "" {
+		t.Errorf("hook = %+v, %v", hook, err)
+	}
+
+	format, _ := json.Marshal(seen["response_format"])
+	for _, fragment := range []string{`"strict":true`, `"enum":["","Nurek bez Twarzy","Szczur"]`, `"enum":["","Bagna"]`, `"person"`, `"quote"`} {
+		if !strings.Contains(string(format), fragment) {
+			t.Errorf("response_format misses %s: %s", fragment, format)
+		}
+	}
+
+	messages, _ := json.Marshal(seen["messages"])
+	for _, fragment := range []string{"ktoś mu bliski", "Mówiący: Hanna", "Hanna ma córkę Zosię.", "Potwory: Nurek bez Twarzy; Szczur", "Miejsca: Bagna", "a gdzie teraz jest?", "kręci się koło Nurka"} {
+		if !strings.Contains(string(messages), fragment) {
+			t.Errorf("the model was not shown %q: %s", fragment, messages)
+		}
+	}
+
+	// Found with nobody named is nothing found; the Split asks the Mind.
+	split := Split{Mind: serve(t, http.StatusOK, `{"found":true,"person":" ","relation":"","monster":"","place":"","quote":""}`, nil), Voice: serve(t, http.StatusBadGateway, "", nil)}
+	if hook, err := split.QuestHook(context.Background(), request); err != nil || hook.Found {
+		t.Errorf("split hook = %+v, %v", hook, err)
+	}
+
+	client = serve(t, http.StatusBadGateway, "", nil)
+	if _, err := client.QuestHook(context.Background(), request); err == nil {
+		t.Error("a failing server should be an error")
+	}
+}

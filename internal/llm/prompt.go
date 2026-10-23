@@ -271,7 +271,7 @@ func noteSchema() map[string]any {
 	})
 }
 
-const selfNoteInstructions = `Czytasz kwestię towarzysza albo najemnika z gry tekstowej i wypisujesz, co powiedział w niej O SOBIE SAMYM: ` +
+const selfNoteInstructions = `Czytasz kwestię towarzysza, najemnika albo kupca z gry tekstowej i wypisujesz, co powiedział w niej O SOBIE SAMYM: ` +
 	`o swojej rodzinie i bliskich, o swoim ciele (blizny, rany, znaki), o przeszłości, pochodzeniu, nauczycielach i nawykach. ` +
 	`Zwracasz obiekt JSON: facts to lista nowych faktów, najwyżej 3. Każdy fakt to jedno krótkie zdanie po polsku w trzeciej osobie, ` +
 	`z imieniem mówiącego albo zaimkiem (on, ona), bez zwrotów do gracza, na przykład: „Bogna ma starszego brata Radka, kowala.” ` +
@@ -303,5 +303,54 @@ func selfNotePrompt(request game.SelfNoteRequest) string {
 func selfNoteSchema() map[string]any {
 	return object(map[string]any{
 		"facts": list(map[string]any{"type": "string"}),
+	})
+}
+
+const questHookInstructions = `Czytasz kwestię kupca z gry tekstowej i sprawdzasz, czy mówi w niej, że ktoś mu bliski ` +
+	`(dziecko, rodzic, rodzeństwo, żona, mąż, przyjaciel) zaginął, przepadł, został porwany albo jest w niebezpieczeństwie przy potworze lub w groźnym miejscu. ` +
+	`Zwracasz obiekt JSON. found to true tylko wtedy, gdy mówiący sam mówi o takiej bliskiej osobie i o zagrożeniu dla niej; ` +
+	`gdy tylko wspomina rodzinę, narzeka, straszy albo mówi o zagrożeniu dla siebie lub dla gracza, found to false. ` +
+	`person to imię tej osoby dokładnie tak, jak padło w kwestii albo na liście tego, co mówiący już o sobie mówił; zaimek („ona”, „on”, „mała”) rozwiązujesz z tej listy. ` +
+	`Bez imienia found to false. relation to jedno słowo w mianowniku: kim ta osoba jest dla mówiącego (córka, syn, brat, siostra, żona, mąż, matka, ojciec, przyjaciel). ` +
+	`monster to nazwa potwora z listy, przy którym ta osoba jest, a place to nazwa miejsca z listy, gdzie jest; gdy kwestia żadnego z listy nie wymienia, pusty tekst. ` +
+	`quote to dokładne słowa z kwestii mówiącego, które mówią o zagrożeniu. Niczego nie dopowiadasz. Gdy found to false, pozostałe pola są puste.`
+
+func questHookPrompt(request game.QuestHookRequest) string {
+	var prompt strings.Builder
+
+	fmt.Fprintf(&prompt, "Mówiący: %s\nKarta: %s\n\nCo już o sobie mówił:\n", request.Speaker, request.Card)
+	if len(request.Known) == 0 {
+		prompt.WriteString("- nic\n")
+	}
+
+	for _, fact := range request.Known {
+		fmt.Fprintf(&prompt, "- %s\n", fact)
+	}
+
+	fmt.Fprintf(&prompt, "\nPotwory: %s\nMiejsca: %s\n", strings.Join(request.Monsters, "; "), strings.Join(request.Places, "; "))
+
+	if request.Said != "" {
+		fmt.Fprintf(&prompt, "\nGracz powiedział:\n%s\n", request.Said)
+	}
+
+	fmt.Fprintf(&prompt, "\nKwestia mówiącego:\n%s", request.Reply)
+
+	return prompt.String()
+}
+
+// questHookSchema lets the monster and the place be only names of the
+// world, or nothing.
+func questHookSchema(request game.QuestHookRequest) map[string]any {
+	choices := func(names []string) map[string]any {
+		return map[string]any{"type": "string", "enum": append([]string{""}, names...)}
+	}
+
+	return object(map[string]any{
+		"found":    map[string]any{"type": "boolean"},
+		"person":   map[string]any{"type": "string"},
+		"relation": map[string]any{"type": "string"},
+		"monster":  choices(request.Monsters),
+		"place":    choices(request.Places),
+		"quote":    map[string]any{"type": "string"},
 	})
 }

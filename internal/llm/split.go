@@ -117,6 +117,11 @@ func (s Split) SelfNote(ctx context.Context, request game.SelfNoteRequest) ([]st
 	return s.Mind.SelfNote(ctx, request)
 }
 
+// QuestHook asks the Mind whether a keeper called for help.
+func (s Split) QuestHook(ctx context.Context, request game.QuestHookRequest) (game.QuestHook, error) {
+	return s.Mind.QuestHook(ctx, request)
+}
+
 // Rewrite has the Mind word a description again.
 func (s Split) Rewrite(ctx context.Context, request game.RewriteRequest) (string, error) {
 	return s.Mind.Rewrite(ctx, request)

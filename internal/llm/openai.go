@@ -436,6 +436,39 @@ func (c *Client) SelfNote(ctx context.Context, request game.SelfNoteRequest) ([]
 	return facts, nil
 }
 
+// QuestHook asks the model whether a keeper's line told of someone dear
+// gone missing near a monster or a place, so that the game can make a
+// rescue of it.
+func (c *Client) QuestHook(ctx context.Context, request game.QuestHookRequest) (game.QuestHook, error) {
+	content, err := c.chat(ctx, chatRequest{
+		Model: c.model(), op: "questhook", who: request.Speaker, said: request.Said,
+		Messages: []message{
+			{Role: "system", Content: questHookInstructions},
+			{Role: "user", Content: questHookPrompt(request)},
+		},
+		ResponseFormat: map[string]any{
+			"type": "json_schema",
+			"json_schema": map[string]any{
+				"name":   "quest_hook",
+				"strict": true,
+				"schema": questHookSchema(request),
+			},
+		},
+	})
+	if err != nil {
+		return game.QuestHook{}, err
+	}
+
+	var hook game.QuestHook
+	if err := json.Unmarshal([]byte(extractJSON(content)), &hook); err != nil {
+		return game.QuestHook{}, fmt.Errorf("model returned an invalid quest hook: %w", err)
+	}
+
+	hook.Found = hook.Found && strings.TrimSpace(hook.Person) != ""
+
+	return hook, nil
+}
+
 // Rewrite words a description of the world again with the Mind: the same
 // meaning and names in cleaner Polish, for the inspector's refresh.
 func (c *Client) Rewrite(ctx context.Context, request game.RewriteRequest) (string, error) {
