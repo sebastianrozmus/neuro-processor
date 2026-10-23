@@ -568,7 +568,8 @@ func (r *Realm) Journal(name string) []FactView {
 		}
 	}
 
-	return journal
+	// What companions said of themselves comes after the world's news.
+	return append(journal, r.bioJournal(name)...)
 }
 
 // JournalLines words a journal for the log.

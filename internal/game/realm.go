@@ -70,6 +70,8 @@ type Realm struct {
 	dropped []string
 	// hired maps a companion to the player they follow.
 	hired map[int]string
+	// bios is what each companion has said about themselves, by name.
+	bios  map[string][]*bioFact
 	talks int
 	won   bool
 	lost  bool
@@ -190,6 +192,7 @@ func NewRealm(built *world.World, seed int64) *Realm {
 		revealed:     make([]bool, len(built.Tiles)),
 		fights:       map[world.Point]*fight{},
 		hired:        map[int]string{},
+		bios:         map[string][]*bioFact{},
 	}
 
 	for index, tile := range built.Tiles {

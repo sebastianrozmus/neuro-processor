@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"time"
 
@@ -41,6 +42,8 @@ type State struct {
 	Markup map[string]int `json:"markup,omitempty"`
 	Slain  map[string]int `json:"slain,omitempty"`
 	Facts  []FactState    `json:"facts,omitempty"`
+	// Bios are what companions have said about themselves.
+	Bios []BioState `json:"bios,omitempty"`
 	// Weather is the sky of the day; Caravan where the merchant on the
 	// road is; Heir the threat growing; Quests the keepers' jobs.
 	Weather Weather       `json:"weather,omitempty"`
@@ -93,6 +96,14 @@ type FactState struct {
 	Needs      string `json:"needs,omitempty"`
 	HeardFirst string `json:"heard_first,omitempty"`
 	Hour       string `json:"hour,omitempty"`
+}
+
+// BioState is a saved thing a companion said about themselves.
+type BioState struct {
+	Name  string   `json:"name"`
+	Text  string   `json:"text"`
+	Day   int      `json:"day"`
+	Heard []string `json:"heard,omitempty"`
 }
 
 // PlayerState is a saved hero. Items are stored by ID.
@@ -219,6 +230,12 @@ func (r *Realm) State(host string) State {
 
 		sort.Strings(saved.Heard)
 		state.Facts = append(state.Facts, saved)
+	}
+
+	for _, spec := range r.world.Companions {
+		for _, fact := range r.bios[spec.Name] {
+			state.Bios = append(state.Bios, BioState{Name: spec.Name, Text: fact.text, Day: fact.day, Heard: sortedNames(fact.heard)})
+		}
 	}
 
 	for index, group := range r.monsters {
@@ -348,6 +365,13 @@ func Restore(state State, seed int64) (*Realm, error) {
 			for _, name := range saved.Heard {
 				fact.heard[name] = true
 			}
+		}
+	}
+
+	// Saves from before bios have none: companions start with a blank past.
+	for _, saved := range state.Bios {
+		if slices.ContainsFunc(built.Companions, func(spec world.CompanionSpec) bool { return spec.Name == saved.Name }) {
+			realm.remember(saved.Name, saved.Text, saved.Day, saved.Heard...)
 		}
 	}
 

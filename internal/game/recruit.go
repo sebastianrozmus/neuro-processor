@@ -390,6 +390,12 @@ func (r *Realm) mateLore(leader *player, kind int, wares []Ware) string {
 
 	she := speech.Feminine(spec.Name)
 
+	// What they made up about themselves before is canon now: a brother
+	// named once stays the same brother after a save.
+	if told := r.bioTexts(spec.Name); len(told) > 0 {
+		fmt.Fprintf(&lore, "Co już o sobie %s (to prawda, trzymaj się tego): %s\n", gendered(she, "mówiłeś", "mówiłaś"), strings.Join(told, " "))
+	}
+
 	var dangers []string
 
 	for _, index := range r.mateGround() {

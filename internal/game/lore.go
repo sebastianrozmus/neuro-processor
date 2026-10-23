@@ -615,6 +615,11 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 	if chat {
 		if hint, ok := aside(text); ok {
+			// A companion may make up their past, once, and keeps to it.
+			if kind, isMate := r.mateOf(customer.shop); isMate && hint == privateHint {
+				hint = r.bioHint(kind, text)
+			}
+
 			return hint, nil, false
 		}
 
@@ -1151,8 +1156,8 @@ func aside(text string) (string, bool) {
 		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
 	case lossTold(strings.Fields(folded)):
 		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
-	case hasPhrase(folded, familyWords) || privateAsked(strings.Fields(folded), strings.Contains(text, "?") || asked(text)):
-		return "Gracz pyta o twoje prywatne sprawy: rodzinę, bliskich, skąd jesteś, skąd blizna. Mów tylko to, co o tym jest w twojej karcie; jeśli nic tam nie ma, nie wymyślaj krewnych, zmarłych ani zdarzeń: zbądź to po swojemu, krótko, albo odwróć pytanie.", true
+	case Private(text):
+		return privateHint, true
 	case hasPhrase(folded, flirtWords) || praised(strings.Fields(folded)):
 		return "Gracz flirtuje albo prawi ci komplementy. Odpowiedz po swojemu, jak każe charakter: z wdziękiem, zmieszaniem albo kpiną, krótko; bez plotek i bez polecania towaru.", true
 	case hasPhrase(folded, jokeWords):
@@ -1164,6 +1169,18 @@ func aside(text string) (string, bool) {
 	}
 
 	return "", false
+}
+
+// privateHint answers a keeper asked about their own life. A companion,
+// who remembers what they said of themselves, gets bioHint instead.
+const privateHint = "Gracz pyta o twoje prywatne sprawy: rodzinę, bliskich, skąd jesteś, skąd blizna. Mów tylko to, co o tym jest w twojej karcie; jeśli nic tam nie ma, nie wymyślaj krewnych, zmarłych ani zdarzeń: zbądź to po swojemu, krótko, albo odwróć pytanie."
+
+// Private reports a question about the keeper's own life: family, where
+// they come from, the scar.
+func Private(text string) bool {
+	folded := Fold(text)
+
+	return hasPhrase(folded, familyWords) || privateAsked(strings.Fields(folded), strings.Contains(text, "?") || asked(text))
 }
 
 // Words of the keeper's own life, folded. kinStems name family whoever
