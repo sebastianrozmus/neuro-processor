@@ -210,7 +210,7 @@ def main():
             per_device_train_batch_size=1, per_device_eval_batch_size=1, gradient_accumulation_steps=args.accumulate,
             num_train_epochs=args.epochs, learning_rate=args.rate, lr_scheduler_type="cosine", warmup_steps=max(1, round(steps * 0.03)),
             optim="adamw_8bit", weight_decay=0.0, bf16=torch.cuda.is_bf16_supported(), fp16=not torch.cuda.is_bf16_supported(),
-            logging_steps=10, eval_strategy="steps", eval_steps=max(steps // 8, 25), save_steps=max(steps // 4, 50), save_total_limit=3,
+            logging_steps=10, eval_strategy="steps", eval_steps=max(steps // 8, 25), save_steps=max(steps // 4, 50), save_total_limit=6,  # 6: the end of epoch 1 must survive for the "h" model
             report_to="none", seed=args.seed,
         ),
     )
