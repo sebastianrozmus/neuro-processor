@@ -68,6 +68,13 @@ type notedMsg struct {
 	line string
 }
 
+// selfNotedMsg carries what a companion's line said about themselves.
+type selfNotedMsg struct {
+	speaker string
+	facts   []string
+	line    string
+}
+
 // inventedMsg carries what a keeper's line turned out to offer.
 type inventedMsg struct {
 	item    world.ItemSpec
@@ -291,6 +298,27 @@ func note(brain game.Brain, reply string, known []string) tea.Cmd {
 		fact, found, err := noter.Note(ctx, game.NoteRequest{Reply: reply, Known: known})
 
 		return notedMsg{fact: fact, found: found && err == nil, line: reply}
+	}
+}
+
+// selfNote asks the model, when it can, what a companion has just said
+// about themselves. A model that fails notes nothing, silently.
+func selfNote(brain game.Brain, request game.SelfNoteRequest) tea.Cmd {
+	noter, ok := brain.(game.SelfNoter)
+	if !ok {
+		return nil
+	}
+
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), talkTimeout)
+		defer cancel()
+
+		facts, err := noter.SelfNote(ctx, request)
+		if err != nil {
+			facts = nil
+		}
+
+		return selfNotedMsg{speaker: request.Speaker, facts: facts, line: request.Reply}
 	}
 }
 

@@ -281,6 +281,12 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				commands = append(commands, note(g.brain, msg.text, g.realm.Subjects()))
 			}
 
+			// A companion telling of their own life is remembered, so that
+			// they keep to it.
+			if request, ok := g.realm.SelfNoteRequest(g.name, msg.said, msg.text); ok {
+				commands = append(commands, selfNote(g.brain, request))
+			}
+
 			return g, tea.Batch(commands...)
 		}
 
@@ -301,6 +307,16 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case notedMsg:
 		if msg.found && g.realm.Learn(g.name, msg.fact, msg.line) {
 			g.shop.say(speakerSystem, "Zapamiętujesz: "+msg.fact.Subject+". (dziennik)")
+			g.refresh()
+		}
+
+		return g, nil
+	case selfNotedMsg:
+		if kept := g.realm.LearnSelf(g.name, msg.speaker, msg.facts, msg.line); len(kept) > 0 {
+			for _, fact := range kept {
+				g.shop.say(speakerSystem, "Zapamiętujesz: "+msg.speaker+" o sobie: "+fact+" (dziennik)")
+			}
+
 			g.refresh()
 		}
 

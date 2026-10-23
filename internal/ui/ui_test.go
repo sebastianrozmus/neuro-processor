@@ -1227,3 +1227,114 @@ func TestInlinePicturesReplaceTheScene(t *testing.T) {
 		t.Error("a fight was hidden behind the painting")
 	}
 }
+
+// selfTellingBrain talks like the mock, but a companion tells of a brother
+// in every idle line, and its Mind notes it, or fails.
+type selfTellingBrain struct {
+	llm.Mock
+	asked []game.SelfNoteRequest
+	fail  bool
+	told  int
+}
+
+func (b *selfTellingBrain) Narrate(ctx context.Context, request game.NarrateRequest) (string, error) {
+	if request.Decision.Outcome == game.OutcomeChat && request.Role != "" {
+		b.told++
+
+		return []string{"[spokój] Mam starszego brata, Radka. Kowal z niego.", "[spokój] Z Kamiennego Jazu. Tam się wychowałam."}[min(b.told, 2)-1], nil
+	}
+
+	return b.Mock.Narrate(ctx, request)
+}
+
+func (b *selfTellingBrain) SelfNote(_ context.Context, request game.SelfNoteRequest) ([]string, error) {
+	b.asked = append(b.asked, request)
+	if b.fail {
+		return nil, errors.New("mind is down")
+	}
+
+	return []string{strings.Fields(request.Speaker)[0] + " ma starszego brata Radka, kowala."}, nil
+}
+
+// say types a line in a talk and runs everything it sets off, the
+// background notes included.
+func say(model tea.Model, text string) tea.Model {
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(text)})
+	model, cmd := model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+
+	pending := []tea.Cmd{cmd}
+	for len(pending) > 0 {
+		cmd, pending = pending[0], pending[1:]
+		if cmd == nil {
+			continue
+		}
+
+		switch msg := cmd().(type) {
+		case tea.BatchMsg:
+			pending = append(pending, msg...)
+		default:
+			model, cmd = model.Update(msg)
+			pending = append(pending, cmd)
+		}
+	}
+
+	return model
+}
+
+func TestCompanionsRememberWhatTheySayOfThemselves(t *testing.T) {
+	realm := newRealm(t, 0)
+	brain := &selfTellingBrain{}
+	model, _ := NewGame(realm, realm.Join("Seba", "wojownik"), brain, avatars.Open(""), nil, nil, nil, nil).Update(tea.WindowSizeMsg{Width: sizes[1][0], Height: sizes[1][1]})
+
+	mate := ""
+	for _, line := range model.(Game).view.Log {
+		if _, names, ok := strings.Cut(line, "W karczmie czeka do wynajęcia:\n  • "); ok {
+			mate, _, _ = strings.Cut(names, " (")
+		}
+	}
+
+	model = enter(model, "rozmawiaj z "+mate)
+	if shop := model.(Game).view.Shop; shop == nil || shop.Keeper != mate {
+		t.Fatalf("no talk with %q: %+v", mate, model.(Game).view.Log)
+	}
+
+	model = say(model, "masz rodzeństwo?")
+	first := strings.Fields(mate)[0]
+	fact := first + " ma starszego brata Radka, kowala."
+
+	if len(brain.asked) != 1 || brain.asked[0].Speaker != mate || brain.asked[0].Said != "masz rodzeństwo?" || brain.asked[0].Reply != "Mam starszego brata, Radka. Kowal z niego." {
+		t.Fatalf("the mind was asked %+v", brain.asked)
+	}
+
+	assertShows(t, model, "a fact noted", "Zapamiętujesz: "+mate+" o sobie:")
+
+	// The next talk has it in the card, and the Mind is shown it as known.
+	request, ok := realm.HaggleRequest(model.(Game).name, "co słychać?")
+	if !ok {
+		t.Fatal("no request")
+	}
+
+	_, narrate, _ := realm.Haggle(model.(Game).name, request.Text, game.Intent{Action: game.ActionChat})
+	if !strings.Contains(narrate.Lore, "Co już o sobie") || !strings.Contains(narrate.Lore, fact) {
+		t.Errorf("lore misses the bio: %q", narrate.Lore)
+	}
+
+	// A Mind that fails notes nothing and says nothing to the player.
+	brain.fail = true
+	lines := len(model.(Game).shop.lines)
+	model = say(model, "a skąd jesteś?")
+
+	if len(brain.asked) != 2 || !slicesEqual(brain.asked[1].Known, []string{fact}) {
+		t.Errorf("the mind was asked %+v", brain.asked)
+	}
+
+	for _, line := range model.(Game).shop.lines[lines:] {
+		if strings.Contains(line.text, "Zapamiętujesz") || strings.Contains(line.text, "mind is down") {
+			t.Errorf("a failed note showed: %q", line.text)
+		}
+	}
+}
+
+func slicesEqual(a, b []string) bool {
+	return strings.Join(a, "\x00") == strings.Join(b, "\x00")
+}
