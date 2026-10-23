@@ -700,3 +700,20 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
   - **MG bez dotrenowania** (test17, 40 rund): 4.5B gubi liczby, zmyśla przebieg, wypisuje „51HP”, „[GRA]”, „*Pauza*”; Minitron 7B pisze ładną prozą, ale też bez liczb, 4–5 zdań i z wymysłami („Borin pada”).
   - **b45gm = Bielik 4.5B + LoRA tylko na 761 rundach MG z run17** (2 epoki, lr 2e-4, r16; eval_loss 1.068 → 0.874). Ślepa ocena na test17 (`run17/test17/gm45`, 80 rund, 2 sędziów): run14h 6 ciężkich, run16dh 7, **b45gm 13** (pary z run16dh 6/10, p=0,45); lekkich 93 wobec 35–39 (przekręcone nazwy: „Zarzdwięły Kord”, „Siostra Mirka”, „Łowiec w Masce”; odmiana). Mały model po samym treningu MG opisuje walki niewiele gorzej od 11B co do faktów, ale wyraźnie gorzej językowo.
   - Wniosek: Bielik 4.5B jako MG + Mind jest realny dopiero po wspólnym treningu (MG + Note/Interpret/Invent, ok. 800–1100 przykładów Mind do zrobienia); Translate zostawić osobnemu modelowi. Nazwy własne z promptu kopiuje gorzej niż 11B — tu pomogłaby osłona nazw w silniku (jak przy rozmowach).
+
+- **run18 (23.10): pierwszy model od run16, który wyraźnie bije run16dh, w rozmowach i w MG.**
+  - Dane wg analizy danych z 22.10 (`D:\neuro-train\run18`, `build.py`): 8 nowych światów treningowych i 400 krótkich rozmów (paczki k41–k56), k01–k14 przycięte do ok. 450 kwestii, limit 40 kwestii na postać (był 90), bez „krok2 GPT”, z run7 tylko transakcje, szerszy filtr zastrzeżeń, odrzut kwestii recytujących kartę (5 słów z rzędu); silnik po ok. 108 poprawkach odczytu (5dff0cf…a6adaed, d1332ec). 4005 / 215 przykładów (807 rund MG). SFT od Bielik-11B-v2.3, 2 epoki, lr 1e-4, r16; eval_loss 0.881 → **0.817 (koniec 1. epoki)** → 0.853 → 0.848 (koniec).
+  - **run18h = run18 (błąd):** `sort -t- -k2 -n` po ścieżce z „neuro-train” wybrał checkpoint-1002 zamiast połowy, a checkpointu z 1. epoki i tak nie było (`save_total_limit=3`). Poprawione: `train.py` trzyma 6 checkpointów (b8429c8), połowę wybiera się po numerze. Model z końca 1. epoki przepadł.
+  - **test18** (zamrożony, świeże światy Wieże nad Potopem i Oblężenie Wilczogrodu, silnik a6adaed: 60 rozmów + 162 rundy MG z gmgen 1818, oba ziarna). `check.py` bez uwag: run18 92/91%, run16dh 88/89, run17 89/89, run14h 85/90.
+  - Ślepa ocena (`run18/test18/joint1`, `joint2`, `joint.py`, `brief-joint.md`): wszystkie 5 modeli naraz (A–E), dwie niezależne rundy po 12 sędziów, 324 rundy MG i 120 rozmów na rundę. run18 był pod dwiema literami (identyczne odpowiedzi) i dostał niemal identyczne oceny — sędziowie spójni.
+
+    | model | MG ciężkie (r1 / r2) | MG pary z run16dh | rozmowy ciężkie (r1 / r2) | ocena 1–5 | rozmowy pary z run16dh |
+    |---|---|---|---|---|---|
+    | **run18** | **25 / 26** | **84 / 42, p<0.001** | **28 / 35** | **3.72** | **133 / 41, p<0.001** |
+    | run14h | 26 / 24 | 87 / 43, p<0.001 | 92 / 105 | 2.82 | 54 / 127 |
+    | run17 | 32 / 32 | 75 / 46, p=0.01 | 59 / 59 | 3.33 | 96 / 71, p=0.06 |
+    | run16dh | 53 / 47 | — | 69 / 72 | 3.20 | — |
+
+  - Na test18 run16dh opisuje walki gorzej niż na test17 (wtedy najlepszy z run14h): nowe światy i nowy silnik. Część przewagi run18 może brać się z tego, że widział nowe sformułowania [GRA]; gra działa na tym samym silniku, więc porównanie jest uczciwe dla gry.
+  - Wciąż u wszystkich: zmyśleni krewni / pochodzenie blizny przy pytaniach prywatnych, kwoty w drużynie i przy „idziesz ze mną?”, powtórki fraz, „dobija” żywego wroga, pominięte zrastanie (+2/+4), dwuznaczne „ją/go”.
+  - **Wniosek:** run18 jest kandydatem do gry w miejsce run16dh (rozmowy i MG); przełączenie tylko za zgodą. Dalej: run19 = te same dane na Bielik-11B-v3.0-Instruct (`run19/queue19.sh`, po run17s), run16dh w Q4_K_M na test18, potem Minitron 7B / gemma jako MG.
