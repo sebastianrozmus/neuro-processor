@@ -29,8 +29,10 @@ func TestFitMood(t *testing.T) {
 		mood Mood
 		want string
 	}{
-		{"[gniew] Czego?", MoodCalm, "[spokój] Czego?"},
+		{"[gniew] Czego?", MoodCalm, "[kpina] Czego?"},
 		{"[kpina] Jagody? Krasnoludowi?", MoodCalm, "[kpina] Jagody? Krasnoludowi?"},
+		{"[strach] Ani mi się waż!", MoodCalm, "[strach] Ani mi się waż!"},
+		{"[spokój] Czego?", MoodOffended, "[gniew] Czego?"},
 		{"[radość] Miło cię widzieć.", MoodOffended, "[gniew] Miło cię widzieć."},
 		{"[smutek] Szkoda.", MoodPleased, "[radość] Szkoda."},
 		{"Bez znacznika.", MoodCalm, "Bez znacznika."},

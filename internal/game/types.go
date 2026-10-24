@@ -111,14 +111,16 @@ const (
 )
 
 // moodTags are, for each mood, the voice tags that would contradict it and
-// the tag that stands in for them. Mockery fits a calm smith; anger does
-// not, nor does joy an offended one.
+// the tag that stands in for them. Mockery and fear fit a calm smith; anger
+// does not, nor does joy an offended one. A calm keeper who snaps keeps the
+// edge of the line: her anger turns into mockery, as calm reprimands do in
+// the training talks, rather than fading into calm.
 var moodTags = map[Mood]struct {
 	wrong []string
 	fit   string
 }{
 	MoodPleased:   {[]string{"gniew", "smutek", "strach"}, "radość"},
-	MoodCalm:      {[]string{"gniew", "strach"}, "spokój"},
+	MoodCalm:      {[]string{"gniew"}, "kpina"},
 	MoodImpatient: {[]string{"radość", "czułość"}, "kpina"},
 	MoodAnnoyed:   {[]string{"radość", "czułość"}, "gniew"},
 	MoodOffended:  {[]string{"radość", "czułość", "spokój"}, "gniew"},
