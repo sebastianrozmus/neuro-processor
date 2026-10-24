@@ -2,7 +2,7 @@
 
 Zestawienie wszystkich wersji Głosu, czyli modelu, który pisze kwestie postaci. Dla każdej wersji: baza, dane, ustawienia treningu, wynik benchu i to, co pokazały testy w grze. Pełna opowieść, z tym, co nie wyszło i dlaczego, jest w [HISTORIA.md](HISTORIA.md). Jak mierzyć, opisuje [tools/bench/README.md](../bench/README.md).
 
-**Obecny model:** `neuro-npc-run7` (Bielik 11B). **Powrót:** `neuro-npc-run6` (Bielik 4.5B, 3× szybszy).
+**Obecny model (gra):** `neuro-npc-run18` (Bielik 11B v2.3, od 23.10). Historia niżej; najnowsze wpisy na końcu.
 
 ## W skrócie
 
@@ -719,7 +719,7 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
   - **Wniosek:** run18 jest kandydatem do gry w miejsce run16dh (rozmowy i MG); przełączenie tylko za zgodą. Dalej: run19 = te same dane na Bielik-11B-v3.0-Instruct (`run19/queue19.sh`, po run17s), run16dh w Q4_K_M na test18, potem Minitron 7B / gemma jako MG.
 
 - **run19 (24.10): Bielik-11B-v3.0-Instruct na danych i przepisie run18 — remis z run18. Podział długich rund MG — wyraźna poprawa.** Gra od 23.10 na run18.
-  - run19: SFT od Bielik-11B-v3.0-Instruct (`/mnt/g/hf`, Llama, 50 warstw, słownik 32 128), dane `run18/data`, 2 epoki, lr 1e-4, r16 (`run19/queue19.sh`). eval_loss 0.895 → 0.842 → 0.824 → **0.798 (koniec 1. epoki)** → 0.829 …; w każdym punkcie o 0,02–0,04 niżej niż run18 (słowniki różne, więc tylko wskazówka). run19h = checkpoint końca 1. epoki (poprawka b8429c8 zadziałała: 0/100 identycznych scenariuszy z run19). run16dhq4 = run16dh w Q4_K_M z checkpointu DPO (`run19/gguf_q.py`): 6,7 GB zamiast 7,9 GB, 1,9 s zamiast 2,1 s.
+  - run19: SFT od Bielik-11B-v3.0-Instruct (`/mnt/g/hf`, Llama, 50 warstw, słownik 32 128), dane `run18/data`, 2 epoki, lr 1e-4, r16 (`run19/queue19.sh`). eval_loss 0.895 → 0.842 → 0.824 → **0.798 (koniec 1. epoki)** → 0.829 …; w każdym punkcie o 0,02–0,04 niżej niż run18 (tokenizery v2.3 i v3 są identyczne poza 4 tokenami specjalnymi — recenzja 24.10 — więc straty są porównywalne wprost). run19h = checkpoint ze środka cosinusowego wygaszania (nie trening 1-epokowy) (poprawka b8429c8 zadziałała: 0/100 identycznych scenariuszy z run19). run16dhq4 = run16dh w Q4_K_M z checkpointu DPO (`run19/gguf_q.py`): 6,7 GB zamiast 7,9 GB, 1,9 s zamiast 2,1 s.
   - `check.py` na test18 bez uwag: run19 92/92%, run18 92/91, run19h 90/90, run16dhq4 88/90, run16dh 88/89.
   - Ślepa ocena (`run18/test18/joint3`, `joint4`; 5 modeli A–E, dwie rundy po 12 sędziów; `joint_score.py`, pary z run18: `joint_score18.py`):
 
