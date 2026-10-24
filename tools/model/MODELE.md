@@ -717,3 +717,29 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
   - Na test18 run16dh opisuje walki gorzej niż na test17 (wtedy najlepszy z run14h): nowe światy i nowy silnik. Część przewagi run18 może brać się z tego, że widział nowe sformułowania [GRA]; gra działa na tym samym silniku, więc porównanie jest uczciwe dla gry.
   - Wciąż u wszystkich: zmyśleni krewni / pochodzenie blizny przy pytaniach prywatnych, kwoty w drużynie i przy „idziesz ze mną?”, powtórki fraz, „dobija” żywego wroga, pominięte zrastanie (+2/+4), dwuznaczne „ją/go”.
   - **Wniosek:** run18 jest kandydatem do gry w miejsce run16dh (rozmowy i MG); przełączenie tylko za zgodą. Dalej: run19 = te same dane na Bielik-11B-v3.0-Instruct (`run19/queue19.sh`, po run17s), run16dh w Q4_K_M na test18, potem Minitron 7B / gemma jako MG.
+
+- **run19 (24.10): Bielik-11B-v3.0-Instruct na danych i przepisie run18 — remis z run18. Podział długich rund MG — wyraźna poprawa.** Gra od 23.10 na run18.
+  - run19: SFT od Bielik-11B-v3.0-Instruct (`/mnt/g/hf`, Llama, 50 warstw, słownik 32 128), dane `run18/data`, 2 epoki, lr 1e-4, r16 (`run19/queue19.sh`). eval_loss 0.895 → 0.842 → 0.824 → **0.798 (koniec 1. epoki)** → 0.829 …; w każdym punkcie o 0,02–0,04 niżej niż run18 (słowniki różne, więc tylko wskazówka). run19h = checkpoint końca 1. epoki (poprawka b8429c8 zadziałała: 0/100 identycznych scenariuszy z run19). run16dhq4 = run16dh w Q4_K_M z checkpointu DPO (`run19/gguf_q.py`): 6,7 GB zamiast 7,9 GB, 1,9 s zamiast 2,1 s.
+  - `check.py` na test18 bez uwag: run19 92/92%, run18 92/91, run19h 90/90, run16dhq4 88/90, run16dh 88/89.
+  - Ślepa ocena (`run18/test18/joint3`, `joint4`; 5 modeli A–E, dwie rundy po 12 sędziów; `joint_score.py`, pary z run18: `joint_score18.py`):
+
+    | model | MG ciężkie (r1 / r2) | MG pary z run18 | rozmowy ciężkie (r1 / r2) | ocena 1–5 | rozmowy pary z run18 |
+    |---|---|---|---|---|---|
+    | **run19** | **24 / 23** | 45 / 37, p=0.44 | 38 / 37 | **3.70** | 74 / 73, p=1.0 |
+    | run19h | 25 / 26 | 47 / 41, p=0.59 | 45 / 48 | 3.42 | 60 / 104, p=0.001 |
+    | **run18** | 29 / 28 | — | **33 / 32** | 3.62 | — |
+    | run16dh | 44 / 44 | 47 / 72 | 69 / 74 | 3.03 | 37 / 129 |
+    | run16dhq4 | 49 / 46 | 40 / 74 | 77 / 85 | 2.95 | 33 / 148 |
+
+  - Wnioski: run19 ≈ run18 (MG nieco mniej ciężkich, rozmowy nieco więcej, wyższa ocena — wszystko w szumie); run19h w rozmowach wyraźnie gorszy, więc przy v3 lepszy jest koniec 2. epoki. Baza v3 sama nic istotnego nie daje. Q4_K_M: MG bez straty (pary z run16dh 56/61, p=0.71), rozmowy nieco gorsze (76/103, p=0.05; ciężkie 162 vs 143) — Q4 nadaje się co najwyżej na osobny model MG.
+  - **Podział długich rund MG** (fac488e: rundy ≥5 zdarzeń w częściach po ≤3 zdarzenia, polecenie „najwyżej dwoma krótkimi zdaniami”; `tools/gmsplit`, dane `run19/gmsplit`, 47 ze 162 rund test18). Ślepa ocena 4 wariantów (cała/części × run18/run19), 2 rundy po 3 sędziów, 94 pozycje na rundę (`run19/gmsplit/blind*`, `score.py`):
+
+    | wariant | pozycji z ciężkim błędem | lekkie | pary części vs cała |
+    |---|---|---|---|
+    | run18 cała | 16,0% | 63 | — |
+    | **run18 części** | **2,1%** | 128 | 30 / 4, p<0.001 |
+    | run19 cała | 17,0% | 60 | — |
+    | run19 części | 7,4% | 137 | 30 / 12, p=0.008 |
+
+    Ciężkie błędy w długich rundach spadają 2–8 razy; lekkich jest 2× więcej (dwa opisy = więcej ozdobników, „znów”, odmiana). Przed podziałem (ocena 23.10 na joint1/2): run18 2% ciężkich przy 1–2 zdarzeniach, 12–19% przy ≥5.
+  - **Decyzja:** gra zostaje na run18, podział rund zostaje w silniku. Dalej: run17s vs run17 (szum treningu), run20 na danych z biografiami / zleceniami ratunkowymi (`D:\neuro-train\run20\PLAN.md`).
