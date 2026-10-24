@@ -1154,10 +1154,7 @@ func (n *echoNarrator) Narrate(_ context.Context, request NarrateRequest) (strin
 
 	n.requests = append(n.requests, request)
 
-	var blows []string
-	for _, match := range lost.FindAllStringSubmatch(request.Decision.Scene, -1) {
-		blows = append(blows, match[1])
-	}
+	blows := roundNumbers(request.Decision.Scene)
 
 	if len(blows) > 0 {
 		return n.line + " Ciosy za " + strings.Join(blows, ", ") + ".", nil

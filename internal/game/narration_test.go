@@ -489,6 +489,44 @@ func TestTalkKeepsToTheBrief(t *testing.T) {
 	}
 }
 
+func TestTheMasterKeepsHealthWonBack(t *testing.T) {
+	scene := "Topielica z Tramwaju zrasta się: odzyskuje 2 zdrowia. Szczur Rynnowy atakuje: Wanda. Pudło. " +
+		"Wanda używa: Butelka Deszczówki (+11 zdrowia). Chmara Komarów atakuje: Wanda traci 7 zdrowia."
+	request := NarrateRequest{Decision: Decision{Outcome: OutcomeScene, Scene: scene}}
+
+	// Judges on test18 counted a corpse knitting unmentioned a heavy error.
+	narrator := &scriptedNarrator{replies: []string{
+		"Szczur pudłuje, a Wanda pije Butelkę Deszczówki i odzyskuje 11 zdrowia. Komary zabierają jej 7.",
+		"Topielica zrasta się o 2, szczur pudłuje, a Wanda pije Butelkę Deszczówki, +11. Komary zabierają jej 7.",
+	}}
+	text, err := Narrate(context.Background(), narrator, request)
+	if err != nil || narrator.calls != 2 || text != narrator.replies[1] || narrator.corrections[1] != lostCorrection+"2." {
+		t.Errorf("health won back left out: %q, %v after %d calls (%q)", text, err, narrator.calls, narrator.corrections)
+	}
+
+	// A party healed "do 12" is a cap the master may leave out.
+	request.Decision.Scene = "Siostra Agata rzuca: Opatrunek. Drużyna odzyskuje do 12 zdrowia."
+	narrator = &scriptedNarrator{replies: []string{"Siostra Agata opatruje wszystkich."}}
+	if text, err := Narrate(context.Background(), narrator, request); err != nil || narrator.calls != 1 || text == "" {
+		t.Errorf("a party healed: %q, %v after %d calls", text, err, narrator.calls)
+	}
+}
+
+func TestTheMasterMissesOnlyWithThoseWhoMissed(t *testing.T) {
+	scene := "Tomir atakuje: Rak Kanałowy. Pudło. Nurek bez Twarzy atakuje: Tomir traci 2 zdrowia. " +
+		"Rak Kanałowy atakuje: Tomir. Pudło. Szczur Rynnowy atakuje: Tomir. Pudło."
+	request := NarrateRequest{Decision: Decision{Outcome: OutcomeScene, Scene: scene}}
+
+	narrator := &scriptedNarrator{replies: []string{
+		"Tomir chybia Raka, a Nurek bez Twarzy drapie go za 2. Rak, Szczur i Nurek odpłacają mu pudłami.",
+		"Tomir chybia Raka, a Nurek bez Twarzy drapie go za 2. Rak i Szczur pudłują.",
+	}}
+	text, err := Narrate(context.Background(), narrator, request)
+	if err != nil || narrator.calls != 2 || text != narrator.replies[1] || narrator.corrections[1] != flipCorrection+"Nurek bez Twarzy." {
+		t.Errorf("a hit told as a miss: %q, %v after %d calls (%q)", text, err, narrator.calls, narrator.corrections)
+	}
+}
+
 func TestRefusedLinesSayWhy(t *testing.T) {
 	narrator := &scriptedNarrator{replies: []string{"[spokój] Piwo warzą 2 wsie dalej.", "[spokój] Pytaj Wedronowego Kupuca."}}
 	request := NarrateRequest{Decision: Decision{Outcome: OutcomeChat}, Role: RoleMercenary, Required: []string{"Wędrowny Kupiec"}}

@@ -164,10 +164,7 @@ func (n *partNarrator) Narrate(_ context.Context, request NarrateRequest) (strin
 		return "Wszyscy machają bronią, nic się nie dzieje.", nil
 	}
 
-	var blows []string
-	for _, match := range lost.FindAllStringSubmatch(request.Decision.Scene, -1) {
-		blows = append(blows, match[1])
-	}
+	blows := roundNumbers(request.Decision.Scene)
 
 	return "Część rundy, ciosy za " + strings.Join(blows, ", ") + ".", nil
 }
@@ -305,5 +302,42 @@ func TestMasterDropsOnlyThePartItFailed(t *testing.T) {
 
 	if want := MasterMark + "Część rundy, ciosy za 4."; !slices.Contains(log, want) || len(recorded) != 1 {
 		t.Errorf("log = %q, want %q; recorded %d", log, want, len(recorded))
+	}
+}
+
+// The cases come from the narrations of test18 rounds that both blind
+// judges read, as they wrote them.
+func TestFlippedFindsHitsToldAsMisses(t *testing.T) {
+	cases := []struct{ scene, text, want string }{
+		// Struck for 4, told missing in the same breath.
+		{"Szczur Rynnowy zbliża się. Tomir rzuca: Schemat Harpuna Elektrycznego. Rak Kanałowy traci 14 zdrowia. Nurek bez Twarzy atakuje: Tomir. Pudło. Rak Kanałowy atakuje: Tomir. Pudło. Szczur Rynnowy atakuje: Tomir traci 4 zdrowia.",
+			"Tomir odpala Schemat Harpuna Elektrycznego i Rak Kanałowy traci 14. Nurek bez Twarzy, Rak Kanałowy i Szczur Rynnowy pudłują, ale szczur zdążył Tomira podrapać za 4.", "Szczur Rynnowy"},
+		// The one missed told as the one missing.
+		{"Spichrzowy Szczur atakuje: Zofia traci 11 zdrowia. Zgłodniały Dezerter atakuje: Szymek Dobosz. Pudło. Zofia atakuje: Spichrzowy Szczur traci 12 zdrowia. Spichrzowy Szczur pada. Szymek Dobosz atakuje: Podkopnik traci 10 zdrowia. Podkopnik pada.",
+			"Szczur gryzie Zofię za 11, a Szymek chybia Dezertera. Zofia wbija muszkiet w Spichrzowego Szczura za 12 i bestia pada.", "Szymek Dobosz"},
+		// Someone who did not attack at all.
+		{"Kasia atakuje: Szczur Rynnowy. Pudło. Szczur Rynnowy atakuje: Siostra Bronisława. Pudło. Rataj Bosak atakuje: Szczur Rynnowy traci 8 zdrowia.",
+			"Kasia, Szczur i Siostra Bronisława pudłują, ale Rataj Bosak trafia Szczura za 8.", "Siostra Bronisława"},
+		// With the dice the game writes.
+		{"Rak Kanałowy atakuje: Zofia. Pudło (k20: 3 przeciw KP 13). Topielica z Tramwaju atakuje (k20: 20, trafienie krytyczne!): Zofia traci 4 zdrowia.",
+			"Rak i Topielica pudłują w Zofię.", "Topielica z Tramwaju"},
+
+		// The swarm is what Ola missed, not who missed.
+		{"Ola atakuje: Chmara Komarów. Pudło. Chmara Komarów atakuje: Ola traci 10 zdrowia.",
+			"Ola tnie harpunem w chmarę komarów i pudłuje. Komary tną ją za 10.", ""},
+		// "Czarną" is whom the corpse missed.
+		{"Topielica z Tramwaju atakuje: Czarna Tonia. Pudło. Czarna Tonia atakuje: Topielica z Tramwaju traci 22 zdrowia.",
+			"Jej atak na Czarną Tonię chybia, a Tonia tnie ją za 22.", ""},
+		// A clause that opens with someone else.
+		{"Wilk z Pobojowiska podchodzi. Podkopnik atakuje: Ola. Pudło. Wilk z Pobojowiska atakuje: Rotmistrz Hieronim Wilk traci 8 zdrowia.",
+			"Z popiołu wyłania się Wilk z Pobojowiska, Podkopnik pudłuje w Olę. Wilk gryzie Rotmistrza za 8.", ""},
+		// One who hit and missed may be told either way.
+		{"Ola atakuje: Goblin. Pudło. Ola atakuje: Goblin traci 5 zdrowia.", "Ola najpierw pudłuje, potem tnie za 5.", ""},
+	}
+
+	for _, test := range cases {
+		if got := flipped(test.text, test.scene); got != test.want {
+			t.Errorf("flipped(%q) = %q, want %q", test.text, got, test.want)
+		}
 	}
 }

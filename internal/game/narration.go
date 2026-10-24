@@ -33,14 +33,19 @@ const nameCorrection = "Twoja poprzednia odpowiedź była zła: przekręciła al
 const strangerCorrection = "Twoja poprzednia odpowiedź była zła: wymyśliła nazwy, których nie ma w świecie: "
 
 // lostCorrection is what the master hears after leaving out a blow the
-// rules dealt; the numbers it skipped follow.
-const lostCorrection = "Twoja poprzednia odpowiedź była zła: pominęła obrażenia z bloku [GRA]. " +
-	"Opisz rundę jeszcze raz i podaj cyframi każdą stratę zdrowia, także: "
+// rules dealt or health won back; the numbers it skipped follow.
+const lostCorrection = "Twoja poprzednia odpowiedź była zła: pominęła obrażenia albo odzyskane zdrowie z bloku [GRA]. " +
+	"Opisz rundę jeszcze raz i podaj cyframi każdą stratę i każde odzyskanie zdrowia, także: "
 
 // fallenCorrection is what the master hears after felling, killing or
 // routing someone the rules left standing.
 const fallenCorrection = "Twoja poprzednia odpowiedź była zła: ktoś w niej pada, ginie albo ucieka, a w bloku [GRA] tego nie ma. " +
 	"Opisz rundę jeszcze raz: kto w bloku [GRA] nie pada, ten dalej walczy."
+
+// flipCorrection is what the master hears after telling as a miss the
+// attack of someone who hit, or who did not attack at all; the name follows.
+const flipCorrection = "Twoja poprzednia odpowiedź była zła: pudłuje w niej ktoś, kto w bloku [GRA] trafia albo wcale nie atakuje. " +
+	"Opisz rundę jeszcze raz: pudłuje tylko ten, po czyim ataku stoi „Pudło”. Nie pudłuje: "
 
 // priceCorrection is what a narrator hears after leaving out the price the
 // rules told it to quote; the price follows.
@@ -61,6 +66,10 @@ var (
 	digits = regexp.MustCompile(`\d+`)
 	// lost finds the blows of a round: "Topielec traci 7 zdrowia".
 	lost = regexp.MustCompile(`traci (\d+) zdrowia`)
+	// regained finds health won back: a corpse knitting ("Topielec zrasta
+	// się: odzyskuje 4 zdrowia") or a draught ("(+12 zdrowia)"). A party
+	// healed "do 14" is told a cap, not a sum, and is not one.
+	regained = regexp.MustCompile(`odzyskuje (\d+) zdrowia|\(\+(\d+) zdrowia\)`)
 	// felled are folded words that end someone's part in a fight; only
 	// the rules may say that, with "pada", "ucieka" or a victory.
 	felled = regexp.MustCompile(`\b(ginie|zgin\w*|pada|padl\w*|zabit\w*|zabij\w*|pokonan\w*|nie zyje|dobij\w*|wykancz\w*|uciek\w*)\b`)
@@ -228,8 +237,9 @@ const (
 	reasonNumbers   = "liczba spoza bloku [GRA] albo napisana słownie"
 	reasonNames     = "imię przekręcone albo pominięte"
 	reasonStrangers = "nazwa spoza świata"
-	reasonLost      = "pominięte obrażenia z rundy"
+	reasonLost      = "pominięte obrażenia albo leczenie z rundy"
 	reasonFallen    = "ktoś pada albo ucieka poza protokołem"
+	reasonFlipped   = "pudłuje ktoś, kto trafił"
 	reasonPrice     = "brak ceny, którą kazano podać"
 	reasonAsks      = "pytanie, choć kazano nie pytać"
 	reasonEcho      = "powtarza własne słowa"
@@ -325,6 +335,8 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 			reason = reasonLost
 		case request.Decision.Outcome == OutcomeScene && fells(text, request.Decision.Scene):
 			reason = reasonFallen
+		case request.Decision.Outcome == OutcomeScene && flipped(text, request.Decision.Scene) != "":
+			reason = reasonFlipped
 		case !request.Quiet && !request.Decision.quotes(text):
 			reason = reasonPrice
 		case strings.Contains(brief, "nie pytaj") && strings.Contains(text, "?"):
@@ -347,6 +359,10 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 
 		if reason == reasonFallen {
 			request.Correction = fallenCorrection
+		}
+
+		if reason == reasonFlipped {
+			request.Correction = flipCorrection + flipped(text, request.Decision.Scene) + "."
 		}
 
 		switch reason {
@@ -379,20 +395,37 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 
 // skipped lists the blows of a round that a narration of it leaves out:
 // a hit without its number reads as one that did not happen. The master
-// may leave other numbers out, but not these.
+// may leave other numbers out, but not these, nor health won back: on
+// test18 judges counted an unmentioned "zrasta się o 4" a heavy error.
 func skipped(text, scene string) []string {
 	said := numbersIn(text)
 
 	var left []string
 
-	for _, match := range lost.FindAllStringSubmatch(scene, -1) {
-		number, err := strconv.Atoi(match[1])
-		if err == nil && !slices.Contains(said, number) && !slices.Contains(left, match[1]) {
-			left = append(left, match[1])
+	for _, value := range roundNumbers(scene) {
+		number, err := strconv.Atoi(value)
+		if err == nil && !slices.Contains(said, number) && !slices.Contains(left, value) {
+			left = append(left, value)
 		}
 	}
 
 	return left
+}
+
+// roundNumbers are the numbers a narration of a round has to give: every
+// loss of health, then every gain.
+func roundNumbers(scene string) []string {
+	var numbers []string
+
+	for _, match := range lost.FindAllStringSubmatch(scene, -1) {
+		numbers = append(numbers, match[1])
+	}
+
+	for _, match := range regained.FindAllStringSubmatch(scene, -1) {
+		numbers = append(numbers, match[1]+match[2])
+	}
+
+	return numbers
 }
 
 // fells reports a narration that has someone fall, die or flee in a round
