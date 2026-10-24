@@ -644,6 +644,53 @@ func rude(text string) bool {
 	return false
 }
 
+// swearStarts begin a curse said to no one: "kurwa, nie wierzę", "cholera,
+// ale zimno", "szlag by to". Calling the keeper one ("kurwo") is an insult
+// and is read as such first. "Kurczę" is too mild to count.
+var swearStarts = []string{
+	"kurw", "kurde", "choler", "psiakrew", "psiakrw", "szlag", "gown", "zasran",
+	"jeb", "zajeb", "wyjeb", "pojeb", "odjeb", "rozjeb", "przejeb", "najeb", "dojeb", "zjeb",
+}
+
+// swearInside are curses with any prefix: "japierdolę", "spierdalaj".
+var swearInside = []string{"pierdol", "pierdal"}
+
+// swearWholes are curses only as whole words or phrases: "kurna" but not
+// "kurnik", "psia krew".
+var swearWholes = []string{"kurna", "psia krew", "psia mac"}
+
+// starred is a curse written with stars or dots: "k***a", "kur..a".
+var starred = regexp.MustCompile(`(?i)(?:^|[^\p{L}])ku?r?(?:\*+|\.{2,})w?a(?:$|[^\p{L}])`)
+
+// swearing reports a message with a curse in it, however mild: what a
+// keeper who cannot stand swearing takes up, and anyone else lets pass.
+func swearing(text string) bool {
+	folded := Fold(text)
+	if hasPhrase(folded, sorryWords) {
+		return false
+	}
+
+	if starred.MatchString(text) || hasPhrase(folded, swearWholes) {
+		return true
+	}
+
+	for _, word := range strings.Fields(folded) {
+		for _, curse := range swearStarts {
+			if strings.HasPrefix(word, curse) {
+				return true
+			}
+		}
+
+		for _, curse := range swearInside {
+			if strings.Contains(word, curse) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // farewell reports a message that ends with a goodbye after other words:
 // "no trudno, cześć", "nie było tematu. idę"; a greeting alone is no farewell.
 func farewell(words []string) bool {

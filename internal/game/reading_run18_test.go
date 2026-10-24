@@ -492,3 +492,99 @@ func TestFleetingIeFromRun18(t *testing.T) {
 		t.Errorf("paying up front some day is a deal: %+v", got)
 	}
 }
+
+// A card that says the keeper cannot stand swearing, in the words the
+// worlds use; one who swears themselves is no prude.
+func TestPrudishCard(t *testing.T) {
+	for _, card := range []string{
+		"Siostra Klara. Zszywa rany bez litości i nie znosi przekleństw.",
+		"Nie znosi przekleństw. Mówi do każdego „córko” albo „synu”.",
+		"Nie cierpi przekleństw i ma słabość do papierosów, których już nikt nie robi.",
+		"Opatruje bez jednego słowa skargi, ale strofuje każdego, kto przy niej przeklina.",
+		"Nie lubi, gdy ktoś klnie przy dzieciach.",
+		"Przekleństwa ją drażnią bardziej niż rany.",
+		"Sam nie przeklina i nie znosi, jak ktoś klnie.",
+		"Brzydzi się wulgaryzmami.",
+	} {
+		if !prudish(card) {
+			t.Errorf("%q cannot stand swearing", card)
+		}
+	}
+
+	for _, card := range []string{
+		"Głucha na lewe ucho, mówi za głośno, klnie po górniczemu i rechocze z rubasznych dowcipów.",
+		"Do każdego mówi „młody” albo „młoda”, klnie jak dokerka, nie znosi korporacyjnych garniturów i ludzi, którzy nie patrzą w oczy.",
+		"Mówi po marynarsku, klnie na wszystkie wiatry i każdą cenę zaokrągla w górę.",
+		"Nie znosi tchórzy jak ognia, klnie jak szewc.",
+		"Nie pracuje dla gildii i nie znosi kłamców.",
+		"Nie znosi przeklętych automatów z huty.",
+		"Zaklęcia sprzedaje jak sekrety, szeptem.",
+		"",
+	} {
+		if prudish(card) {
+			t.Errorf("%q is a prude", card)
+		}
+	}
+}
+
+// A curse said to no one, however mild or however spelled.
+func TestSwearing(t *testing.T) {
+	for _, text := range []string{
+		"kurwa, nie wierze", "kurwa jak boli", "cholera, ale tu zimno", "kurde ale mnie boli", "auuu boli jak cholera", "jasna cholera!",
+		"psiakrew", "psia krew, znowu", "szlag by to trafil", "k***a, serio?", "kur..a mac", "ja pierdole", "japierdolę", "kurna, zgubilem mape",
+		"zajebisty miecz", "gówno prawda",
+	} {
+		if !swearing(text) {
+			t.Errorf("%q is no curse", text)
+		}
+	}
+
+	for _, text := range []string{
+		"dzien dobry, siostro", "poprosze kurczaka", "kurczę, ale zimno", "gdzie jest kurnik?", "ten kurdupel mnie okradl", "k. mowil, ze tu jestes",
+		"przepraszam, kurwa mi sie wyrwala",
+	} {
+		if swearing(text) {
+			t.Errorf("%q is a curse", text)
+		}
+	}
+}
+
+// A keeper whose card says they cannot stand swearing bristles at a curse;
+// anyone else lets it pass, and an insult stays an insult.
+func TestCurseAtAPrude(t *testing.T) {
+	realm := partyRealm(t)
+	hero := enlist(realm, "Ala")
+	customer := realm.players[hero]
+	realm.world.Companions[0].Description = "Siostra Klara. Zszywa rany bez litości i nie znosi przekleństw."
+	realm.world.Companions[1].Description = "Głucha na lewe ucho, klnie po górniczemu i rechocze z rubasznych dowcipów."
+	realm.Join(hero, "")
+
+	say := func(kind int, text string) (Decision, NarrateRequest) {
+		customer.shop = realm.mateTalk(kind)
+		customer.talks = map[int]*talk{customer.shop: {session: NewSession(realm.mateMerchant(customer, kind), 100)}}
+		decision, request, _ := realm.Haggle(hero, text, Read(InterpretRequest{Text: text}).Alone())
+
+		return decision, request
+	}
+
+	for _, text := range []string{"cholera, ale tu zimno", "kurwa, nie wierze", "kurwa jak boli"} {
+		decision, request := say(0, text)
+		if decision.Mood != MoodAnnoyed || !strings.HasPrefix(request.Hint, curseHint) {
+			t.Errorf("%q to a prude: %s, %q", text, decision.Mood, request.Hint)
+		}
+
+		decision, request = say(1, text)
+		if decision.Mood != MoodCalm || strings.Contains(request.Hint, "przeklina") {
+			t.Errorf("%q to one who swears herself: %s, %q", text, decision.Mood, request.Hint)
+		}
+	}
+
+	decision, request := say(0, "ty kurwo")
+	if decision.Mood != MoodOffended || !strings.Contains(request.Hint, "Gracz cię obraża") || strings.Contains(request.Hint, "przeklina") {
+		t.Errorf("an insult to a prude: %s, %q", decision.Mood, request.Hint)
+	}
+
+	if decision, request := say(0, "dzien dobry, siostro"); decision.Mood != MoodCalm || strings.Contains(request.Hint, "przeklina") {
+		t.Errorf("a greeting to a prude: %s, %q", decision.Mood, request.Hint)
+	}
+}

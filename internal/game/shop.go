@@ -214,6 +214,15 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 		decision.Mood = MoodOffended
 	}
 
+	// A curse said to no one is no insult, but one who cannot stand
+	// swearing bristles at it: told "spokojna", the model sharpened a nun's
+	// "Przy mnie nie przeklinaj" into [gniew] on its own. The talk and the
+	// standing go on as they were; only the mood of this turn changes.
+	cursed := !threat && !insult && r.cursedAt(customer.shop, text)
+	if cursed && decision.Outcome == OutcomeChat && (decision.Mood == MoodCalm || decision.Mood == MoodPleased || decision.Mood == MoodImpatient) {
+		decision.Mood = MoodAnnoyed
+	}
+
 	// An apology, a threat or a question from outside the world is no
 	// occasion to recommend wares.
 	if _, quiet := aside(text); decision.Outcome == OutcomeChat && (quiet || threat || insult) {
@@ -303,6 +312,8 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 		}
 
 		request.Hint = "Gracz cię obraża. Odpowiedz " + hurt + ", zimno albo z gniewem; nie udawaj, że nic się nie stało. " + request.Hint
+	case cursed && (decision.Outcome == OutcomeChat || decision.Outcome == OutcomeFarewell):
+		request.Hint = strings.TrimSpace(curseHint + " " + request.Hint)
 	}
 
 	// An apology before a question or a deal is taken in passing.
