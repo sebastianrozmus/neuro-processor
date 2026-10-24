@@ -743,3 +743,14 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
 
     Ciężkie błędy w długich rundach spadają 2–8 razy; lekkich jest 2× więcej (dwa opisy = więcej ozdobników, „znów”, odmiana). Przed podziałem (ocena 23.10 na joint1/2): run18 2% ciężkich przy 1–2 zdarzeniach, 12–19% przy ≥5.
   - **Decyzja:** gra zostaje na run18, podział rund zostaje w silniku. Dalej: run17s vs run17 (szum treningu), run20 na danych z biografiami / zleceniami ratunkowymi (`D:\neuro-train\run20\PLAN.md`).
+
+- **run17s (24.10): pomiar szumu treningu — ten sam zbiór i przepis co run17, inne ziarno (18; `train.py --seed`, b75c179).** Ślepa ocena na test17 (`run17/test17/seed1`, `seed2`; run17s, run17, run16dh pod A–C, dwie rundy po 6 sędziów; pary z run17: `joint_score17.py`).
+
+  | model | MG ciężkie (r1 / r2, na 80) | MG pary z run17 | rozmowy ciężkie (r1 / r2) | ocena 1–5 | rozmowy pary z run17 |
+  |---|---|---|---|---|---|
+  | run17s | **6 / 6** | 25 / 10, p=0.017 | 26 / 27 | 3.19 | 36 / 36 |
+  | run17 | 16 / 14 | — | 28 / 26 | 3.30 | — |
+  | run16dh | 8 / 6 | 23 / 12 | 28 / 27 | 3.26 | 36 / 37 |
+
+  - **Samo ziarno zmienia MG 2,5×** (30 → 12 ciężkich na 160, istotnie), a rozmowy wcale (53 vs 54). Słaby MG run17 z 22.10 był więc pechem treningu, nie danymi ani przepisem; podobnie „połowa” run16dh mogła być szczęśliwym ziarnem. Różnice MG między pojedynczymi treningami rzędu ±15 ciężkich na 160 (albo ±10 na 324 rundy test18) nie świadczą o niczym — w tym run19 vs run18.
+  - Wniosek na przyszłość: przy treningach ważnych dla MG trenować 2 ziarna i wybierać lepsze w ślepej ocenie MG (koszt ~5 h GPU), a różnice w rozmowach oceniać dopiero powyżej ±15 ciężkich na 96 rozmów.
