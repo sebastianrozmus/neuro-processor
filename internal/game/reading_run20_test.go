@@ -367,3 +367,16 @@ func TestCurseOverWaresFromRun20(t *testing.T) {
 		t.Errorf("a plain price to a prude: %s, %q", decision.Mood, narrate.Hint)
 	}
 }
+
+// "Dobra, w drogę" sets off with a companion as "dobra, ruszamy" does.
+func TestCompanionSetsOffFromRun20(t *testing.T) {
+	for text, want := range map[string]bool{
+		"dobra, ruszamy": true, "dobra, jedziemy dalej": true, "dobra, w drogę": true, "w drogę": true, "ruszajmy": true, "czas w drogę": true,
+		"jedziemy": true, "dobra, idziemy": true, "w drogę do krypty?": false, "jedziemy na krypty?": false, "gdzie jedziemy": false,
+		"przygotuj się w drogę": false, "nie jedziemy": false, "w drogę do Kurhanów idziesz sam": false, "kiedy w drogę": false,
+	} {
+		if got := moving(text); got != want {
+			t.Errorf("moving(%q) = %v", text, got)
+		}
+	}
+}

@@ -306,9 +306,11 @@ func halfOf(words []string, request InterpretRequest, item string) (int, bool) {
 }
 
 // moveVerbs end a word to a companion with setting off: "dobra, ruszamy",
-// "idziemy dalej". Fillers may follow them.
+// "idziemy dalej", "jedziemy". Fillers may follow them. "W drogę" sets off
+// alone or after a word of assent: "dobra, w drogę", "czas w drogę".
 var (
-	moveVerbs   = []string{"ruszamy", "ruszajmy", "idziemy", "chodzmy", "spadamy", "lecimy", "zwijamy", "zbieramy", "wyruszamy", "plyniemy", "odbijamy"}
+	moveVerbs   = []string{"ruszamy", "ruszajmy", "idziemy", "chodzmy", "spadamy", "lecimy", "zwijamy", "zbieramy", "wyruszamy", "wyruszajmy", "plyniemy", "odbijamy", "jedziemy", "jedzmy"}
+	moveAssent  = []string{"dobra", "dobrze", "no", "to", "ok", "okej", "wiec", "a", "zatem", "czas", "pora", "juz", "dalej", "ruszamy", "ruszajmy", "idziemy", "jedziemy", "wyruszamy"}
 	moveAsks    = []string{"dokad", "ktoredy", "gdzie", "kiedy", "jak", "czemu", "dlaczego", "po", "czy", "jesli", "gdy", "kiedys", "bez", "nie", "dopiero"}
 	moveFillers = []string{"dalej", "rano", "juz", "stad", "wiec", "no", "sie", "w", "droge", "teraz", "zaraz", "o", "swicie"}
 )
@@ -322,6 +324,11 @@ func moving(text string) bool {
 	words := strings.Fields(Fold(text))
 	if slices.ContainsFunc(words, func(word string) bool { return slices.Contains(askWords, word) || slices.Contains(moveAsks, word) }) {
 		return false
+	}
+
+	if n := len(words); n >= 2 && n <= 5 && words[n-2] == "w" && words[n-1] == "droge" &&
+		!slices.ContainsFunc(words[:n-2], func(word string) bool { return !slices.Contains(moveAssent, word) }) {
+		return true
 	}
 
 	for len(words) > 0 && slices.Contains(moveFillers, words[len(words)-1]) {
