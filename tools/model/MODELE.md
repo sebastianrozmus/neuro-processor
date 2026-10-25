@@ -775,3 +775,17 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
     | run19 | 7 | 4 / 5, p=1.0 | **13** | **3.60** | 33 / 21, p=0.13 | 7, 2 |
 
     MG po podziale rund: 5% rund z ciężkim błędem u obu. Rozmowy: run19 lekko lepszy (nieistotnie), pary dwóch rozmów: run19 więcej ciężkich (mała próba). Razem z 24.10: v3 nadal remis z v2.3, z lekkim plusem w rozmowach. Decyzja o bazie po run20 (v2 i v3 na tych samych danych). Gra zostaje na run18.
+
+- **25.10 wieczór: zastępca gemmy jako Umysł — LoRA na Bieliku 4.5B (`b45mind`) i Minitronie 7B (`m7mind`).** Dane `D:\neuro-train\bielik\mind20data` (minddata 908 + sq20-v2 347 = 1255 / 192), 2 epoki, lr 2e-4, r16, ziarno 7, Q5_K_M (`bielik/mindtrain2.sh`). Testy: sq20-v2 (53 pozycje), evalmind (63), mindeval (`tools/eval/out/mind-1026-*.jsonl`).
+
+  | | gemma3:4b | bielik45 | **b45mind** | minitron7 | **m7mind** |
+  |---|---|---|---|---|---|
+  | SelfNote: fakty nieugruntowane / FA | 52% / 11/11 | 55% / 11/11 | 4% / 3/11 | 13% / 10/11 | **0% / 3/11** |
+  | QuestHook FA / trafienia | 15/15 / 6/6 | 9/15 / 6/6 | 3/15 / 6/6 | 11/15 / 6/6 | **0/15 / 5/6** |
+  | Note FA / recall | 7/14 / 4/9 | 13/14 / 3/9 | 2/14 / 6/9 | 12/14 / 9/9 | **0/14 / 8/9** |
+  | Invent FA / recall | 10/14 / 5/6 | 0/14 / 0/6 | 0/14 / **0/6** | 8/14 / 6/6 | **0/14 / 6/6** |
+  | Interpret akcja / perswazja dokładnie | 40% / 40% | 30% / 20% | 75% / 50% | 80% / 50% | **95% / 75%** |
+  | VRAM / Note mediana | +4,0 GB / 1,2 s | +4,0 GB / 1,4 s | +4,0 GB / 1,1 s | +6,6 GB / 2,2 s | +6,6 GB / **0,5 s** |
+
+  - m7mind najlepszy we wszystkim; b45mind mieści się jak gemma, ale nigdy nie wymyśla towaru (za mało Invent w danych). Problem: run18 Q5 (8,8 GB) + m7mind (6,6 GB) ≈ 15,4 GB z 16 — z TTS za ciasno.
+  - W toku: `m7mindq4` (Q4_K_M, `bielik/q4m7.sh`) i po run20 testy + pomiar pamięci zestawów przy num_ctx 8192/4096 (`bielik/post20mind.sh`, `vram.py` → `minddata/vram.txt`). Pomysł jednego modelu do wszystkiego (run21 = dane run20 + Umysł): `D:\neuro-train\run21\PLAN.md` — wracamy po run20. Gra bez zmian (gemma), zmiana tylko za zgodą.
