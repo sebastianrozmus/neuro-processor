@@ -196,7 +196,9 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == name && intent.Action != ActionLeave {
 		paying = offersMoney(Fold(text))
 		action := ActionChat
-		if moving(text) {
+		// "wstawaj dzieciaku, jedziemy" to one who hates being called a
+		// kid is an insult first: they answer it before setting off.
+		if folded := Fold(text); moving(text) && !rude(folded) && !threatening(folded) && !r.stung(customer.shop, folded) {
 			action = ActionLeave
 		}
 

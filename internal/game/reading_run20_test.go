@@ -379,4 +379,21 @@ func TestCompanionSetsOffFromRun20(t *testing.T) {
 			t.Errorf("moving(%q) = %v", text, got)
 		}
 	}
+
+	// An insult with it is answered first: the talk goes on.
+	realm := partyRealm(t)
+	realm.world.Companions[0].Description = "Wścieka się, gdy ktoś nazywa go dzieciakiem."
+	hero := enlist(realm, "Ala")
+	realm.players[hero].gold = 500
+	do(realm, hero, "najmij bognę", "rozmawiaj z bogną")
+
+	for _, c := range []struct {
+		text string
+		want Outcome
+	}{{"wstawaj dzieciaku, jedziemy", OutcomeChat}, {"dobra, w drogę", OutcomeFarewell}} {
+		request, _ := realm.HaggleRequest(hero, c.text)
+		if decision, _, _ := realm.Haggle(hero, c.text, Read(request).Alone()); decision.Outcome != c.want {
+			t.Errorf("%q: %s, want %s", c.text, decision.Outcome, c.want)
+		}
+	}
 }
