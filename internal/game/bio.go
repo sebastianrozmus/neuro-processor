@@ -120,7 +120,8 @@ var (
 )
 
 // dropVocatives leaves out of a line the words of kin it calls somebody
-// by, keeping the rest as it was.
+// by, keeping the rest as it was, their punctuation too: "masz wnuki,
+// babko?" is still a question.
 func dropVocatives(line string) string {
 	tokens := strings.Fields(line)
 	kept := make([]string, 0, len(tokens))
@@ -133,11 +134,11 @@ func dropVocatives(line string) string {
 		}
 
 		set := index > 0 && strings.HasSuffix(tokens[index-1], ",") || index == 0 && strings.ContainsAny(token[len(token)-1:], ",!")
-		switch {
-		case slices.Contains(vocatives, folded) && !slices.Contains(vocativeBefore, before):
-			continue
-		case slices.Contains(commaVocatives, folded) && set:
-			continue
+		if slices.Contains(vocatives, folded) && !slices.Contains(vocativeBefore, before) || slices.Contains(commaVocatives, folded) && set {
+			token = strings.TrimLeftFunc(token, func(char rune) bool { return !strings.ContainsRune(".,!?;:", char) })
+			if token == "" {
+				continue
+			}
 		}
 
 		kept = append(kept, token)

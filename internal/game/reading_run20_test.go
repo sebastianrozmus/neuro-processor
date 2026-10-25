@@ -162,6 +162,8 @@ func TestVocativesAreNoFamilyFromRun20(t *testing.T) {
 		"masz dziecko?":             true,
 		"a twój syn gdzie?":         true,
 		"masz dzieci, dziecko?":     true,
+		"masz wnuki babko?":         true,
+		"a maz jakis byl, corko?":   true,
 	} {
 		if got := Private(text); got != want {
 			t.Errorf("Private(%q) = %v, want %v", text, got, want)
