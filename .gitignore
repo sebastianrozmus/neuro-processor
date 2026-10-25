@@ -18,3 +18,4 @@ tools/model/dpo-pairs*.jsonl
 tools/eval/talks/
 /neuro.exe
 /powershell
+unsloth_compiled_cache/
