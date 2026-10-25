@@ -324,7 +324,7 @@ func TestRescueFormsFromRun20(t *testing.T) {
 		t.Error("a declined name was not grounded")
 	}
 
-	if kin := cardKin("Była kopaczka. Nie znosi gwizdania, a jej syn Wit kopie w dalekich chodnikach. Ma córkę Zosię i brata, Radka."); !slices.Equal(kin, []string{"Wit", "Zosię", "Radka"}) {
+	if kin := cardKin("Była kopaczka. Nie znosi gwizdania, a jej syn Wit kopie w dalekich chodnikach. Ma córkę Zosię i brata, Radka. Bartosz, mąż Babki Smolnej.", "Babka Smolna"); !slices.Equal(kin, []string{"Wit", "Zosię", "Radka"}) {
 		t.Errorf("kin of the card = %q", kin)
 	}
 

@@ -198,7 +198,7 @@ func (r *Realm) QuestHookRequest(name, said, reply string) (QuestHookRequest, bo
 
 	// Kin the keeper's card names count as kin said: "Wit zszedł do
 	// Gnilnych Komór" from Stara Ruda, whose card has her son Wit.
-	kin := cardKin(r.world.Shops[customer.shop].Persona)
+	kin := cardKin(r.world.Shops[customer.shop].Persona, speaker)
 	personal := Personal(line, speaker) || Private(said) || len(known) > 0 ||
 		slices.ContainsFunc(kin, func(name string) bool { return personNamed(line+" "+said, name) })
 	if strings.TrimSpace(line) == "" || !personal || !r.danger(line) {
@@ -253,8 +253,9 @@ var kinCard = []string{
 }
 
 // cardKin lists the names of the kin a keeper's card tells of: the word
-// said with a capital right after a word of kin, "jej syn Wit kopie".
-func cardKin(card string) []string {
+// said with a capital right after a word of kin, "jej syn Wit kopie". The
+// speaker's own name is none: "mąż Babki Smolnej" is Babka Smolna herself.
+func cardKin(card, speaker string) []string {
 	var names []string
 
 	tokens := strings.Fields(card)
@@ -263,7 +264,7 @@ func cardKin(card string) []string {
 		next := strings.Trim(tokens[index+1], ".,;:!?()„”\"«»")
 		first, _ := utf8.DecodeRuneInString(next)
 
-		if slices.Contains(kinCard, folded) && !strings.ContainsAny(token, ".;:!?") && unicode.IsUpper(first) && len(next) >= minQueryWord && !slices.Contains(names, next) {
+		if slices.Contains(kinCard, folded) && !strings.ContainsAny(token, ".;:!?") && unicode.IsUpper(first) && len(next) >= minQueryWord && !slices.Contains(names, next) && !personNamed(speaker, next) {
 			names = append(names, next)
 		}
 	}
