@@ -471,6 +471,10 @@ func accusative(name string, feminine bool) string {
 		word = append(word[:last-1], 'ę', 'ż', 'a')
 	case lower == "ojciec":
 		word = append(word[:3], 'a')
+	case lower == "uczeń":
+		word = append(word[:3], 'n', 'i', 'a')
+	case lower == "szwagier":
+		word = append(word[:5], 'r', 'a')
 	case strings.HasSuffix(lower, "a"):
 		word[last] = 'ę'
 	case feminine:

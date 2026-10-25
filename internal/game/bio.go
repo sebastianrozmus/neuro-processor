@@ -416,7 +416,12 @@ func (r *Realm) SelfNoteRequest(name, said, reply string) (SelfNoteRequest, bool
 
 	_, line := speech.SplitMood(reply)
 
-	if strings.TrimSpace(line) == "" || len(r.bios[speaker]) >= maxBio || !Personal(line, speaker) && !Private(said) {
+	// Kin the card or the bio names count as kin said: "gdzie Rita?" to
+	// one who has told of her daughter Rita.
+	kin := cardKin(r.keeperCard(customer.shop) + " " + strings.Join(r.bioTexts(speaker), " "))
+	named := slices.ContainsFunc(kin, func(name string) bool { return personNamed(line+" "+said, name) })
+
+	if strings.TrimSpace(line) == "" || len(r.bios[speaker]) >= maxBio || !Personal(line, speaker) && !Private(said) && !named {
 		return SelfNoteRequest{}, false
 	}
 

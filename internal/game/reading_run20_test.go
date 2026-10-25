@@ -182,6 +182,17 @@ func TestVocativesAreNoFamilyFromRun20(t *testing.T) {
 	if _, ok := realm.QuestHookRequest(hero, "synu, masz coś na strach?", "[spokój] Na strach mam napar, dziecko, potwory nie straszne."); ok {
 		t.Error("a vocative asked the Mind for a rescue")
 	}
+
+	// Kin told of before are kin when named: "gdzie Rita?".
+	realm.remember("Jagna", "Jagna ma córkę Ritę, szabrowniczkę.", 1, hero)
+
+	if _, ok := realm.SelfNoteRequest(hero, "gdzie rita?", "[strach] Rita poszła na bagna po akumulatory, synu."); !ok {
+		t.Error("a daughter told of before was not read")
+	}
+
+	if _, ok := realm.SelfNoteRequest(hero, "gdzie bartek?", "[spokój] Bartek poszedł na bagna, synu."); ok {
+		t.Error("a stranger was read as kin")
+	}
 }
 
 // Questions about the keeper's body and past are private: told nothing,
@@ -289,7 +300,7 @@ func TestWholeNameWinsFromRun20(t *testing.T) {
 func TestRescueFormsFromRun20(t *testing.T) {
 	for name, want := range map[string]string{
 		"Paweł": "Pawła", "Rafi": "Rafiego", "Antoni": "Antoniego", "Ali": "Alego", "Antek": "Antka", "Marek": "Marka", "Jacek": "Jacka",
-		"Staś": "Stasia", "Maniek": "Mańka", "Michał": "Michała", "Daniel": "Daniela", "Gabriel": "Gabriela", "Wit": "Wita",
+		"Staś": "Stasia", "Maniek": "Mańka", "Michał": "Michała", "Daniel": "Daniela", "Gabriel": "Gabriela", "Wit": "Wita", "uczeń": "ucznia", "szwagier": "szwagra", "teść": "teścia",
 	} {
 		if got := accusative(name, rescueFeminine(name, "")); got != want {
 			t.Errorf("accusative(%q) = %q, want %q", name, got, want)
