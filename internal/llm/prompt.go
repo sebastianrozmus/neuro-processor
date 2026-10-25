@@ -300,6 +300,18 @@ func selfNotePrompt(request game.SelfNoteRequest) string {
 	return prompt.String()
 }
 
+// SelfNotePrompt is the system and user prompt the Mind gets for a SelfNote
+// request, as the game sends it: for scripted conversations and training
+// data (game.TestScripts).
+func SelfNotePrompt(request game.SelfNoteRequest) (system, user string) {
+	return selfNoteInstructions, selfNotePrompt(request)
+}
+
+// QuestHookPrompt is the system and user prompt of a QuestHook request.
+func QuestHookPrompt(request game.QuestHookRequest) (system, user string) {
+	return questHookInstructions, questHookPrompt(request)
+}
+
 func selfNoteSchema() map[string]any {
 	return object(map[string]any{
 		"facts": list(map[string]any{"type": "string"}),

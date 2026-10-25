@@ -18,26 +18,59 @@ import (
 // tools/eval/run.py. Run with NEURO_SCRIPT=in.jsonl NEURO_SCENARIOS=out.jsonl.
 // A line may carry the reply to remember in place of a stub: the next prompts
 // then follow from it, and the turn gets its full messages, as training data.
+//
+// A script may seed a long game's memory first:
+//
+//	"day": 3                                   the calendar
+//	"bio": {"Bogna Topór": ["Bogna ma brata Radka, kowala."]}
+//	                                           what speakers said of themselves before
+//	"rescue": {"keeper": "Halszka Nitownica", "person": "Zosia", "relation": "córka",
+//	           "monster": "...", "place": "...", "taker": "", "state": "open|freed|paid"}
+//
+// and a line with a reply may carry the Mind's labels:
+//
+//	"self": ["Bogna ma siostrę Wierę."]        what SelfNote should read; kept with LearnSelf
+//	"hook": {"found": true, "person": ...}     QuestHook label; a found hook opens the rescue
+//
+// A turn with a reply gets, when the game would ask the Mind (ui/game.go),
+// "selfnote": {"system", "user"} and "questhook": {"system", "user",
+// "monsters", "places"}, and "learned" (facts LearnSelf kept) and "spawned"
+// (what SpawnRescue told, "ODRZUCONE" when it refused).
 type script struct {
-	ID       string   `json:"id"`
-	Kind     string   `json:"kind"`
-	Note     string   `json:"note"`
-	World    string   `json:"world"`
-	Place    string   `json:"place"`
-	Hero     string   `json:"hero"`
-	Hour     string   `json:"hour"`
-	Talk     string   `json:"talk"`
-	Hire     []string `json:"hire"`
-	Gold     int      `json:"gold"`
-	Health   int      `json:"hp"`
-	Standing int      `json:"standing"`
-	Lines    []line   `json:"lines"`
+	ID       string              `json:"id"`
+	Kind     string              `json:"kind"`
+	Note     string              `json:"note"`
+	World    string              `json:"world"`
+	Place    string              `json:"place"`
+	Hero     string              `json:"hero"`
+	Hour     string              `json:"hour"`
+	Talk     string              `json:"talk"`
+	Hire     []string            `json:"hire"`
+	Gold     int                 `json:"gold"`
+	Health   int                 `json:"hp"`
+	Standing int                 `json:"standing"`
+	Day      int                 `json:"day"`
+	Bio      map[string][]string `json:"bio"`
+	Rescue   *rescueSeed         `json:"rescue"`
+	Lines    []line              `json:"lines"`
+}
+
+type rescueSeed struct {
+	Keeper   string `json:"keeper"`
+	Person   string `json:"person"`
+	Relation string `json:"relation"`
+	Monster  string `json:"monster"`
+	Place    string `json:"place"`
+	Taker    string `json:"taker"`
+	State    string `json:"state"`
 }
 
 type line struct {
-	Say    string       `json:"say"`
-	Reply  string       `json:"reply"`
-	Intent *game.Intent `json:"intent"`
+	Say    string          `json:"say"`
+	Reply  string          `json:"reply"`
+	Intent *game.Intent    `json:"intent"`
+	Self   []string        `json:"self"`
+	Hook   *game.QuestHook `json:"hook"`
 }
 
 // extraWorlds are the worlds in NEURO_WORLDS (a folder of world files, as
@@ -152,7 +185,7 @@ func TestScripts(t *testing.T) {
 
 		var s script
 		if err := json.Unmarshal(scanner.Bytes(), &s); err != nil {
-			t.Fatal(err)
+			t.Fatalf("%v: %s", err, scanner.Text()[:min(80, len(scanner.Text()))])
 		}
 
 		scenario := play(t, presets, s)
@@ -171,6 +204,10 @@ func play(t *testing.T, presets []world.Spec, s script) map[string]any {
 		}
 	}
 
+	if spec.Name == "" {
+		t.Fatalf("%s: no world %q", s.ID, s.World)
+	}
+
 	built, err := world.Build(spec)
 	if err != nil {
 		t.Fatal(err)
@@ -184,6 +221,21 @@ func play(t *testing.T, presets []world.Spec, s script) map[string]any {
 
 	hero := realm.Join(name, "")
 	must(t, s.ID, realm.Teleport(hero, s.Place))
+	realm.SetDay(s.Day)
+
+	for speaker, facts := range s.Bio {
+		kept, err := realm.SeedBio(hero, speaker, facts)
+		must(t, s.ID, err)
+
+		if kept != len(facts) {
+			t.Fatalf("%s: bio of %s: kept %d of %d", s.ID, speaker, kept, len(facts))
+		}
+	}
+
+	if r := s.Rescue; r != nil {
+		must(t, s.ID, realm.SeedRescue(hero, r.Keeper, r.Person, r.Relation, r.Monster, r.Place, r.Taker, r.State))
+	}
+
 	realm.SetGold(hero, s.Gold)
 	realm.SetHour(hero, s.Hour)
 	if s.Health > 0 {
@@ -238,9 +290,40 @@ func play(t *testing.T, presets []world.Spec, s script) map[string]any {
 
 		turns = append(turns, turn)
 		realm.HaggleRemember(hero, said.Say, reply)
+
+		if said.Reply != "" {
+			mind(realm, hero, said, turn)
+		}
 	}
 
 	return map[string]any{"id": s.ID, "kind": s.Kind, "note": s.Note, "system": system, "turns": turns}
+}
+
+// mind asks the Mind's tasks as the game asks them after a reply is
+// remembered (ui/game.go), and plays the labels the script gives.
+func mind(realm *game.Realm, hero string, said line, turn map[string]any) {
+	if note, ok := realm.SelfNoteRequest(hero, said.Say, said.Reply); ok {
+		system, user := llm.SelfNotePrompt(note)
+		turn["selfnote"] = map[string]string{"system": system, "user": user}
+
+		if said.Self != nil {
+			turn["learned"] = realm.LearnSelf(hero, note.Speaker, said.Self, said.Reply)
+		}
+	}
+
+	if ask, ok := realm.QuestHookRequest(hero, said.Say, said.Reply); ok {
+		system, user := llm.QuestHookPrompt(ask)
+		turn["questhook"] = map[string]any{"system": system, "user": user, "monsters": ask.Monsters, "places": ask.Places}
+
+		if said.Hook != nil && said.Hook.Found {
+			told, ok := realm.SpawnRescue(hero, ask.Speaker, *said.Hook, said.Reply)
+			turn["spawned"] = told
+
+			if !ok {
+				turn["spawned"] = "ODRZUCONE"
+			}
+		}
+	}
 }
 
 func must(t *testing.T, id string, err error) {
