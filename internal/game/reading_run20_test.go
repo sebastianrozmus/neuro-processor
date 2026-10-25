@@ -1,6 +1,7 @@
 package game
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -9,6 +10,78 @@ import (
 
 // Gaps the run20 data showed (D:\neuro-train\run20\STAN.md, 24.10), each
 // with the lines that must not trip the fix.
+
+// A speaker who has a seeded past and a rescue starts a script as a long
+// game would have them.
+func TestSeedsForScriptsFromRun20(t *testing.T) {
+	realm := testRealm(t)
+	hero := enlist(realm, "Ala")
+
+	if kept, err := realm.SeedBio(hero, "Jagna", []string{"Jagna ma córkę Zosię", "Jagna ma córkę Zosię."}); err != nil || kept != 1 {
+		t.Fatalf("seeded %d, %v", kept, err)
+	}
+
+	if _, err := realm.SeedBio(hero, "Nikt", []string{"Nikt ma brata."}); err == nil {
+		t.Error("a bio seeded for nobody")
+	}
+
+	if err := realm.SeedRescue(hero, "Jagna", "Zosia", "córka", "Szczur Polny", "Las", "", "open"); err != nil {
+		t.Fatal(err)
+	}
+
+	if job := realm.openRescue(1); job == nil || job.subject != "Zosia" || job.taker != hero || job.finished {
+		t.Fatalf("job = %+v", job)
+	}
+
+	realm.SetDay(5)
+	if realm.day != 5 {
+		t.Errorf("day = %d", realm.day)
+	}
+
+	// Paid before the talk: the keeper has it in her past, and no thanks
+	// are due in a talk that opens later.
+	paid := testRealm(t)
+	ola := enlist(paid, "Ola")
+	if err := paid.SeedRescue(ola, "Jagna", "Antek", "syn", "", "", "", "paid"); err != nil {
+		t.Fatal(err)
+	}
+
+	do(paid, ola, "idź do zielarki")
+
+	_, narrate, _ := paid.Haggle(ola, "co słychać?", Intent{Action: ActionChat})
+	if !strings.Contains(narrate.Lore, "Jagna odzyskała syna Antka: uwolniła go Ola.") || strings.Contains(narrate.Lore, "Dziękujesz") {
+		t.Errorf("lore after a paid rescue = %q", narrate.Lore)
+	}
+}
+
+// Freed and paid as the talk opens, the keeper thanks the hero in it.
+func TestThanksInThePayingTalkFromRun20(t *testing.T) {
+	realm := testRealm(t)
+	hero := enlist(realm, "Ala")
+
+	if err := realm.SeedRescue(hero, "Jagna", "Paweł", "brat", "", "", "", "freed"); err != nil {
+		t.Fatal(err)
+	}
+
+	do(realm, hero, "idź do zielarki")
+
+	if job := realm.quests[len(realm.quests)-1]; !job.paid {
+		t.Fatalf("not paid as the talk opened: %+v", job)
+	}
+
+	_, narrate, _ := realm.Haggle(hero, "dzień dobry", Intent{Action: ActionChat})
+	if !strings.Contains(narrate.Lore, "Gracz uwolniła twojego brata Pawła i odprowadziła go do domu. Dziękujesz z całego serca.") {
+		t.Errorf("lore in the paying talk = %q", narrate.Lore)
+	}
+
+	// Somebody else who walks in hears no thanks.
+	bob := enlist(realm, "Bob")
+	do(realm, bob, "idź do zielarki")
+
+	if _, narrate, _ := realm.Haggle(bob, "dzień dobry", Intent{Action: ActionChat}); strings.Contains(narrate.Lore, "Dziękujesz") {
+		t.Errorf("thanks to a stranger: %q", narrate.Lore)
+	}
+}
 
 // A question in one word of a family touches what the speaker said in
 // another: siblings and a brother, children and a son, a husband and a
@@ -206,5 +279,60 @@ func TestWholeNameWinsFromRun20(t *testing.T) {
 		if view := realm.View(hero).Shop; view == nil || view.Keeper != want {
 			t.Errorf("rozmawiaj z %s: %+v", query, view)
 		}
+	}
+}
+
+// A missing person is named in any form, sought in the right one, and a
+// keeper's kin from the card counts as kin said.
+func TestRescueFormsFromRun20(t *testing.T) {
+	for name, want := range map[string]string{
+		"Paweł": "Pawła", "Rafi": "Rafiego", "Antoni": "Antoniego", "Ali": "Alego", "Antek": "Antka", "Marek": "Marka", "Jacek": "Jacka",
+		"Staś": "Stasia", "Maniek": "Mańka", "Michał": "Michała", "Daniel": "Daniela", "Gabriel": "Gabriela", "Wit": "Wita",
+	} {
+		if got := accusative(name, rescueFeminine(name, "")); got != want {
+			t.Errorf("accusative(%q) = %q, want %q", name, got, want)
+		}
+	}
+
+	for _, c := range []struct {
+		text, person string
+		want         bool
+	}{
+		{"co z Antkiem?", "Antek", true}, {"Antka nie ma od tygodnia.", "Antek", true}, {"Pawła porwały topielce.", "Paweł", true},
+		{"o wnuka Rafiego się boję", "Rafi", true}, {"Witem się martwię", "Wit", true}, {"Antoni poszedł w las.", "Antek", false},
+		{"Marta poszła w las.", "Marek", false}, {"Zosia zaginęła.", "Zofia", false},
+	} {
+		if got := personNamed(c.text, c.person); got != c.want {
+			t.Errorf("personNamed(%q, %q) = %v", c.text, c.person, got)
+		}
+	}
+
+	if !RescueGrounded(QuestHook{Person: "Antek", Quote: "Antka porwały topielce"}, "Antka porwały topielce w lesie.", nil) {
+		t.Error("a declined name was not grounded")
+	}
+
+	if kin := cardKin("Była kopaczka. Nie znosi gwizdania, a jej syn Wit kopie w dalekich chodnikach. Ma córkę Zosię i brata, Radka."); !slices.Equal(kin, []string{"Wit", "Zosię", "Radka"}) {
+		t.Errorf("kin of the card = %q", kin)
+	}
+
+	realm := testRealm(t)
+	realm.world.Shops[1].Persona = "Zielarka. Jej syn Wit kopie w dalekich chodnikach."
+	hero := enlist(realm, "Ala")
+	do(realm, hero, "idź do zielarki")
+
+	if _, ok := realm.QuestHookRequest(hero, "co z witem?", "[strach] Zszedł do lasu i nie wrócił."); !ok {
+		t.Error("the card's son named by the player was not read")
+	}
+
+	if _, ok := realm.QuestHookRequest(hero, "co słychać?", "[strach] Wit zszedł do lasu i nie wrócił."); !ok {
+		t.Error("the card's son named in the line was not read")
+	}
+
+	if _, ok := realm.QuestHookRequest(hero, "co słychać?", "[strach] Bartek zszedł do lasu i nie wrócił."); ok {
+		t.Error("a stranger lost was read as kin")
+	}
+
+	if _, ok := realm.QuestHookRequest(hero, "co z witem?", "[radość] Kopie dalej, zdrów jak ryba."); ok {
+		t.Error("the son safe was read")
 	}
 }

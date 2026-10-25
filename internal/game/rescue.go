@@ -196,7 +196,11 @@ func (r *Realm) QuestHookRequest(name, said, reply string) (QuestHookRequest, bo
 		known = r.bioTexts(bio)
 	}
 
-	personal := Personal(line, speaker) || Private(said) || len(known) > 0
+	// Kin the keeper's card names count as kin said: "Wit zszedł do
+	// Gnilnych Komór" from Stara Ruda, whose card has her son Wit.
+	kin := cardKin(r.world.Shops[customer.shop].Persona)
+	personal := Personal(line, speaker) || Private(said) || len(known) > 0 ||
+		slices.ContainsFunc(kin, func(name string) bool { return personNamed(line+" "+said, name) })
 	if strings.TrimSpace(line) == "" || !personal || !r.danger(line) {
 		return QuestHookRequest{}, false
 	}
@@ -214,7 +218,57 @@ func RescueGrounded(hook QuestHook, line string, known []string) bool {
 	quote := bioKey(hook.Quote)
 
 	return quote != "" && strings.Contains(" "+bioKey(line)+" ", " "+quote+" ") &&
-		Matches(line+" "+strings.Join(known, " "), hook.Person)
+		personNamed(line+" "+strings.Join(known, " "), hook.Person)
+}
+
+// personNamed reports whether a text names a person in any form: every
+// word of the name is in it, maybe declined, "Antka" and "Antkiem" for
+// "Antek", "Pawła" for "Paweł", "Rafiego" for "Rafi".
+func personNamed(text, person string) bool {
+	words := strings.Fields(Fold(text))
+	matched := false
+
+	for _, part := range strings.Fields(Fold(person)) {
+		if len(part) < minQueryWord {
+			continue
+		}
+
+		if !slices.ContainsFunc(words, func(word string) bool { return word == part || formOf(word, part) }) {
+			return false
+		}
+
+		matched = true
+	}
+
+	return matched
+}
+
+// kinCard are the folded words of kin a card names somebody's relation
+// by, before their name: "jej syn Wit", "ma córkę Zosię".
+var kinCard = []string{
+	"syn", "syna", "synem", "synek", "synka", "corka", "corke", "corki", "coreczka", "coreczke", "brat", "brata", "bratem", "siostra", "siostre", "siostry",
+	"zona", "zone", "zony", "maz", "meza", "mezem", "ojciec", "ojca", "matka", "matke", "matki", "wnuk", "wnuka", "wnuczka", "wnuczke", "dziadek", "dziadka",
+	"babka", "babke", "babcia", "babcie", "bratanek", "bratanka", "bratanica", "siostrzeniec", "siostrzenca", "siostrzenica", "kuzyn", "kuzyna", "kuzynka", "kuzynke",
+	"narzeczony", "narzeczonego", "narzeczona", "narzeczonej", "wuj", "wuja", "wujek", "wujka", "ciotka", "ciotke", "przyjaciel", "przyjaciela", "przyjaciolka", "przyjaciolke",
+}
+
+// cardKin lists the names of the kin a keeper's card tells of: the word
+// said with a capital right after a word of kin, "jej syn Wit kopie".
+func cardKin(card string) []string {
+	var names []string
+
+	tokens := strings.Fields(card)
+	for index, token := range tokens[:max(0, len(tokens)-1)] {
+		folded := strings.TrimSpace(Fold(token))
+		next := strings.Trim(tokens[index+1], ".,;:!?()„”\"«»")
+		first, _ := utf8.DecodeRuneInString(next)
+
+		if slices.Contains(kinCard, folded) && !strings.ContainsAny(token, ".;:!?") && unicode.IsUpper(first) && len(next) >= minQueryWord && !slices.Contains(names, next) {
+			names = append(names, next)
+		}
+	}
+
+	return names
 }
 
 // SpawnRescue makes a job of the call for help a model heard in a
@@ -408,6 +462,10 @@ func accusative(name string, feminine bool) string {
 	lower := strings.ToLower(words[0])
 	last := len(word) - 1
 
+	// A soft consonant before a fleeting e softens what is left: "Maniek"
+	// is sought as "Mańka", "Czesiek" as "Cześka".
+	soft := map[rune]rune{'s': 'ś', 'z': 'ź', 'c': 'ć', 'n': 'ń'}
+
 	switch {
 	case lower == "mąż":
 		word = append(word[:last-1], 'ę', 'ż', 'a')
@@ -420,8 +478,23 @@ func accusative(name string, feminine bool) string {
 		word[last] = 'a'
 	case strings.HasSuffix(lower, "iec") && last > 3:
 		word = append(word[:last-2], 'c', 'a')
+	case strings.HasSuffix(lower, "iek") && last > 3 && soft[word[last-3]] != 0:
+		word = append(word[:last-3], soft[word[last-3]], 'k', 'a')
 	case strings.HasSuffix(lower, "ek") && last > 2:
 		word = append(word[:last-1], 'k', 'a')
+	// "Paweł" and "Gaweł" lose their e: "Pawła".
+	case strings.HasSuffix(lower, "eł") && last > 2:
+		word = append(word[:last-1], 'ł', 'a')
+	// A man's name in -i is declined like an adjective: "Rafiego",
+	// "Antoniego"; after an l the i goes: "Alego".
+	case strings.HasSuffix(lower, "li") && last > 1:
+		word = append(word[:last], []rune("ego")...)
+	case strings.HasSuffix(lower, "i") && last > 1:
+		word = append(word, []rune("ego")...)
+	// "Staś" and "Jaś" are sought as "Stasia" and "Jasia".
+	case strings.ContainsRune("śćńź", unicode.ToLower(word[last])) && last > 0:
+		hard := map[rune]rune{'ś': 's', 'ć': 'c', 'ń': 'n', 'ź': 'z'}
+		word = append(word[:last], hard[unicode.ToLower(word[last])], 'i', 'a')
 	case !strings.ContainsRune("aąeęiouóy", unicode.ToLower(word[last])):
 		word = append(word, 'a')
 	}

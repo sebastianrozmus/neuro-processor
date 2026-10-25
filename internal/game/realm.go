@@ -160,6 +160,9 @@ type talk struct {
 	// topic is the fact the player last asked about, so that "byłeś
 	// tam?" right after is still about it.
 	topic *Fact
+	// thanks is the rescue the keeper paid for as this talk opened: they
+	// thank the hero for it while it lasts.
+	thanks *quest
 }
 
 type monster struct {

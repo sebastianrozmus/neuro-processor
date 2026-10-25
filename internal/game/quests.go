@@ -210,6 +210,12 @@ func (r *Realm) offerQuest(customer *player, keeper int) {
 			r.tell(customer, fmt.Sprintf("Zlecenie od %s: %s. Podejmiesz się poleceniem «przyjmij».", r.shopSpec(keeper).Keeper, r.questText(job)))
 		case job.taker == customer.name && job.finished:
 			r.payQuest(customer, job)
+
+			// Paid as the talk opens, the keeper still has to thank the
+			// hero in it: the rescue is told to them for this talk.
+			if current := customer.talks[keeper]; current != nil && job.kind == questRescue {
+				current.thanks = job
+			}
 		case job.taker == customer.name:
 			r.tell(customer, "Twoje zlecenie stąd: "+r.questText(job)+". "+r.progress(job))
 		}
@@ -344,6 +350,10 @@ func (r *Realm) questLore(customer *player, keeper int) string {
 		default:
 			lines = append(lines, "Twoje zlecenie wziął już ktoś inny: "+job.taker+".")
 		}
+	}
+
+	if current := customer.talks[keeper]; current != nil && current.thanks != nil && current.thanks.paid {
+		lines = append(lines, r.rescueLore(customer, current.thanks))
 	}
 
 	return strings.Join(lines, "\n")
