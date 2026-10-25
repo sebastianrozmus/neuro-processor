@@ -754,3 +754,24 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
 
   - **Samo ziarno zmienia MG 2,5×** (30 → 12 ciężkich na 160, istotnie), a rozmowy wcale (53 vs 54). Słaby MG run17 z 22.10 był więc pechem treningu, nie danymi ani przepisem; podobnie „połowa” run16dh mogła być szczęśliwym ziarnem. Różnice MG między pojedynczymi treningami rzędu ±15 ciężkich na 160 (albo ±10 na 324 rundy test18) nie świadczą o niczym — w tym run19 vs run18.
   - Wniosek na przyszłość: przy treningach ważnych dla MG trenować 2 ziarna i wybierać lepsze w ślepej ocenie MG (koszt ~5 h GPU), a różnice w rozmowach oceniać dopiero powyżej ±15 ciężkich na 96 rozmów.
+
+- **25.10: silnik bb9e0c1 (8 luk z przygotowania run20), Umysł na zadaniach SelfNote/QuestHook, run18 vs run19 na test20.**
+  - Silnik (a741f90 → bb9e0c1, 12 commitów): zasiew biografii/zlecenia w TestScripts, rodziny słów w bioHint, pytania prywatne o ciało/przeszłość (wołacze „synu/córko” już nie uruchamiają Umysłu), biografia-miejsce znosi „nie wiesz nic o X”, `MatchesWhole` dla imion, biernik imion i Antek/Antka w zleceniach, podziękowanie w rozmowie z zapłatą, przekleństwo także przy towarze, „w drogę / jedziemy dalej” = wymarsz. Dane run20 przegrane na nowo (stare paczki run18 miały [GRA] sprzed a741f90: 230 zmian), 322 przykłady z innym promptem; Umysł sq20-v2 347/55/53; test20 bez zmian w liczbie.
+  - **Umysł bez dotrenowania** (`D:\neuro-train\bielik\minddata\sq20v2-*.score.txt`, 53 pozycje):
+
+    | model | SelfNote FA | fakty nieugruntowane | QuestHook FA | trafienia | VRAM | Note mediana |
+    |---|---|---|---|---|---|---|
+    | gemma3:4b | 11/11 | 52% | 15/15 | 21/21, 6/6 | +4,0 GB | 1,2 s |
+    | bielik45 | 11/11 | 55% | 9/15 | 21/21, 6/6 | +4,0 GB | 1,4 s |
+    | minitron7 | 10/11 | **13%** | 11/15 | 21/21, 6/6 | +6,6 GB | 2,2 s |
+    | bielik11v3 (goły v3 11B) | 10/11 | 25% | 10/15 | 21/21, 6/6 | +9,4 GB | 3,0 s |
+
+    Negatywy SelfNote to głównie powtórzenie znanego (biografia/karta) — łapie je też filtr w grze. Gemma zmyśla fakty spoza kwestii („blizny po bitwach”) i daje QuestHook przy każdej wzmiance o bliskim. v3 11B nie mieści się obok modelu rozmów; kandydat na Umysł: dotrenowany bielik45 lub minitron7 na minddata + sq20-v2.
+  - **run18 vs run19 na test20** (nowe światy, flagi gry `--history 12 --num-ctx 8192 --num-predict 220`, temp 0,7; ziarna 7 i 11 w ślepej ocenie, 9 sędziów; `run20/test20/blind1819`, `score20.py --anchor run18`):
+
+    | | MG ciężkie / 122 | MG pary (run19 lepszy / gorszy) | rozmowy ciężkie / 80 | ocena | rozmowy pary | pary rozmów: ciężkie / 16, sprzeczne |
+    |---|---|---|---|---|---|---|
+    | run18 | 6 | — | 17 | 3.40 | — | 2, 1 |
+    | run19 | 7 | 4 / 5, p=1.0 | **13** | **3.60** | 33 / 21, p=0.13 | 7, 2 |
+
+    MG po podziale rund: 5% rund z ciężkim błędem u obu. Rozmowy: run19 lekko lepszy (nieistotnie), pary dwóch rozmów: run19 więcej ciężkich (mała próba). Razem z 24.10: v3 nadal remis z v2.3, z lekkim plusem w rozmowach. Decyzja o bazie po run20 (v2 i v3 na tych samych danych). Gra zostaje na run18.
