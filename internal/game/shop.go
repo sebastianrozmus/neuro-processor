@@ -44,15 +44,29 @@ func (r *Realm) visit(visitor *player, what string, loud bool) int {
 
 	found := -1
 
-	if town >= 0 {
+	// A name said whole wins over one that only begins like it: "rozmawiaj
+	// z Szczepan" is Szczepan Rębacz, not Jędrek Szczęściarz.
+	shopBy := func(match func(name, query string) bool) int {
 		for index, shop := range r.world.Shops {
-			named := Matches(shop.Name, what) || Matches(shop.Keeper, what) || Matches(shopWords[shop.Kind], what)
+			named := match(shop.Name, what) || match(shop.Keeper, what) || match(shopWords[shop.Kind], what)
 			if named || (what == "" && len(r.world.Shops) == 1) {
-				found = index
-
-				break
+				return index
 			}
 		}
+
+		return -1
+	}
+
+	if town >= 0 {
+		found = shopBy(MatchesWhole)
+	}
+
+	if kind, ok := r.findMateBy(visitor, what, MatchesWhole); found < 0 && ok {
+		return r.talkToMate(visitor, kind)
+	}
+
+	if found < 0 && town >= 0 {
+		found = shopBy(Matches)
 	}
 
 	if found < 0 && caravan && namesCaravan(what) {

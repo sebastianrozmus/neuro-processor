@@ -179,3 +179,32 @@ func TestBioPlaceIsNoGapFromRun20(t *testing.T) {
 		t.Errorf("a past elsewhere: %q", narrate.Hint)
 	}
 }
+
+// A name said whole wins over one that only begins like it.
+func TestWholeNameWinsFromRun20(t *testing.T) {
+	for _, c := range []struct {
+		name, query string
+		want        bool
+	}{
+		{"Szczepan Rębacz", "Szczepan", true}, {"Szczepan Rębacz", "rębacza", true}, {"Jędrek Szczęściarz", "jędrka", true},
+		{"Jędrek Szczęściarz", "Szczepan", false}, {"Jędrek Szczęściarz", "szczę", false}, {"Bogna Topór", "bogną", true},
+	} {
+		if got := MatchesWhole(c.name, c.query); got != c.want {
+			t.Errorf("MatchesWhole(%q, %q) = %v", c.name, c.query, got)
+		}
+	}
+
+	realm := partyRealm(t)
+	realm.world.Shops[0].Keeper = "Jędrek Szczęściarz"
+	realm.world.Companions[0].Name = "Szczepan Rębacz"
+	hero := enlist(realm, "Ala")
+
+	for query, want := range map[string]string{"szczepan": "Szczepan Rębacz", "jędrkiem": "Jędrek Szczęściarz", "szczęściarzem": "Jędrek Szczęściarz", "zbrojownia": "Jędrek Szczęściarz", "wieszą": "Wiesza"} {
+		realm.CloseShop(hero)
+		do(realm, hero, "rozmawiaj z "+query)
+
+		if view := realm.View(hero).Shop; view == nil || view.Keeper != want {
+			t.Errorf("rozmawiaj z %s: %+v", query, view)
+		}
+	}
+}

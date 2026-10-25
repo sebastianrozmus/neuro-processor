@@ -75,6 +75,29 @@ func Matches(name, query string) bool {
 	return matched
 }
 
+// MatchesWhole is Matches by whole words: every meaningful word of the
+// query is a word of the name, maybe in another form. "Szczepan" is
+// "Szczepan Rębacz" and "Rębacza" too, but not "Jędrek Szczęściarz",
+// whose name only begins like it.
+func MatchesWhole(name, query string) bool {
+	nameWords := strings.Fields(Fold(name))
+	matched := false
+
+	for _, word := range strings.Fields(Fold(query)) {
+		if len(word) < minQueryWord {
+			continue
+		}
+
+		if !slices.ContainsFunc(nameWords, func(part string) bool { return part == word || formOf(word, part) }) {
+			return false
+		}
+
+		matched = true
+	}
+
+	return matched
+}
+
 // Stem returns the beginning of a folded word that its other grammatical
 // forms share.
 func Stem(word string) string {

@@ -205,20 +205,30 @@ func (r *Realm) recruitable(leader *player, kind int) bool {
 // findMate finds the companion a hero names among those waiting in the inn
 // here and those already following them.
 func (r *Realm) findMate(leader *player, what string) (int, bool) {
+	if kind, ok := r.findMateBy(leader, what, MatchesWhole); ok {
+		return kind, true
+	}
+
+	return r.findMateBy(leader, what, Matches)
+}
+
+// findMateBy is findMate with a way to match a name: by whole words
+// first, so that a name said whole wins over one that begins like it.
+func (r *Realm) findMateBy(leader *player, what string, match func(name, query string) bool) (int, bool) {
 	if what == "" {
 		return 0, false
 	}
 
 	if town := r.townOf(leader); town >= 0 {
 		for _, kind := range r.forHire(town) {
-			if Matches(r.world.Companions[kind].Name, what) {
+			if match(r.world.Companions[kind].Name, what) {
 				return kind, true
 			}
 		}
 	}
 
 	for _, member := range leader.party {
-		if Matches(member.spec().Name, what) {
+		if match(member.spec().Name, what) {
 			return member.kind, true
 		}
 	}
