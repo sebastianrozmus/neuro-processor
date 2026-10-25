@@ -1163,10 +1163,11 @@ func aside(text string) (string, bool) {
 		return "Gracz prosi o coś, czego twoja postać nie robi: wiersza, piosenki albo zadania nie dostanie. Odmów po swojemu, krótko i w roli, i nie spełniaj prośby nawet trochę.", true
 	case slices.ContainsFunc(griefWords, func(phrase string) bool { return strings.Contains(padded, " "+phrase) }):
 		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
-	case lossTold(strings.Fields(folded)):
-		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
+	// "jak zmarł pani mąż?" asks about the keeper's dead, not the player's.
 	case Private(text):
 		return privateHint, true
+	case lossTold(strings.Fields(folded)):
+		return "Gracz mówi o swojej stracie. Odpowiedz po swojemu ze współczuciem albo szorstko, jak każe charakter, najwyżej dwoma zdaniami. Nie podawaj plotek, nie polecaj towaru i nie odsyłaj go do nikogo.", true
 	case hasPhrase(folded, flirtWords) || praised(strings.Fields(folded)):
 		return "Gracz flirtuje albo prawi ci komplementy. Odpowiedz po swojemu, jak każe charakter: z wdziękiem, zmieszaniem albo kpiną, krótko; bez plotek i bez polecania towaru.", true
 	case hasPhrase(folded, jokeWords):
@@ -1186,8 +1187,11 @@ func aside(text string) (string, bool) {
 const privateHint = "Gracz pyta o twoje prywatne sprawy: rodzinę, bliskich, skąd jesteś, skąd blizna. Mów tylko to, co o tym jest w twojej karcie; jeśli nic tam nie ma, nie wymyślaj krewnych, zmarłych ani zdarzeń: zbądź to po swojemu, krótko, albo odwróć pytanie."
 
 // Private reports a question about the keeper's own life: family, where
-// they come from, the scar.
+// they come from, the scar, the body and the past. A word of kin the
+// player calls the keeper by is no question about family: "synu, ile za
+// miecz?".
 func Private(text string) bool {
+	text = dropVocatives(text)
 	folded := Fold(text)
 
 	return hasPhrase(folded, familyWords) || privateAsked(strings.Fields(folded), strings.Contains(text, "?") || asked(text))
@@ -1207,8 +1211,46 @@ var (
 	mineWords = []string{"moj", "moja", "moje", "moi", "mojego", "mojej", "moim", "moich", "mojemu", "nasz", "nasza", "nasze", "naszego", "naszej"}
 	// lifeWords ask about the keeper's own road: where from, who taught
 	// them, why they ran or were thrown out, what they miss.
-	lifeWords = []string{"skad jestes", "skad pochodzisz", "skad uciekles", "skad uciekla", "skad ucieklas", "kto cie uczyl", "kto cie nauczyl", "kto cie zrobil", "kto cie stworzyl", "za co cie wyrzucili", "czemu cie wyrzucili", "dlaczego cie wyrzucili", "ile masz lat", "ile ty masz lat", "tesknisz", "teskni pan", "teskni pani"}
+	lifeWords = []string{"skad jestes", "skad pochodzisz", "skad uciekles", "skad uciekla", "skad ucieklas", "kto cie uczyl", "kto cie nauczyl", "kto cie zrobil", "kto cie stworzyl", "za co cie wyrzucili", "czemu cie wyrzucili", "dlaczego cie wyrzucili", "ile masz lat", "ile ty masz lat", "tesknisz", "teskni pan", "teskni pani",
+		// who they really are and how they came here
+		"jak sie naprawde nazywasz", "jak naprawde sie nazywasz", "jak sie pan naprawde nazywa", "jak sie pani naprawde nazywa", "twoje prawdziwe imie", "prawdziwe imie", "jak cie nazywali", "jak cie wolali", "jak na ciebie wolali",
+		"skad sie tu wziales", "skad sie tu wzielas", "skad sie wziales", "skad sie wzielas", "skad sie pan tu wzial", "skad sie pani tu wziela", "jak tu trafiles", "jak tu trafilas", "kim byles", "kim bylas", "gdzie sie urodziles", "gdzie sie urodzilas", "gdzie sie pan urodzil", "gdzie sie pani urodzila", "gdzie sie wychowales", "gdzie sie wychowalas",
+		"czemu uciekles", "czemu ucieklas", "dlaczego uciekles", "dlaczego ucieklas", "czemu pan uciekl", "czemu pani uciekla",
+		// what happened to them: "jak oślepłeś?", "spadłaś kiedyś?"
+		"jak osleples", "jak oslepl", "jak straciles", "jak stracilas", "jak pan stracil", "jak pani stracila", "spadles kiedys", "spadlas kiedys", "kiedys spadles", "kiedys spadlas",
+		"czemu kulejesz", "czemu utykasz", "prawie nie widzi", "czemu nie widzisz", "czemu sie jakasz", "czemu zawsze w masce", "czemu nie zdejmujesz",
+	}
+	// bodyWords name a part of the keeper's body: "co z twoją ręką?" asks
+	// about their past, "masz coś na oczy?" about a ware. bodyAsks make it
+	// the keeper's body; bodyWares before the word make it a ware's use.
+	bodyWords = []string{"reka", "reki", "reke", "rece", "rekami", "rekach", "rekoma", "oko", "oka", "oku", "okiem", "oczy", "oczu", "oczami", "oczach",
+		"kolano", "kolana", "kolanem", "kolanie", "noga", "nogi", "noge", "nodze", "nogami", "twarz", "twarza", "twarzy", "palec", "palca", "palce", "palcami", "palcow",
+		"ucho", "ucha", "uszy", "uchem", "zab", "zeba", "zeby", "zebow", "maska", "maski", "maske", "masce", "szrama", "szrame", "szramy", "plecy", "plecami"}
+	bodyAsks  = []string{"twoj", "twoja", "twoje", "twoim", "twoich", "twojego", "twojej", "ci", "pani", "panu", "czemu", "dlaczego", "skad", "stalo"}
+	bodyWares = []string{"na", "do", "od", "dla", "przeciw", "ochrony", "bol", "bolu"}
 )
+
+// bodyAsked reports a question about the keeper's body: "co z twoim
+// kolanem?", "co się stało z ręką?", "czemu ci się trzęsą ręce?". A ware
+// for the body is no such question: "masz coś na ból ręki?".
+func bodyAsked(words []string) bool {
+	for index, word := range words {
+		if !slices.Contains(bodyWords, word) {
+			continue
+		}
+
+		if slices.ContainsFunc(words[max(0, index-2):index], func(before string) bool { return slices.Contains(bodyWares, before) }) {
+			return false
+		}
+
+		text := " " + strings.Join(words, " ") + " "
+		if slices.ContainsFunc(words, func(word string) bool { return slices.Contains(bodyAsks, word) }) || strings.Contains(text, " co z ") {
+			return true
+		}
+	}
+
+	return false
+}
 
 // privateAsked reports a question about the keeper's own life in any
 // word order: "a rodzinę jakąś masz?", "skąd ty w ogóle jesteś?", "a
@@ -1231,6 +1273,10 @@ func privateAsked(words []string, question bool) bool {
 
 	// "mąż" folds like "maź": only the word itself.
 	if slices.ContainsFunc(words, stem(kinStems)) || slices.Contains(words, "maz") && question {
+		return true
+	}
+
+	if bodyAsked(words) && !tradeAsked(strings.Join(words, " ")) {
 		return true
 	}
 

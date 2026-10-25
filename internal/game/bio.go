@@ -3,6 +3,7 @@ package game
 import (
 	"context"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"unicode"
@@ -71,12 +72,13 @@ var (
 
 // Personal reports whether a speaker's line talks about their own life,
 // worth asking the Mind about. The speaker's own name is no cue: "Brat
-// Jaromir" says nothing of a brother, "mój brat" does.
+// Jaromir" says nothing of a brother, "mój brat" does; nor is a word of
+// kin the speaker calls the player by: "bierz, synu" has no son in it.
 func Personal(line, speaker string) bool {
 	name := strings.Fields(Fold(speaker))
 
 	var words []string
-	for _, word := range strings.Fields(line) {
+	for _, word := range strings.Fields(dropVocatives(line)) {
 		folded := strings.Fields(Fold(word))
 		if len(folded) == 0 {
 			continue
@@ -100,6 +102,121 @@ func Personal(line, speaker string) bool {
 	return slices.ContainsFunc(personalPhrases, func(phrase string) bool { return strings.Contains(padded, " "+phrase) })
 }
 
+// Words of kin that call the one spoken to, folded: "synu", "córko",
+// "dziecino". Said by a keeper to the player, or by the player to a
+// keeper, they say nothing of anybody's family. vocatives are such words
+// unless a preposition or a possessive stands before them ("o synu",
+// "po moim synu" tell of a son); commaVocatives only when set off by a
+// comma, as "dziecko" and "bracie" are also a child and a brother: "masz
+// dziecko?", "o bracie".
+var (
+	vocatives = []string{
+		"synu", "synku", "synus", "synusiu", "corko", "coreczko", "coruchno", "corus", "dziecino", "dziecie", "dzieciatko", "dzieciaku",
+		"siostro", "siostrzyczko", "braciszku", "bratku", "ojcze", "matko", "mamo", "mamusiu", "tato", "tatku", "tatusiu",
+		"babciu", "babuniu", "babko", "dziadku", "dziadziu", "wnusiu", "wnuczku", "wnuczko",
+	}
+	commaVocatives = []string{"dziecko", "bracie"}
+	vocativeBefore = []string{"o", "po", "przy", "w", "na", "moim", "twoim", "swoim", "naszym", "waszym", "jej", "jego", "mym"}
+)
+
+// dropVocatives leaves out of a line the words of kin it calls somebody
+// by, keeping the rest as it was.
+func dropVocatives(line string) string {
+	tokens := strings.Fields(line)
+	kept := make([]string, 0, len(tokens))
+
+	for index, token := range tokens {
+		folded := strings.TrimSpace(Fold(token))
+		before := ""
+		if index > 0 {
+			before = strings.TrimSpace(Fold(tokens[index-1]))
+		}
+
+		set := index > 0 && strings.HasSuffix(tokens[index-1], ",") || index == 0 && strings.ContainsAny(token[len(token)-1:], ",!")
+		switch {
+		case slices.Contains(vocatives, folded) && !slices.Contains(vocativeBefore, before):
+			continue
+		case slices.Contains(commaVocatives, folded) && set:
+			continue
+		}
+
+		kept = append(kept, token)
+	}
+
+	return strings.Join(kept, " ")
+}
+
+// kinFamilies gather the folded words of one side of a speaker's life,
+// so that a question in one word touches a fact told in another: "masz
+// rodzeństwo?" the brother, "ma pani dzieci?" the son, "mąż żyje?" the
+// widow, "skąd jesteś?" the village born in. A word ending in * is a
+// beginning, any other a whole word. "rodzin*" (a family) touches every
+// family of kin, and "rodzinn*" (a home village) where one comes from.
+var kinFamilies = [][]string{
+	{"rodzenstw*", "brat", "brata", "bratem", "bratu", "bracia", "braci", "bracmi", "braciszk*", "siostr*"},
+	{"dzieci", "dziecmi", "dzieciom", "dzieciach", "dzieck*", "potomk*", "potomstw*", "syn", "syna", "synem", "synu", "synowi", "synowie",
+		"synow", "synami", "synek", "synka", "synkiem", "synkowi", "corka", "corki", "corke", "corce", "corek", "corkami", "corkom", "coreczk*"},
+	{"maz", "meza", "mezem", "mezu", "mezowi", "zona", "zony", "zone", "zonie", "zonka", "zonke", "zonaty", "zonata", "wdow*", "malzon*", "malzen*", "zamezn*"},
+	{"rodzic*", "ojciec", "ojca", "ojcu", "ojcem", "ojcze", "tata", "taty", "tate", "tacie", "tato", "tatus*", "matk*", "matce", "mama", "mamy",
+		"mame", "mamie", "mamo", "mamus*"},
+	{"skad", "pochodz*", "urodz*", "rodem", "rodzinn*", "wychow*"},
+}
+
+// kinFamily is the family of a folded word: an index of kinFamilies, -2
+// for a word of the whole family, -1 for none.
+func kinFamily(word string) int {
+	if strings.HasPrefix(word, "rodzin") && !strings.HasPrefix(word, "rodzinn") {
+		return -2
+	}
+
+	for index, family := range kinFamilies {
+		if slices.ContainsFunc(family, func(entry string) bool {
+			if stem, ok := strings.CutSuffix(entry, "*"); ok {
+				return strings.HasPrefix(word, stem)
+			}
+
+			return word == entry
+		}) {
+			return index
+		}
+	}
+
+	return -1
+}
+
+// kinShared reports whether a question and a fact speak of one side of a
+// speaker's life, each in its own words. The speaker's name is skipped:
+// "Brat Jaromir" has no brother in it.
+func kinShared(text, other string, skip []string) bool {
+	families := map[int]bool{}
+
+	for _, word := range strings.Fields(Fold(text)) {
+		if family := kinFamily(word); family != -1 && !slices.Contains(skip, word) {
+			families[family] = true
+		}
+	}
+
+	if len(families) == 0 {
+		return false
+	}
+
+	for _, word := range strings.Fields(Fold(other)) {
+		family := kinFamily(word)
+		if family == -1 || slices.Contains(skip, word) {
+			continue
+		}
+
+		// A family in general touches any kin, not where one comes from.
+		origin := len(kinFamilies) - 1
+		kin := families[-2] || slices.ContainsFunc(slices.Collect(maps.Keys(families)), func(f int) bool { return f >= 0 && f != origin })
+		if families[family] || family == -2 && kin || family >= 0 && family != origin && families[-2] {
+			return true
+		}
+	}
+
+	return false
+}
+
 // bioPlainWords are words too common to ground a fact in a line.
 var bioPlainWords = []string{
 	"jest", "byla", "bylo", "byli", "byly", "bedzie", "mial", "miala", "mialo", "mieli", "miec", "masz", "mowi", "mowil", "mowila",
@@ -114,7 +231,8 @@ func bioContent(text string, skip []string) []string {
 	var words []string
 
 	for _, word := range strings.Fields(Fold(text)) {
-		if (len(word) > minQueryWord || isDigits(word)) && !slices.Contains(bioPlainWords, word) && !slices.Contains(skip, word) {
+		// A short word of kin means as much as a long one: "syn", "mąż".
+		if (len(word) > minQueryWord || isDigits(word) || kinFamily(word) >= 0) && !slices.Contains(bioPlainWords, word) && !slices.Contains(skip, word) {
 			words = append(words, word)
 		}
 	}
@@ -361,7 +479,7 @@ func (r *Realm) bioHint(speaker, text string) string {
 	var touched []string
 
 	for _, fact := range r.bios[speaker] {
-		if shares(text, fact.text, skip) {
+		if shares(text, fact.text, skip) || kinShared(text, fact.text, skip) {
 			touched = append(touched, fact.text)
 		}
 	}
