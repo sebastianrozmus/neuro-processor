@@ -231,9 +231,10 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	// A curse said to no one is no insult, but one who cannot stand
 	// swearing bristles at it: told "spokojna", the model sharpened a nun's
 	// "Przy mnie nie przeklinaj" into [gniew] on its own. The talk and the
-	// standing go on as they were; only the mood of this turn changes.
-	cursed := !threat && !insult && r.cursedAt(customer.shop, text)
-	if cursed && decision.Outcome == OutcomeChat && (decision.Mood == MoodCalm || decision.Mood == MoodPleased || decision.Mood == MoodImpatient) {
+	// standing go on as they were; only the mood of this turn changes,
+	// whatever the line is about: "o kurwa, ile?" asks a price and swears.
+	cursed := !threat && !insult && r.cursedAt(customer.shop, text) && decision.Outcome != OutcomeInsulted
+	if cursed && (decision.Mood == MoodCalm || decision.Mood == MoodPleased || decision.Mood == MoodImpatient) {
 		decision.Mood = MoodAnnoyed
 	}
 
@@ -326,7 +327,7 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 		}
 
 		request.Hint = "Gracz cię obraża. Odpowiedz " + hurt + ", zimno albo z gniewem; nie udawaj, że nic się nie stało. " + request.Hint
-	case cursed && (decision.Outcome == OutcomeChat || decision.Outcome == OutcomeFarewell):
+	case cursed:
 		request.Hint = strings.TrimSpace(curseHint + " " + request.Hint)
 	}
 

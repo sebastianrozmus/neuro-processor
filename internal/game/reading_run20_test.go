@@ -336,3 +336,34 @@ func TestRescueFormsFromRun20(t *testing.T) {
 		t.Error("the son safe was read")
 	}
 }
+
+// A prude bristles at a curse whatever the line is about.
+func TestCurseOverWaresFromRun20(t *testing.T) {
+	realm := testRealm(t)
+	realm.world.Shops[1].Persona = "Zielarka. Nie znosi przekleństw."
+	hero := enlist(realm, "Ala")
+	say := func(shop, text string) (Decision, NarrateRequest) {
+		realm.CloseShop(hero)
+		do(realm, hero, "idź do "+shop)
+		request, _ := realm.HaggleRequest(hero, text)
+		decision, narrate, _ := realm.Haggle(hero, text, Read(request).Alone())
+
+		return decision, narrate
+	}
+
+	for _, text := range []string{"o kurwa, ile za napar?", "kurde, co masz na rany?", "cholera, pokaż towar"} {
+		decision, narrate := say("zielarki", text)
+		if decision.Outcome == OutcomeChat || decision.Mood != MoodAnnoyed || !strings.HasPrefix(narrate.Hint, curseHint) {
+			t.Errorf("%q to a prude: %s %s, %q", text, decision.Outcome, decision.Mood, narrate.Hint)
+		}
+
+		decision, narrate = say("zbrojowni", text)
+		if decision.Mood == MoodAnnoyed || strings.Contains(narrate.Hint, "przeklina") {
+			t.Errorf("%q to the smith: %s, %q", text, decision.Mood, narrate.Hint)
+		}
+	}
+
+	if decision, narrate := say("zielarki", "ile za napar?"); decision.Mood == MoodAnnoyed || strings.Contains(narrate.Hint, "przeklina") {
+		t.Errorf("a plain price to a prude: %s, %q", decision.Mood, narrate.Hint)
+	}
+}
