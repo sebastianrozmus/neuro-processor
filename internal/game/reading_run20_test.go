@@ -146,3 +146,36 @@ func TestBodyAndPastArePrivateFromRun20(t *testing.T) {
 		t.Errorf("the player's loss: %q", got)
 	}
 }
+
+// What a keeper told of their own past is no gap to send the player off
+// about.
+func TestBioPlaceIsNoGapFromRun20(t *testing.T) {
+	realm := testRealm(t)
+	hero := enlist(realm, "Ala")
+	realm.add("Archiwum Zakazane", "Piwnice pod biblioteką, gdzie księgi przykuwa się łańcuchami.", "", 0)
+	do(realm, hero, "idź do zielarki")
+
+	_, narrate, _ := realm.Haggle(hero, "a archiwum zakazane? co tam jest?", Intent{Action: ActionChat})
+	if !strings.Contains(narrate.Hint, "odeślij go do osoby, która zna sprawę: Kowal") {
+		t.Fatalf("no referral without a past: %q", narrate.Hint)
+	}
+
+	realm.remember("Jagna", "Jagna przez lata sprzątała w Archiwum Zakazanym.", 1, hero)
+
+	_, narrate, _ = realm.Haggle(hero, "a archiwum zakazane? co tam jest?", Intent{Action: ActionChat})
+	if !strings.Contains(narrate.Hint, "To część twojej przeszłości; już o tym mówiłaś: Jagna przez lata sprzątała w Archiwum Zakazanym.") ||
+		strings.Contains(narrate.Hint, "odeślij") || strings.Contains(narrate.Lore, "Archiwum Zakazane (wie o tym") {
+		t.Errorf("hint with a past = %q, lore %q", narrate.Hint, narrate.Lore)
+	}
+
+	// A past elsewhere leaves the gap as it was.
+	other := testRealm(t)
+	ola := enlist(other, "Ola")
+	other.add("Archiwum Zakazane", "Piwnice pod biblioteką.", "", 0)
+	other.remember("Jagna", "Jagna sprzątała w Kolegium Feniksa.", 1, ola)
+	do(other, ola, "idź do zielarki")
+
+	if _, narrate, _ := other.Haggle(ola, "a archiwum zakazane? co tam jest?", Intent{Action: ActionChat}); !strings.Contains(narrate.Hint, "odeślij") {
+		t.Errorf("a past elsewhere: %q", narrate.Hint)
+	}
+}

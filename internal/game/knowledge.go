@@ -331,12 +331,12 @@ func (r *Realm) knownBy(keeper int) []*Fact {
 }
 
 // unknownTo lists facts a keeper lacks that some other keeper has, with
-// who to ask.
+// who to ask. What the keeper told of from their own past is no gap.
 func (r *Realm) unknownTo(keeper int) []string {
 	var gaps []string
 
 	for _, fact := range r.wisdom.facts {
-		if fact.known[keeper] {
+		if fact.known[keeper] || len(r.bioAbout(keeper, fact.Subject)) > 0 {
 			continue
 		}
 

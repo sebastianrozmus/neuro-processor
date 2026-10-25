@@ -709,7 +709,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		r.dwell(customer, best)
 
 		visit := ""
-		if visited(words) && !r.ownRoad(customer, best) {
+		if visited(words) && !r.ownRoad(customer, best) && len(r.bioAbout(customer.shop, best.Subject)) == 0 {
 			visit = fmt.Sprintf(" Gracz pyta, czy %s tam albo to %s: nie mów, że tak, jeśli twoja karta tego nie mówi; nie zmyślaj wizyt ani spotkań.", gendered(she, "byłeś", "byłaś"), gendered(she, "widziałeś", "widziałaś"))
 		}
 
@@ -718,6 +718,16 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 	if fact := gap; fact != nil {
 		r.dwell(customer, fact)
+
+		// One who told of copying books in the Archiwum Zakazane is not
+		// sent to ask about it: it is their own past.
+		if told := r.bioAbout(customer.shop, fact.Subject); len(told) > 0 {
+			r.learn(customer, fact)
+
+			return fmt.Sprintf("Gracz mówi o: %s. To część twojej przeszłości; już o tym %s: %s Inni wiedzą o tym tyle: „%s”. Odpowiedz krótko jak ktoś, kto to zna z własnego życia; trzymaj się tego, co %s, nie zmyślaj szczegółów spoza tego i nie odsyłaj go do nikogo.",
+				fact.Subject, gendered(she, "mówiłeś", "mówiłaś"), strings.Join(told, " "), crumb(fact), gendered(she, "mówiłeś", "mówiłaś")), nil, true
+		}
+
 		if kind, ok := r.mateOf(customer.shop); ok {
 			// Gniewomir came back from the crypts and Iskra lived through
 			// the Krater: their own past is no rumour heard at the inn,
@@ -848,6 +858,26 @@ func followUp(words []string, fact *Fact) bool {
 	}
 
 	return true
+}
+
+// bioAbout lists what the keeper of a talk said of themselves that names
+// a subject: "Ezdrasz przepisywał księgi w Archiwum Zakazanym" names the
+// Archiwum Zakazane. The people of a case have no bio, so none.
+func (r *Realm) bioAbout(keeper int, subject string) []string {
+	speaker, ok := r.bioName(keeper)
+	if !ok {
+		return nil
+	}
+
+	var told []string
+
+	for _, fact := range r.bios[speaker] {
+		if whole(strings.Fields(Fold(fact.text)), r.calledBy(subject)) {
+			told = append(told, fact.text)
+		}
+	}
+
+	return told
 }
 
 // lead is a fact a keeper sent the player to somebody else about.
