@@ -249,7 +249,7 @@ var kinCard = []string{
 	"syn", "syna", "synem", "synek", "synka", "corka", "corke", "corki", "coreczka", "coreczke", "brat", "brata", "bratem", "siostra", "siostre", "siostry",
 	"zona", "zone", "zony", "maz", "meza", "mezem", "ojciec", "ojca", "matka", "matke", "matki", "wnuk", "wnuka", "wnuczka", "wnuczke", "dziadek", "dziadka",
 	"babka", "babke", "babcia", "babcie", "bratanek", "bratanka", "bratanica", "siostrzeniec", "siostrzenca", "siostrzenica", "kuzyn", "kuzyna", "kuzynka", "kuzynke",
-	"narzeczony", "narzeczonego", "narzeczona", "narzeczonej", "wuj", "wuja", "wujek", "wujka", "ciotka", "ciotke", "przyjaciel", "przyjaciela", "przyjaciolka", "przyjaciolke",
+	"narzeczony", "narzeczonego", "narzeczona", "narzeczonej", "blizniak", "blizniaka", "blizniaczka", "blizniaczke", "wuj", "wuja", "wujek", "wujka", "ciotka", "ciotke", "przyjaciel", "przyjaciela", "przyjaciolka", "przyjaciolke",
 }
 
 // cardKin lists the names of the kin a keeper's card tells of: the word
