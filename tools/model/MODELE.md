@@ -814,5 +814,5 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
 
   - Każdy dwuepokowy SFT na 11B (run14, run18, run19, run20v2) ma minimum eval_loss na końcu 1. epoki, a w 2. wzrost o 0,03–0,05. Ślepe oceny nie potwierdziły jednak, że checkpoint po 1. epoce („h”) jest lepszy (run19h gorszy w rozmowach, 24.10); niższa strata ≠ lepsze rozmowy.
   - v3 ma w każdym punkcie stratę niższą o 0,02–0,04 niż v2.3 na tych samych danych (run19 vs run18, run20v3 vs run20v2 na 1/4 epoki: 0.936 vs 0.953), a w ślepych ocenach dotąd remis.
-  - DPO prawie nie rusza straty przy 135–228 parach (0.693 → 0.68), za to przy run12 (362 pary) spadła do 0.09 — ale run12 spłaszczył charakter.
+  - DPO prawie nie rusza straty przy 135–228 parach (0.693 → 0.68), za to przy run12 (542 pary, lr 5e-5) spadła do 0.09 przy trafności 97% — tam pary różniły się wyraźnie (krótsze, z mocniejszym znacznikiem emocji).
   - Czas: 11B na RTX 4060 Ti ok. 30–40 s/krok przy max-len 4096; GGUF zapisywany na G: dokładał 1 h 15 min na model (stąd zakaz zapisu na G: w trakcie treningu), na E:/WSL ok. 20–35 min.
