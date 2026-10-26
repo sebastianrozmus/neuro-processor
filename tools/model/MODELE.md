@@ -789,3 +789,30 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
 
   - m7mind najlepszy we wszystkim; b45mind mieści się jak gemma, ale nigdy nie wymyśla towaru (za mało Invent w danych). Problem: run18 Q5 (8,8 GB) + m7mind (6,6 GB) ≈ 15,4 GB z 16 — z TTS za ciasno.
   - W toku: `m7mindq4` (Q4_K_M, `bielik/q4m7.sh`) i po run20 testy + pomiar pamięci zestawów przy num_ctx 8192/4096 (`bielik/post20mind.sh`, `vram.py` → `minddata/vram.txt`). Pomysł jednego modelu do wszystkiego (run21 = dane run20 + Umysł): `D:\neuro-train\run21\PLAN.md` — wracamy po run20. Gra bez zmian (gemma), zmiana tylko za zgodą.
+
+- **26.10: zestawienie strat i czasów treningów na PC (uzupełnione z `trainer_state.json` w checkpointach i z logów kolejek `D:\neuro-train\*\*.log`).** Od teraz każdy wpis o treningu podaje te same pola. eval_loss co 1/4 epoki; **pogrubiona** = najniższa. „Do Ollamy” = od startu treningu do rejestracji (scalenie + GGUF). Straty porównywalne wprost tylko w obrębie grupy z tym samym zbiorem sprawdzającym (kolumna „walid.”); tokenizery v2.3 i v3 są zgodne (24.10), więc w parach run18/run19 i run20v2/run20v3 porównanie jest uczciwe.
+
+  | model | baza / rodzaj | walid. | kroki (epoki) | s/krok | trening | do Ollamy | eval_loss | strata treningowa (pierwsza → ostatnia) |
+  |---|---|---|---|---|---|---|---|---|
+  | run8 | Minitron 7B, SFT | run7 | 778 (2) | ~18 | ~4 h | — | 0.885 → 0.815 → 0.782 → **0.753** → … 0.760 | 1.68 → ~0.66 |
+  | run12 | run11, DPO | pary | 65 (1) | ~107 | 119 min | — | 0.258 → 0.116 → 0.092 → **0.089** (strata DPO) | 0.694 → 0.042 |
+  | run13 | run12h, DPO | pary | 72 (1) | ~79 | ~1,6 h | +2,5 h (GGUF na G:) | 0.484 → 0.288 → 0.242 → **0.238** | 0.693 → 0.201 |
+  | run14 / run14h | v2.3, SFT | run14 | 790 (2) | 30,2 | 391 min | 6 h 53 min | 0.958 → 0.915 → 0.887 → **0.871** (= run14h) → 0.921 → 0.913 → 0.913 → 0.911 | 1.52 → 0.50 |
+  | run15 | v2.3, SFT | run15 | 354 (1) | 34,9 | 204 min | 3 h 43 min | 0.995 → 0.940 → 0.912 → 0.892 → 0.879 → 0.869 → **0.863** | 1.27 → 0.81 |
+  | run16 | v2.3, SFT | run16 | 425 (1) | 38,2 | 4 h 25 min | ~4 h 40 min | 1.002 → 0.952 → 0.919 → 0.905 → 0.885 → 0.875 → 0.871 → **0.869** | 1.31 → 0.73 |
+  | run16d / dh | run16, DPO | pary | 17 (1) | ~99 | ~0,5 h | +1 h 14 min na każdy GGUF (G:) | 0.689 → 0.688 → 0.682 → **0.678** | 0.694 → 0.692 |
+  | run17 | v2.3, SFT | run17 | 481 (1) | 40,0 | ~5,3 h | 5 h 33 min | 0.902 → 0.864 → 0.843 → 0.822 → 0.812 → 0.803 → 0.796 → **0.794** | 1.27 → 0.80 |
+  | run17d / dh | run17, DPO | pary | 29 (1) | ~79 | ~0,6 h | +1 h 18 min na każdy GGUF (G:) | 0.691 → 0.682 → 0.678 → 0.682 → **0.675** | 0.693 → 0.681 |
+  | run17s | v2.3, SFT, ziarno 18 | run17 | 481 (1) | 39,7 | ~5,3 h | 5 h 32 min | 0.902 → 0.863 → 0.840 → 0.821 → 0.805 → 0.798 → 0.794 → **0.793** | 1.36 → 0.73 |
+  | b45gm | Bielik 4.5B, SFT tylko MG | b45gm | 192 (2) | 8,7 | ~0,5 h | 58 min | 1.068 → 0.973 → 0.920 → 0.922 → 0.900 → 0.885 → 0.875 → **0.874** | 1.89 → 0.62 |
+  | run18 / run18h | v2.3, SFT | run18 | 1002 (2) | 36,2 | ~10,1 h | 10 h 21 min | 0.926 → 0.881 → 0.845 → **0.817** (= run18h) → 0.853 → 0.852 → 0.848 → 0.848 | 1.39 → 0.50 |
+  | run19 / run19h | v3, SFT | run18 | 1002 (2) | ~37 | ~10,2 h | 10 h 33 min | 0.895 → 0.841 → 0.824 → **0.798** → 0.829 → 0.820 → 0.815 → 0.815 | 1.43 → 0.53 |
+  | b45mind | Bielik 4.5B, SFT Umysł | mind20 | 314 (2) | 9,2 | ~0,8 h | 1 h 5 min (baza z G:) | 0.108 → 0.098 → 0.076 → 0.073 → 0.071 → 0.071 → **0.067** → 0.067 | 0.89 → 0.03 |
+  | m7mind | Minitron 7B, SFT Umysł | mind20 | 314 (2) | 10,3 | ~0,9 h | 1 h 7 min | 0.079 → 0.062 → 0.054 → 0.053 → **0.047** → 0.048 → 0.047 → 0.048 | 0.48 → 0.02 |
+  | run20v2 | v2.3, SFT, ziarno 7 | run20 | 1108 (2) | 37,0 (32,7 bez kopiowania w tle) | ~11,4 h | 11 h 55 min | 0.953 → 0.899 → 0.870 → **0.853** → 0.889 → 0.885 → 0.881 → 0.880 | 1.34 → 0.54 |
+  | run20v3 | v3, SFT, ziarno 7 | run20 | 1108 (2) | 34,8 | (w toku) | — | 0.936 → … | 1.43 → … |
+
+  - Każdy dwuepokowy SFT na 11B (run14, run18, run19, run20v2) ma minimum eval_loss na końcu 1. epoki, a w 2. wzrost o 0,03–0,05. Ślepe oceny nie potwierdziły jednak, że checkpoint po 1. epoce („h”) jest lepszy (run19h gorszy w rozmowach, 24.10); niższa strata ≠ lepsze rozmowy.
+  - v3 ma w każdym punkcie stratę niższą o 0,02–0,04 niż v2.3 na tych samych danych (run19 vs run18, run20v3 vs run20v2 na 1/4 epoki: 0.936 vs 0.953), a w ślepych ocenach dotąd remis.
+  - DPO prawie nie rusza straty przy 135–228 parach (0.693 → 0.68), za to przy run12 (362 pary) spadła do 0.09 — ale run12 spłaszczył charakter.
+  - Czas: 11B na RTX 4060 Ti ok. 30–40 s/krok przy max-len 4096; GGUF zapisywany na G: dokładał 1 h 15 min na model (stąd zakaz zapisu na G: w trakcie treningu), na E:/WSL ok. 20–35 min.
