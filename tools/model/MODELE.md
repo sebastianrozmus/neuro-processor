@@ -810,7 +810,7 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
   | b45mind | Bielik 4.5B, SFT Umysł | mind20 | 314 (2) | 9,2 | ~0,8 h | 1 h 5 min (baza z G:) | 0.108 → 0.098 → 0.076 → 0.073 → 0.071 → 0.071 → **0.067** → 0.067 | 0.89 → 0.03 |
   | m7mind | Minitron 7B, SFT Umysł | mind20 | 314 (2) | 10,3 | ~0,9 h | 1 h 7 min | 0.079 → 0.062 → 0.054 → 0.053 → **0.047** → 0.048 → 0.047 → 0.048 | 0.48 → 0.02 |
   | run20v2 | v2.3, SFT, ziarno 7 | run20 | 1108 (2) | 37,0 (32,7 bez kopiowania w tle) | ~11,4 h | 11 h 55 min | 0.953 → 0.899 → 0.870 → **0.853** → 0.889 → 0.885 → 0.881 → 0.880 | 1.34 → 0.54 |
-  | run20v3 | v3, SFT, ziarno 7 | run20 | 1108 (2) | 34,8 | (w toku) | — | 0.936 → … | 1.43 → … |
+  | run20v3 | v3, SFT, ziarno 7 | run20 | 1108 (2) | ~36,8 | 11 h 20 min | awaria WSL przy GGUF (E: pełny); potem GGUF llama.cpp z plikami na D:/C: 14 min | 0.936 → 0.881 → 0.860 → **0.835** → 0.862 → 0.867 → 0.861 → 0.859 | 1.38 → 0.52 |
 
   - Każdy dwuepokowy SFT na 11B (run14, run18, run19, run20v2) ma minimum eval_loss na końcu 1. epoki, a w 2. wzrost o 0,03–0,05. Ślepe oceny nie potwierdziły jednak, że checkpoint po 1. epoce („h”) jest lepszy (run19h gorszy w rozmowach, 24.10); niższa strata ≠ lepsze rozmowy.
   - v3 ma w każdym punkcie stratę niższą o 0,02–0,04 niż v2.3 na tych samych danych (run19 vs run18, run20v3 vs run20v2 na 1/4 epoki: 0.936 vs 0.953), a w ślepych ocenach dotąd remis.
