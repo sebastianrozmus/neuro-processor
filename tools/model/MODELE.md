@@ -816,3 +816,19 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
   - v3 ma w każdym punkcie stratę niższą o 0,02–0,04 niż v2.3 na tych samych danych (run19 vs run18, run20v3 vs run20v2 na 1/4 epoki: 0.936 vs 0.953), a w ślepych ocenach dotąd remis.
   - DPO prawie nie rusza straty przy 135–228 parach (0.693 → 0.68), za to przy run12 (542 pary, lr 5e-5) spadła do 0.09 przy trafności 97% — tam pary różniły się wyraźnie (krótsze, z mocniejszym znacznikiem emocji).
   - Czas: 11B na RTX 4060 Ti ok. 30–40 s/krok przy max-len 4096; GGUF zapisywany na G: dokładał 1 h 15 min na model (stąd zakaz zapisu na G: w trakcie treningu), na E:/WSL ok. 20–35 min.
+
+- **27.10: run20v2 vs run20v3 — ślepa ocena wg reguły z `D:\neuro-train\run20\DECYZJA.md`, plus run18 i run19 jako odniesienie.** Dane run20 (4429 / 208, silnik bb9e0c1), przepis run18 (2 epoki, lr 1e-4, r16, ziarno 7); straty i czasy w tabeli z 26.10. Testy: test18 (`run20/test18-runs/blind20`, 324 rundy MG + 120 rozmów, `brief-joint.md` / `brief-joint-v2.md`, 10 sędziów) i test20 (`run20/test20/blind20`, 122 rundy + 80 rozmów + 16 par, `brief-joint20.md`, 9 sędziów); ziarna 7 i 11, 4 modele pod A–D losowanymi w każdej pozycji. Wynik reguły: `run20/decide20.py`.
+
+  | ciężkie błędy | test18 MG / 324 | test18 rozmowy / 120 (ocena) | test20 MG / 122 | test20 rozmowy / 80 (ocena) | test20 pary / 16 (sprzeczne) |
+  |---|---|---|---|---|---|
+  | run18 | 21 | 42 (3.52) | 6 | 14 (3.44) | 2 (1) |
+  | run19 | 24 | 41 (3.58) | 7 | 13 (3.59) | 2 (1) |
+  | run20v2 | **16** | **26** (3.73) | 5 | 11 (3.61) | 6 (1) |
+  | run20v3 | 26 | 27 (3.73) | **4** | **9** (3.65) | 7 (5) |
+
+  - **Reguła (test znaków na pozycjach, MG + rozmowy, ciężkie):** run20v3 vs run20v2 — test18 30 / 39 (v2 lepszy, p=0.34), test20 15 / 11 (v3 lepszy, p=0.56). Kierunki przeciwne, nic istotnego → **remis → run20v3** (z góry ustalone: obsługa narzędzi, długi kontekst).
+  - **Reguła 5 (nie gorszy od run18):** run20v3 vs run18 — test18 44 / 37 (p=0.51), test20 18 / 10 (p=0.19); run20v2 vs run18 — 43 / 27 (p=0.07), 16 / 12. Żaden run20 nie jest istotnie gorszy od run18 → run20v3 dopuszczony do gry (czeka na zgodę użytkownika).
+  - **Co dały dane run20:** rozmowy wyraźnie lepsze od run18 na obu testach (test18: ciężkie 42 → 26–27, pary ocen run20v2 42 / 25 p=0.050, run20v3 48 / 31 p=0.07; test20: 14 → 9–11) — to zasługa danych (oba run20), nie bazy. MG bez zmiany (różnice ±5 w granicach szumu ziarna z run17s).
+  - **Słabość run20: pary rozmów** (druga rozmowa z biografią z pierwszej): 6–7 ciężkich na 16 wobec 2 u run18/19, run20v3 5 sprzeczności z pierwszą rozmową. Mała próba, ale spójny sygnał: nowe dane z zasiewem biografii uczą dopowiadania faktów w rozmowie 1 („kilka faktów naraz”), a w rozmowie 2 model nie zawsze trzyma się zapisanej biografii. Do poprawy w danych run21 (jeden nowy fakt na kwestię; więcej przykładów „Co już o sobie mówiłeś” z pytaniami sprawdzającymi).
+  - **Umysł Q4 i pamięć karty** (`bielik/minddata/vram.txt`, `em-m7mindq4`, `sq20v2-m7mindq4`): `m7mindq4` (Minitron 7B Umysł w Q4_K_M, 4,5 GB) = jakość m7mind (SelfNote 0% zmyśleń, FA 2/11; QuestHook FA 0/15; Interpret akcja 95%, perswazja 80%), Note 0,44 s. Pamięć (16 GB, tło 2–3 GB): run18 Q5 + gemma 15,4 GB zajęte — mieści się; run18 Q5 + m7mind/m7mindq4 (ctx 8192 i 4096) — **nie mieści się** (Ollama wyrzuca run18); 11B Q4 + m7mindq4 ctx 4096 — 15,3 GB, mieści się. Lepszy Umysł bez zmiany pamięci tylko przy modelu rozmów w Q4 albo z jednym modelem do wszystkiego (`D:\neuro-train\run21\PLAN.md`).
+  - Awaria 26.10 20:07: konwersja GGUF run20v3 zapełniła E: (vhdx WSL jest rzadki i oddaje zwolnione bloki, więc miejsce zwolnione w WSL nie jest zapasem). Trening był już zapisany; GGUF zrobiony ponownie przez llama.cpp z plikami poza vhdx (`run20/resume20.sh`). Pendrive J: (2 TB) okazał się fałszywy — odczyt zwraca 0xFF; nic nie stracone (skrypt porównuje kopie przed usunięciem).
