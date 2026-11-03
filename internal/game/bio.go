@@ -160,8 +160,14 @@ var kinFamilies = [][]string{
 	{"maz", "meza", "mezem", "mezu", "mezowi", "zona", "zony", "zone", "zonie", "zonka", "zonke", "zonaty", "zonata", "wdow*", "malzon*", "malzen*", "zamezn*"},
 	{"rodzic*", "ojciec", "ojca", "ojcu", "ojcem", "ojcze", "tata", "taty", "tate", "tacie", "tato", "tatus*", "matk*", "matce", "mama", "mamy",
 		"mame", "mamie", "mamo", "mamus*"},
-	{"skad", "pochodz*", "urodz*", "rodem", "rodzinn*", "wychow*"},
+	{"skad", "pochodz*", "urodz*", "rodem", "rodzinn*", "wychow*", "dorast*"},
+	// who taught them: "kto cię uczył?" and "uczył go mistrz Ezechiel"
+	{"uczyl*", "nauczyl*", "nauczyciel*", "mistrz", "mistrza", "mistrzem", "mistrzowi", "mistrzyni*", "terminowal*", "praktykowal*"},
 }
+
+// kinOnly is how many of kinFamilies are kin; the rest are where one
+// comes from and who taught them, which a family in general does not touch.
+const kinOnly = 4
 
 // kinFamily is the family of a folded word: an index of kinFamilies, -2
 // for a word of the whole family, -1 for none.
@@ -207,10 +213,11 @@ func kinShared(text, other string, skip []string) bool {
 			continue
 		}
 
-		// A family in general touches any kin, not where one comes from.
-		origin := len(kinFamilies) - 1
-		kin := families[-2] || slices.ContainsFunc(slices.Collect(maps.Keys(families)), func(f int) bool { return f >= 0 && f != origin })
-		if families[family] || family == -2 && kin || family >= 0 && family != origin && families[-2] {
+		// A family in general touches any kin, not where one comes from or
+		// who taught them.
+		isKin := func(f int) bool { return f >= 0 && f < kinOnly }
+		kin := families[-2] || slices.ContainsFunc(slices.Collect(maps.Keys(families)), isKin)
+		if families[family] || family == -2 && kin || isKin(family) && families[-2] {
 			return true
 		}
 	}
@@ -446,7 +453,7 @@ func (r *Realm) LearnSelf(name, speaker string, facts []string, line string) []s
 
 	_, line = speech.SplitMood(line)
 	hero := strings.Fields(Fold(customer.name))
-	money := []string{Fold(r.world.Currency), "zold", "najem", "najm", "umow", "zaplat", "cena", "cene", "ceny"}
+	money := []string{"zold", "najem", "najm", "umow", "zaplat", "cena", "cene", "ceny"}
 
 	var kept []string
 
@@ -460,8 +467,8 @@ func (r *Realm) LearnSelf(name, speaker string, facts []string, line string) []s
 		case slices.ContainsFunc(folded, func(word string) bool { return slices.Contains(hero, word) }):
 			continue
 		case slices.ContainsFunc(folded, func(word string) bool {
-			return slices.ContainsFunc(money, func(stem string) bool { return stem != "" && strings.HasPrefix(word, stem) })
-		}):
+			return slices.ContainsFunc(money, func(stem string) bool { return strings.HasPrefix(word, stem) })
+		}), priced(folded, r.world.Currency):
 			continue
 		}
 
@@ -472,6 +479,22 @@ func (r *Realm) LearnSelf(name, speaker string, facts []string, line string) []s
 	}
 
 	return kept
+}
+
+// priced reports a folded fact that names a sum of money: a number and the
+// world's currency. The currency alone is no sum, as it is often a plain
+// word: a lightning ("piorun") is no feather ("piór"), and the "Mgławica
+// Zarodników" is a place, not a price in spores.
+func priced(folded []string, currency string) bool {
+	if !slices.ContainsFunc(folded, func(word string) bool { _, spelled := numberWords[word]; return isDigits(word) || spelled }) {
+		return false
+	}
+
+	units := strings.Fields(Fold(currency))
+
+	return slices.ContainsFunc(folded, func(word string) bool {
+		return slices.ContainsFunc(units, func(unit string) bool { return len(unit) >= minQueryWord && formOf(word, unit) })
+	})
 }
 
 // bioHint answers a companion or a shopkeeper asked about their own life:

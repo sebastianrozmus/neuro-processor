@@ -1233,11 +1233,16 @@ func Private(text string) bool {
 // with a word for the keeper's own: "twój ojciec", "masz brata", "o ojcu".
 var (
 	kinStems   = []string{"rodzin", "rodzic", "dzieci", "dzieck", "wnuk", "wnucz", "zon", "meza", "mezem", "mezu", "mezowi", "dziewczyn", "chlopak", "narzeczon", "corki", "corka", "corke", "corek", "coreczk", "syn", "synow", "synek", "synem", "synk", "blizn"}
-	titleStems = []string{"brat", "bracie", "siostr", "ojc", "ojciec", "matk", "matce", "mama", "mame", "mamy", "tata", "tate", "taty"}
+	titleStems = []string{"brat", "bracie", "siostr", "ojc", "ojciec", "matk", "matce", "mama", "mame", "mamy", "tata", "tate", "taty",
+		// also a keeper's name ("Babka Smolna", "Ciotka Wydra"), so only as one's own
+		"babci", "babcia", "babcie", "babk", "dziadek", "dziadka", "dziadkiem", "ciotk", "ciocia", "ciocie", "ciotce", "wujek", "wujka", "wuj", "stryj"}
 	ownWords   = []string{"twoj", "twoja", "twoje", "twoi", "twojego", "twojej", "twoim", "twoich", "twojemu", "masz", "macie", "ma"}
 	// lifeVerbs may follow a word of kin without making it a name: "twoja
 	// matka jeszcze żyje?".
-	lifeVerbs = []string{"gdzie", "teraz", "jeszcze", "zyje", "zyja", "umarl", "umarla", "mieszka", "pochodzi", "robi", "robil", "robila"}
+	lifeVerbs = []string{"gdzie", "teraz", "jeszcze", "zyje", "zyja", "umarl", "umarla", "mieszka", "pochodzi", "robi", "robil", "robila",
+		// "twój brat dalej pilnuje pomp?", "twoja mama nadal przy mieście?"
+		"dalej", "nadal", "wciaz", "kiedys", "zawsze", "pracuje", "zajmuje", "mieszkal", "mieszkala", "uczyl", "uczyla", "nauczyl", "nauczyla",
+		"zostal", "zostala", "wrocil", "wrocila", "byl", "byla", "bylo"}
 	mineWords = []string{"moj", "moja", "moje", "moi", "mojego", "mojej", "moim", "moich", "mojemu", "nasz", "nasza", "nasze", "naszego", "naszej"}
 	// lifeWords ask about the keeper's own road: where from, who taught
 	// them, why they ran or were thrown out, what they miss.
@@ -1314,10 +1319,30 @@ func privateAsked(words []string, question bool) bool {
 	for index, word := range words {
 		// "o matce grzybni", "o ojcu kajmanów" ask about the Matka Grzybnia and
 		// the Ojciec Kajmanów: a title before a name is the name.
+		// "twój brat Jasiek?" still asks about the brother: one's own kin may
+		// be named.
 		named := index+1 < len(words) && len(words[index+1]) > minQueryWord+1 && !slices.Contains(lifeVerbs, words[index+1])
-		if titled(word) && !named && (index > 0 && words[index-1] == "o" || slices.ContainsFunc(words, func(word string) bool { return slices.Contains(ownWords, word) })) {
+		own := index > 0 && strings.HasPrefix(words[index-1], "twoj")
+		if titled(word) && (own || !named && (index > 0 && words[index-1] == "o" || slices.ContainsFunc(words, func(word string) bool { return slices.Contains(ownWords, word) }))) {
 			return true
 		}
+	}
+
+	// "z dna studni jesteś?", "ty z gór jesteś?": where from, asked with a
+	// place, not "z kim jesteś?".
+	if slices.Contains(words, "z") && slices.ContainsFunc(words, func(word string) bool {
+		return slices.Contains([]string{"jestes", "pochodzisz"}, word)
+	}) && !slices.ContainsFunc(words, func(word string) bool {
+		return slices.Contains([]string{"kim", "czym", "czego", "nami", "mna", "nim", "nia", "nimi", "tym", "tych", "tego", "tej", "zrobiony", "zrobiona"}, word)
+	}) {
+		return true
+	}
+
+	// "urodziła się pani w szklarni?", "gdzieś ty się wychował?"
+	if slices.ContainsFunc(words, func(word string) bool {
+		return slices.ContainsFunc([]string{"urodzil", "wychowal", "wychowywal", "dorastal"}, func(stem string) bool { return strings.HasPrefix(word, stem) })
+	}) {
+		return true
 	}
 
 	// "skąd ty w ogóle jesteś", "skąd siostra jest": where from, in any order.
@@ -1336,8 +1361,8 @@ func privateAsked(words []string, question bool) bool {
 		}
 	}
 
-	// "kto cię uczył": the words may stand apart.
-	return hasPhrase(text, []string{"cie"}) && slices.ContainsFunc(words, func(word string) bool {
+	// "kto cię uczył", "kto panią uczył nitować": the words may stand apart.
+	return slices.ContainsFunc(words, func(word string) bool { return slices.Contains([]string{"cie", "ciebie", "pana", "pania"}, word) }) && slices.ContainsFunc(words, func(word string) bool {
 		return slices.ContainsFunc([]string{"uczyl", "nauczyl", "wyrzucil", "wygnal", "wychowal"}, func(stem string) bool { return strings.HasPrefix(word, stem) })
 	})
 }

@@ -148,7 +148,12 @@ func Read(request InterpretRequest) Reading {
 		// "dam połowę" of nothing named: an offer the merchant asks about.
 		reading.Intent.Action, reading.Sure = ActionOffer, true
 	case hasPhrase(text, sellWords):
-		// Selling: the number is the sum asked for, whatever the wording.
+		// Selling: the number is the sum asked for, whatever the wording,
+		// unless it counts the things sold: "mam 5 skór szczurów, kupisz je?"
+		// asks no 5.
+		if countsThings(words, request.Currency) {
+			amount = 0
+		}
 		reading.Intent.Action, reading.Intent.ItemID, reading.Intent.Amount, reading.Sure = ActionSell, owned, amount, true
 	case (amount > 0 || hasPhrase(text, acceptWords)) && item != "" && twoWares(named, request.Wares, item):
 		// "biorę bosak i kurtkę za 70" buys neither for the sum: the keeper
@@ -452,6 +457,34 @@ func quantityIn(words []string, wares []Ware, currency string) (int, int) {
 
 	return 0, -1
 }
+
+// countsThings reports a number that counts things rather than money: it is
+// followed by a noun that is not the currency ("5 skór", "3 kawałki kory"),
+// and no number in the message is followed by the currency.
+func countsThings(words []string, currency string) bool {
+	unit := currencyStem(currency)
+	counted := false
+
+	for index := 0; index+1 < len(words); index++ {
+		_, spelled := numberWords[words[index]]
+		if !isDigits(words[index]) && !spelled {
+			continue
+		}
+
+		next := words[index+1]
+		switch {
+		case unit != "" && strings.HasPrefix(next, unit), strings.HasPrefix(next, "szt"):
+			return false
+		case len(next) > minQueryWord && next != "razy" && !span(next) && !slices.Contains(moreLessWords, next):
+			counted = true
+		}
+	}
+
+	return counted
+}
+
+// moreLessWords follow a sum without counting anything: "dam 20 więcej".
+var moreLessWords = []string{"wiecej", "mniej", "taniej", "drozej", "teraz", "jutro", "dzisiaj", "zaraz", "najwyzej", "przynajmniej", "minimum", "maksimum"}
 
 // currencyStem returns the stem of the first word of a currency's name.
 func currencyStem(currency string) string {
