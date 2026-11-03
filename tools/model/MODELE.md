@@ -2,7 +2,7 @@
 
 Zestawienie wszystkich wersji Głosu, czyli modelu, który pisze kwestie postaci. Dla każdej wersji: baza, dane, ustawienia treningu, wynik benchu i to, co pokazały testy w grze. Pełna opowieść, z tym, co nie wyszło i dlaczego, jest w [HISTORIA.md](HISTORIA.md). Jak mierzyć, opisuje [tools/bench/README.md](../bench/README.md).
 
-**Obecny model (gra):** `neuro-npc-run18` (Bielik 11B v2.3, od 23.10). Historia niżej; najnowsze wpisy na końcu.
+**Obecny model (gra):** `neuro-npc-run20v3` (Bielik 11B v3.0, od 03.11; wcześniej `neuro-npc-run18` od 23.10). Historia niżej; najnowsze wpisy na końcu.
 
 ## W skrócie
 
