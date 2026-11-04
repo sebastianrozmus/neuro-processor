@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 )
 
 const (
@@ -57,6 +59,13 @@ const asksCorrection = "Twoja poprzednia odpowiedź była zła: zadała pytanie,
 // echoCorrection is what a narrator hears after repeating its own words;
 // the phrase follows.
 const echoCorrection = "Twoja poprzednia odpowiedź była zła: powtórzyła słowa z twojej wcześniejszej odpowiedzi. Powiedz to inaczej, bez frazy: "
+
+// deniesCorrection is what a narrator hears after a line that denies,
+// kills off, revives or renames the kin the speaker told of before.
+func deniesCorrection(speaker, fact string) string {
+	return "Twoja poprzednia odpowiedź była zła: przeczy temu, co już o sobie " + gendered(speech.Feminine(speaker), "mówiłeś", "mówiłaś") +
+		": „" + fact + "”. Napisz ją jeszcze raz zgodnie z tym; nie zaprzeczaj sobie i nie zmieniaj imion."
+}
 
 // correction is what a narrator hears after quoting a number it should not.
 const correction = "Twoja poprzednia odpowiedź była zła: podała liczbę słownie albo taką, której nie ma w bloku [GRA]. " +
@@ -135,6 +144,10 @@ type NarrateRequest struct {
 	// for the screen to show; a reply with a lead teaches the world no
 	// new fact.
 	Lead string
+	// Bio is what the speaker has said of themselves before: a reply that
+	// denies the kin it tells of, or names them otherwise, earns a second
+	// try.
+	Bio []string
 }
 
 // Interpreter turns free player text into a structured Intent.
@@ -243,12 +256,14 @@ const (
 	reasonPrice     = "brak ceny, którą kazano podać"
 	reasonAsks      = "pytanie, choć kazano nie pytać"
 	reasonEcho      = "powtarza własne słowa"
+	reasonDenies    = "przeczy temu, co już o sobie mówił"
 )
 
 // soft are the reasons a line is still spoken for when every try had one
-// of them: a mangled or made-up name, a question too many or a phrase said
-// before spoil a line less than a canned one does.
-var soft = []string{reasonNames, reasonStrangers, reasonAsks, reasonEcho}
+// of them: a mangled or made-up name, a question too many, a phrase said
+// before or a slip about one's own kin spoil a line less than a canned
+// one does.
+var soft = []string{reasonNames, reasonStrangers, reasonAsks, reasonEcho, reasonDenies}
 
 // Narrate asks the narrator for a reply and checks it against the decision.
 // The reply is cleaned up and cut to a few sentences. If it quotes amounts
@@ -343,6 +358,8 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 			reason = reasonAsks
 		case echo(text, request.History) != "":
 			reason = reasonEcho
+		case contradicts(text, request.Bio, request.Merchant.Name) != "":
+			reason = reasonDenies
 		default:
 			return fitMood(text, request.Decision.Mood), nil
 		}
@@ -372,6 +389,8 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 			request.Correction = asksCorrection
 		case reasonEcho:
 			request.Correction = echoCorrection + "„" + echo(text, request.History) + "”."
+		case reasonDenies:
+			request.Correction = deniesCorrection(request.Merchant.Name, contradicts(text, request.Bio, request.Merchant.Name))
 		}
 
 		if reason == reasonStrangers {
@@ -464,17 +483,22 @@ func (d Decision) quotes(text string) bool {
 // own earlier lines, or "". Names are left out of it: "Borin Kamienna
 // Pięść" said twice is no parroting.
 func echo(text string, history []Line) string {
+	return echoN(text, history, 4)
+}
+
+// echoN is echo with a run of n words.
+func echoN(text string, history []Line, n int) string {
 	said := map[string]bool{}
 
 	for _, line := range history {
 		if !line.Player {
-			for _, phrase := range phrases(line.Text) {
+			for _, phrase := range phrases(line.Text, n) {
 				said[phrase] = true
 			}
 		}
 	}
 
-	for _, phrase := range phrases(text) {
+	for _, phrase := range phrases(text, n) {
 		if said[phrase] {
 			return phrase
 		}
@@ -483,9 +507,9 @@ func echo(text string, history []Line) string {
 	return ""
 }
 
-// phrases lists the runs of four words in a line, folded, with at most one
+// phrases lists the runs of n words in a line, folded, with at most one
 // capitalised word besides the first of the line.
-func phrases(text string) []string {
+func phrases(text string, n int) []string {
 	if _, rest, tagged := strings.Cut(text, "] "); tagged && strings.HasPrefix(text, "[") {
 		text = rest
 	}
@@ -494,17 +518,17 @@ func phrases(text string) []string {
 
 	var out []string
 
-	for start := 0; start+4 <= len(words); start++ {
+	for start := 0; start+n <= len(words); start++ {
 		capitals := 0
 
-		for k, word := range words[start : start+4] {
+		for k, word := range words[start : start+n] {
 			if start+k > 0 && unicode.IsUpper([]rune(word)[0]) {
 				capitals++
 			}
 		}
 
 		if capitals < 2 {
-			out = append(out, Fold(strings.Join(words[start:start+4], " ")))
+			out = append(out, Fold(strings.Join(words[start:start+n], " ")))
 		}
 	}
 

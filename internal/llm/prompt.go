@@ -276,6 +276,9 @@ const selfNoteInstructions = `Czytasz kwestię towarzysza, najemnika albo kupca 
 	`Zwracasz obiekt JSON: facts to lista nowych faktów, najwyżej 3. Każdy fakt to jedno krótkie zdanie po polsku w trzeciej osobie, ` +
 	`z imieniem mówiącego albo zaimkiem (on, ona), bez zwrotów do gracza, na przykład: „Bogna ma starszego brata Radka, kowala.” ` +
 	`Zapisujesz tylko to, co mówiący naprawdę powiedział w tej kwestii, tymi samymi imionami, nazwami i liczbami; niczego nie dopowiadasz. ` +
+	`Krótka albo przecząca odpowiedź na pytanie gracza też jest faktem, czytanym razem z pytaniem: „a mąż żyje?” – „Nie żyje, dawno” to „Mąż Bogny nie żyje”; ` +
+	`„masz żonę?” – „Żonę? A kto by ze mną wytrzymał” to „Bogna nie ma żony”; „ma pani dzieci?” – „Miałam męża, a dzieci nie” to „Bogna nie ma dzieci”. ` +
+	`Zbycie bez odpowiedzi („nie twoja sprawa”, „zostawmy to”) to nic. ` +
 	`Pomijasz to, co już jest w karcie albo na liście tego, co już o sobie mówił, i wszystko, co mówi o graczu, o świecie, o cenach, towarze, ` +
 	`służbie i walce. Gdy w kwestii nic takiego nie ma, facts to pusta lista.`
 

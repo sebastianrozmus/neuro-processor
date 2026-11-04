@@ -276,6 +276,9 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 
 	request := session.NarrateRequest(text, decision)
 	request.Lore = r.lore(customer, session.Wares())
+	if speaker, ok := r.bioName(customer.shop); ok {
+		request.Bio = r.bioTexts(speaker)
+	}
 	hint, lead, anchored := r.hint(customer, text, decision, session.Wares())
 	if paying {
 		hint, lead, anchored = paidMate, nil, false
