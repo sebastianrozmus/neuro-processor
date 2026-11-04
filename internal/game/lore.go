@@ -1155,7 +1155,7 @@ func (r *Realm) wounds(customer *player, text string) (string, bool) {
 
 // familyWords ask about the keeper's own family and past: told nothing,
 // the model gave a healer a drowned son and a dead husband.
-var familyWords = []string{"masz dzieci", "dzieci masz", "masz zone", "zone masz", "masz meza", "meza masz", "ma pani meza", "ma pan zone", "ma pani dzieci", "ma pan dzieci", "masz rodzine", "rodzine masz", "masz rodzenstwo", "masz brata", "masz siostre", "masz chlopa", "masz babe", "twoja rodzina", "twoi rodzice", "twoja zona", "twoj maz", "twoje dzieci", "kogo stracil", "kogo stracila", "kogo stracilas", "kogo straciles", "kogo pani stracila", "kogo pan stracil", "jestes zonaty", "jestes zamezna", "masz kogos", "jakas rodzine", "skad jestes", "skad pochodzisz", "skad masz blizne", "skad masz te blizne", "skad ta blizna", "skad blizna"}
+var familyWords = []string{"masz dzieci", "dzieci masz", "masz zone", "zone masz", "masz meza", "meza masz", "ma pani meza", "ma pan zone", "ma pani dzieci", "ma pan dzieci", "masz rodzine", "rodzine masz", "masz rodzenstwo", "masz brata", "masz siostre", "masz chlopa", "masz babe", "twoja rodzina", "twoi rodzice", "twoja zona", "twoj maz", "twoje dzieci", "kogo stracil", "kogo stracila", "kogo stracilas", "kogo straciles", "kogo pani stracila", "kogo pan stracil", "jestes zonaty", "jestes zamezna", "jest pani zamezna", "pani zamezna", "jest pan zonaty", "pan zonaty", "jestes kawalerem", "masz chlopaka", "masz dziewczyne", "masz narzeczona", "masz narzeczonego", "masz wnuki", "ma pani wnuki", "ma pan wnuki", "masz kogos", "jakas rodzine", "skad jestes", "skad pochodzisz", "skad masz blizne", "skad masz te blizne", "skad ta blizna", "skad blizna"}
 
 // praised reports a compliment in any order: "ładnie dziś wyglądasz,
 // babciu", "masz fajne oczy".
@@ -1254,7 +1254,7 @@ func Private(text string) bool {
 // called ("siostro, co wiesz…?"), so they ask about family only along
 // with a word for the keeper's own: "twój ojciec", "masz brata", "o ojcu".
 var (
-	kinStems   = []string{"rodzin", "rodzic", "dzieci", "dzieck", "wnuk", "wnucz", "zon", "meza", "mezem", "mezu", "mezowi", "dziewczyn", "chlopak", "narzeczon", "corki", "corka", "corke", "corek", "coreczk", "syn", "synow", "synek", "synem", "synk", "blizn"}
+	kinStems   = []string{"rodzin", "rodzic", "dzieci", "dzieck", "wnuk", "wnucz", "zon", "meza", "mezem", "mezu", "mezowi", "zamezn", "kawaler", "dziewczyn", "chlopak", "narzeczon", "corki", "corka", "corke", "corek", "coreczk", "syn", "synow", "synek", "synem", "synk", "blizn"}
 	titleStems = []string{"brat", "bracie", "siostr", "ojc", "ojciec", "matk", "matce", "mama", "mame", "mamy", "tata", "tate", "taty",
 		// also a keeper's name ("Babka Smolna", "Ciotka Wydra"), so only as one's own
 		"babci", "babcia", "babcie", "babk", "dziadek", "dziadka", "dziadkiem", "ciotk", "ciocia", "ciocie", "ciotce", "wujek", "wujka", "wuj", "stryj"}

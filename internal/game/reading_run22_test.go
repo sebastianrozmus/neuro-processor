@@ -221,6 +221,28 @@ func TestFactsGroundedInThePlayersQuestionFromRun22(t *testing.T) {
 		t.Errorf("kept = %q", kept)
 	}
 
+	// Grandchildren, a sweetheart and a bachelor are kin a question asks
+	// about: "masz chłopaka?" – "Nie." is a fact.
+	for _, c := range []struct{ question, fact string }{
+		{"masz chłopaka?", "Bogna nie ma chłopaka."},
+		{"ma pani wnuki?", "Bogna nie ma wnuków."},
+		{"jest pani zamężna?", "Bogna nie ma męża."},
+		{"masz żonę?", "Jędrek jest kawalerem."},
+		{"masz narzeczonego?", "Bogna ma narzeczonego Radka."},
+	} {
+		if !Private(c.question) {
+			t.Errorf("%q is no private question", c.question)
+		}
+
+		if !kinAsked(c.question, c.fact) {
+			t.Errorf("kinAsked(%q, %q) = false", c.question, c.fact)
+		}
+	}
+
+	if kinAsked("masz chłopaka?", "Bogna ma brata Radka.") {
+		t.Error("a brother answers a question about a sweetheart")
+	}
+
 	// A line the Mind read for another question is grounded in the line alone.
 	if kept := realm.LearnSelf(hero, "Bogna Topór", []string{"Bogna była mężatką."}, "Nie twoja sprawa."); len(kept) != 0 {
 		t.Errorf("a fact of another line grounded in the question: %q", kept)

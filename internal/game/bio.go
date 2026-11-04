@@ -157,9 +157,14 @@ var kinFamilies = [][]string{
 	{"rodzenstw*", "brat", "brata", "bratem", "bratu", "bracia", "braci", "bracmi", "braciszk*", "siostr*"},
 	{"dzieci", "dziecmi", "dzieciom", "dzieciach", "dzieck*", "potomk*", "potomstw*", "syn", "syna", "synem", "synu", "synowi", "synowie",
 		"synow", "synami", "synek", "synka", "synkiem", "synkowi", "corka", "corki", "corke", "corce", "corek", "corkami", "corkom", "coreczk*"},
-	{"maz", "meza", "mezem", "mezu", "mezowi", "zona", "zony", "zone", "zonie", "zonka", "zonke", "zonaty", "zonata", "wdow*", "malzon*", "malzen*", "zamezn*"},
+	// "maza" is how a line without diacritics writes "męża"; a bachelor
+	// answers "masz żonę?" ("kawaler z wyboru")
+	{"maz", "maza", "meza", "mezem", "mezu", "mezowi", "zona", "zony", "zone", "zonie", "zonka", "zonke", "zonaty", "zonata", "wdow*", "malzon*", "malzen*", "zamezn*", "kawaler*"},
 	{"rodzic*", "ojciec", "ojca", "ojcu", "ojcem", "ojcze", "tata", "taty", "tate", "tacie", "tato", "tatus*", "matk*", "matce", "mama", "mamy",
 		"mame", "mamie", "mamo", "mamus*"},
+	// grandchildren and a sweetheart: "masz wnuki?", "masz chłopaka?" – "Nie."
+	{"wnuk*", "wnucz*"},
+	{"narzeczon*", "chlopak", "chlopaka", "chlopakiem", "chlopakowi", "dziewczyna", "dziewczyny", "dziewczyne", "dziewczynie"},
 	{"skad", "pochodz*", "urodz*", "rodem", "rodzinn*", "wychow*", "dorast*"},
 	// who taught them: "kto cię uczył?" and "uczył go mistrz Ezechiel"
 	{"uczyl*", "nauczyl*", "nauczyciel*", "mistrz", "mistrza", "mistrzem", "mistrzowi", "mistrzyni*", "terminowal*", "praktykowal*"},
@@ -167,7 +172,12 @@ var kinFamilies = [][]string{
 
 // kinOnly is how many of kinFamilies are kin; the rest are where one
 // comes from and who taught them, which a family in general does not touch.
-const kinOnly = 4
+// Only the first kinChecked are checked for contradictions: "dziewczyna"
+// and "chłopak" are as often anybody's lass and lad.
+const (
+	kinOnly    = 6
+	kinChecked = 4
+)
 
 // kinFamily is the family of a folded word: an index of kinFamilies, -2
 // for a word of the whole family, -1 for none.

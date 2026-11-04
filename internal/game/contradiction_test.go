@@ -60,6 +60,12 @@ func TestContradictsTheBioAboutKin(t *testing.T) {
 		{"Jagna ma córkę Zosię.", "[smutek] Córka? Zosia została w grodzie.", false},
 		// a brother dead since is a change, not a slip
 		{"Szczepan ma brata Józka.", "[smutek] Józek zginął w zeszłym roku.", false},
+		// a bachelor has no wife; a line without diacritics writes "maza"
+		{"Jędrek ma żonę Hanię.", "[kpina] Kawaler jestem, z wyboru.", true},
+		{"Jędrek nie ma żony.", "[kpina] Kawaler z wyboru, kochana.", false},
+		{"Mąż Wiesławy żyje i siedzi w karczmie.", "[kpina] Nie mam maza, dziecinko.", true},
+		// a lass or a lad is anybody's: no claim of kin
+		{"Jędrek nie ma żony.", "[radość] Dziewczyna z targu kupiła amulet.", false},
 	} {
 		got := contradicts(c.line, []string{c.bio}, "Ktoś Taki")
 		if (got != "") != c.want {

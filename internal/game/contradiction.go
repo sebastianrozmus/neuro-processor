@@ -63,9 +63,9 @@ func kinKind(word string) string {
 	}
 
 	switch {
-	case word == "maz" || strings.HasPrefix(word, "mez") || strings.HasPrefix(word, "wdow") || strings.HasPrefix(word, "zamezn"):
+	case word == "maz" || word == "maza" || strings.HasPrefix(word, "mez") || strings.HasPrefix(word, "wdow") || strings.HasPrefix(word, "zamezn"):
 		return "maz"
-	case strings.HasPrefix(word, "zon"):
+	case strings.HasPrefix(word, "zon") || strings.HasPrefix(word, "kawaler"):
 		return "zon"
 	case strings.HasPrefix(word, "ojc") || strings.HasPrefix(word, "tat"):
 		return "ojc"
@@ -107,7 +107,7 @@ func kinClaims(text, speaker string) []kinClaim {
 
 		if strings.HasSuffix(sentence, "?") {
 			carried = ""
-			if len(folded) == 1 && kinFamily(folded[0]) >= 0 && kinFamily(folded[0]) < kinOnly && !slices.Contains(skip, folded[0]) {
+			if len(folded) == 1 && kinFamily(folded[0]) >= 0 && kinFamily(folded[0]) < kinChecked && !slices.Contains(skip, folded[0]) {
 				carried = folded[0]
 			}
 
@@ -125,7 +125,7 @@ func kinClaims(text, speaker string) []kinClaim {
 
 		for index, word := range folded {
 			family := kinFamily(word)
-			if family < 0 || family >= kinOnly || slices.Contains(skip, word) {
+			if family < 0 || family >= kinChecked || slices.Contains(skip, word) {
 				continue
 			}
 
@@ -205,6 +205,11 @@ var butWords = []string{"tylko", "ale", "a", "lecz", "jedynie", "za", "oprocz", 
 func kinState(word string, window []string, comma []bool, at int) string {
 	if strings.HasPrefix(word, "wdow") {
 		return kinDead
+	}
+
+	// "kawaler z wyboru" has no wife.
+	if strings.HasPrefix(word, "kawaler") {
+		return kinNone
 	}
 
 	dead, alive, none, lost := false, false, false, false
