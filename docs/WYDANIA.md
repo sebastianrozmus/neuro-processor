@@ -13,7 +13,7 @@ Tag `v*` uruchamia workflow `.github/workflows/release.yml`. W ok. 2 minuty:
 
 1. przechodzą testy (`go test ./...`);
 2. GoReleaser buduje `neuro` dla macOS (Intel i Apple), Linuksa (amd64, arm64) i Windows (amd64), z wersją wpisaną w program (`neuro -version`);
-3. pakuje każdy build z README, licencją i skryptami `tools/avatar/setup.sh` i `tools/speech/setup-tts.sh` (`.tar.gz`, na Windows `.zip`), liczy `checksums.txt`;
+3. pakuje każdy build z README, stronami z `docs/`, licencją i skryptami `tools/avatar/setup.sh` i `tools/speech/setup-tts.sh` (`.tar.gz`, na Windows `.zip`), liczy `checksums.txt`;
 4. zakłada **szkic** wydania na GitHubie z listą zmian od poprzedniego tagu.
 
 Szkic przeglądasz na stronie Releases, dopisujesz kilka zdań, co nowego, i klikasz „Publish”. Numeracja: `v0.x.y` do czasu, aż gra będzie stabilna; `y` dla poprawek, `x` dla nowych rzeczy.

@@ -34,6 +34,9 @@ archives:
     files:
       - README.md
       - README.pl.md
+      - docs/GRA.md
+      - docs/USTAWIENIA.md
+      - docs/SILNIK.md
       - LICENSE
       - tools/avatar/setup.sh
       - tools/speech/setup-tts.sh
