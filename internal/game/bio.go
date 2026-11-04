@@ -225,6 +225,27 @@ func kinShared(text, other string, skip []string) bool {
 	return false
 }
 
+// kinAsked reports whether a fact tells of the very kin a question asked
+// about: "Bogna jest wdową" to "a mąż żyje?". A family in general asks
+// about any kin ("masz rodzinę?"), but a fact of the family in general
+// ("pochodzi z rodziny górników") answers no question about the husband.
+func kinAsked(question, fact string) bool {
+	families := map[int]bool{}
+	for _, word := range strings.Fields(Fold(question)) {
+		if family := kinFamily(word); family != -1 {
+			families[family] = true
+		}
+	}
+
+	for _, word := range strings.Fields(Fold(fact)) {
+		if family := kinFamily(word); family >= 0 && (families[family] || families[-2] && family < kinOnly) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // bioPlainWords are words too common to ground a fact in a line.
 var bioPlainWords = []string{
 	"jest", "byla", "bylo", "byli", "byly", "bedzie", "mial", "miala", "mialo", "mieli", "miec", "masz", "mowi", "mowil", "mowila",
@@ -403,10 +424,102 @@ func (r *Realm) remember(speaker, text string, day int, heard ...string) bool {
 	return true
 }
 
+// privateTurns is how many lines a private question stays the topic
+// for: the one right after it, and one more past a "przykro mi".
+const privateTurns = 2
+
+// privateAsked is the private question a player asked in the last line
+// or two, counted as one line older now, or "" when none is that fresh.
+func (r *Realm) privateAsked(customer *player) string {
+	current := customer.talks[customer.shop]
+	if current == nil {
+		return ""
+	}
+
+	current.privateHinted = false
+	if current.private == "" {
+		return ""
+	}
+
+	current.privateAge++
+	if current.privateAge > privateTurns {
+		current.private = ""
+	}
+
+	return current.private
+}
+
+// keepPrivate remembers the private question a player has just asked.
+func (r *Realm) keepPrivate(customer *player, text string) {
+	if current := customer.talks[customer.shop]; current != nil {
+		current.private, current.privateAge = text, 0
+	}
+}
+
+// hintPrivate marks the line as briefed as a follow-up on the private
+// question, so that the Mind reads the answer too.
+func (r *Realm) hintPrivate(customer *player) {
+	if current := customer.talks[customer.shop]; current != nil {
+		current.privateHinted = true
+	}
+}
+
+// privateWords are the words a player asks further about a keeper's own
+// people and past with, folded, besides those of following up a lead and
+// of kin: "jak miał na imię?", "a gdzie teraz?", "i co z nim?".
+var privateWords = []string{
+	"imie", "imienia", "imieniem", "nazywal", "nazywala", "nazywali", "wolali", "stalo", "zdarzylo", "umarl", "umarla", "umarli", "zmarl", "zmarla", "zginal", "zginela", "zgineli",
+	"zyje", "zyja", "zyla", "zyli", "mieszka", "mieszkaja", "dlugo", "dawno", "temu", "jeszcze", "takze", "bedzie", "byl", "byla", "bylo", "byli", "jego", "jej", "oni", "one",
+	"tylko", "naprawde", "dokladnie", "dlaczego", "czemu", "czego", "ktos", "nikt", "nikogo", "sam", "sama", "sami", "samotn", "wiek", "stary", "stara", "mlody", "mloda", "mlodszy", "mlodsza", "starszy", "starsza",
+	"robi", "robia", "robil", "robila", "pracuje", "pracuja", "chodzi", "wrocil", "wrocila", "wroci", "wroca", "odszedl", "odeszla", "zostal", "zostala", "widziales", "widzialas", "widzieliscie",
+	"pamietasz", "tesknisz", "kochales", "kochalas", "lubiles", "lubilas", "boli", "bolalo", "sie",
+}
+
+// privateFollowUp reports a short question that asks further about the
+// private matter asked about a line or two ago rather than starts
+// something else: every word of any length is a way of asking further, a
+// word of kin or of a life, or from the keeper's own card, bio or last
+// line. "ile za miód?" and "a po zmroku chodzi żubr?" are something else.
+func (r *Realm) privateFollowUp(customer *player, text string, words []string, wares []Ware) bool {
+	if len(words) == 0 || len(words) > 8 || !strings.Contains(text, "?") && !asked(text) {
+		return false
+	}
+
+	folded := strings.Join(words, " ")
+	if tradeAsked(folded) || len(waresAsked(words, wares)) > 0 || greeting(words) || thanked(words) || farewell(words) ||
+		slices.ContainsFunc(words, func(word string) bool { return slices.Contains(mineWords, word) }) {
+		return false
+	}
+
+	speaker, _ := r.bioName(customer.shop)
+	own := strings.Fields(Fold(r.bioCard(customer.shop) + " " + strings.Join(r.bioTexts(speaker), " ") + " " + lastReply(customer)))
+
+	for _, word := range words {
+		if len(word) < minQueryWord+1 || slices.Contains(greetingWords, word) || slices.Contains(lifeVerbs, word) || slices.Contains(bodyWords, word) ||
+			slices.Contains(personalWords, word) || slices.Contains(privateWords, word) || kinFamily(word) != -1 {
+			continue
+		}
+
+		known := slices.ContainsFunc(followWords, func(stem string) bool { return strings.HasPrefix(word, stem) }) ||
+			slices.ContainsFunc(personalStems, func(stem string) bool { return strings.HasPrefix(word, stem) }) ||
+			slices.ContainsFunc(privateWords, func(stem string) bool { return strings.HasPrefix(word, stem) })
+		for _, part := range own {
+			known = known || len(part) >= minQueryWord+1 && (strings.HasPrefix(word, Stem(part)) || strings.HasPrefix(fleeting(word), Stem(fleeting(part))))
+		}
+
+		if !known {
+			return false
+		}
+	}
+
+	return true
+}
+
 // SelfNoteRequest is the request to read what the companion or the
 // shopkeeper a player talks with has just said about themselves, when
-// their line or the player's question is about their own life. It
-// reports false for any other talk.
+// their line or the player's question is about their own life, or the
+// line answers a private question asked a line or two ago. It reports
+// false for any other talk.
 func (r *Realm) SelfNoteRequest(name, said, reply string) (SelfNoteRequest, bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -428,8 +541,19 @@ func (r *Realm) SelfNoteRequest(name, said, reply string) (SelfNoteRequest, bool
 	kin := cardKin(r.keeperCard(customer.shop)+" "+strings.Join(r.bioTexts(speaker), " "), speaker)
 	named := slices.ContainsFunc(kin, func(name string) bool { return personNamed(line+" "+said, name) })
 
-	if strings.TrimSpace(line) == "" || len(r.bios[speaker]) >= maxBio || !Personal(line, speaker) && !Private(said) && !named {
+	// "Najstarszy chłopak, Mściwuj" to "któreś pomaga w kuźni?" right after
+	// "ile masz dzieci?" tells of a son: the question before is the context.
+	following := false
+	if current := customer.talks[customer.shop]; current != nil && current.private != "" && !Private(said) && (current.privateAge <= 1 || current.privateHinted) {
+		following, said = true, current.private+" "+said
+	}
+
+	if strings.TrimSpace(line) == "" || len(r.bios[speaker]) >= maxBio || !Personal(line, speaker) && !Private(said) && !named && !following {
 		return SelfNoteRequest{}, false
+	}
+
+	if current := customer.talks[customer.shop]; current != nil {
+		current.noted.said, current.noted.reply = said, line
 	}
 
 	return SelfNoteRequest{
@@ -455,6 +579,14 @@ func (r *Realm) LearnSelf(name, speaker string, facts []string, line string) []s
 	hero := strings.Fields(Fold(customer.name))
 	money := []string{"zold", "najem", "najm", "umow", "zaplat", "cena", "cene", "ceny"}
 
+	// The question the line answered grounds a fact of the kin it asked
+	// about: "Nie żyje, dawno" to "a mąż żyje?" is about the husband,
+	// though the line has no word for him.
+	said := ""
+	if current := customer.talks[customer.shop]; current != nil && current.noted.reply == line {
+		said = current.noted.said
+	}
+
 	var kept []string
 
 	for _, fact := range facts[:min(len(facts), maxBioNoted)] {
@@ -462,7 +594,7 @@ func (r *Realm) LearnSelf(name, speaker string, facts []string, line string) []s
 		folded := strings.Fields(Fold(text))
 
 		switch {
-		case text == "" || len(text) > maxBioText || !BioGrounded(text, line, speaker):
+		case text == "" || len(text) > maxBioText || !BioGrounded(text, line, speaker) && !kinAsked(said, text):
 			continue
 		case slices.ContainsFunc(folded, func(word string) bool { return slices.Contains(hero, word) }):
 			continue

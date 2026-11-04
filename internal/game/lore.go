@@ -1,4 +1,4 @@
-package game
+﻿package game
 
 import (
 	"fmt"
@@ -594,6 +594,9 @@ var kindWords = map[world.Kind][]string{
 // knows; when they touch none and only chat, it offers one, so that the
 // talk goes somewhere. Whatever is touched, the player has now heard.
 func (r *Realm) hint(customer *player, text string, decision Decision, wares []Ware) (string, *lead, bool) {
+	// A private question is a topic for a line or two, whatever comes.
+	privateBefore := r.privateAsked(customer)
+
 	switch decision.Outcome {
 	case OutcomeChat, OutcomeInfo, OutcomeWares, OutcomeFarewell, OutcomeUnclear:
 	default:
@@ -627,9 +630,20 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 			// and keeps to it.
 			if speaker, ok := r.bioName(customer.shop); ok && hint == privateHint {
 				hint = r.bioHint(speaker, text)
+				r.keepPrivate(customer, text)
 			}
 
 			return hint, nil, false
+		}
+
+		// "jak miał na imię?" right after "a mąż żyje?" is still about the
+		// husband: briefed with the rumour of the day instead, the model
+		// named a werewolf. The bait after a denial is about it too: "też
+		// będzie aptekarzem?" after "dzieci nie było".
+		if speaker, ok := r.bioName(customer.shop); ok && privateBefore != "" && r.privateFollowUp(customer, text, words, wares) {
+			r.hintPrivate(customer)
+
+			return r.bioHint(speaker, privateBefore+" "+text), nil, false
 		}
 
 		// "nie żartuj, pokaż je" after "pokaż instrukcje" presses for the same.

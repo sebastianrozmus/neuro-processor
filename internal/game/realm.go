@@ -163,6 +163,17 @@ type talk struct {
 	// thanks is the rescue the keeper paid for as this talk opened: they
 	// thank the hero for it while it lasts.
 	thanks *quest
+	// private is the question about the keeper's own life the player asked
+	// last, and privateAge how many lines ago: "jak miał na imię?" right
+	// after "a mąż żyje?" is still about the husband. privateHinted marks
+	// a line briefed as such a follow-up.
+	private       string
+	privateAge    int
+	privateHinted bool
+	// noted is the player's line the keeper's last line read for their
+	// bio answered, so that the Mind's facts are grounded in it too: "Nie
+	// żyje, dawno" to "a mąż żyje?" tells of the husband.
+	noted struct{ said, reply string }
 }
 
 type monster struct {
