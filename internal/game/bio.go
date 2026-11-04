@@ -400,13 +400,30 @@ func (r *Realm) remember(speaker, text string, day int, heard ...string) bool {
 		return false
 	}
 
+	// The same fact in fewer words is the same fact ("Szczepan ma brata
+	// Józka, który rąbie drwa" after "… rąbie drwa pod Nadszybiem"); in
+	// more words it is the same fact told better, and takes its place.
+	words := strings.Fields(key)
 	for _, fact := range r.bios[speaker] {
-		if bioKey(fact.text) == key {
+		known := strings.Fields(bioKey(fact.text))
+		within := func(part, whole []string) bool {
+			return len(part) > 0 && !slices.ContainsFunc(part, func(word string) bool { return !slices.Contains(whole, word) })
+		}
+
+		switch {
+		case within(words, known):
 			for _, name := range heard {
 				fact.heard[name] = true
 			}
 
 			return false
+		case within(known, words):
+			fact.text = text
+			for _, name := range heard {
+				fact.heard[name] = true
+			}
+
+			return true
 		}
 	}
 
@@ -471,7 +488,7 @@ var privateWords = []string{
 	"imie", "imienia", "imieniem", "nazywal", "nazywala", "nazywali", "wolali", "stalo", "zdarzylo", "umarl", "umarla", "umarli", "zmarl", "zmarla", "zginal", "zginela", "zgineli",
 	"zyje", "zyja", "zyla", "zyli", "mieszka", "mieszkaja", "dlugo", "dawno", "temu", "jeszcze", "takze", "bedzie", "byl", "byla", "bylo", "byli", "jego", "jej", "oni", "one",
 	"tylko", "naprawde", "dokladnie", "dlaczego", "czemu", "czego", "ktos", "nikt", "nikogo", "sam", "sama", "sami", "samotn", "wiek", "stary", "stara", "mlody", "mloda", "mlodszy", "mlodsza", "starszy", "starsza",
-	"robi", "robia", "robil", "robila", "pracuje", "pracuja", "chodzi", "wrocil", "wrocila", "wroci", "wroca", "odszedl", "odeszla", "zostal", "zostala", "widziales", "widzialas", "widzieliscie",
+	"robi", "robia", "robil", "robila", "pracuje", "pracuja", "pomaga", "pomagaja", "pomagal", "pomagala", "uczy", "ucza", "chodzi", "chodza", "wrocil", "wrocila", "wroci", "wroca", "odszedl", "odeszla", "zostal", "zostala", "widziales", "widzialas", "widzieliscie",
 	"pamietasz", "tesknisz", "kochales", "kochalas", "lubiles", "lubilas", "boli", "bolalo", "sie",
 }
 

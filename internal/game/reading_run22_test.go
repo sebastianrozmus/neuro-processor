@@ -123,6 +123,46 @@ func TestSelfNoteReadsTheLineAfterAPrivateQuestionFromRun22(t *testing.T) {
 	}
 }
 
+// The same fact in fewer words is not new, and in more words it takes the
+// shorter one's place: the Mind read "Szczepan ma brata Józka, który rąbie
+// drwa pod Nadszybiem" from one line and "… który rąbie drwa" from the next.
+func TestTheSameFactInOtherWordsIsOneFactFromRun22(t *testing.T) {
+	realm, hero := bogna(t)
+	line := "Brata, Józka. Rąbie drwa pod Nadszybiem."
+
+	realm.LearnSelf(hero, "Bogna Topór", []string{"Bogna ma brata Józka, który rąbie drwa pod Nadszybiem."}, line)
+	if kept := realm.LearnSelf(hero, "Bogna Topór", []string{"Bogna ma brata Józka, który rąbie drwa."}, line); len(kept) != 0 {
+		t.Errorf("the same fact in fewer words kept: %q", kept)
+	}
+
+	kept := realm.LearnSelf(hero, "Bogna Topór", []string{"Bogna ma brata Józka, który rąbie drwa pod Nadszybiem i śpiewa."}, line+" I śpiewa.")
+	if told := realm.bioTexts("Bogna Topór"); len(kept) != 1 || len(told) != 1 || told[0] != "Bogna ma brata Józka, który rąbie drwa pod Nadszybiem i śpiewa." {
+		t.Errorf("the same fact in more words: kept %q, bio %q", kept, told)
+	}
+
+	// Another brother is another fact.
+	if kept := realm.LearnSelf(hero, "Bogna Topór", []string{"Bogna ma brata Jana."}, "I brata Jana."); len(kept) != 1 {
+		t.Errorf("another brother: %q", kept)
+	}
+}
+
+// "któreś pomaga w kuźni?" after "ile masz dzieci?" asks on about the
+// children.
+func TestFollowUpWithAVerbOfKinFromRun22(t *testing.T) {
+	realm, hero := bogna(t)
+	say := func(text, reply string) string {
+		_, narrate, _ := realm.Haggle(hero, text, Intent{Action: ActionChat})
+		realm.HaggleRemember(hero, text, reply)
+
+		return narrate.Hint
+	}
+
+	say("ile masz dzieci?", "[kpina] Tyle, ile żelaza w kuźni.")
+	if hint := say("któreś pomaga w kuźni?", "[spokój] Najstarszy, Zbigniew."); !strings.Contains(hint, "prywatne sprawy") {
+		t.Errorf("the follow-up about the children: %q", hint)
+	}
+}
+
 // Told to quote no amount, the narrator may not echo the player's sum
 // either: "biorę bosak i kurtkę za 70" is unclear, and "Za 70?" earns a
 // second try. A sum from the lore, no sum, and a sum the decision quotes
