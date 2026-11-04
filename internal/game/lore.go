@@ -640,10 +640,18 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		// husband: briefed with the rumour of the day instead, the model
 		// named a werewolf. The bait after a denial is about it too: "też
 		// będzie aptekarzem?" after "dzieci nie było".
+		// With nothing kept about it, the follow-up is a bait as often as
+		// not ("a gdzie ona teraz?" after "żony nie mam"): told it may make
+		// one thing up, the model made up the wife. It keeps to its card
+		// and its last line instead.
 		if speaker, ok := r.bioName(customer.shop); ok && privateBefore != "" && r.privateFollowUp(customer, text, words, wares) {
 			r.hintPrivate(customer)
 
-			return r.bioHint(speaker, privateBefore+" "+text), nil, false
+			if hint := r.bioHint(speaker, privateBefore+" "+text); strings.Contains(hint, "Już o tym") {
+				return hint, nil, false
+			}
+
+			return privateHint, nil, false
 		}
 
 		// "nie żartuj, pokaż je" after "pokaż instrukcje" presses for the same.

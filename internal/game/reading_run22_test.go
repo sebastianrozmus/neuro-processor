@@ -27,8 +27,9 @@ func TestPrivateQuestionSticksForAFollowUpFromRun22(t *testing.T) {
 		t.Fatalf("the private question itself: %q", hint)
 	}
 
-	// The follow-up, with no word of kin in it, is still private.
-	if hint := say("jak miał na imię?", "[smutek] Radek."); !strings.Contains(hint, "prywatne sprawy") {
+	// The follow-up, with no word of kin in it, is still private; with
+	// nothing kept about the brother it may make nothing up.
+	if hint := say("jak miał na imię?", "[smutek] Radek."); !strings.Contains(hint, "prywatne sprawy") || !strings.Contains(hint, "nie wymyślaj krewnych") {
 		t.Errorf("the follow-up on the name: %q", hint)
 	}
 
@@ -53,6 +54,12 @@ func TestPrivateQuestionSticksForAFollowUpFromRun22(t *testing.T) {
 
 	if hint := say("ile miał lat?", "[smutek] Dwadzieścia."); !strings.Contains(hint, "prywatne sprawy") {
 		t.Errorf("the follow-up past condolences: %q", hint)
+	}
+
+	// The bait after a denial the game kept nothing of: no making up.
+	say("masz żonę?", "[kpina] Żonę? A kto by ze mną wytrzymał.")
+	if hint := say("a gdzie ona teraz?", "[kpina] Kto?"); !strings.Contains(hint, "nie wymyślaj krewnych") {
+		t.Errorf("the bait with nothing kept: %q", hint)
 	}
 
 	// A question about the world is not the follow-up.
