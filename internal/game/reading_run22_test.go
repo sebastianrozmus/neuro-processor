@@ -1,6 +1,7 @@
 package game
 
 import (
+	"context"
 	"strings"
 	"testing"
 )
@@ -119,6 +120,35 @@ func TestSelfNoteReadsTheLineAfterAPrivateQuestionFromRun22(t *testing.T) {
 	say("pokaż kolczugę", "[spokój] Kolczuga grodowa, 210.")
 	if _, ok := realm.SelfNoteRequest(hero, "pokaż kolczugę", "[spokój] Kolczuga grodowa, 210."); ok {
 		t.Error("a line about wares two lines after a private question was read")
+	}
+}
+
+// Told to quote no amount, the narrator may not echo the player's sum
+// either: "biorę bosak i kurtkę za 70" is unclear, and "Za 70?" earns a
+// second try. A sum from the lore, no sum, and a sum the decision quotes
+// elsewhere are as before.
+func TestNoAmountsMeansNotEvenThePlayersFromRun22(t *testing.T) {
+	unclear := NarrateRequest{Decision: Decision{Outcome: OutcomeUnclear, Offer: 70}, Lore: "«Bosak Strażacki» 40, «Kurtka z Pontonu» 35"}
+
+	narrator := &scriptedNarrator{replies: []string{"[zniecierpliwienie] Za 70? Najpierw powiedz wyraźnie, co bierzesz.", "[zniecierpliwienie] Bosak czy kurtka? Powiedz wprost."}}
+	if text, err := Narrate(context.Background(), narrator, unclear); err != nil || narrator.calls != 2 || !strings.HasSuffix(text, "Powiedz wprost.") {
+		t.Errorf("the player's sum echoed: %q, %v, %d calls", text, err, narrator.calls)
+	}
+
+	narrator = &scriptedNarrator{replies: []string{"[zniecierpliwienie] Bosak za 40 czy kurtka za 35? Powiedz wprost."}}
+	if _, err := Narrate(context.Background(), narrator, unclear); err == nil {
+		t.Error("prices from the list quoted when told to quote none")
+	}
+
+	narrator = &scriptedNarrator{replies: []string{"[zniecierpliwienie] Bosak czy kurtka? Powiedz wprost."}}
+	if text, err := Narrate(context.Background(), narrator, unclear); err != nil || narrator.calls != 1 {
+		t.Errorf("a line without a sum: %q, %v", text, err)
+	}
+
+	// A counter-offer still quotes its price.
+	narrator = &scriptedNarrator{replies: []string{"[spokój] Za 25? Daj 36."}}
+	if text, err := Narrate(context.Background(), narrator, NarrateRequest{Decision: Decision{Outcome: OutcomeCounter, Item: Ware{Name: "Bosak"}, Offer: 25, Price: 36}}); err != nil || narrator.calls != 1 {
+		t.Errorf("a counter-offer: %q, %v", text, err)
 	}
 }
 

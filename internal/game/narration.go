@@ -289,6 +289,14 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 	brief := request.Decision.BriefFor(request.Role) + " " + request.Hint
 	known = Fold(known)
 
+	// Told to quote no amount at all ("Nie jest jasne, co i za ile…", a
+	// farewell), the narrator may not echo the player's sum either: on
+	// test18 the judges counted "Za 70? Najpierw powiedz wyraźnie" a heavy
+	// error.
+	if strings.Contains(brief, "Nie podawaj żadnych kwot") {
+		allowed = nil
+	}
+
 	// An anchored reply may name what it was told and what the world has.
 	var vocabulary []string
 	if request.Anchored {
