@@ -133,6 +133,13 @@ func kinClaims(text, speaker string) []kinClaim {
 				continue
 			}
 
+			// "Moja żona to lada", "żona to same kłopoty": a word of kin
+			// before "to" is a figure or a saying, not one's own, unless a
+			// denial follows ("żony to nie mam", "mąż to już nie żyje").
+			if index+1 < len(folded) && folded[index+1] == "to" && !slices.Contains(folded[index+1:min(len(folded), index+5)], "nie") {
+				continue
+			}
+
 			found = true
 			from, to := max(0, index-4), min(len(folded), index+5)
 			state := kinState(word, folded[from:to], comma[from:to], index-from)
@@ -157,14 +164,28 @@ func kinClaims(text, speaker string) []kinClaim {
 			claims = append(claims, claim)
 		}
 
-		// "Żonę? A skąd!", "Syna? Ani jednego." deny.
+		// "Żonę? A skąd!", "Syna? Ani jednego." deny. One word alone answers
+		// only as "nie" or "tak": "Żonę? Ha!" claims nothing.
 		if !found && carried != "" {
 			state := kinState(carried, folded[:min(len(folded), 5)], comma[:min(len(folded), 5)], -1)
 			if slices.ContainsFunc(folded[:min(len(folded), 3)], func(word string) bool { return slices.Contains(denyIdioms, word) }) {
 				state = kinNone
 			}
 
-			claims = append(claims, kinClaim{family: kinFamily(carried), kind: kinKind(carried), state: state})
+			if len(folded) == 1 {
+				switch folded[0] {
+				case "nie", "nigdy", "skad", "skadze":
+					state = kinNone
+				case "tak", "mam", "owszem", "jest", "pewnie":
+					state = kinHas
+				default:
+					state = ""
+				}
+			}
+
+			if state != "" {
+				claims = append(claims, kinClaim{family: kinFamily(carried), kind: kinKind(carried), state: state})
+			}
 		}
 
 		carried = ""

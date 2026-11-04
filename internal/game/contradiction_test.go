@@ -66,6 +66,16 @@ func TestContradictsTheBioAboutKin(t *testing.T) {
 		{"Mąż Wiesławy żyje i siedzi w karczmie.", "[kpina] Nie mam maza, dziecinko.", true},
 		// a lass or a lad is anybody's: no claim of kin
 		{"Jędrek nie ma żony.", "[radość] Dziewczyna z targu kupiła amulet.", false},
+		// "żona to lada" is a figure, "żona to same kłopoty" a saying (jedrek s7 run20v3, the one false alarm of t20)
+		{"Jędrek nie ma żony.", "[radość] Żonę? Ha! Moja żona to lada, a ja nie mam dla niej czasu, bo słucham klientów.", false},
+		{"Jędrek nie ma żony.", "[radość] Bo żona to same kłopoty, a ja mam dość kłopotów z solą! Wolę kawalerską swobodę, ha!", false},
+		{"Jędrek ma żonę Hanię.", "[kpina] Żony to nie mam, kochana.", true},
+		{"Mąż Wiesławy żyje i siedzi w karczmie.", "[smutek] Mąż to już nie żyje, dziecinko.", true},
+		// one word after the question answers only as yes or no
+		{"Jędrek ma żonę Hanię.", "[kpina] Żonę? Nie.", true},
+		{"Jędrek nie ma żony.", "[kpina] Żonę? Nie.", false},
+		{"Jędrek nie ma żony.", "[kpina] Żonę? Tak.", true},
+		{"Jędrek ma żonę Hanię.", "[kpina] Żonę? Ha!", false},
 	} {
 		got := contradicts(c.line, []string{c.bio}, "Ktoś Taki")
 		if (got != "") != c.want {
