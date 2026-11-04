@@ -16,6 +16,7 @@ func TestContradictsTheBioAboutKin(t *testing.T) {
 		// a husband dead, then never married (wieslawa s7, both models)
 		{"Mąż Wiesławy nie żyje.", "[kpina] Męża nie mam, dziecinko. Żadnego nie było.", true},
 		{"Mąż Wiesławy nie żyje od dawna.", "[kpina] Żadnego męża nie było, dziecinko.", true},
+		{"Mąż Babki Wiesławy nie żyje.", "[zdziwienie] Babci? Ja jestem Wiesława, dziecinko, i mam 70 lat, więc to raczej ty jesteś moją wnusią. A męża nie mam, bo wolę miód od chłopa.", true},
 		// a husband alive, then none (wieslawa s11 run21)
 		{"Mąż Wiesławy żyje i siedzi w karczmie.", "[kpina] Ja nie miałam żadnego męża, dziecinko.", true},
 		// a husband alive, then dead (wieslawa s11 run20v3)
@@ -45,6 +46,7 @@ func TestContradictsTheBioAboutKin(t *testing.T) {
 		{"Miałam męża, sztygara, a dzieci nie.", "[smutek] Syn został na górze.", true},
 		{"Benigna nie ma dzieci ani wnuków.", "[smutek] Nie ma kogo uczyć, syn został na górze.", true},
 		{"Benigna nie ma dzieci ani wnuków.", "[smutek] Nie mam ani dzieci, ani wnuków. Syna nie było.", false},
+		{"Benigna nie ma dzieci.", "[kpina] Aptekarzem? Ja nie mam nawet syna, a co dopiero syna aptekarza.", false},
 		{"Benigna nie ma dzieci.", "[kpina] Syna? Jakiego syna? Nie mam żadnego.", false},
 		{"Benigna nie ma dzieci.", "[smutek] Gdybym miała syna, też by zjeżdżał.", false},
 		{"Benigna nie ma dzieci.", "[czułość] Traktuję cię jak córkę, dziecko.", false},
@@ -63,6 +65,16 @@ func TestContradictsTheBioAboutKin(t *testing.T) {
 		if (got != "") != c.want {
 			t.Errorf("contradicts(%q | %q) = %q, want %v", c.line, c.bio, got, c.want)
 		}
+	}
+
+	// The speaker's own name in any case is no name of kin: "syn Mszczuja,
+	// Zbigniew" is Zbigniew.
+	if got := contradicts("[spokój] Syn, Zbigniew. Dmucha w miech.", []string{"Najstarszy syn Mszczuja, Zbigniew, uczy się przy miechu."}, "Mszczuj Kowal"); got != "" {
+		t.Errorf("the speaker's name read as the son's: %q", got)
+	}
+
+	if got := contradicts("[spokój] Syn, Bolesław. Dmucha w miech.", []string{"Najstarszy syn Mszczuja, Zbigniew, uczy się przy miechu."}, "Mszczuj Kowal"); got == "" {
+		t.Error("the son renamed was missed")
 	}
 
 	// The speaker's own name is no kin: Babka Wiesława tells of no grandmother.

@@ -121,6 +121,7 @@ func kinClaims(text, speaker string) []kinClaim {
 		}
 
 		found := false
+		var told []kinClaim
 
 		for index, word := range folded {
 			family := kinFamily(word)
@@ -141,7 +142,19 @@ func kinClaims(text, speaker string) []kinClaim {
 				state = kinNone
 			}
 
-			claims = append(claims, kinClaim{family: family, kind: kinKind(word), state: state, name: kinName(tokens, folded, index, skip)})
+			told = append(told, kinClaim{family: family, kind: kinKind(word), state: state, name: kinName(tokens, folded, index, skip)})
+		}
+
+		// "Nie mam nawet syna, a co dopiero syna aptekarza": a kin denied in
+		// a sentence is not claimed by its other mention in it.
+		for _, claim := range told {
+			if claim.state == kinHas && slices.ContainsFunc(told, func(other kinClaim) bool {
+				return other.kind == claim.kind && (other.state == kinNone || other.state == kinLost)
+			}) {
+				continue
+			}
+
+			claims = append(claims, claim)
 		}
 
 		// "Żonę? A skąd!", "Syna? Ani jednego." deny.
@@ -247,7 +260,7 @@ func kinState(word string, window []string, comma []bool, at int) string {
 // Józka", "syn Jan". The speaker's own name and the polite capitals are
 // no name of kin.
 func kinName(tokens, folded []string, at int, skip []string) string {
-	for index := at + 1; index < min(len(tokens), at+3); index++ {
+	for index := at + 1; index < min(len(tokens), at+4); index++ {
 		raw := strings.TrimLeft(tokens[index], "„«\"(")
 		if raw == "" {
 			continue
@@ -261,8 +274,14 @@ func kinName(tokens, folded []string, at int, skip []string) string {
 			return ""
 		}
 
+		// The speaker's own name in any case is no name of kin, nor is a
+		// polite capital: "syn Mszczuja, Zbigniew" is Zbigniew.
 		word := folded[index]
-		if len(word) < minQueryWord || slices.Contains(skip, word) || slices.Contains(commonCapitals, word) || kinFamily(word) != -1 {
+		if slices.Contains(commonCapitals, word) || slices.ContainsFunc(skip, func(own string) bool { return len(own) >= minQueryWord && sameName(word, own) }) {
+			continue
+		}
+
+		if len(word) < minQueryWord || kinFamily(word) != -1 {
 			return ""
 		}
 
