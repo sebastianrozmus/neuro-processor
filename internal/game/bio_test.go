@@ -219,6 +219,58 @@ func TestLearnSelfKeepsGroundedFactsOnce(t *testing.T) {
 	}
 }
 
+func TestLearnSelfSkipsWhatTheCardSays(t *testing.T) {
+	realm, hero := bogna(t)
+	realm.world.Companions[0].Description = "Czterdziestoletnia drwalka spod Turni, która mówi mało i bije mocno. " +
+		"Wychowała ją babka Dobrawa. Nosi kurtkę po starszym bracie. Jej mąż, flisak Roman, utonął w Narwi przy pierwszej odwilży."
+
+	// On S-valid every false alarm of the Mind (8/8) was a fact the card
+	// already holds, told again in other words: the Mind is shown the card
+	// and still notes it, so the engine checks.
+	for fact, line := range map[string]string{
+		"Bogna wychowała się u babki Dobrawy.":                                "[spokój] Babka Dobrawa. Ogień też, ale babka pierwsza.",
+		"Bogna ma starszego brata.":                                           "[smutek] Starszego. Kurtka po nim.",
+		"Bogna ma czterdzieści lat.":                                          "[spokój] Czterdzieści. Babka mówi, że sto, bo tyle widziałam.",
+		"Bogna ma 40 lat według metryki.":                                     "[spokój] 40, według metryki.",
+		"Mąż Bogny, flisak Roman, utonął w Narwi przy pierwszej odwilży.":     "[smutek] Miałam. Roman, flisak. Utonął w Narwi przy pierwszej odwilży.",
+		"Bogna była drwalką.":                                                 "[spokój] Drwalką. Widać?",
+		"Bogna jest drwalką spod Turni.":                                      "[spokój] Drwalką, spod Turni, jak każdy tu.",
+	} {
+		if kept := realm.LearnSelf(hero, "Bogna Topór", []string{fact}, line); len(kept) != 0 {
+			t.Errorf("a fact from the card kept: %q", kept)
+		}
+	}
+
+	// What the card does not say is new: a sister, the grandmother still
+	// alive, the husband's boat, another age.
+	for fact, line := range map[string]string{
+		"Bogna ma młodszą siostrę Jagnę.":           "[spokój] Siostrę mam, Jagnę, młodszą.",
+		"Babka Bogny, Dobrawa, jeszcze żyje.":        "[spokój] Babka Dobrawa jeszcze żyje, w Przysiółku.",
+		"Brat Bogny ma na imię Ścibor.":             "[smutek] Ścibor. Tak miał na imię.",
+		"Bogna ma trzydzieści lat.":                 "[spokój] Trzydzieści, choć wyglądam na więcej.",
+		"Roman zostawił Bognie łódź.":               "[smutek] Łódź po Romanie jeszcze mam.",
+	} {
+		if kept := realm.LearnSelf(hero, "Bogna Topór", []string{fact}, line); len(kept) != 1 {
+			t.Errorf("a new fact dropped as the card's: %q (%q)", fact, kept)
+		}
+	}
+
+	for card, want := range map[string][]int{
+		"Dwudziestoletnia wróżka.":                       {20},
+		"Sześćdziesięcioletni konduktor.":                {60},
+		"Pięćdziesięciopięcioletnia dawna lekarka.":      {55},
+		"Siedemdziesięcioletni dyspozytor, ma 3 wnuków.": {70},
+		"Ma 34 lata i psa.":                              {34},
+		"Czterdzieści dwa lata na karku.":                {42},
+		"Letnia noc, dwunastoletni syn.":                 {12},
+		"Stary kowal.":                                   nil,
+	} {
+		if got := ages(card); fmt.Sprint(got) != fmt.Sprint(want) {
+			t.Errorf("ages(%q) = %v, want %v", card, got, want)
+		}
+	}
+}
+
 func TestCompanionsKeepToWhatTheySaid(t *testing.T) {
 	realm, hero := bogna(t)
 

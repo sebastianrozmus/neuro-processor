@@ -70,6 +70,7 @@ func TestGuardReport(t *testing.T) {
 	defer sink.Close()
 
 	told := regexp.MustCompile(`Co już o sobie mówił[ae]ś \(to prawda, trzymaj się tego\): ([^\n]*)`)
+	sum := regexp.MustCompile(`\d+ ([a-ząęółśżźćń]+)[.,]`)
 	keeper := regexp.MustCompile(`(?m)^(?:TWOJA POSTAĆ|Jesteś): ([^,.]+)`)
 
 	for _, row := range readRows(t, in) {
@@ -90,14 +91,36 @@ func TestGuardReport(t *testing.T) {
 		var history []Line
 		var earlier []string
 
+		// The currency is the word after a sum in the [GRA] blocks of the
+		// talk ("36 korków."), for the price nobody asked for.
+		currency := ""
+		for _, item := range replies {
+			turn, _ := item.(map[string]any)
+			gra, _ := turn["gra"].(string)
+			if match := sum.FindStringSubmatch(gra); match != nil {
+				currency = match[1]
+
+				break
+			}
+		}
+
 		for k, item := range replies {
 			turn, _ := item.(map[string]any)
 			reply, _ := turn["reply"].(string)
 			gra, _ := turn["gra"].(string)
+			said, _ := turn["player"].(string)
 
 			report := map[string]any{"id": id, "k": k, "reply": reply, "gm": strings.HasPrefix(gra, "Przebieg rundy"), "has_bio": len(bio) > 0}
 			report["echo4"] = echoN(reply, history, 4)
 			report["echo3"] = echoN(reply, history, 3)
+			// The question and the price guards: "asks_any" is the old
+			// rule (any question mark), "asks" the one that lets an echo of
+			// the player's words pass; "unasked" a price in a line that was
+			// to name none.
+			report["asks_any"] = strings.Contains(gra, "nie pytaj") && strings.Contains(reply, "?")
+			report["asks"] = strings.Contains(gra, "nie pytaj") && asks(reply, said)
+			report["unasked"] = unasked(gra, false) && priceIn(reply, currency)
+			report["currency"] = currency
 			report["denies"] = contradicts(reply, bio, speaker)
 			report["denies_self"] = contradicts(reply, earlier, speaker)
 			if first, ok := strings.CutSuffix(id, "-p2-dyn"); ok {

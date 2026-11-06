@@ -97,10 +97,13 @@ def main():
     parser.add_argument("--num-ctx", type=int, default=4096, help="context window; 4096 is the Modelfile's, the game's talk model runs in it; 0 leaves it to the server")
     parser.add_argument("--num-predict", type=int, default=220, help="reply cap, as NEURO_LLM_MAX_TOKENS in the README")
     parser.add_argument("--warn-ctx", action="store_true", help="warn about turns whose prompt_eval_count + num_predict exceeds num_ctx")
+    parser.add_argument("--repeat-penalty", type=float, default=None, help="Ollama's repeat_penalty; unset leaves it to the Modelfile (1.1 is Ollama's default, the game sends none)")
     args = parser.parse_args()
     options = {"temperature": args.temperature, "top_p": 0.9, "seed": args.seed, "num_predict": args.num_predict}
     if args.num_ctx > 0:
         options["num_ctx"] = args.num_ctx
+    if args.repeat_penalty is not None:
+        options["repeat_penalty"] = args.repeat_penalty
 
     done = set()
     if os.path.exists(args.out):

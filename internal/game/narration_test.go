@@ -364,11 +364,14 @@ func TestForbiddenAmountsEarnASecondTry(t *testing.T) {
 		t.Errorf("got %q, %v after %d calls (%q)", text, err, narrator.calls, narrator.corrections)
 	}
 
-	// Without the ban the fee from the lore passes as before.
-	narrator = &scriptedNarrator{replies: []string{"[spokój] Dołączam za 85 koron."}}
+	// Without the ban the fee from the lore passes the number check, but in
+	// small talk it is still a price nobody asked for, and earns the second
+	// try with its own correction.
+	narrator = &scriptedNarrator{replies: []string{"[spokój] Dołączam za 85 koron.", "[spokój] Topór mówi za mnie."}}
 	request.Forbidden = nil
-	if text, _ := Narrate(context.Background(), narrator, request); narrator.calls != 1 || text != "[spokój] Dołączam za 85 koron." {
-		t.Errorf("the fee from the lore was refused: %q after %d calls", text, narrator.calls)
+	request.Merchant.Currency = "koron"
+	if text, _ := Narrate(context.Background(), narrator, request); narrator.calls != 2 || text != "[spokój] Topór mówi za mnie." || narrator.corrections[1] != unaskedCorrection {
+		t.Errorf("the fee in small talk: %q after %d calls (%q)", text, narrator.calls, narrator.corrections)
 	}
 }
 
@@ -486,6 +489,136 @@ func TestTalkKeepsToTheBrief(t *testing.T) {
 	narrator = &scriptedNarrator{replies: []string{"[kpina] 129 i ani grosza mniej.", "[kpina] Dobra, 50."}}
 	if text, _ := Narrate(context.Background(), narrator, paid); strings.ContainsAny(text, "0123456789") {
 		t.Errorf("the companion's canned line quotes money: %q", text)
+	}
+}
+
+func TestUnaskedPriceEarnsASecondTry(t *testing.T) {
+	// A mercenary in small talk names no price: the fee is forbidden
+	// already, but a sum from elsewhere in the lore (the day, the player's
+	// health) passed as a number the speaker knows. On test18 judges counted
+	// "Umowa stoi przy 53" to "idziesz ze mną?" a heavy error.
+	talk := NarrateRequest{
+		Merchant:  Merchant{Name: "Rataj", Currency: "korków"},
+		Text:      "idziesz ze mną?",
+		Decision:  Decision{Outcome: OutcomeChat},
+		Lore:      "Twoja służba kosztuje: «Umowa najmu» 60 korków. Dzień 12. Twój rozmówca: Ala, zdrowie 7 z 20.",
+		Role:      RoleMercenary,
+		Forbidden: []int{60},
+	}
+	narrator := &scriptedNarrator{replies: []string{"[kpina] Idę, ale 12 korków muszą przejść z ręki do ręki.", "[kpina] Idę. Targi zostaw na targ."}}
+	text, err := Narrate(context.Background(), narrator, talk)
+	if err != nil || text != "[kpina] Idę. Targi zostaw na targ." || narrator.calls != 2 || narrator.corrections[1] != unaskedCorrection {
+		t.Errorf("a price nobody asked for: %q, %v after %d calls (%q)", text, err, narrator.calls, narrator.corrections)
+	}
+
+	// A sum spelled out passes the number check below ten; "za" and the
+	// currency make it a price all the same.
+	narrator = &scriptedNarrator{replies: []string{"[kpina] Za siedem korków to ci najwyżej topór pokażę.", "[kpina] Topór mówi za mnie."}}
+	if text, _ := Narrate(context.Background(), narrator, talk); text != "[kpina] Topór mówi za mnie." || narrator.calls != 2 {
+		t.Errorf("a spelled-out price: %q after %d calls", text, narrator.calls)
+	}
+
+	// Two prices leave the last try spoken: a sum spoils a line less than a
+	// canned one does, as a question does.
+	narrator = &scriptedNarrator{replies: []string{"[kpina] 12 korków i idziemy.", "[kpina] Daj 7 korków."}}
+	if text, err := Narrate(context.Background(), narrator, talk); text != "[kpina] Daj 7 korków." || !errors.Is(err, ErrInconsistent) {
+		t.Errorf("two prices: %q, %v", text, err)
+	}
+
+	// Numbers that are no money pass: the day, a shelter, the fight.
+	for _, line := range []string{"[spokój] Dzień 12, a ja wciąż na tym dachu.", "[spokój] Siedziałem w Schronie 7, zanim przyszła woda.", "[kpina] Zdrowie 7 z 20 i chcesz iść na szczury?"} {
+		narrator = &scriptedNarrator{replies: []string{line}}
+		if text, err := Narrate(context.Background(), narrator, talk); err != nil || text != line || narrator.calls != 1 {
+			t.Errorf("a number that is no price refused: %q, %v after %d calls", text, err, narrator.calls)
+		}
+	}
+
+	// Asked about the fee, the mercenary quotes it; a shopkeeper in talk
+	// may recommend a ware with its price, as the brief says.
+	asked := NarrateRequest{Merchant: Merchant{Name: "Rataj", Currency: "korków"}, Decision: Decision{Outcome: OutcomeInfo, Item: Ware{Name: "Umowa najmu", Price: 60}, Price: 60}, Role: RoleMercenary}
+	narrator = &scriptedNarrator{replies: []string{"[spokój] 60 korków, płatne raz."}}
+	if text, err := Narrate(context.Background(), narrator, asked); err != nil || text != "[spokój] 60 korków, płatne raz." {
+		t.Errorf("the fee asked for refused: %q, %v", text, err)
+	}
+
+	keeper := NarrateRequest{Merchant: Merchant{Name: "Ignac", Currency: "korków"}, Text: "coś na szczury?", Decision: Decision{Outcome: OutcomeChat}, Lore: "Twój towar i ceny za sztukę (korków): «Bosak Strażacki» 40."}
+	narrator = &scriptedNarrator{replies: []string{"[strach] Na szczury? Bosak Strażacki za 40 korków, mocno trzymaj linę."}}
+	if text, err := Narrate(context.Background(), narrator, keeper); err != nil || narrator.calls != 1 || text != narrator.replies[0] {
+		t.Errorf("a shopkeeper's recommendation refused: %q, %v", text, err)
+	}
+
+	// A companion in the party proposes no pay; a line told to name no
+	// amount names none, spelled out either.
+	mate := NarrateRequest{Merchant: Merchant{Name: "Bogna", Currency: "kapsli"}, Text: "idziemy?", Decision: Decision{Outcome: OutcomeChat}, Lore: "Dzień 30.", Role: RoleCompanion}
+	narrator = &scriptedNarrator{replies: []string{"[spokój] Daj 30 kapsli i idziemy.", "[spokój] Idziemy."}}
+	if text, _ := Narrate(context.Background(), narrator, mate); text != "[spokój] Idziemy." || narrator.calls != 2 {
+		t.Errorf("a companion's price: %q after %d calls", text, narrator.calls)
+	}
+
+	unclear := NarrateRequest{Merchant: Merchant{Name: "Ignac", Currency: "korków"}, Text: "biorę za 70", Decision: Decision{Outcome: OutcomeUnclear}}
+	narrator = &scriptedNarrator{replies: []string{"[kpina] Za pięć korków nie sprzedam nawet haka.", "[kpina] Powiedz jasno, co bierzesz."}}
+	if text, _ := Narrate(context.Background(), narrator, unclear); text != "[kpina] Powiedz jasno, co bierzesz." || narrator.calls != 2 {
+		t.Errorf("a small sum spelled out under a ban: %q after %d calls", text, narrator.calls)
+	}
+
+	for _, test := range []struct {
+		text, currency string
+		want           bool
+	}{
+		{"Idę, ale 12 korków muszą przejść z ręki do ręki.", "korków", true},
+		{"Za siedem korków to ci topór pokażę.", "korków", true},
+		{"Za 70? Najpierw powiedz, co bierzesz.", "korków", true},
+		{"Pięćdziesiąt pięć kapsli i ani grosza mniej.", "kapsli", true},
+		{"Dołączam za 85 koron.", "koron", true},
+		{"Umowa stoi przy 53.", "korków", false},
+		{"Dzień 12, a ja wciąż na dachu.", "korków", false},
+		{"Siedziałem w Schronie 7.", "korków", false},
+		{"Korków nie biorę, idę za darmo.", "korków", false},
+		{"Dwa razy ci mówiłam.", "korków", false},
+		{"Zabiłem 3 wilki za jednym zamachem.", "korków", false},
+	} {
+		if got := priceIn(test.text, test.currency); got != test.want {
+			t.Errorf("priceIn(%q) = %v, want %v", test.text, got, test.want)
+		}
+	}
+}
+
+func TestEchoQuestionsAreNoAsking(t *testing.T) {
+	// Told not to ask, a speaker may still echo the player's words with a
+	// question mark before answering: "Na szczury? Bosak." asks nothing.
+	// A question of their own earns the second try as before.
+	quiet := NarrateRequest{Text: "masz coś na szczury?", Decision: Decision{Outcome: OutcomeChat}, Hint: "Gracz zagaduje bez konkretnego pytania. Odpowiedz krótko i po swojemu na to, co powiedział; nie pytaj go o nic."}
+	for _, line := range []string{"[strach] Na szczury? Bosak, i mocno trzymaj linę.", "[kpina] Szczury? Ha! Kordelas je tnie.", "[zdziwienie] Co? Mów głośniej, wiatr."} {
+		narrator := &scriptedNarrator{replies: []string{line}}
+		if text, err := Narrate(context.Background(), narrator, quiet); err != nil || text != line || narrator.calls != 1 {
+			t.Errorf("an echo taken for a question: %q, %v after %d calls", text, err, narrator.calls)
+		}
+	}
+
+	for _, line := range []string{"[radość] Szczęść Boże. Więc przychodzisz po opatrunek czy po kazanie?", "[spokój] Cześć. Szukasz kogoś do drużyny?", "[kpina] Na szczury? A ty umiesz pływać?"} {
+		narrator := &scriptedNarrator{replies: []string{line, "[spokój] Bosak."}}
+		if text, _ := Narrate(context.Background(), narrator, quiet); text != "[spokój] Bosak." || narrator.calls != 2 || narrator.corrections[1] != asksCorrection {
+			t.Errorf("a question let through: %q after %d calls", text, narrator.calls)
+		}
+	}
+
+	for _, test := range []struct {
+		text, said string
+		want       bool
+	}{
+		{"Na szczury? Bosak.", "masz coś na szczury?", false},
+		{"Żonę? Ha! Kowadło mam.", "masz żonę?", false},
+		{"Za 70? Najpierw powiedz, co bierzesz.", "biorę za 70", false},
+		{"Piękna? Myję ręce cały dzień.", "jesteś piękna", false},
+		{"Szukasz kogoś do drużyny?", "cześć", true},
+		{"Na szczury? A ty umiesz pływać?", "masz coś na szczury?", true},
+		{"Dobrze?", "przyjdę jutro", true},
+		{"Co?", "", false},
+		{"Bosak.", "masz coś na szczury?", false},
+	} {
+		if got := asks(test.text, test.said); got != test.want {
+			t.Errorf("asks(%q, %q) = %v, want %v", test.text, test.said, got, test.want)
+		}
 	}
 }
 

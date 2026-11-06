@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -312,6 +313,130 @@ func BioGrounded(fact, line, speaker string) bool {
 	return shares(fact, line, strings.Fields(Fold(speaker)))
 }
 
+// cardSays reports whether a fact a speaker told is in their card already:
+// every meaningful word of it is a word of the card in some form, or it
+// gives their age and the card gives the same. The Mind is shown the card
+// and told to pass over what it says, but asked "ile masz lat?" by one
+// whose card says "sześćdziesięcioletni" it noted "Zenon ma sześćdziesiąt
+// lat" all the same: on S-valid every false alarm (8 of 8) was such a
+// fact, so the engine checks. A fact that adds to the card ("babka
+// jeszcze żyje" to "wychowała ją babka Dobrawa") is new.
+func cardSays(fact, card string, skip []string) bool {
+	content := bioContent(fact, skip)
+	if len(content) == 0 {
+		return false
+	}
+
+	// A word of the card in another case is the word ("brata" and "po
+	// bracie"); a word of the same kin is not: "nie nazywaj jej dzieckiem"
+	// in a card says nothing of children.
+	words := strings.Fields(Fold(card))
+	known := func(word string) bool {
+		return slices.ContainsFunc(words, func(other string) bool { return word == other || formOf(word, other) })
+	}
+
+	// An age the card gives is one fact however it is told ("siedemdziesiąt
+	// lat według dokumentów"), unless kin or a stranger's name come with it.
+	told := ages(fact)
+	if len(told) > 0 && slices.Contains(ages(card), told[0]) {
+		named := slices.ContainsFunc(strings.Fields(fact), func(word string) bool {
+			first, _ := utf8.DecodeRuneInString(strings.TrimLeft(word, "„«\"("))
+			folded := strings.Fields(Fold(word))
+
+			return unicode.IsUpper(first) && len(folded) > 0 && !slices.Contains(skip, folded[0]) && !known(folded[0])
+		})
+		kin := slices.ContainsFunc(content, func(word string) bool { return kinFamily(word) >= 0 && kinFamily(word) < kinOnly })
+
+		if !named && !kin {
+			return true
+		}
+	}
+
+	return !slices.ContainsFunc(content, func(word string) bool { return !known(word) })
+}
+
+// ageWords are the folded beginnings of the Polish words for an age
+// written as one adjective ("sześćdziesięcioletni", "dwunastoletnia"),
+// before "letni": the tens, then the teens and the ones.
+var ageWords = []struct {
+	stem  string
+	value int
+}{
+	{"dziewiecdziesiecio", 90}, {"osiemdziesiecio", 80}, {"siedemdziesiecio", 70}, {"szescdziesiecio", 60}, {"piecdziesiecio", 50},
+	{"czterdziesto", 40}, {"trzydziesto", 30}, {"dwudziesto", 20}, {"stu", 100},
+	{"dziewietnasto", 19}, {"osiemnasto", 18}, {"siedemnasto", 17}, {"szesnasto", 16}, {"pietnasto", 15}, {"czternasto", 14},
+	{"trzynasto", 13}, {"dwunasto", 12}, {"jedenasto", 11}, {"dziesiecio", 10},
+	{"dziewiecio", 9}, {"osmio", 8}, {"siedmio", 7}, {"szescio", 6}, {"piecio", 5}, {"cztero", 4}, {"trzy", 3}, {"dwu", 2}, {"jedno", 1},
+}
+
+// ages lists the ages a text gives, as an adjective ("dwudziestoletnia")
+// or as a number of years ("ma 34 lata", "czterdzieści dwa lata").
+func ages(text string) []int {
+	var found []int
+	words := strings.Fields(Fold(text))
+
+	for index, word := range words {
+		if prefix, _, ok := strings.Cut(word, "letni"); ok && prefix != "" {
+			if value := ageOf(prefix); value > 0 {
+				found = append(found, value)
+			}
+
+			continue
+		}
+
+		if word != "lat" && word != "lata" && word != "wiosen" {
+			continue
+		}
+
+		value := 0
+		for back := index - 1; back >= 0; back-- {
+			if number, spelled := numberWords[words[back]]; spelled {
+				value += number
+			} else if isDigits(words[back]) {
+				number, _ := strconv.Atoi(words[back])
+				value += number
+			} else {
+				break
+			}
+		}
+
+		if value > 0 {
+			found = append(found, value)
+		}
+	}
+
+	return found
+}
+
+// ageOf reads the age an adjective's beginning spells: the tens, then the
+// ones ("piecdziesieciopiecio" is 55), or the teens or the ones alone.
+func ageOf(prefix string) int {
+	value := 0
+
+	for _, word := range ageWords {
+		if rest, ok := strings.CutPrefix(prefix, word.stem); ok {
+			value += word.value
+			if rest == "" {
+				return value
+			}
+
+			if word.value < 10 || word.value%10 != 0 {
+				return 0
+			}
+
+			for _, one := range ageWords {
+				if one.value < 10 && rest == one.stem {
+					return value + one.value
+				}
+			}
+
+			return 0
+		}
+	}
+
+	return 0
+}
+
 // bioKey is a fact as compared with others: folded, words only.
 func bioKey(text string) string {
 	return strings.Join(strings.Fields(Fold(text)), " ")
@@ -389,6 +514,24 @@ func (r *Realm) bioCard(index int) string {
 	shop := r.world.Shops[index]
 
 	return fmt.Sprintf("%s, %s. %s", shop.Keeper, shop.Name, shop.Persona)
+}
+
+// cardOf is the card of a speaker named, as bioCard shows it, or "" for
+// one who has none.
+func (r *Realm) cardOf(speaker string) string {
+	for _, spec := range r.world.Companions {
+		if spec.Name == speaker {
+			return fmt.Sprintf("%s, %s. %s", spec.Name, roleName(spec.Role), spec.Description)
+		}
+	}
+
+	for _, shop := range r.world.Shops {
+		if shop.Keeper == speaker {
+			return fmt.Sprintf("%s, %s. %s", shop.Keeper, shop.Name, shop.Persona)
+		}
+	}
+
+	return ""
 }
 
 // bioTexts are what a speaker has said of themselves, oldest first.
@@ -619,6 +762,7 @@ func (r *Realm) LearnSelf(name, speaker string, facts []string, line string) []s
 	}
 
 	var kept []string
+	card := r.cardOf(speaker)
 
 	for _, fact := range facts[:min(len(facts), maxBioNoted)] {
 		text := bioSentence(fact)
@@ -628,6 +772,8 @@ func (r *Realm) LearnSelf(name, speaker string, facts []string, line string) []s
 		case text == "" || len(text) > maxBioText || !BioGrounded(text, line, speaker) && !kinAsked(said, text):
 			continue
 		case slices.ContainsFunc(folded, func(word string) bool { return slices.Contains(hero, word) }):
+			continue
+		case cardSays(text, card, strings.Fields(Fold(speaker))):
 			continue
 		case slices.ContainsFunc(folded, func(word string) bool {
 			return slices.ContainsFunc(money, func(stem string) bool { return strings.HasPrefix(word, stem) })

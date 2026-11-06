@@ -56,6 +56,11 @@ const priceCorrection = "Twoja poprzednia odpowiedź była zła: nie podała cen
 // asksCorrection is what a narrator hears after asking when told not to.
 const asksCorrection = "Twoja poprzednia odpowiedź była zła: zadała pytanie, a miałeś o nic nie pytać. Napisz ją jeszcze raz bez żadnego pytania."
 
+// unaskedCorrection is what a narrator hears after naming a price or a sum
+// in a line that was to name none: small talk with a mercenary, a
+// companion, or a brief that said so.
+const unaskedCorrection = "Twoja poprzednia odpowiedź była zła: podała cenę albo kwotę, choć gracz o nią nie pytał i w bloku [GRA] jej nie ma. Napisz ją jeszcze raz bez żadnej kwoty."
+
 // echoCorrection is what a narrator hears after repeating its own words;
 // the phrase follows.
 const echoCorrection = "Twoja poprzednia odpowiedź była zła: powtórzyła słowa z twojej wcześniejszej odpowiedzi. Powiedz to inaczej, bez frazy: "
@@ -254,16 +259,102 @@ const (
 	reasonFallen    = "ktoś pada albo ucieka poza protokołem"
 	reasonFlipped   = "pudłuje ktoś, kto trafił"
 	reasonPrice     = "brak ceny, którą kazano podać"
+	reasonUnasked   = "cena albo kwota, o którą nikt nie pytał"
 	reasonAsks      = "pytanie, choć kazano nie pytać"
 	reasonEcho      = "powtarza własne słowa"
 	reasonDenies    = "przeczy temu, co już o sobie mówił"
 )
 
 // soft are the reasons a line is still spoken for when every try had one
-// of them: a mangled or made-up name, a question too many, a phrase said
-// before or a slip about one's own kin spoil a line less than a canned
-// one does.
-var soft = []string{reasonNames, reasonStrangers, reasonAsks, reasonEcho, reasonDenies}
+// of them: a mangled or made-up name, a question too many, a price nobody
+// asked for, a phrase said before or a slip about one's own kin spoil a
+// line less than a canned one does.
+var soft = []string{reasonNames, reasonStrangers, reasonUnasked, reasonAsks, reasonEcho, reasonDenies}
+
+// unaskedPhrases are the words of a brief after which a line names no
+// price and no sum: a mercenary or a witness in small talk, a companion
+// in the party, a deal too unclear to price. A shopkeeper's small talk is
+// none of them: the brief lets them recommend a ware with its price.
+var unaskedPhrases = []string{"Nie podawaj żadnych kwot", "O cenie służby mów tylko, gdy o nią pyta", "nie proponujesz najmu ani zapłaty", "niczym nie handlujesz"}
+
+// unasked reports a brief after which a price is one nobody asked for.
+func unasked(brief string, quiet bool) bool {
+	return quiet || slices.ContainsFunc(unaskedPhrases, func(phrase string) bool { return strings.Contains(brief, phrase) })
+}
+
+// priceIn reports whether a line names a sum of money: a number, in digits
+// or spelled out, next to the currency ("12 korków", "pięćdziesiąt pięć
+// kapsli") or after "za" ("za 70?"). A number alone is the day, a shelter
+// or the wolves killed; the currency alone is a plain word.
+func priceIn(text, currency string) bool {
+	units := strings.Fields(Fold(currency))
+	words := strings.Fields(Fold(text))
+	unit := func(word string) bool {
+		return slices.ContainsFunc(units, func(unit string) bool { return len(unit) >= minQueryWord && formOf(word, unit) })
+	}
+
+	for index, word := range words {
+		if _, spelled := numberWords[word]; !isDigits(word) && !spelled {
+			continue
+		}
+
+		if index > 0 && words[index-1] == "za" || index+1 < len(words) && words[index+1] == "za" {
+			return true
+		}
+
+		// Past the other numbers of a sum spelled out ("pięćdziesiąt pięć
+		// kapsli"), the currency comes within two words.
+		for next := index + 1; next < len(words) && next <= index+2; next++ {
+			if _, more := numberWords[words[next]]; more {
+				continue
+			}
+
+			if unit(words[next]) {
+				return true
+			}
+
+			break
+		}
+	}
+
+	return false
+}
+
+// asks reports whether a line asks the player something: a sentence
+// with a question mark that is more than an echo of the player's own
+// words. "Na szczury? Bosak." to "masz coś na szczury?" and "Żonę? Ha!"
+// to "masz żonę?" ask nothing; "Szukasz kogoś do drużyny?" does.
+func asks(text, said string) bool {
+	if _, rest, tagged := strings.Cut(text, "] "); tagged && strings.HasPrefix(text, "[") {
+		text = rest
+	}
+
+	heard := strings.Fields(Fold(said))
+
+	for _, sentence := range strings.FieldsFunc(text, func(char rune) bool { return strings.ContainsRune(".!?…", char) }) {
+		end := strings.Index(text, sentence) + len(sentence)
+		if end >= len(text) || text[end] != '?' {
+			continue
+		}
+
+		words := strings.Fields(Fold(sentence))
+		if len(words) > 3 {
+			return true
+		}
+
+		for _, word := range words {
+			if len(word) < minQueryWord {
+				continue
+			}
+
+			if !slices.ContainsFunc(heard, func(other string) bool { return word == other || formOf(word, other) }) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
 
 // Narrate asks the narrator for a reply and checks it against the decision.
 // The reply is cleaned up and cut to a few sentences. If it quotes amounts
@@ -350,6 +441,8 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 			reason = reasonLeak
 		case !numbersOK(text, allowed, known):
 			reason = reasonNumbers
+		case unasked(brief, request.Quiet) && priceIn(text, request.Merchant.Currency):
+			reason = reasonUnasked
 		case !namesOK(text, request.Required) || !namesIntact(text, request.Guarded):
 			reason = reasonNames
 		case len(made) > 0:
@@ -362,7 +455,7 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 			reason = reasonFlipped
 		case !request.Quiet && !request.Decision.quotes(text):
 			reason = reasonPrice
-		case strings.Contains(brief, "nie pytaj") && strings.Contains(text, "?"):
+		case strings.Contains(brief, "nie pytaj") && asks(text, request.Text):
 			reason = reasonAsks
 		case echo(text, request.History) != "":
 			reason = reasonEcho
@@ -393,6 +486,8 @@ func NarrateLive(ctx context.Context, narrator Narrator, request NarrateRequest,
 		switch reason {
 		case reasonPrice:
 			request.Correction = priceCorrection + strconv.Itoa(request.Decision.Price) + "."
+		case reasonUnasked:
+			request.Correction = unaskedCorrection
 		case reasonAsks:
 			request.Correction = asksCorrection
 		case reasonEcho:
