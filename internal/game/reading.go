@@ -161,11 +161,13 @@ func Read(request InterpretRequest) Reading {
 		reading.Intent.Action, reading.Intent.ItemID, reading.Intent.Amount, reading.Sure = ActionOffer, "", 0, true
 	case amount > 0 && cued:
 		reading.Intent.Action, reading.Intent.Amount, reading.Sure = ActionOffer, amount, true
-	case amount > 0:
-		// A bare number in a longer sentence: it may be an offer, or not.
-	// "ok biorę jeden kaftan, bywaj" buys before it goes.
+	// "ok biorę jeden kaftan, bywaj" buys before it goes. A bare sum in a
+	// goodbye only comments: "nara, 70 było za dużo" leaves, it offers no
+	// 70; with a word of paying or "za N" it offers before it goes.
 	case (hasPhrase(text, leaveWords) || !strings.Contains(request.Text, "?") && farewell(words)) && !(item != "" && hasPhrase(text, acceptWords)):
 		reading.Intent.Action, reading.Sure = ActionLeave, true
+	case amount > 0:
+		// A bare number in a longer sentence: it may be an offer, or not.
 	case hasPhrase(text, laterWords) && len(words) <= laterLength && item == "" && !tradeAsked(text):
 		reading.Intent.Action, reading.Sure = ActionLeave, true
 	case slices.ContainsFunc(words, func(word string) bool { return slices.Contains(thinkWords, word) }) && item == "" && !tradeAsked(text):
