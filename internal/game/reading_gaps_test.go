@@ -96,3 +96,90 @@ func TestACompanionAskedAboutPayFromGaps(t *testing.T) {
 		t.Errorf("a legend's pay: hint %q, quiet %v", narrate.Hint, narrate.Quiet)
 	}
 }
+
+// A remark to a shopkeeper with no question in it is answered as such,
+// like a companion's: given a random fact to weave in, the model sent a
+// buyer of berries to a mine. An invitation to tell, or a question, still
+// gets the fact.
+func TestAShopkeeperAnsweredBanterWithoutAFactFromGaps(t *testing.T) {
+	herbalist := func() (*Realm, *player) {
+		realm := testRealm(t)
+		hero := enlist(realm, "Ala")
+		do(realm, hero, "idź do zielarki")
+		customer := realm.players[hero]
+
+		if len(realm.openTo(customer, customer.shop)) == 0 {
+			t.Fatal("the herbalist knows nothing")
+		}
+
+		return realm, customer
+	}
+
+	realm, customer := herbalist()
+	for _, text := range []string{"ciężki dzień dziś miałem", "ale leje", "ładny kram", "no, jestem", "zimno dzisiaj, nie", "dzień dobry, zimno dziś"} {
+		hint, _, anchored := realm.hint(customer, text, Decision{Outcome: OutcomeChat}, nil)
+		if !strings.Contains(hint, "Gracz zagaduje bez konkretnego pytania") || anchored {
+			t.Errorf("%q: %q (anchored %v)", text, hint, anchored)
+		}
+	}
+
+	// The facts are still fresh: none was spent on the remarks.
+	for _, text := range []string{"opowiedz coś", "co słychać?", "nudno tu", "masz jakieś wieści", "co nowego", "jakieś plotki"} {
+		realm, customer := herbalist()
+		if hint, _, _ := realm.hint(customer, text, Decision{Outcome: OutcomeChat}, nil); !strings.HasPrefix(hint, "Możesz wpleść") {
+			t.Errorf("%q: %q", text, hint)
+		}
+	}
+}
+
+// A follow-up about a keeper's kin with nothing kept of them is told to
+// make nothing up, whatever its words; with something kept, it is told
+// what was said.
+func TestAFollowUpAboutKinWithNothingKeptFromGaps(t *testing.T) {
+	realm, hero := bogna(t)
+	say := func(text, reply string) string {
+		_, narrate, _ := realm.Haggle(hero, text, Intent{Action: ActionChat})
+		realm.HaggleRemember(hero, text, reply)
+
+		return narrate.Hint
+	}
+
+	for _, c := range []struct{ ask, reply, follow string }{
+		{"masz brata?", "[smutek] Miałam. Nie żyje, dawno.", "a brat?"},
+		{"masz brata?", "[smutek] Miałam.", "jak miał na imię?"},
+		{"masz brata?", "[smutek] Miałam.", "a gdzie on teraz mieszka?"},
+		{"masz brata?", "[smutek] Miałam.", "co robił?"},
+		{"masz brata?", "[smutek] Miałam.", "czym się zajmował twój brat?"},
+		{"masz brata?", "[smutek] Miałam.", "a jak zginął?"},
+		{"a mąż żyje?", "[kpina] Jaki mąż?", "to nie miałaś męża?"},
+		{"masz dzieci?", "[smutek] Syna.", "a ile miał lat?"},
+		{"masz dzieci?", "[smutek] Syna.", "a ile miał lat, jak odszedł?"},
+		{"masz dzieci?", "[smutek] Syna.", "jak się nazywał ten twój syn?"},
+		{"masz dzieci?", "[smutek] Syna.", "opowiedz o nim"},
+		{"skąd masz tę bliznę?", "[kpina] Z kuźni.", "boli jeszcze?"},
+	} {
+		say("a co z tą kładką?", "[spokój] Zgniła.")
+		say("a co z tą kładką?", "[spokój] Zgniła.")
+		say("a co z tą kładką?", "[spokój] Zgniła.")
+		say(c.ask, c.reply)
+
+		if hint := say(c.follow, "[spokój] Nie."); !strings.Contains(hint, "nie wymyślaj krewnych") {
+			t.Errorf("%q after %q: %q", c.follow, c.ask, hint)
+		}
+	}
+
+	// A third line on the same kin is still about them.
+	say("masz siostrę?", "[spokój] Mam.")
+	say("jak ma na imię?", "[spokój] Nie twoja sprawa.")
+	say("a gdzie mieszka?", "[spokój] Daleko.")
+	if hint := say("i co robi?", "[spokój] Nie wiem."); !strings.Contains(hint, "nie wymyślaj krewnych") {
+		t.Errorf("the third follow-up: %q", hint)
+	}
+
+	// With the sister in the bio, the follow-up is told what was said.
+	realm.LearnSelf(hero, "Bogna Topór", []string{"Siostra Bogny, Halka, mieszka w Grodzie."}, "Halka. W Grodzie.")
+	say("masz siostrę?", "[spokój] Mam, Halkę.")
+	if hint := say("a gdzie mieszka?", "[spokój] W Grodzie."); !strings.Contains(hint, "Już o tym mówiłaś: Siostra Bogny, Halka, mieszka w Grodzie.") {
+		t.Errorf("the follow-up with a bio: %q", hint)
+	}
+}

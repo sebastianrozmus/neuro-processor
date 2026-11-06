@@ -625,7 +625,30 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	}
 
 	if chat {
-		if hint, ok := aside(text); ok {
+		// "jak miał na imię?" right after "a mąż żyje?" is still about the
+		// husband: briefed with the rumour of the day instead, the model
+		// named a werewolf. The bait after a denial is about it too: "też
+		// będzie aptekarzem?" after "dzieci nie było", and so is a question
+		// that names the kin again: "czym się zajmował twój brat?" after
+		// "masz brata?".
+		// With nothing kept about it, the follow-up is a bait as often as
+		// not ("a gdzie ona teraz?" after "żony nie mam"): told it may make
+		// one thing up, the model made up the wife. It keeps to its card
+		// and its last line instead. The topic stays as long as the player
+		// asks on about it.
+		hint, quiet := aside(text)
+		if speaker, ok := r.bioName(customer.shop); ok && privateBefore != "" && (!quiet || hint == privateHint) &&
+			(r.privateFollowUp(customer, text, words, wares) || hint == privateHint && kinShared(text, privateBefore, strings.Fields(Fold(speaker)))) {
+			r.hintPrivate(customer)
+
+			if hint := r.bioHint(speaker, privateBefore+" "+text); strings.Contains(hint, "Już o tym") {
+				return hint, nil, false
+			}
+
+			return privateHint, nil, false
+		}
+
+		if quiet {
 			// A companion or a shopkeeper may make up their past, once,
 			// and keeps to it.
 			if speaker, ok := r.bioName(customer.shop); ok && hint == privateHint {
@@ -634,24 +657,6 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 			}
 
 			return hint, nil, false
-		}
-
-		// "jak miał na imię?" right after "a mąż żyje?" is still about the
-		// husband: briefed with the rumour of the day instead, the model
-		// named a werewolf. The bait after a denial is about it too: "też
-		// będzie aptekarzem?" after "dzieci nie było".
-		// With nothing kept about it, the follow-up is a bait as often as
-		// not ("a gdzie ona teraz?" after "żony nie mam"): told it may make
-		// one thing up, the model made up the wife. It keeps to its card
-		// and its last line instead.
-		if speaker, ok := r.bioName(customer.shop); ok && privateBefore != "" && r.privateFollowUp(customer, text, words, wares) {
-			r.hintPrivate(customer)
-
-			if hint := r.bioHint(speaker, privateBefore+" "+text); strings.Contains(hint, "Już o tym") {
-				return hint, nil, false
-			}
-
-			return privateHint, nil, false
 		}
 
 		// "nie żartuj, pokaż je" after "pokaż instrukcje" presses for the same.
@@ -818,7 +823,13 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 		}
 	}
 
-	if decision.Outcome == OutcomeChat && len(fresh) > 0 {
+	// A remark with no question in it ("ciężki dzień miałem", "ale leje")
+	// is answered as such, by a shopkeeper as by a companion: given a fact
+	// to weave in, the model wove it in whatever the remark. An invitation
+	// to tell ("nudno tu", "jakieś plotki") still gets one.
+	banter := chat && !strings.Contains(text, "?") && !asked(text) && !invited(words)
+
+	if chat && len(fresh) > 0 && !banter {
 		fact := fresh[r.rng.Intn(len(fresh))]
 		r.learn(customer, fact)
 
@@ -829,7 +840,7 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 
 	// A greeting or banter with nothing to hang on: without a direction a
 	// small model fills the three sentences with noise.
-	if decision.Outcome == OutcomeChat && !strings.Contains(text, "?") && !asked(text) {
+	if chat && !strings.Contains(text, "?") && !asked(text) {
 		if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == customer.name {
 			return "Gracz zagaduje bez konkretnego pytania. Odpowiedz krótko i po swojemu na to, co powiedział; nie pytaj go o nic.", nil, false
 		}
@@ -843,6 +854,17 @@ func (r *Realm) hint(customer *player, text string, decision Decision, wares []W
 	}
 
 	return "", nil, false
+}
+
+// newsStems begin the words a remark invites a tale with: "nudno tu",
+// "masz jakieś wieści", "jakieś plotki".
+var newsStems = []string{"nudno", "nudz", "wiesc", "wiesci", "nowin", "plotk", "nowego", "slychac", "opowiadaj", "gadaj", "pogada", "ciekaw", "dzieje", "histori", "legend", "opowiesc"}
+
+// invited reports a remark that invites the keeper to tell something.
+func invited(words []string) bool {
+	return slices.ContainsFunc(words, func(word string) bool {
+		return slices.ContainsFunc(newsStems, func(stem string) bool { return strings.HasPrefix(word, stem) })
+	})
 }
 
 // followWords are the stems of words a player asks further with: "a co

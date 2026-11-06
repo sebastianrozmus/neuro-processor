@@ -484,10 +484,14 @@ func (r *Realm) keepPrivate(customer *player, text string) {
 }
 
 // hintPrivate marks the line as briefed as a follow-up on the private
-// question, so that the Mind reads the answer too.
+// question, so that the Mind reads the answer too, and keeps the topic
+// for one more line: "i co robi?" after "a gdzie mieszka?" after "jak ma
+// na imię?" is still about the sister. The line after that is not the
+// line right after the question, so a ware asked for then is not read.
 func (r *Realm) hintPrivate(customer *player) {
 	if current := customer.talks[customer.shop]; current != nil {
 		current.privateHinted = true
+		current.privateAge = min(current.privateAge, 1)
 	}
 }
 
