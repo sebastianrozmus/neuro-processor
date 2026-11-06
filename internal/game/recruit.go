@@ -348,6 +348,52 @@ func (r *Realm) settle(customer *player, session *Session, decision Decision) bo
 	return true
 }
 
+// wageWords ask a companion in the party about their pay, besides "ile"
+// with a word of paying: "jaki masz żołd?", "ile ci jestem winien?".
+var wageWords = []string{
+	"zold", "zoldu", "zoldzie", "zaplata", "zaplate", "zaplaty", "wyplata", "wyplate", "wyplaty", "stawka", "stawke", "stawki",
+	"twoja cena", "ile kosztujesz", "ile ci jestem winien", "ile ci winien", "ile ci jestem winna", "ile ci winna", "ile ci wisze", "ile ci sie nalezy", "za ile",
+}
+
+// giveWords offer money along with a question of pay: "dam ci podwyżkę,
+// ile chcesz?" offers, "ile ci płacę?" only asks.
+var giveWords = []string{"dam", "daje", "dalbym", "dalabym", "dorzuce", "doplace", "zaplace", "oferuje", "proponuje", "moge dac", "niech bedzie", "masz tu", "bierz", "trzymaj", "wez", "lap"}
+
+// wageAsked reports a folded question about a companion's pay, with no
+// sum and no offer in it: "ile chcesz za dzień?", "ile ci płacę?". "ile
+// mamy bandaży?" and "ile masz lat?" ask something else.
+func wageAsked(folded string) bool {
+	if strings.ContainsAny(folded, "0123456789") || hasPhrase(folded, giveWords) {
+		return false
+	}
+
+	padded := " " + folded + " "
+	for _, phrase := range notTradeWords {
+		if strings.Contains(padded, " "+phrase) {
+			return false
+		}
+	}
+
+	return priceAsked(strings.Fields(folded)) || hasPhrase(folded, wageWords)
+}
+
+// wageHint answers a companion in the party asked about their pay: the
+// deal stands, paid once at the hire, or for a legend at every dawn. No
+// sum, no haggling, and no shrug: the pay is settled, not nothing to them.
+func (r *Realm) wageHint(customer *player) string {
+	kind, _ := r.mateOf(customer.shop)
+	spec := r.world.Companions[kind]
+	paid := "zapłatę " + gendered(speech.Feminine(spec.Name), "wziąłeś", "wzięłaś") + " raz, przy dołączeniu, i nic więcej ci się nie należy"
+
+	for _, member := range customer.party {
+		if member.kind == kind && member.wage > 0 {
+			paid = "swój żołd dostajesz co świt, póki bohater płaci"
+		}
+	}
+
+	return "Gracz pyta o twoją zapłatę, ale już jesteś w drużynie i umowa dawno stoi: " + paid + ". Nie podajesz kwot i się nie targujesz: powiedz krótko po swojemu, że sprawa jest załatwiona."
+}
+
 // mateRole opens the narrator's instructions for a companion instead of a
 // shopkeeper.
 func (r *Realm) mateRole(kind int) string {

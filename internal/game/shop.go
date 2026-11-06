@@ -192,13 +192,18 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 	// "dobra, ruszamy" are talk, not a question about wares or a deal.
 	// One who offers them money is told the deal stands: briefed as plain
 	// talk, "dobrze, zgoda na 130" got "130, umowa stoi!".
-	paying := false
+	// One who asks what they are paid ("ile ci płacę?") is told the same,
+	// as the deal: briefed as plain talk, the model named a wage or said
+	// it did not care.
+	paying, asking := false, false
 	if kind, ok := r.mateOf(customer.shop); ok && r.hired[kind] == name && intent.Action != ActionLeave {
-		paying = offersMoney(Fold(text))
+		folded := Fold(text)
+		paying = offersMoney(folded)
+		asking = wageAsked(folded)
 		action := ActionChat
 		// "wstawaj dzieciaku, jedziemy" to one who hates being called a
 		// kid is an insult first: they answer it before setting off.
-		if folded := Fold(text); moving(text) && !rude(folded) && !threatening(folded) && !r.stung(customer.shop, folded) {
+		if moving(text) && !rude(folded) && !threatening(folded) && !r.stung(customer.shop, folded) {
 			action = ActionLeave
 		}
 
@@ -280,10 +285,13 @@ func (r *Realm) Haggle(name, text string, intent Intent) (Decision, NarrateReque
 		request.Bio = r.bioTexts(speaker)
 	}
 	hint, lead, anchored := r.hint(customer, text, decision, session.Wares())
-	if paying {
+	switch {
+	case asking:
+		hint, lead, anchored = r.wageHint(customer), nil, false
+	case paying:
 		hint, lead, anchored = paidMate, nil, false
 	}
-	request.Hint, request.Quiet = hint, paying
+	request.Hint, request.Quiet = hint, paying || asking
 	if anchored {
 		request.Anchored, request.Names = true, r.names()
 	}
