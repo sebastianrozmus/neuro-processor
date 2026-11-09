@@ -1,7 +1,7 @@
 {
  "name": "Hipokamp",
  "mode": "adventure",
- "intro": "Budzisz się na stole w klinice Neurotech z opatrunkiem za uchem i obcym szumem w głowie. Ktoś wszczepił ci procesor, którego nie zamawiałeś, a drzwi sali są zamknięte od zewnątrz. Na dachu kliniki co godzinę ląduje transporter.",
+ "intro": "Budzisz się na stole w klinice Neurotech z opatrunkiem za uchem i obcym szumem w głowie. Ktoś wszczepił ci procesor, którego nie {zamawiałeś|zamawiałaś}, a drzwi sali są zamknięte od zewnątrz. Na dachu kliniki co godzinę ląduje transporter.",
  "goal": "Wydostać się z kliniki Neurotech na dach i odlecieć transporterem, zanim dr Wernicke wróci dokończyć operację.",
  "backdrops": [
   "station1",
@@ -316,7 +316,7 @@
    "verb": "talk",
    "on": "Pielęgniarz Grabski",
    "unless": "grabski-obudzony",
-   "text": "Grabski uchyla jedno oko. «Pacjent? Z sali? A niech to… Słuchaj, ja nic nie widziałem, ty nic nie widziałeś. Przynieś mi kawę z automatu, to pogadamy. Bez kawy nie pogadamy.»"
+   "text": "Grabski uchyla jedno oko. «{Pacjent|Pacjentka}? Z sali? A niech to… Słuchaj, ja nic nie widziałem, ty nic nie {widziałeś|widziałaś}. Przynieś mi kawę z automatu, to pogadamy. Bez kawy nie pogadamy.»"
   },
   {
    "verb": "examine",

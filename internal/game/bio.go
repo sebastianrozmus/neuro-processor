@@ -352,7 +352,89 @@ func cardSays(fact, card string, skip []string) bool {
 		}
 	}
 
-	return !slices.ContainsFunc(content, func(word string) bool { return !known(word) })
+	if !slices.ContainsFunc(content, func(word string) bool { return !known(word) }) {
+		return true
+	}
+
+	return cardRetells(fact, card, skip)
+}
+
+// retellWords are the folded beginnings of words that tell again what a
+// card says in other words: where one comes from, who is dead, who taught
+// or raised them, what they still do. They carry no fact of their own.
+var retellWords = []string{
+	"pochodz", "zyje", "zyja", "zyl", "umarl", "umar", "zmarl", "zgin", "nie", "uczyl", "uczy", "wychowal", "wychowuj",
+	"dalej", "wciaz", "nadal", "imie", "nazyw", "ktory", "ktora", "ktorzy", "ktore", "sie", "ona", "ono", "oni", "jego", "jej",
+	"swoj", "zycie", "calym", "cale", "lat", "temu", "kiedys", "siedzi", "sluz", "pracuj", "mieszka", "czeka",
+}
+
+// minRetold is the share of a fact's meaningful words, after the words of
+// retelling, that the card must have for the fact to be the card again.
+const minRetold = 0.6
+
+// cardRetells reports whether a fact tells again what the card says in
+// other words: every name in it is in the card and most of its meaningful
+// words are there in some form. On SN23 every false alarm the engine let
+// through (26 of 26) was such a paraphrase: "Eufemia pochodzi z miasta nad
+// rzeką" to a card where she "przyszła z miasta nad rzeką", "Żona Tymona
+// nie żyje" to "jest wdowcem". A fact that brings a name or most of its
+// words from outside the card is new.
+func cardRetells(fact, card string, skip []string) bool {
+	words := strings.Fields(Fold(card))
+	known := func(word string) bool {
+		stem := Stem(fleeting(word))
+
+		return slices.ContainsFunc(words, func(other string) bool {
+			return word == other || formOf(word, other) || len(stem) >= 5 && strings.Contains(other, stem)
+		})
+	}
+
+	for _, word := range strings.Fields(fact) {
+		first, _ := utf8.DecodeRuneInString(strings.TrimLeft(word, "„«\"("))
+		folded := strings.Fields(Fold(word))
+
+		if unicode.IsUpper(first) && len(folded) > 0 && !slices.Contains(skip, folded[0]) &&
+			!slices.ContainsFunc(skip, func(name string) bool { return formOf(folded[0], name) }) && !known(folded[0]) &&
+			!slices.Contains(bioPlainWords, folded[0]) && kinFamily(folded[0]) < 0 {
+			return false
+		}
+	}
+
+	// Who lives and who died is news unless the card tells of a death too:
+	// "Ojciec Seweryna żyje" to a card where his father only taught him.
+	life := []string{"zyje", "zyja", "zyl", "umarl", "umar", "zmarl", "zgin", "wdow", "sierot", "pochowa", "nieboszcz"}
+	tells := func(text string) bool {
+		return slices.ContainsFunc(strings.Fields(Fold(text)), func(word string) bool {
+			return slices.ContainsFunc(life, func(stem string) bool { return strings.HasPrefix(word, stem) })
+		})
+	}
+
+	if tells(fact) && !tells(card) {
+		return false
+	}
+
+	var content []string
+	for _, word := range bioContent(fact, skip) {
+		if slices.ContainsFunc(skip, func(name string) bool { return formOf(word, name) }) ||
+			slices.ContainsFunc(retellWords, func(stem string) bool { return strings.HasPrefix(word, stem) }) {
+			continue
+		}
+
+		content = append(content, word)
+	}
+
+	if len(content) == 0 {
+		return false
+	}
+
+	told := 0
+	for _, word := range content {
+		if known(word) {
+			told++
+		}
+	}
+
+	return float64(told) >= minRetold*float64(len(content))
 }
 
 // ageWords are the folded beginnings of the Polish words for an age

@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -596,7 +597,7 @@ func (r *Realm) active(name string) *player {
 }
 
 func (r *Realm) tell(listener *player, text string) {
-	listener.log = append(listener.log, text)
+	listener.log = append(listener.log, ForHero(text, speech.Feminine(listener.name)))
 	listener.told++
 	if len(listener.log) > logLimit {
 		listener.log = listener.log[len(listener.log)-logLimit:]

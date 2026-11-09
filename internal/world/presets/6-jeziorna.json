@@ -201,7 +201,7 @@
    "name": "Marek Sowa",
    "description": "Kelner z przedziałkiem i uśmiechem do klientów, który gaśnie, gdy nikt nie patrzy. Odpowiada wymijająco i patrzy na zegar.",
    "room": "Pod Sumem",
-   "talk": "Panie, ja tu pracuję. Ryba albo schabowy?",
+   "talk": "Ja tu pracuję, proszę. Ryba albo schabowy?",
    "schedule": {
     "ranek": "Pod Sumem",
     "popołudnie": "Pod Sumem",
@@ -314,7 +314,7 @@
    "on": "Halina Sowa",
    "room": "Rynek",
    "once": true,
-   "text": "Halina Sowa: «Wynajmuję pana. Marek, mój mąż, kelner Pod Sumem. Wraca po północy, pachnie jeziorem i mówi, że gra w karty u grabarza. Chcę wiedzieć, z kim się spotyka: nazwisko, adres i zdjęcie. Ma pan trzy dni.»",
+   "text": "Halina Sowa: «Wynajmuję {pana|panią}. Marek, mój mąż, kelner Pod Sumem. Wraca po północy, pachnie jeziorem i mówi, że gra w karty u grabarza. Chcę wiedzieć, z kim się spotyka: nazwisko, adres i zdjęcie. Ma {pan|pani} trzy dni.»",
    "flag": "zlecenie",
    "fact": {
     "subject": "Zlecenie Haliny",

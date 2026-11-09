@@ -4,6 +4,8 @@
 package llm
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -147,6 +149,65 @@ func narrateMessages(request game.NarrateRequest) []message {
 	})
 }
 
+// field is one property of a Mind schema.
+type field struct {
+	name   string
+	schema any
+}
+
+// fields are the properties of a Mind schema in the order the model must
+// write them. A Go map would be sent in alphabetical order, and the server
+// makes the model follow the order it is sent: the Mind was taught to decide
+// first (found, offered, action) and fill the rest after, so a decision
+// written last came after a made-up fact.
+type fields []field
+
+func (f fields) MarshalJSON() ([]byte, error) {
+	var out bytes.Buffer
+
+	out.WriteByte('{')
+
+	for index, property := range f {
+		if index > 0 {
+			out.WriteByte(',')
+		}
+
+		name, err := json.Marshal(property.name)
+		if err != nil {
+			return nil, err
+		}
+
+		schema, err := json.Marshal(property.schema)
+		if err != nil {
+			return nil, err
+		}
+
+		out.Write(name)
+		out.WriteByte(':')
+		out.Write(schema)
+	}
+
+	out.WriteByte('}')
+
+	return out.Bytes(), nil
+}
+
+// ordered is an object schema whose properties are all required and kept in
+// the order given.
+func ordered(properties ...field) map[string]any {
+	required := make([]string, 0, len(properties))
+	for _, property := range properties {
+		required = append(required, property.name)
+	}
+
+	return map[string]any{
+		"type":                 "object",
+		"properties":           fields(properties),
+		"required":             required,
+		"additionalProperties": false,
+	}
+}
+
 // intentSchema is the JSON schema the model's reading must conform to.
 func intentSchema(wares []game.Ware) map[string]any {
 	items := []string{""}
@@ -154,17 +215,12 @@ func intentSchema(wares []game.Ware) map[string]any {
 		items = append(items, ware.ID)
 	}
 
-	return map[string]any{
-		"type": "object",
-		"properties": map[string]any{
-			"action":     map[string]any{"type": "string", "enum": game.Actions},
-			"item_id":    map[string]any{"type": "string", "enum": items},
-			"amount":     map[string]any{"type": "integer"},
-			"persuasion": map[string]any{"type": "integer", "enum": []int{-2, -1, 0, 1, 2}},
-		},
-		"required":             []string{"action", "item_id", "amount", "persuasion"},
-		"additionalProperties": false,
-	}
+	return ordered(
+		field{"action", map[string]any{"type": "string", "enum": game.Actions}},
+		field{"item_id", map[string]any{"type": "string", "enum": items}},
+		field{"amount", map[string]any{"type": "integer"}},
+		field{"persuasion", map[string]any{"type": "integer", "enum": []int{-2, -1, 0, 1, 2}}},
+	)
 }
 
 const inventInstructions = `Czytasz kwestię kupca z gry tekstowej i sprawdzasz, czy zaoferował on do sprzedaży konkretny przedmiot, którego nie ma na liście jego towaru. ` +
@@ -192,19 +248,14 @@ func inventPrompt(request game.InventRequest) string {
 func inventSchema() map[string]any {
 	text := map[string]any{"type": "string"}
 
-	return map[string]any{
-		"type": "object",
-		"properties": map[string]any{
-			"offered":     map[string]any{"type": "boolean"},
-			"name":        text,
-			"description": text,
-			"kind":        map[string]any{"type": "string", "enum": append(append([]world.Kind(nil), world.Kinds...), "")},
-			"effect":      map[string]any{"type": "string", "enum": append(append([]world.Effect(nil), world.Effects...), "")},
-			"tier":        map[string]any{"type": "integer", "enum": []int{0, 1, 2, 3}},
-		},
-		"required":             []string{"offered", "name", "description", "kind", "effect", "tier"},
-		"additionalProperties": false,
-	}
+	return ordered(
+		field{"offered", map[string]any{"type": "boolean"}},
+		field{"name", text},
+		field{"description", text},
+		field{"kind", map[string]any{"type": "string", "enum": append(append([]world.Kind(nil), world.Kinds...), "")}},
+		field{"effect", map[string]any{"type": "string", "enum": append(append([]world.Effect(nil), world.Effects...), "")}},
+		field{"tier", map[string]any{"type": "integer", "enum": []int{0, 1, 2, 3}}},
+	)
 }
 
 const noteInstructions = `Czytasz kwestię mieszkańca osady z gry tekstowej i sprawdzasz, czy podał w niej NOWY, konkretny fakt o świecie gry: ` +
@@ -263,12 +314,14 @@ func RewritePrompt(request game.RewriteRequest) string {
 }
 
 func noteSchema() map[string]any {
-	return object(map[string]any{
-		"found":   map[string]any{"type": "boolean"},
-		"subject": map[string]any{"type": "string"},
-		"fact":    map[string]any{"type": "string"},
-		"quote":   map[string]any{"type": "string"},
-	})
+	text := map[string]any{"type": "string"}
+
+	return ordered(
+		field{"found", map[string]any{"type": "boolean"}},
+		field{"subject", text},
+		field{"fact", text},
+		field{"quote", text},
+	)
 }
 
 const selfNoteInstructions = `Czytasz kwestię towarzysza, najemnika albo kupca z gry tekstowej i wypisujesz, co powiedział w niej O SOBIE SAMYM: ` +
@@ -360,12 +413,14 @@ func questHookSchema(request game.QuestHookRequest) map[string]any {
 		return map[string]any{"type": "string", "enum": append([]string{""}, names...)}
 	}
 
-	return object(map[string]any{
-		"found":    map[string]any{"type": "boolean"},
-		"person":   map[string]any{"type": "string"},
-		"relation": map[string]any{"type": "string"},
-		"monster":  choices(request.Monsters),
-		"place":    choices(request.Places),
-		"quote":    map[string]any{"type": "string"},
-	})
+	text := map[string]any{"type": "string"}
+
+	return ordered(
+		field{"found", map[string]any{"type": "boolean"}},
+		field{"person", text},
+		field{"relation", text},
+		field{"monster", choices(request.Monsters)},
+		field{"place", choices(request.Places)},
+		field{"quote", text},
+	)
 }

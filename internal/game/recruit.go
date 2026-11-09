@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"hash/fnv"
 	"strings"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/speech"
@@ -49,7 +50,9 @@ func (r *Realm) mateSpec(kind int) world.ShopSpec {
 		lines = legendGreetings
 	}
 
-	greeting := lines[len([]rune(spec.Name))%len(lines)]
+	hash := fnv.New32a()
+	_, _ = hash.Write([]byte(spec.Name))
+	greeting := lines[hash.Sum32()%uint32(len(lines))]
 	if r.hired[kind] != "" {
 		greeting = "Słucham. Co robimy dalej?"
 	}
@@ -110,24 +113,58 @@ func gendered(she bool, his, hers string) string {
 	return his
 }
 
+// ForHero picks the hero's forms in a text of the world: "{byłeś|byłaś}"
+// is the first for a man and the second for a woman, as the hero's name
+// tells. Written worlds address the player in these, so that Halina does not
+// hire "pana" when the detective is Mira.
+func ForHero(text string, she bool) string {
+	for {
+		open := strings.Index(text, "{")
+		if open < 0 {
+			return text
+		}
+
+		length := strings.Index(text[open:], "}")
+		if length < 0 {
+			return text
+		}
+
+		his, hers, found := strings.Cut(text[open+1:open+length], "|")
+		if !found {
+			return text
+		}
+
+		text = text[:open] + gendered(she, his, hers) + text[open+length+1:]
+	}
+}
+
 // mateGreetings open a talk with a companion for hire, by their trade;
 // legendGreetings with a legend, who works for a daily wage.
 var (
 	mateGreetings = map[world.Role][]string{
 		world.RoleFighter: {
 			"Siadaj. Jeśli szukasz kogoś do roboty, to dobrze trafić; o cenie pogadamy.",
-			"Mów, z czym przychodzisz. Jeśli z robotą dla miecza, to słucham.",
+			"Mów, z czym przychodzisz. Jeśli z robotą, przy której trzeba przyłożyć, to słucham.",
 			"Siadaj, ławka wolna. Szukasz kogoś, kto stanie w pierwszym szeregu?",
+			"No i co się tak przyglądasz? Bić się umiem, a za darmo nie chodzę.",
+			"Jak trzeba kogoś, kto przyjmie pierwszy cios, to dobrze trafić. Mów.",
+			"Siadaj, tylko szybko. Robota, cena, droga: od czego zaczniemy?",
 		},
 		world.RoleHealer: {
 			"Siadaj, tylko nie krwaw mi na stół. Szukasz kogoś, kto będzie łatał rany?",
 			"Witaj. Jeśli drużynie brakuje kogoś od opatrunków, to porozmawiajmy.",
 			"Siadaj. Rany, gorączki, złamania: od tego jestem, o cenie pogadamy.",
+			"Pokaż ręce. Nie krwawisz? To mów, po co przychodzisz.",
+			"Szukasz kogoś, kto cię pozszywa po każdej bitce? Dobrze trafić.",
+			"Siadaj spokojnie. Kto idzie w złe miejsca, potrzebuje kogoś od leczenia.",
 		},
 		world.RoleMage: {
 			"Siadaj. Jeśli potrzebujesz czarów w drużynie, to jesteś pod dobrym stołem.",
 			"Mów śmiało, czego chcesz. Moja wiedza kosztuje, ale jest warta swojej ceny.",
 			"Siadaj. Szukasz kogoś, kto zna się na mocach? O cenie pogadamy.",
+			"Ach, ktoś zainteresowany. Mów, tylko bez przesądów o mojej sztuce.",
+			"Nie gap się tak. Jeśli potrzebujesz kogoś od mocy, to słucham.",
+			"Siadaj. Wiedza nie leży na drodze, ale może iść z tobą, jeśli się dogadamy.",
 		},
 	}
 	legendGreetings = []string{
@@ -269,7 +306,7 @@ func (r *Realm) talkToMate(leader *player, kind int) int {
 		merchant := r.mateMerchant(leader, kind)
 		current = &talk{session: NewSession(merchant, leader.gold), serial: r.talks}
 		current.session.Favor(Modifier(leader.abilities[Charisma]))
-		current.session.Remember(false, merchant.Greeting)
+		current.session.Remember(false, ForHero(merchant.Greeting, speech.Feminine(leader.name)))
 		leader.talks[index] = current
 	} else {
 		// The service goes back on the table, or comes off it, as the

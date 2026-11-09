@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
 
@@ -92,7 +93,7 @@ func (r *Realm) talkTo(speaker *player, index int) {
 		merchant := r.personMerchant(index)
 		speaker.talks[index] = &talk{session: NewSession(merchant, speaker.gold), serial: r.talks}
 		speaker.talks[index].session.Favor(Modifier(speaker.abilities[Charisma]))
-		speaker.talks[index].session.Remember(false, merchant.Greeting)
+		speaker.talks[index].session.Remember(false, ForHero(merchant.Greeting, speech.Feminine(speaker.name)))
 	}
 
 	speaker.shop = index
@@ -111,12 +112,13 @@ func (r *Realm) caseLore(customer *player, index int) string {
 
 	var lore strings.Builder
 
+	she := speech.Feminine(customer.name)
 	fmt.Fprintf(&lore, "Nie prowadzisz sklepu. Jesteś: %s. %s\n", person.Name, person.Description)
 	fmt.Fprintf(&lore, "Miasteczko: %s. %s\n", built.Name, built.Intro)
 	fmt.Fprintf(&lore, "Jesteś teraz w miejscu: %s. Dzień %d, pora: %s.\n", r.placeAt(customer.pos).Name, customer.day, r.hourName(customer))
 
 	if built.Case != nil {
-		fmt.Fprintf(&lore, "Twój rozmówca to %s, detektyw; wynajął go %s. Sprawa: %s\n", customer.name, built.Case.Client, built.Goal)
+		fmt.Fprintf(&lore, "Twój rozmówca to %s, %s; %s %s. Sprawa: %s\n", customer.name, gendered(she, "detektyw", "detektywka"), gendered(she, "wynajął go", "wynajęła ją"), built.Case.Client, built.Goal)
 	}
 
 	var others []string
@@ -135,7 +137,7 @@ func (r *Realm) caseLore(customer *player, index int) string {
 	}
 
 	if gaps := r.gapsFor(customer, index); len(gaps) > 0 {
-		fmt.Fprintf(&lore, "Nie wiesz nic o: %s. Jeśli detektyw o to pyta, odeślij go do tej osoby.\n", join(gaps[:min(len(gaps), referrals)]))
+		fmt.Fprintf(&lore, "Nie wiesz nic o: %s. Jeśli %s o to pyta, %s do tej osoby.\n", join(gaps[:min(len(gaps), referrals)]), gendered(she, "detektyw", "detektywka"), gendered(she, "odeślij go", "odeślij ją"))
 	}
 
 	lore.WriteString("Nie wymyślaj nazwisk, adresów, numerów ani zdarzeń, których nie ma wyżej; czego nie wiesz, tego nie wiesz. O tym, co wiesz, mówisz tylko zapytany albo gdy pasuje do rozmowy.")

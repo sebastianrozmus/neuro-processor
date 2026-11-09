@@ -353,7 +353,7 @@
     "flag": "beran-otwarty"
    },
    "once": true,
-   "text": "Thorin wącha powietrze. «Grobowa ziemia. Byłeś u Berana. Jeśli masz jego złoto, miej i jego stal.» Kładzie na ladzie topór.",
+   "text": "Thorin wącha powietrze. «Grobowa ziemia. {Byłeś|Byłaś} u Berana. Jeśli masz jego złoto, miej i jego stal.» Kładzie na ladzie topór.",
    "gives": "Krasnoludzki Topór",
    "fact": {
     "subject": "Topór Berana",

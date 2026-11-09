@@ -250,7 +250,7 @@
    "kind": "alchemist",
    "keeper": "Sanitariuszka Mira",
    "persona": "Mira była pielęgniarką pokładową, a teraz prowadzi jedyny punkt medyczny ocalałych. Jest ciepła, ale stanowcza, i każdą dawkę leku zapisuje w zeszycie. Nie znosi brawury.",
-   "greeting": "Usiądź, zaraz cię obejrzę. A jeśli przyszedłeś po zapasy, mów ile, bo muszę to zapisać."
+   "greeting": "Usiądź, zaraz cię obejrzę. A jeśli {przyszedłeś|przyszłaś} po zapasy, mów ile, bo muszę to zapisać."
   },
   {
    "name": "Pracownia Zera",
@@ -344,7 +344,7 @@
     "flag": "skarbiec-otwarty"
    },
    "once": true,
-   "text": "Zero kiwa głową: «Byłeś w skarbcu. Czyli obejdziesz zamki. Masz, to ci się przyda bardziej niż mnie.»",
+   "text": "Zero kiwa głową: «{Byłeś|Byłaś} w skarbcu. Czyli obejdziesz zamki. Masz, to ci się przyda bardziej niż mnie.»",
    "gives": "Program Impuls",
    "fact": {
     "subject": "Zero i skarbiec",

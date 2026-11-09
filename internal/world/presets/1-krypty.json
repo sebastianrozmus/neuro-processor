@@ -354,7 +354,7 @@
     "flag": "barka-oczyszczona"
    },
    "once": true,
-   "text": "Moria zniża głos: «Byłeś na barce? To była moja barka. Weź to na przeprosiny i nie pytaj więcej.»",
+   "text": "Moria zniża głos: «{Byłeś|Byłaś} na barce? To była moja barka. Weź to na przeprosiny i nie pytaj więcej.»",
    "gives": "Pierścień Strażnika",
    "fact": {
     "subject": "Barka Morii",

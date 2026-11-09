@@ -15,6 +15,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"unicode"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
 	"github.com/sebastianrozmus/neuro-processor/internal/trace"
@@ -393,7 +394,20 @@ func (c *Client) Note(ctx context.Context, request game.NoteRequest) (game.FactS
 		return game.FactSpec{}, false, fmt.Errorf("model returned an invalid fact: %w", err)
 	}
 
-	return found.FactSpec, found.Found && found.Subject != "" && found.Text != "", nil
+	return found.FactSpec, found.Found && saysSomething(found.Subject) && saysSomething(found.Text), nil
+}
+
+// saysSomething reports whether a field the Mind filled says anything: a lone comma
+// or quote mark is what a model writes when it has nothing to say.
+func saysSomething(text string) bool {
+	letters := 0
+	for _, r := range text {
+		if unicode.IsLetter(r) {
+			letters++
+		}
+	}
+
+	return letters >= 2
 }
 
 // SelfNote asks the model what a companion's line said about themselves,
@@ -428,7 +442,7 @@ func (c *Client) SelfNote(ctx context.Context, request game.SelfNoteRequest) ([]
 
 	var facts []string
 	for _, fact := range found.Facts {
-		if fact = strings.TrimSpace(fact); fact != "" {
+		if fact = strings.TrimSpace(fact); saysSomething(fact) {
 			facts = append(facts, fact)
 		}
 	}
@@ -522,7 +536,7 @@ func (c *Client) Invent(ctx context.Context, request game.InventRequest) (world.
 		return world.ItemSpec{}, false, fmt.Errorf("model returned an invalid item: %w", err)
 	}
 
-	return found.ItemSpec, found.Offered, nil
+	return found.ItemSpec, found.Offered && saysSomething(found.Name), nil
 }
 
 // Narrate asks the model to word the merchant's reply.

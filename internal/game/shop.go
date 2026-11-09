@@ -26,6 +26,16 @@ func (r *Realm) visit(visitor *player, what string, loud bool) int {
 	town := r.world.At(visitor.pos).Town
 	caravan := r.caravanHere(visitor.pos)
 
+	// A companion who follows the hero can be talked to anywhere, on the
+	// road as at the inn.
+	if what != "" {
+		for _, member := range visitor.party {
+			if MatchesWhole(member.spec().Name, what) || Matches(member.spec().Name, what) {
+				return r.talkToMate(visitor, member.kind)
+			}
+		}
+	}
+
 	if town < 0 && !caravan {
 		if loud {
 			r.tell(visitor, "Nie ma tu nikogo, z kim dałoby się handlować. Kupcy są w osadach, a karawana na szlaku.")
@@ -102,7 +112,7 @@ func (r *Realm) visit(visitor *player, what string, loud bool) int {
 
 		visitor.talks[found] = &talk{session: NewSession(merchant, visitor.gold), serial: r.talks}
 		visitor.talks[found].session.Favor(Modifier(visitor.abilities[Charisma]))
-		visitor.talks[found].session.Remember(false, merchant.Greeting)
+		visitor.talks[found].session.Remember(false, ForHero(merchant.Greeting, speech.Feminine(visitor.name)))
 	}
 
 	visitor.shop, visitor.inn = found, r.evening(visitor)

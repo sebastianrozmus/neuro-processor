@@ -1,6 +1,9 @@
 package game
 
-import "github.com/sebastianrozmus/neuro-processor/internal/world"
+import (
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
+	"github.com/sebastianrozmus/neuro-processor/internal/world"
+)
 
 // PlayerView is what everybody may know about a hero.
 type PlayerView struct {
@@ -438,7 +441,7 @@ func (r *Realm) shopView(customer *player) *ShopView {
 		Kind:        shop.Kind,
 		Keeper:      shop.Keeper,
 		Avatar:      avatar,
-		Greeting:    shop.Greeting,
+		Greeting:    ForHero(shop.Greeting, speech.Feminine(customer.name)),
 		Patience:    current.session.Patience(),
 		MaxPatience: current.session.Merchant.Patience,
 		Wares:       current.session.Wares(),
