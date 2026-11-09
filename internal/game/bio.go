@@ -771,6 +771,40 @@ func (r *Realm) privateFollowUp(customer *player, text string, words []string, w
 	return true
 }
 
+// reactionWords are the folded beginnings of words a player reacts with,
+// asking nothing: sympathy, thanks, a nod.
+var reactionWords = []string{
+	"przykro", "wspolczuj", "szkoda", "dzieki", "dziekuj", "rozumiem", "aha", "ok", "okej", "ojej", "oj", "mhm", "hmm", "no", "tak",
+	"to", "mi", "bardzo", "naprawde", "strasznie", "smutne", "smutno", "jasne", "acha", "aj", "wiem", "pewnie", "tez", "ze", "sie",
+}
+
+// reaction reports whether a player's line only reacts to what was said:
+// short, without a question and made of words of sympathy or assent.
+func reaction(said string) bool {
+	if strings.Contains(said, "?") {
+		return false
+	}
+
+	words := strings.Fields(Fold(said))
+	if len(words) == 0 || len(words) > 5 {
+		return false
+	}
+
+	// Short words must be whole: "to" is no "topór".
+	is := func(word, stem string) bool { return word == stem || len(stem) >= 4 && strings.HasPrefix(word, stem) }
+
+	feels := false
+	for _, word := range words {
+		if !slices.ContainsFunc(reactionWords, func(stem string) bool { return is(word, stem) }) {
+			return false
+		}
+
+		feels = feels || slices.ContainsFunc(reactionWords[:9], func(stem string) bool { return is(word, stem) })
+	}
+
+	return feels
+}
+
 // SelfNoteRequest is the request to read what the companion or the
 // shopkeeper a player talks with has just said about themselves, when
 // their line or the player's question is about their own life, or the
@@ -799,8 +833,11 @@ func (r *Realm) SelfNoteRequest(name, said, reply string) (SelfNoteRequest, bool
 
 	// "Najstarszy chłopak, Mściwuj" to "któreś pomaga w kuźni?" right after
 	// "ile masz dzieci?" tells of a son: the question before is the context.
+	// A condolence or thanks follows nothing: "przykro mi" after "a mąż
+	// żyje?" made the Mind read a death into "Dęby też kiedyś padają" (M4:
+	// 2 of 3 false alarms).
 	following := false
-	if current := customer.talks[customer.shop]; current != nil && current.private != "" && !Private(said) && (current.privateAge <= 1 || current.privateHinted) {
+	if current := customer.talks[customer.shop]; current != nil && current.private != "" && !Private(said) && !reaction(said) && (current.privateAge <= 1 || current.privateHinted) {
 		following, said = true, current.private+" "+said
 	}
 

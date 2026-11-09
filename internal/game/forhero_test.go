@@ -18,3 +18,20 @@ func TestForHero(t *testing.T) {
 		t.Errorf("plain braces: %q", got)
 	}
 }
+
+func TestReaction(t *testing.T) {
+	for said, want := range map[string]bool{
+		"przykro mi":            true,
+		"bardzo mi przykro":     true,
+		"dzieki":                true,
+		"ok":                    true,
+		"a zyje?":               false,
+		"przykro mi, a dzieci?": false,
+		"a co robia":            false,
+		"to topor":              false,
+	} {
+		if got := reaction(said); got != want {
+			t.Errorf("reaction(%q) = %v, want %v", said, got, want)
+		}
+	}
+}
