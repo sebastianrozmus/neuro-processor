@@ -110,7 +110,7 @@ func (r *Realm) narrateRound(current *fight, members []string) {
 
 			// The master narrates in no particular mood; a tag is dropped.
 			_, text = speech.SplitMood(text)
-			said = append(said, text)
+			said = append(said, r.plainNames(current, text))
 		}
 
 		for _, name := range members {

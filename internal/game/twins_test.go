@@ -76,6 +76,27 @@ func TestVictoryLoreListsTheFallen(t *testing.T) {
 	}
 }
 
+// The players read the fight without the numbers; the master gets them.
+func TestPlayersSeeNoNumbers(t *testing.T) {
+	realm := testRealm(t)
+	pos := world.Point{X: 1, Y: 1}
+	first, second := rat(1), rat(2)
+	realm.monsters[realm.world.Index(pos)] = []*monster{first, second}
+	realm.foeName(pos, first)
+
+	current := &fight{pos: pos}
+	line := "Szczur Kablowy 2 atakuje: Ala traci 3 zdrowia. Szczur Kablowy 1 pada."
+
+	if got, want := realm.plainNames(current, line), "Szczur Kablowy atakuje: Ala traci 3 zdrowia. Szczur Kablowy pada."; got != want {
+		t.Errorf("plain = %q, want %q", got, want)
+	}
+
+	realm.tellFight(current, line)
+	if len(current.events) != 1 || current.events[0] != line {
+		t.Errorf("the master's events lost the numbers: %q", current.events)
+	}
+}
+
 // "atakuj szczur 2" picks the second rat.
 func TestTargetByNumber(t *testing.T) {
 	realm := testRealm(t)

@@ -2,6 +2,8 @@ package game
 
 import (
 	"fmt"
+	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -296,7 +298,7 @@ func (r *Realm) engage(joiner *player) {
 	names := make([]string, 0, r.alive(joiner.pos))
 
 	for _, foe := range r.foes(joiner.pos) {
-		names = append(names, r.foeName(joiner.pos, foe)+" ("+foe.traitNames()+")")
+		names = append(names, foe.name+" ("+foe.traitNames()+")")
 	}
 
 	r.meet(joiner, joiner.pos)
@@ -949,12 +951,31 @@ func (r *Realm) fightOf(member *player) *fight {
 	return nil
 }
 
+// tellFight records a line of the fight for the master, numbers and all,
+// and shows it to the fighters without the numbers.
 func (r *Realm) tellFight(current *fight, text string) {
 	current.events = append(current.events, text)
+	text = r.plainNames(current, text)
 
 	for _, name := range current.members {
 		r.tell(r.players[name], text)
 	}
+}
+
+// plainNames drops the numbers of twin monsters from a line meant for the
+// players ("Szczur Kablowy 2 pada." becomes "Szczur Kablowy pada."): they
+// are there for the game master, and the players see who is who on the
+// board and by health.
+func (r *Realm) plainNames(current *fight, text string) string {
+	foes := slices.Concat(r.monsters[r.world.Index(current.pos)], current.beaten)
+
+	for _, foe := range foes {
+		if foe.mark > 0 {
+			text = regexp.MustCompile(regexp.QuoteMeta(marked(foe))+`\b`).ReplaceAllLiteralString(text, foe.name)
+		}
+	}
+
+	return text
 }
 
 func (f *fight) has(name string) bool {

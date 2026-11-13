@@ -383,7 +383,7 @@ func (r *Realm) inReach(current *fight, who unit, foe *monster) bool {
 		return true
 	}
 
-	r.tell(who.leader(), fmt.Sprintf("%s stoi za daleko od: %s. Podejdź (Ruch), zostało %d pól.", who.label(), r.foeName(current.pos, foe), current.board.moves))
+	r.tell(who.leader(), fmt.Sprintf("%s stoi za daleko od: %s. Podejdź (Ruch), zostało %d pól.", who.label(), foe.name, current.board.moves))
 
 	return false
 }
@@ -433,7 +433,7 @@ func (r *Realm) boardView(current *fight, viewer string) *BoardView {
 
 		switch who := who.(type) {
 		case *monster:
-			piece.Name, piece.Foe, piece.ID, piece.Shape, piece.Boss = r.foeName(current.pos, who), true, who.id, who.shape, who.boss
+			piece.Name, piece.Foe, piece.ID, piece.Shape, piece.Boss = who.name, true, who.id, who.shape, who.boss
 			piece.HP, piece.MaxHP = who.hp, who.maxHP
 			piece.Current = now != nil && now.foe == who
 
