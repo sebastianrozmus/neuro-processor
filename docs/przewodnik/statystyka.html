@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Statystyka bez strachu</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+<nav class="topbar" aria-label="Strony przewodnika">
+  <a class="brand" href="index.html"><span class="mark">np</span> Jak uczyliśmy NPC mówić</a>
+  <div class="pages"><a href="index.html">Przewodnik</a><a href="statystyka.html" aria-current="page">Statystyka</a><a href="slownik.html">Słownik</a></div>
+</nav>
+<div class="layout">
+<article>
+
+<header class="hero">
+  <div class="eyebrow">run23 SFT kontra run24 SFT · zestaw dev</div>
+  <h1>Skąd się bierze „ΔD = −3,2 [−7,2; +0,6]”</h1>
+  <p class="lead">Wszystkie liczby niżej to nasze prawdziwe wyniki z dev, pozycja po pozycji: <span class="a">run23 po samym <a class="t" href="slownik.html#sft">SFT</a></span> (checkpoint 1,5 epoki) i <span class="b">run24 po samym SFT</span> (też 1,5 epoki). Każdą liczbę da się policzyć ołówkiem.</p>
+</header>
+
+<section id="pomiar" data-toc="Co zmierzyliśmy">
+  <div class="secno">Krok 1 · co zmierzyliśmy</div>
+  <h2>Każde pytanie to 0 albo 1</h2>
+  <p><a class="t" href="slownik.html#dev">Dev</a> to 413 zadań w czterech częściach. Automaty sprawdzają każdą odpowiedź i dają <b>1</b>, gdy jest w niej błąd, a <b>0</b>, gdy jej nie ma. Nie ma tu ocen sędziów ani gustu, tylko „błąd albo nie”. Wynik części to po prostu odsetek błędów.</p>
+  <div class="sheet tbl">
+    <table>
+      <thead><tr><th>część</th><th>zadań</th><th>błędy <span class="a">run23</span></th><th>błędy <span class="b">run24</span></th><th>% <span class="a">run23</span></th><th>% <span class="b">run24</span></th></tr></thead>
+      <tbody id="t1"></tbody>
+    </table>
+  </div>
+  <p class="note">T = rozmowy (np. pytanie mimo zakazu, kwota pod zakazem, powtórka); G = narracja Mistrza Gry (walidator protokołu); F = obce formaty (sklep, JSON, MG innej gry); M = Umysł (czy SelfNote zgłasza fakt tylko wtedy, gdy powinien).</p>
+</section>
+
+<section id="wynik-d" data-toc="Wynik D">
+  <div class="secno">Krok 2 · jedna liczba zamiast czterech</div>
+  <h2>Wynik D to średnia ważona</h2>
+  <p>Żeby porównać modele jedną liczbą, łączymy części z wagami ustalonymi z góry: rozmowy liczą się najbardziej (40%), Umysł najmniej (15%). <b>Niżej znaczy lepiej</b>, bo to odsetek błędów.</p>
+  <div class="sheet"><div class="formula" id="fD"></div></div>
+  <p><a class="t" href="slownik.html#wynikd"><b>ΔD</b></a> (czytaj „delta D”) to różnica: D run24 minus D run23. Wychodzi <b class="mono" id="dPoint"></b>. Liczba ujemna oznacza, że run24 ma mniej błędów, czyli jest lepszy.</p>
+</section>
+
+<section id="przypadek" data-toc="Czy to przypadek?">
+  <div class="secno">Krok 3 · problem</div>
+  <h2>Czy to nie przypadek?</h2>
+  <p>Dev to tylko 413 zadań. Gdybyśmy wylosowali <i>inne</i> 413 zadań tego samego rodzaju, wynik wyszedłby trochę inny. Przy 94 rundach MG jedna runda to ponad 1 punkt procentowy. Dwa, trzy szczęśliwe trafienia i różnica gotowa.</p>
+  <p>Pytanie brzmi więc: <b>jak bardzo ΔD mogłoby się zmienić, gdyby zestaw był trochę inny?</b> Nowych zadań nie mamy, ale jest sprytny sposób, żeby to oszacować.</p>
+</section>
+
+<section id="bootstrap" data-toc="Bootstrap">
+  <div class="secno">Krok 4 · bootstrap</div>
+  <h2>Losujemy „inne” zestawy z tego, co mamy</h2>
+  <p><a class="t" href="slownik.html#bootstrap">Bootstrap</a> to losowanie <b>ze zwracaniem</b>. Wrzucamy wszystkie 224 kwestie rozmów do worka, wyciągamy jedną, zapisujemy i <i>wrzucamy z powrotem</i>. Powtarzamy 224 razy. Niektóre kwestie trafią się dwa razy, innych nie będzie wcale, tak jak przy prawdziwym nowym losowaniu. To samo robimy dla każdej części i liczymy ΔD od nowa.</p>
+  <p>Ważne: losujemy <b>zadanie</b>, a nie wynik modelu. Gdy wypadnie runda MG nr 17, bierzemy wynik obu modeli na tej samej rundzie. To się nazywa „sparowany” bootstrap: oba modele zawsze odpowiadają na ten sam wylosowany zestaw.</p>
+  <div class="sheet">
+    <div class="controls">
+      <button class="primary" id="b1">Losuj 1 zestaw</button>
+      <button id="b100">+100</button>
+      <button id="b2000">Do 2000</button>
+      <button id="b0">Od zera</button>
+      <label for="part" class="note" style="margin-left:auto">pokaż:</label>
+      <select id="part">
+        <option value="D">D łącznie</option>
+        <option value="T">T rozmowy</option>
+        <option value="G">G Mistrz Gry</option>
+        <option value="F">F obce formaty</option>
+        <option value="M">M Umysł</option>
+      </select>
+    </div>
+    <div class="draw" id="draw">Kliknij „Losuj 1 zestaw”, żeby zobaczyć jedno losowanie krok po kroku.</div>
+    <svg id="hist" viewBox="0 0 700 260" role="img" aria-label="Histogram wylosowanych różnic"></svg>
+    <div class="stats">
+      <div class="stat"><b id="sN">0</b><span>wylosowanych zestawów</span></div>
+      <div class="stat"><b id="sCI">—</b><span>95% przedział (środkowe 95% wyników)</span></div>
+      <div class="stat"><b id="sP">—</b><span>w ilu losowaniach run24 lepszy (Δ &lt; 0)</span></div>
+    </div>
+  </div>
+  <p class="note">Każda kropka w histogramie to jeden wylosowany zestaw i jego ΔD. Czerwona linia to zero, czyli brak różnicy. Zacieniowany pas to środkowe 95% wyników.</p>
+</section>
+
+<section id="przedzial" data-toc="Przedział 95%">
+  <div class="secno">Krok 5 · przedział</div>
+  <h2>Co znaczy „przedział 95%” i „zahacza o zero”</h2>
+  <p>Po 2000 losowaniach układamy wyniki od najmniejszego do największego. Odcinamy 2,5% najniższych (50 wyników) i 2,5% najwyższych (50 wyników). To, co zostaje w środku, to <a class="t" href="slownik.html#przedzial"><b>przedział 95%</b></a>. Mówi on: „przy innym zestawie zadań ΔD najpewniej wypadłoby gdzieś tutaj”.</p>
+  <div class="sheet"><div class="formula" id="fCI"></div></div>
+  <p>U nas lewy koniec jest mocno na minusie (run24 wyraźnie lepszy), ale prawy koniec wychodzi <b>odrobinę ponad zero</b>. To właśnie „zahacza o zero”: w części możliwych zestawów run24 byłby minimalnie gorszy. Nie możemy więc z pełnym przekonaniem powiedzieć „run24 jest lepszy”. Możemy powiedzieć „run24 jest najpewniej lepszy, a już na pewno nie wyraźnie gorszy”.</p>
+  <p>Nasza reguła, ustalona przed treningiem, mówi: poprawa jest <b>realna</b>, gdy <i>cały</i> przedział leży poniżej zera, czyli górny koniec &lt; 0. Tutaj zabrakło niewiele.</p>
+  <p><b>„~95% szans, że lepszy”</b> to po prostu odsetek losowań, w których ΔD wyszło ujemne. To potoczny skrót, a nie ścisłe prawdopodobieństwo, ale dobrze oddaje sens.</p>
+</section>
+
+<section id="czesci" data-toc="Każda część osobno">
+  <div class="secno">Krok 6 · każda część osobno</div>
+  <h2>Dlaczego „Umysł istotnie lepszy”, a MG „remis”</h2>
+  <p>Ten sam bootstrap dla każdej części osobno (różnica w punktach procentowych, run24 minus run23):</p>
+  <div class="sheet tbl">
+    <table>
+      <thead><tr><th>część</th><th>różnica</th><th>95% przedział</th><th>Δ &lt; 0</th><th>werdykt</th></tr></thead>
+      <tbody id="t2"></tbody>
+    </table>
+  </div>
+  <p>Umysł to ciekawy przypadek. run23 pomylił się w 3 z 27 zadań, run24 w żadnym. Żaden wylosowany zestaw nie zrobi więc z run24 gorszego modelu, bo run24 nie ma ani jednego błędu, którego run23 by nie miał. Może się jednak zdarzyć, że losowanie <i>nie trafi</i> w żadne z tych 3 zadań. Wtedy wychodzi remis 0. Szansa na to wynosi (24/27)<sup>27</sup> ≈ <b>4%</b>, czyli trochę więcej niż 2,5%. Dlatego prawy koniec przedziału ląduje dokładnie na zerze i formalnie mamy „na granicy”. Gdy porównujemy z run23 po pełnych 2 epokach, który miał 4 błędy w Umyśle, ta szansa spada do ≈ 1,3% i cały przedział leży poniżej zera. Stąd w raporcie Fable „Umysł istotnie lepszy”. Wniosek: run24 jest w Umyśle lepszy, ale przy 27 zadaniach o wyniku decydują 3–4 przypadki, więc „istotne” nie znaczy tu „duże”.</p>
+</section>
+
+<section id="test-znakow" data-toc="Test znaków">
+  <div class="secno">Krok 7 · test znaków</div>
+  <h2>Skąd „p = 0,54” przy MG</h2>
+  <p>Drugi sposób patrzenia na to samo, <a class="t" href="slownik.html#testznakow">test znaków</a>. Na większości rund MG oba modele zrobiły to samo: obaj dobrze albo obaj źle. Takie rundy nic nie mówią o tym, kto lepszy. Liczą się tylko rundy <b>rozbieżne</b>:</p>
+  <div class="sheet tbl">
+    <table>
+      <thead><tr><th>rundy MG (94)</th><th>ile</th></tr></thead>
+      <tbody id="t3"></tbody>
+    </table>
+  </div>
+  <p>Załóżmy, że modele są <b>równie dobre</b>. Wtedy każda rozbieżna runda to rzut monetą: z równą szansą „gorzej” wypada run23 albo run24. <a class="t" href="slownik.html#p"><b>Wartość p</b></a> odpowiada na pytanie: <i>jak często same rzuty monetą dałyby wynik co najmniej tak nierówny jak nasz?</i></p>
+  <div class="sheet">
+    <svg id="binom" viewBox="0 0 700 220" role="img" aria-label="Rozkład dwumianowy"></svg>
+    <div class="formula" id="fP"></div>
+  </div>
+  <p>Czerwone słupki to wyniki co najmniej tak nierówne jak nasz, w obie strony. Razem to <b id="pTxt"></b> wszystkich możliwości. Innymi słowy, taki rozkład wyszedłby przy uczciwej monecie mniej więcej w co drugim eksperymencie. To nic niezwykłego, więc <b>nie ma dowodu na różnicę</b>.</p>
+  <p class="note">Umowny próg „<a class="t" href="slownik.html#istotnosc">istotności</a>” to p &lt; 0,05, czyli wynik, który przy równych modelach zdarzałby się rzadziej niż raz na 20. Przy <a class="t" href="slownik.html#slepa">ślepej ocenie</a> <a class="t" href="slownik.html#mg">MG</a> run24 kontra run23 po DPO wyszło p = 0,0001: raz na 10 000. To był prawdziwy regres. Tutaj, SFT kontra SFT, różnicy nie ma. W raporcie Fable pada „14 vs 10, p = 0,54”: to ten sam test z run23 po pełnych 2 epokach (<span id="alt"></span>). Opus podał „26 vs 23 na 94”: to łączne liczby błędów z tabeli w kroku 1, policzone względem tamtego checkpointu.</p>
+</section>
+
+<section id="slabosc" data-toc="Czego dev nie widzi">
+  <div class="secno">Krok 8 · słabość zestawu</div>
+  <h2>Czego dev nie widzi</h2>
+  <p>W 94 rundach MG z dev <b>nie ma ani jednej</b> rundy z regeneracją („Topielec zrasta się: odzyskuje 4 zdrowia”). Tymczasem w ślepej ocenie to największe źródło ciężkich błędów MG. Dev nie może więc pokazać różnicy w miejscu, gdzie modele mylą się najczęściej. Dlatego remis na dev to słabszy dowód niż ślepa ocena na pełnych zestawach testowych.</p>
+</section>
+
+<section id="pojecia" data-toc="Pojęcia">
+  <div class="secno">Słowniczek</div>
+  <h2>Pojęcia w jednym miejscu</h2>
+  <p class="note">Pełne opisy z przykładami: <a href="slownik.html">Słownik</a>.</p>
+  <div class="sheet">
+    <dl>
+      <dt>dev</dt><dd>mały zestaw kontrolny sprawdzany automatami; szybki, ale ograniczony</dd>
+      <dt>D, ΔD</dt><dd>łączny odsetek błędów z wagami; różnica run24 − run23 (ujemna = run24 lepszy)</dd>
+      <dt>bootstrap</dt><dd>losowanie ze zwracaniem z posiadanych zadań, żeby udawać „inne zestawy” i zobaczyć rozrzut wyniku</dd>
+      <dt>sparowany</dt><dd>oba modele zawsze oceniane na tych samych wylosowanych zadaniach</dd>
+      <dt>przedział 95%</dt><dd>środkowe 95% wyników bootstrapu; zakres, w którym najpewniej leży prawdziwa różnica</dd>
+      <dt>zahacza o zero</dt><dd>przedział obejmuje zero, więc „brak różnicy” albo odrobinę w drugą stronę też jest możliwe</dd>
+      <dt>wartość p</dt><dd>jak często sam przypadek (równe modele) dałby wynik co najmniej tak skrajny; małe p = trudno to zrzucić na przypadek</dd>
+      <dt>istotny</dt><dd>umownie: p &lt; 0,05 albo przedział 95% w całości po jednej stronie zera</dd>
+      <dt>test znaków</dt><dd>liczymy tylko zadania, na których modele się różnią, i sprawdzamy, czy podział jest bardziej nierówny niż rzuty monetą</dd>
+    </dl>
+  </div>
+</section>
+</article>
+<nav class="toc" data-auto aria-label="Spis treści"><div class="label">Na tej stronie</div></nav>
+</div>
+<footer class="foot">Dane: zestaw dev run23 (score_dev.py), run23 SFT checkpoint 1,5 ep. vs run24 SFT checkpoint 1,5 ep.</footer>
+<script src="terms.js"></script>
+<script>
+// Prawdziwe dane z dev (score_dev.py, run23/eval/dev): liczba zadań w każdym z 4 układów (run23, run24):
+// n00 obaj dobrze, n10 tylko run23 błąd, n01 tylko run24 błąd, n11 obaj błąd.
+const DATA = {
+  T: { name: "T rozmowy", w: 0.40, n00: 204, n10: 11, n01: 7, n11: 2 },
+  G: { name: "G Mistrz Gry", w: 0.20, n00: 61, n10: 7, n01: 10, n11: 16 },
+  F: { name: "F obce formaty", w: 0.25, n00: 41, n10: 8, n01: 4, n11: 15 },
+  M: { name: "M Umysł", w: 0.15, n00: 24, n10: 3, n01: 0, n11: 0 },
+};
+const ALT_G = { n10: 10, n01: 14 }; // run23 po 2,0 ep. (e20) vs run24 e15
+const PARTS = ["T", "G", "F", "M"];
+const fmt = (x, d = 1) => (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(d).replace(".", ",");
+const num = (x, d = 1) => (x < 0 ? "−" : "") + Math.abs(x).toFixed(d).replace(".", ",");
+
+// Zadania jako lista par [a, b] dla każdej części.
+const ITEMS = {};
+for (const p of PARTS) {
+  const d = DATA[p], arr = [];
+  for (let i = 0; i < d.n00; i++) arr.push([0, 0]);
+  for (let i = 0; i < d.n10; i++) arr.push([1, 0]);
+  for (let i = 0; i < d.n01; i++) arr.push([0, 1]);
+  for (let i = 0; i < d.n11; i++) arr.push([1, 1]);
+  ITEMS[p] = arr;
+}
+const pct = (arr, k) => 100 * arr.reduce((s, x) => s + x[k], 0) / arr.length;
+function scores(sample) { // sample: {T:[[a,b]...],...}
+  const out = {}; let Da = 0, Db = 0;
+  for (const p of PARTS) {
+    const a = pct(sample[p], 0), b = pct(sample[p], 1);
+    out[p] = b - a; Da += DATA[p].w * a; Db += DATA[p].w * b;
+  }
+  out.D = Db - Da; out.Da = Da; out.Db = Db;
+  return out;
+}
+const POINT = scores(ITEMS);
+
+// Generator z ziarnem: te same wyniki przy każdym otwarciu strony.
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function resample(r) {
+  const s = {}, picks = {};
+  for (const p of PARTS) { const a = ITEMS[p]; s[p] = []; picks[p] = []; for (let i = 0; i < a.length; i++) { const j = Math.floor(r() * a.length); s[p].push(a[j]); picks[p].push(j); } }
+  return { s, picks };
+}
+const ci = (v) => { const x = [...v].sort((a, b) => a - b); return [x[Math.floor(0.025 * x.length)], x[Math.floor(0.975 * x.length) - 1]]; };
+
+// --- Krok 1 i 2
+const t1 = document.getElementById("t1");
+for (const p of PARTS) {
+  const d = DATA[p], n = ITEMS[p].length, ea = d.n10 + d.n11, eb = d.n01 + d.n11;
+  t1.insertAdjacentHTML("beforeend", `<tr><td>${d.name}</td><td>${n}</td><td>${ea}</td><td>${eb}</td><td>${num(100 * ea / n)}%</td><td>${num(100 * eb / n)}%</td></tr>`);
+}
+{
+  const line = (k, label) => "D " + label + " = " + PARTS.map(p => `${DATA[p].w.toFixed(2).replace(".", ",")}·${num(pct(ITEMS[p], k))}`).join(" + ") + ` = ${num(k ? POINT.Db : POINT.Da)}`;
+  document.getElementById("fD").textContent =
+    "D = 0,40·T + 0,20·G + 0,25·F + 0,15·M\n\n" + line(0, "run23") + "\n" + line(1, "run24") +
+    `\n\nΔD = ${num(POINT.Db)} − ${num(POINT.Da)} = ${num(POINT.D)}`;
+  document.getElementById("dPoint").textContent = num(POINT.D);
+}
+
+// --- Bootstrap pełny (2000) do tabel i przedziału — liczony od razu, żeby strona była kompletna bez klikania.
+const FULL = []; { const r = rng(23); for (let i = 0; i < 2000; i++) FULL.push(scores(resample(r).s)); }
+const t2 = document.getElementById("t2");
+for (const p of ["D", ...PARTS]) {
+  const v = FULL.map(x => x[p]), [lo, hi] = ci(v), neg = v.filter(x => x < 0).length / v.length;
+  const sig = hi < 0 || lo > 0;
+  t2.insertAdjacentHTML("beforeend", `<tr><td>${p === "D" ? "D łącznie" : DATA[p].name}</td><td>${fmt(POINT[p])}</td><td>[${fmt(lo)}; ${fmt(hi)}]</td><td>${Math.round(100 * neg)}%</td><td><span class="pill ${sig ? "yes" : "no"}">${sig ? "istotna różnica" : "zahacza o zero"}</span></td></tr>`);
+}
+{
+  const v = FULL.map(x => x.D).sort((a, b) => a - b), [lo, hi] = ci(v);
+  document.getElementById("fCI").textContent =
+    `2000 wyników ΔD posortowanych:\n` +
+    `  ${num(v[0])}, ${num(v[1])}, ${num(v[2])}, …, ${num(v[1997])}, ${num(v[1998])}, ${num(v[1999])}\n\n` +
+    `odcinamy 50 najniższych i 50 najwyższych:\n` +
+    `  wynik nr 50  = ${num(lo)}   ← lewy koniec\n` +
+    `  wynik nr 1950 = ${num(hi)}   ← prawy koniec\n\n` +
+    `przedział 95%: [${num(lo)}; ${num(hi)}]   zawiera 0? ${lo < 0 && hi > 0 ? "TAK (zahacza o zero)" : "nie"}\n` +
+    `ujemnych wyników: ${v.filter(x => x < 0).length} z 2000 = ${Math.round(100 * v.filter(x => x < 0).length / 2000)}%\n` +
+    `(skrypt w Pythonie z innym losowaniem dał [−7,2; +0,6] — drobne różnice to normalny rozrzut samego losowania)`;
+}
+
+// --- Animacja
+const svg = document.getElementById("hist"), partSel = document.getElementById("part");
+let drawn = [], r = rng(7), timer = null;
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function range(p) { const v = FULL.map(x => x[p]); const lo = Math.min(...v), hi = Math.max(...v), pad = (hi - lo) * 0.08 + 0.5; return [Math.min(lo - pad, -pad), Math.max(hi + pad, pad)]; }
+function render() {
+  const p = partSel.value, [x0, x1] = range(p), W = 700, H = 260, L = 30, R = 10, T = 12, B = 34;
+  const X = (x) => L + (x - x0) / (x1 - x0) * (W - L - R);
+  const bins = 40, bw = (x1 - x0) / bins, counts = new Array(bins).fill(0);
+  const v = drawn.map(d => d[p]);
+  v.forEach(x => counts[Math.min(bins - 1, Math.max(0, Math.floor((x - x0) / bw)))]++);
+  const maxC = Math.max(4, ...counts), Y = (c) => H - B - c / maxC * (H - B - T);
+  let s = "";
+  if (v.length >= 40) { const [lo, hi] = ci(v); s += `<rect x="${X(lo)}" y="${T}" width="${X(hi) - X(lo)}" height="${H - B - T}" fill="var(--shade)"/>`; }
+  counts.forEach((c, i) => { if (c) s += `<rect x="${X(x0 + i * bw) + 1}" y="${Y(c)}" width="${(W - L - R) / bins - 2}" height="${H - B - Y(c)}" rx="2" fill="var(--b)" opacity=".85"/>`; });
+  // oś
+  s += `<line x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--line)"/>`;
+  const step = (x1 - x0) > 30 ? 10 : (x1 - x0) > 12 ? 2 : 1;
+  for (let t = Math.ceil(x0 / step) * step; t <= x1; t += step) s += `<line x1="${X(t)}" x2="${X(t)}" y1="${H - B}" y2="${H - B + 4}" stroke="var(--line)"/><text x="${X(t)}" y="${H - B + 17}" text-anchor="middle">${num(t, 0)}</text>`;
+  s += `<line x1="${X(0)}" x2="${X(0)}" y1="${T - 4}" y2="${H - B}" stroke="var(--zero)" stroke-width="2"/><text x="${X(0) + 5}" y="${T + 8}" style="fill:var(--zero)">0 = brak różnicy</text>`;
+  s += `<line x1="${X(POINT[p])}" x2="${X(POINT[p])}" y1="${T + 14}" y2="${H - B}" stroke="var(--fg)" stroke-dasharray="3 3"/><text x="${X(POINT[p]) - 5}" y="${T + 24}" text-anchor="end" style="fill:var(--fg)">nasz wynik ${num(POINT[p])}</text>`;
+  s += `<text x="${W - R}" y="${H - 4}" text-anchor="end">← run24 lepszy · run24 gorszy →</text>`;
+  svg.innerHTML = s;
+  document.getElementById("sN").textContent = drawn.length;
+  if (v.length >= 40) { const [lo, hi] = ci(v); document.getElementById("sCI").textContent = `[${num(lo)}; ${num(hi)}]`; } else document.getElementById("sCI").textContent = "—";
+  document.getElementById("sP").textContent = v.length ? Math.round(100 * v.filter(x => x < 0).length / v.length) + "%" : "—";
+}
+function one(show) {
+  const { s, picks } = resample(r), sc = scores(s); drawn.push(sc);
+  if (show) {
+    const g = picks.G.slice(0, 12).map(j => "#" + (j + 1)).join(", ");
+    const counts = {}; picks.G.forEach(j => counts[j] = (counts[j] || 0) + 1);
+    const twice = Object.values(counts).filter(c => c > 1).length, missing = ITEMS.G.length - Object.keys(counts).length;
+    document.getElementById("draw").innerHTML =
+      `Wylosowane rundy MG: ${g}, … (94 losowania). ${twice} rund trafiło się więcej niż raz, ${missing} nie trafiło się wcale.<br>` +
+      `W tym zestawie: D run23 = ${num(sc.Da)}, D run24 = ${num(sc.Db)} → <b style="color:var(--fg)">ΔD = ${num(sc.D)}</b>`;
+  }
+}
+function many(k) { clearInterval(timer); if (reduce) { for (let i = 0; i < k; i++) one(false); render(); return; }
+  let left = k; const per = Math.max(1, Math.ceil(k / 40)); timer = setInterval(() => { for (let i = 0; i < per && left > 0; i++, left--) one(false); render(); if (left <= 0) clearInterval(timer); }, 30); }
+document.getElementById("b1").onclick = () => { clearInterval(timer); one(true); render(); };
+document.getElementById("b100").onclick = () => many(100);
+document.getElementById("b2000").onclick = () => many(Math.max(0, 2000 - drawn.length));
+document.getElementById("b0").onclick = () => { clearInterval(timer); drawn = []; r = rng(7); document.getElementById("draw").textContent = "Kliknij „Losuj 1 zestaw”, żeby zobaczyć jedno losowanie krok po kroku."; render(); };
+partSel.onchange = render;
+// stan startowy: 200 losowań, żeby wykres nie był pusty
+for (let i = 0; i < 200; i++) one(false); render();
+
+// --- Test znaków
+function choose(n, k) { let c = 1; for (let i = 1; i <= k; i++) c = c * (n - k + i) / i; return c; }
+function signP(a, b) { const n = a + b, k = Math.min(a, b); let s = 0; for (let i = 0; i <= k; i++) s += choose(n, i); return Math.min(1, 2 * s / 2 ** n); }
+{
+  const g = DATA.G, n = g.n10 + g.n01, k = Math.min(g.n10, g.n01), p = signP(g.n10, g.n01);
+  document.getElementById("t3").innerHTML =
+    `<tr><td>obaj dobrze</td><td>${g.n00}</td></tr><tr><td>obaj źle</td><td>${g.n11}</td></tr>` +
+    `<tr><td>źle tylko <span class="a">run23</span></td><td>${g.n10}</td></tr><tr><td>źle tylko <span class="b">run24</span></td><td>${g.n01}</td></tr>`;
+  const W = 700, H = 220, L = 20, R = 10, T = 10, B = 30, bw = (W - L - R) / (n + 1);
+  const probs = [...Array(n + 1)].map((_, i) => choose(n, i) / 2 ** n), mx = Math.max(...probs);
+  let s = "";
+  probs.forEach((q, i) => { const tail = i <= k || i >= n - k, h = q / mx * (H - B - T);
+    s += `<rect x="${L + i * bw + 2}" y="${H - B - h}" width="${bw - 4}" height="${h}" rx="2" fill="${tail ? "var(--zero)" : "var(--line)"}"/>`;
+    s += `<text x="${L + i * bw + bw / 2}" y="${H - B + 15}" text-anchor="middle">${i}</text>`; });
+  s += `<text x="${W - R}" y="${H - 2}" text-anchor="end">ile z ${n} rozbieżnych rund wypadło „gorzej dla run23”</text>`;
+  document.getElementById("binom").innerHTML = s;
+  const terms = [...Array(k + 1)].map((_, i) => choose(n, i));
+  document.getElementById("fP").textContent =
+    `rozbieżnych rund: ${g.n10} + ${g.n01} = ${n}; mniejsza grupa: ${k}\n` +
+    `szansa na ≤ ${k} z ${n} przy rzucie monetą = (${terms.join(" + ")}) / 2^${n}\n` +
+    `                                     = ${terms.reduce((a, b) => a + b, 0)} / ${2 ** n} = ${(terms.reduce((a, b) => a + b, 0) / 2 ** n).toFixed(3).replace(".", ",")}\n` +
+    `obie strony (równie nierówno w drugą stronę też by się liczyło): p = 2 × ${(terms.reduce((a, b) => a + b, 0) / 2 ** n).toFixed(3).replace(".", ",")} = ${p.toFixed(2).replace(".", ",")}`;
+  document.getElementById("pTxt").textContent = `${Math.round(p * 100)}%`;
+  document.getElementById("alt").textContent = `${ALT_G.n10} vs ${ALT_G.n01} rozbieżnych → p = ${signP(ALT_G.n10, ALT_G.n01).toFixed(2).replace(".", ",")}`;
+}
+</script>
+<script src="guide.js"></script>
+
+</body>
+</html>

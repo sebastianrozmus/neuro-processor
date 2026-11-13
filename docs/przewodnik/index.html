@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jak uczyliśmy NPC mówić</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="guide.css">
+
+</head>
+<body>
+<nav class="topbar" aria-label="Strony przewodnika">
+  <a class="brand" href="index.html"><span class="mark">np</span> Jak uczyliśmy NPC mówić</a>
+  <div class="pages"><a href="index.html" aria-current="page">Przewodnik</a><a href="statystyka.html">Statystyka</a><a href="slownik.html">Słownik</a></div>
+</nav>
+
+<div class="layout">
+<article>
+  <header class="hero reveal">
+    <div class="eyebrow">Dziennik projektu neuro-processor · stan na 13.11.2026</div>
+    <h1>Jak uczyliśmy NPC mówić</h1>
+    <p class="lead">Wszystko, co robiliśmy z modelem postaci do naszej gry: co próbowaliśmy, co pomogło, co nie pomogło i dlaczego, oraz co z tego wynika na dalej. Pisane dla laika. Podkreślone słowa mają dymek z krótkim opisem; kliknięcie prowadzi do słownika.</p>
+    <div class="counts" id="heroCounts"></div>
+  </header>
+
+  <section id="o-co-chodzi" data-toc="O co chodzi">
+    <header><div class="secno">01</div><h2>O co chodzi</h2></header>
+    <p>Robimy tekstową grę RPG. <a class="t" href="slownik.html#gra">Silnik gry</a> liczy zasady (walka na kościach, zadania, świat), a <a class="t" href="slownik.html#llm">model językowy</a> nadaje temu słowa. Używamy polskiego modelu <a class="t" href="slownik.html#bielik">Bielik</a> 11B i douczamy go na własnych przykładach, żeby mówił jak postacie z naszego świata i trzymał się faktów z gry.</p>
+    <p>Model ma w grze trzy role:</p>
+    <div class="pipe">
+      <div class="st"><b><a class="t" href="slownik.html#glos">Głos</a></b><span>kwestie postaci w rozmowie z graczem</span></div>
+      <div class="st"><b><a class="t" href="slownik.html#mg">Mistrz Gry</a></b><span>1–3 zdania opisu każdej rundy walki</span></div>
+      <div class="st"><b><a class="t" href="slownik.html#umysl">Umysł</a></b><span>zadania w tle: notatki, rozumienie komend, przedmioty</span></div>
+    </div>
+    <p>Najważniejsza zasada we wszystkich trzech: <b>nie zmyślać</b>. Silnik podaje modelowi <a class="t" href="slownik.html#protokol">protokół [GRA]</a>, czyli to, co się naprawdę wydarzyło. Każda <a class="t" href="slownik.html#halucynacja">zmyślona</a> rzecz psuje grę, bo gracz dostaje fałszywe informacje.</p>
+  </section>
+
+  <section id="jak-powstaje" data-toc="Jak powstaje model">
+    <header><div class="secno">02</div><h2>Jak powstaje jedna wersja modelu</h2></header>
+    <p>Każda próba to jeden <a class="t" href="slownik.html#run">run</a>. Przebiega zawsze tak samo:</p>
+    <div class="pipe">
+      <div class="st"><b>1. Dane</b><span>tysiące przykładów z silnika gry, poprawiane ręcznie i przez <a class="t" href="slownik.html#gpt">GPT</a>; <a class="t" href="slownik.html#walidator">bramki</a> odrzucają złe</span></div>
+      <div class="st"><b>2. <a class="t" href="slownik.html#sft">SFT</a></b><span>model naśladuje wzorce; ~2600 <a class="t" href="slownik.html#krok">kroków</a>, ok. 20 godzin na domowej karcie</span></div>
+      <div class="st"><b>3. <a class="t" href="slownik.html#dpo">DPO</a></b><span>„szlif” z par: lepsza i gorsza odpowiedź; ~1 godzina</span></div>
+      <div class="st"><b>4. <a class="t" href="slownik.html#gguf">GGUF</a></b><span><a class="t" href="slownik.html#scalanie">scalenie</a> i <a class="t" href="slownik.html#kwantyzacja">kwantyzacja</a> do pliku dla <a class="t" href="slownik.html#ollama">Ollamy</a></span></div>
+      <div class="st"><b>5. Ocena</b><span><a class="t" href="slownik.html#dev">dev</a> wybiera <a class="t" href="slownik.html#checkpoint">checkpoint</a>, <a class="t" href="slownik.html#slepa">ślepa ocena</a> decyduje</span></div>
+      <div class="st"><b>6. Gra</b><span>tylko jeśli nowy model nie jest w niczym istotnie gorszy od obecnego</span></div>
+    </div>
+    <p>Trenujemy techniką <a class="t" href="slownik.html#qlora">QLoRA</a>: nie zmieniamy całego modelu, tylko doklejamy małą nakładkę (<a class="t" href="slownik.html#lora">LoRA</a>). Dzięki temu model z 11 miliardami <a class="t" href="slownik.html#parametry">parametrów</a> mieści się w 16 GB <a class="t" href="slownik.html#vram">pamięci karty</a>. Przepis od dawna jest stały (<a class="t" href="slownik.html#rank">rank</a> 16, <a class="t" href="slownik.html#lr">lr</a> 1e-4, 1,5–2 <a class="t" href="slownik.html#epoka">epoki</a>), żeby porównywać dane, a nie ustawienia.</p>
+  </section>
+
+  <section id="jak-sprawdzamy" data-toc="Jak sprawdzamy">
+    <header><div class="secno">03</div><h2>Jak sprawdzamy, czy jest lepiej</h2></header>
+    <p><b>Szybko:</b> <a class="t" href="slownik.html#dev">zestaw dev</a>, czyli 413 zadań sprawdzanych automatami. Wynik <a class="t" href="slownik.html#wynikd">D</a> mówi, jaki procent odpowiedzi ma błąd. Służy do wyboru najlepszego <a class="t" href="slownik.html#checkpoint">checkpointu</a>.</p>
+    <p><b>Porządnie:</b> <a class="t" href="slownik.html#slepa">ślepa ocena</a>. Odpowiedzi nowego modelu (<a class="t" href="slownik.html#kotwica">kandydata</a>) i obecnego (kotwicy) na setki tych samych sytuacji dostają losowe litery A/B. Dwa modele Claude jako <a class="t" href="slownik.html#sedzia">sędziowie</a> liczą <a class="t" href="slownik.html#bledy">błędy ciężkie i lekkie</a>. Sprawdzamy też, czy sędziowie się zgadzają (<a class="t" href="slownik.html#kappa">kappa</a>).</p>
+    <p><b>Uczciwie:</b> przed treningiem spisujemy <a class="t" href="slownik.html#regula">regułę decyzyjną</a>. Różnicę uznajemy tylko wtedy, gdy <a class="t" href="slownik.html#testznakow">test znaków</a> albo <a class="t" href="slownik.html#przedzial">przedział ufności</a> pokazuje, że nie jest dziełem przypadku. Zestawy testowe trzymamy z dala od treningu (<a class="t" href="slownik.html#holdout">holdout</a>).</p>
+    <div class="sheet"><p>Jak dokładnie działają przedział, bootstrap i wartość p, krok po kroku na naszych danych: <a href="statystyka.html"><b>Statystyka bez strachu →</b></a></p></div>
+  </section>
+
+  <section id="historia" data-toc="Historia wersji">
+    <header><div class="secno">04</div><h2>Historia wersji</h2></header>
+    <p>Każdy run, od najstarszego. Zielona kropka oznacza model, który trafił do gry. Pieczątka mówi, czy run coś poprawił względem poprzedniego modelu gry.</p>
+    <div class="filters" id="runFilters" role="group" aria-label="Filtr werdyktu"></div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <section id="lekcje" data-toc="Co pomogło, a co nie">
+    <header><div class="secno">05</div><h2>Co pomogło, a co nie</h2></header>
+    <p>Każda karta to jedna rzecz, którą próbowaliśmy: co zrobiliśmy, co się stało (z liczbami), dlaczego mogło tak wyjść i czy warto próbować dalej.</p>
+    <div class="counts" id="lessonCounts"></div>
+    <div class="filters" id="catFilters" role="group" aria-label="Filtr kategorii"></div>
+    <div class="lessons" id="lessons"></div>
+  </section>
+
+  <section id="run24" data-toc="Przypadek run24">
+    <header><div class="secno">06</div><h2>Przypadek run24: dlaczego „poprawione dane” nie dały lepszego modelu</h2></header>
+    <p>run24 dostał dane run23 plus poprawki od GPT, a w ślepej ocenie Mistrz Gry wyszedł wyraźnie gorzej: 49,5 ciężkich błędów na 669 rund wobec 25 u run23 (<a class="t" href="slownik.html#p">p</a> = 0,0001). Dwie niezależne analizy doszły do tego samego wniosku: <b>porównaliśmy samo <a class="t" href="slownik.html#sft">SFT</a> z SFT + <a class="t" href="slownik.html#dpo">DPO</a></b>.</p>
+    <div class="sheet tbl">
+      <table>
+        <thead><tr><th>ślepa ocena MG, te same 669 rund</th><th>run21 SFT</th><th>run22 SFT</th><th>run23 SFT+DPO</th><th>run24 SFT</th></tr></thead>
+        <tbody>
+          <tr><td>błędy ciężkie</td><td>40</td><td>42</td><td>26 / 25</td><td>49,5</td></tr>
+          <tr><td><a class="t" href="slownik.html#dopowiedzenie">dopowiedziane</a> zdarzenie</td><td>7</td><td>11,5</td><td>2</td><td>12</td></tr>
+          <tr><td>dopowiedziana ucieczka</td><td>0,5</td><td>5,5</td><td>0</td><td>6</td></tr>
+          <tr><td>„za długie”</td><td>9</td><td>36</td><td>21 / 18</td><td>38</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>run24 wygląda prawie dokładnie jak run22</b>, czyli samo SFT sprzed naszych poprawek. Nie zepsuł MG względem SFT, po prostu nie dostał „szlifu”, który w run23 zrobiło DPO (84 pary MG z krótszymi, oszczędnymi odpowiedziami). Na dev, SFT kontra SFT, dane run24 wypadają nawet trochę lepiej (<a href="statystyka.html">szczegóły</a>).</p>
+    <p>Poprawki zepsuły za to trzy konkretne rzeczy, które da się naprawić:</p>
+    <ul class="clean">
+      <li>poprawki Z6 (brief pisany pod rozmowy) usunęły liczby z protokołu w 11 wierszach MG, bo ominęły <a class="t" href="slownik.html#walidator">walidator</a>;</li>
+      <li>nowe rozmowy Z5 nie przeszły przez bramki z run23, przez co więcej powtórek (u sędziów około +50%);</li>
+      <li>około 130 najdłuższych rozmów odpadło po cichu przez <a class="t" href="slownik.html#maxlen">limit 4096 tokenów</a>.</li>
+    </ul>
+  </section>
+
+  <section id="wnioski" data-toc="Wnioski i co dalej">
+    <header><div class="secno">07</div><h2>Wnioski i co dalej</h2></header>
+    <ul class="clean" id="lessonsList"></ul>
+    <div class="sheet">
+      <h3>Plan na najbliższe dni</h3>
+      <ul class="clean">
+        <li><b>run24v31</b>: te same dane na nowej bazie Bielik v3.1. Porównujemy z run24 SFT, nie z run23, żeby zmierzyć sam wpływ bazy.</li>
+        <li><b>Test rozstrzygający</b>: ślepa ocena run23 po samym SFT kontra run24 po samym SFT. Potwierdzi albo obali tezę, że winne było brakujące DPO.</li>
+        <li><b>run25</b>: dane run24 z naprawionymi trzema błędami, nowe rundy MG (gm25, z numeracją <a class="t" href="slownik.html#blizniaki">bliźniaków</a>) i porządne DPO zbudowane jak w run23.</li>
+      </ul>
+    </div>
+  </section>
+</article>
+<nav class="toc" data-auto aria-label="Spis treści"><div class="label">Spis treści</div></nav>
+</div>
+<footer class="foot">Źródła: dziennik MODELE.md, HISTORIA.md, pliki decyzji D:\neuro-train\runNN\, raporty analiz run24. Liczby z tamtych plików; gdzie danych brak, piszemy to wprost.</footer>
+
+<script src="terms.js"></script>
+<script src="data.js"></script>
+<script>
+(function () {
+  const G = window.GUIDE || { runs: [], experiments: [], lessons: [] };
+  const V = { pomoglo: "pomogło", nie_pomoglo: "nie pomogło", mieszane: "mieszane", niejasne: "niejasne", w_toku: "w toku" };
+  const W = { tak: "warto dalej", nie: "nie warto", warunkowo: "warto pod warunkiem" };
+  const CAT = { dane: "dane", przepis: "przepis treningu", baza: "model bazowy", dpo: "DPO", umysl: "Umysł", ocena: "ocena", silnik: "silnik gry", sprzet: "sprzęt i narzędzia" };
+
+  // Automatyczne dymki w tekstach z danych: pierwsze wystąpienie terminu na kartę.
+  const AUTO = [
+    [/\bQLoRA\b/, "qlora"], [/\bLoRA\b/, "lora"], [/\bSFT\b/, "sft"], [/\bDPO\b/, "dpo"], [/\bGGUF\b/, "gguf"], [/\beval_loss\b/, "strata"],
+    [/\bcheckpoint\w*/, "checkpoint"], [/\bepok\w*/, "epoka"], [/ślep\w+ ocen\w+/, "slepa"], [/\bkappa\b/, "kappa"], [/\bUmys\w+/, "umysl"],
+    [/\bSelfNote\b/, "selfnote"], [/\bMG\b/, "mg"], [/\bdev\b/, "dev"], [/\bbeta\b/, "beta"], [/\bziarn\w+/, "ziarno"], [/\bkwantyzac\w+|\bQ[45]_K_M\b|\bQ[45]\b/, "kwantyzacja"],
+    [/\bOllam\w*/, "ollama"], [/\bVRAM\b/, "vram"], [/\bwalidator\w*|\bbramk\w+/, "walidator"], [/\bzmyśl\w+/, "halucynacja"], [/\bdopowiedz\w+|\bdopowiad\w+/, "dopowiedzenie"],
+    [/\bp ?= ?0[,.]\d+/, "p"], [/\bprzedzia\w+/, "przedzial"], [/\bbootstrap\w*/, "bootstrap"], [/\btag\w* nastroj\w+|\[spokój\]/, "tag"], [/\bBieli\w+/, "bielik"],
+    [/\bMinitron\w*|\bgemm\w+/, "minitron"], [/\bkontekst\w*/, "kontekst"], [/\btoken\w*/, "token"], [/\bprzeucz\w+/, "przeuczenie"], [/\blogp\b/, "logp"], [/\brpo\w*/i, "rpo"],
+    [/\bfałszyw\w+ alarm\w*|\bFA\b/, "fa"], [/\bsoup\b|\bzup\w+/, "soup"], [/\bholdout\w*|\bprzeciek\w*/, "holdout"], [/\bbliźnia\w+/, "blizniaki"], [/\blr\b|learning rate/, "lr"], [/\bppl\b|perplexity/i, "ppl"], [/\bbench\w*/, "bench"], [/\breplay\w*/, "replay"], [/\bwarmup\w*/, "warmup"], [/\bosłon\w+/, "oslony"], [/\bTTS\b/, "tts"], [/\bWSL\w*|\bMLX\b|llama\.cpp/, "wsl"], [/\bnum_ctx\b|KV cache/, "kvcache"], [/\bbiografi\w+/, "karta"], [/\bInterpret\b|\bInvent\b|\bQuestHook\b/, "zadaniaumyslu"], [/syntety\w+|destylac\w+/, "syntetyczne"], [/maskowan\w+/, "maskowanie"],
+  ];
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  function linkify(text, used) {
+    let html = esc(text);
+    for (const [re, id] of AUTO) {
+      if (used.has(id)) continue;
+      const m = html.match(re);
+      if (!m) continue;
+      const i = m.index;
+      // nie wstawiaj w środek znacznika
+      if (html.lastIndexOf("<", i) > html.lastIndexOf(">", i)) continue;
+      html = html.slice(0, i) + `<a class="t" href="slownik.html#${id}">${m[0]}</a>` + html.slice(i + m[0].length);
+      used.add(id);
+    }
+    return html;
+  }
+  const stamp = v => `<span class="stamp ${esc(v)}">${esc(V[v] || v)}</span>`;
+
+  // --- liczniki
+  const exps = G.experiments || [];
+  const cnt = k => exps.filter(e => e.verdict === k).length;
+  document.getElementById("heroCounts").innerHTML =
+    `<span><b>${(G.runs || []).length}</b> wersji modelu</span><span><b>${exps.length}</b> sprawdzonych pomysłów</span>` +
+    `<span style="color:var(--ok)"><b>${cnt("pomoglo")}</b> pomogło</span><span style="color:var(--no)"><b>${cnt("nie_pomoglo")}</b> nie pomogło</span>` +
+    `<span style="color:var(--mix)"><b>${cnt("mieszane")}</b> mieszane</span><span><b>${cnt("niejasne") + cnt("w_toku")}</b> niejasne lub w toku</span>`;
+
+  // --- oś czasu
+  const tl = document.getElementById("timeline"), rf = document.getElementById("runFilters");
+  let runFilter = "all";
+  function renderRuns() {
+    tl.innerHTML = "";
+    (G.runs || []).filter(r => runFilter === "all" || r.verdict === runFilter || (runFilter === "game" && r.in_game)).forEach(r => {
+      const used = new Set(), el = document.createElement("div");
+      el.className = "run" + (r.in_game ? " game" : "");
+      el.innerHTML = `<div class="head"><span class="id">${esc(r.id)}</span><span class="date">${esc(r.date || "")}</span>` +
+        `<span class="base">${esc(r.base || "")}${r.method ? " · " + linkify(r.method, used) : ""}</span>${r.verdict ? stamp(r.verdict) : ""}</div>` +
+        `<div class="title">${linkify(r.title, used)}${r.in_game ? ' <span class="badge-game">● w grze</span>' : ""}</div>` +
+        (r.changes && r.changes.length ? `<ul>${r.changes.map(c => `<li>${linkify(c, used)}</li>`).join("")}</ul>` : "") +
+        (r.result ? `<p class="result">${linkify(r.result, used)}</p>` : "") +
+        (r.note ? `<p class="note">${linkify(r.note, used)}</p>` : "");
+      tl.appendChild(el);
+    });
+  }
+  [["all", "wszystkie"], ["game", "w grze"], ["pomoglo", "pomogło"], ["nie_pomoglo", "nie pomogło"], ["mieszane", "mieszane"]].forEach(([k, l]) => {
+    const b = document.createElement("button"); b.className = "chip"; b.textContent = l; b.setAttribute("aria-pressed", k === "all");
+    b.onclick = () => { runFilter = k; rf.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === b)); renderRuns(); };
+    rf.appendChild(b);
+  });
+  renderRuns();
+
+  // --- lekcje
+  const box = document.getElementById("lessons"), cf = document.getElementById("catFilters");
+  let catFilter = "all";
+  const cats = [...new Set(exps.map(e => e.category))];
+  function renderLessons() {
+    box.innerHTML = "";
+    exps.filter(e => catFilter === "all" || e.category === catFilter).forEach(e => {
+      const used = new Set(), el = document.createElement("div");
+      el.className = "lesson";
+      el.innerHTML = `<div class="head"><h3>${linkify(e.topic, used)}</h3>${stamp(e.verdict)}</div>` +
+        `<div class="cat">${esc(CAT[e.category] || e.category)}${e.runs && e.runs.length ? " · " + esc(e.runs.join(", ")) : ""}</div>` +
+        `<dl><dt>co zrobiliśmy</dt><dd>${linkify(e.what, used)}</dd><dt>co się stało</dt><dd>${linkify(e.effect, used)}</dd>` +
+        `<dt>dlaczego</dt><dd>${linkify(e.why, used)}</dd><dt>czy dalej</dt><dd><span class="worth"><b>${esc(W[e.worth] || e.worth || "")}</b></span> ${linkify(e.worth_note, used)}</dd></dl>`;
+      box.appendChild(el);
+    });
+    const shown = exps.filter(e => catFilter === "all" || e.category === catFilter);
+    document.getElementById("lessonCounts").textContent = `pokazane: ${shown.length} · pomogło ${shown.filter(e => e.verdict === "pomoglo").length} · nie pomogło ${shown.filter(e => e.verdict === "nie_pomoglo").length}`;
+  }
+  ["all", ...cats].forEach(k => {
+    const b = document.createElement("button"); b.className = "chip"; b.textContent = k === "all" ? "wszystkie" : (CAT[k] || k); b.setAttribute("aria-pressed", k === "all");
+    b.onclick = () => { catFilter = k; cf.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === b)); renderLessons(); };
+    cf.appendChild(b);
+  });
+  renderLessons();
+
+  // --- wnioski
+  const ll = document.getElementById("lessonsList");
+  (G.lessons || []).forEach(l => { const li = document.createElement("li"); li.innerHTML = linkify(l, new Set()); ll.appendChild(li); });
+})();
+</script>
+<script src="guide.js"></script>
+
+</body>
+</html>
