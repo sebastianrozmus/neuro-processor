@@ -971,11 +971,23 @@ func (r *Realm) plainNames(current *fight, text string) string {
 
 	for _, foe := range foes {
 		if foe.mark > 0 {
-			text = regexp.MustCompile(regexp.QuoteMeta(marked(foe))+`\b`).ReplaceAllLiteralString(text, foe.name)
+			text = twinNumber(foe).ReplaceAllString(text, "$1$2")
 		}
 	}
 
 	return text
+}
+
+// twinNumber finds a twin's number after any form of its name: the master
+// declines names ("tnie Morowego Upiora 1"), so it matches the number after
+// a word sharing the first letters of the name's last word ("Upi…"), short
+// enough to survive Polish alternations such as ó/o.
+func twinNumber(foe *monster) *regexp.Regexp {
+	words := strings.Fields(foe.name)
+	last := []rune(words[len(words)-1])
+	prefix := string(last[:min(3, len(last))])
+
+	return regexp.MustCompile(`((?:^|[^\p{L}])` + regexp.QuoteMeta(prefix) + `\p{L}*) ` + strconv.Itoa(foe.mark) + `([^\p{L}\p{N}]|$)`)
 }
 
 func (f *fight) has(name string) bool {

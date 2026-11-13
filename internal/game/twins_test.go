@@ -91,6 +91,12 @@ func TestPlayersSeeNoNumbers(t *testing.T) {
 		t.Errorf("plain = %q, want %q", got, want)
 	}
 
+	// The master declines names; the numbers go in any form, damage stays.
+	told := "Ala tnie Szczura Kablowego 2 za 2, a Szczur Kablowy 1 gryzie ją za 1."
+	if got, want := realm.plainNames(current, told), "Ala tnie Szczura Kablowego za 2, a Szczur Kablowy gryzie ją za 1."; got != want {
+		t.Errorf("plain = %q, want %q", got, want)
+	}
+
 	realm.tellFight(current, line)
 	if len(current.events) != 1 || current.events[0] != line {
 		t.Errorf("the master's events lost the numbers: %q", current.events)
