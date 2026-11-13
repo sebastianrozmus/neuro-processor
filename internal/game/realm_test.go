@@ -1208,13 +1208,13 @@ func TestGameMasterNarratesRounds(t *testing.T) {
 		t.Errorf("request = %+v", request.Decision)
 	}
 
-	for _, want := range []string{"Miejsce walki: Las.", "- Ala, poziom 1, zdrowie", "- Szczur Polny (bestia), zdrowie", "broń: brak"} {
+	for _, want := range []string{"Miejsce walki: Las.", "- Ala, poziom 1, zdrowie", "- Szczur Polny 1 (bestia), zdrowie", "- Szczur Polny 2 (bestia), zdrowie", "broń: brak"} {
 		if !strings.Contains(request.Lore, want) {
 			t.Errorf("lore misses %q:\n%s", want, request.Lore)
 		}
 	}
 
-	if scene := strings.Join(scenes, " "); !strings.Contains(scene, "Ala atakuje: Szczur Polny traci") || !strings.Contains(request.Decision.Brief(), "Przebieg rundy:") ||
+	if scene := strings.Join(scenes, " "); !strings.Contains(scene, "Ala atakuje: Szczur Polny 1 traci") || !strings.Contains(request.Decision.Brief(), "Przebieg rundy:") ||
 		calls != len(RoundParts(scene)) {
 		t.Errorf("scenes = %q", scenes)
 	}

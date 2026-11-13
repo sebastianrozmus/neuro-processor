@@ -381,7 +381,7 @@ func (r *Realm) fightView(current *fight, viewer string) *FightView {
 	view := &FightView{Round: current.round}
 
 	for _, foe := range r.foes(current.pos) {
-		view.Monsters = append(view.Monsters, MonsterView{ID: foe.id, Name: foe.name, Shape: foe.shape, HP: foe.hp, MaxHP: foe.maxHP, Boss: foe.boss, Trait: foe.traitNames(), AC: monsterClass(foe)})
+		view.Monsters = append(view.Monsters, MonsterView{ID: foe.id, Name: r.foeName(current.pos, foe), Shape: foe.shape, HP: foe.hp, MaxHP: foe.maxHP, Boss: foe.boss, Trait: foe.traitNames(), AC: monsterClass(foe)})
 	}
 
 	view.Board = r.boardView(current, viewer)
@@ -391,7 +391,7 @@ func (r *Realm) fightView(current *fight, viewer string) *FightView {
 	for index, who := range current.queue {
 		switch {
 		case who.foe != nil && who.foe.hp > 0:
-			view.Order = append(view.Order, TurnView{Name: who.foe.name, Foe: true, Current: index == current.turn})
+			view.Order = append(view.Order, TurnView{Name: r.foeName(current.pos, who.foe), Foe: true, Current: index == current.turn})
 		case who.foe == nil && who.unit.health() > 0 && current.has(who.unit.leader().name):
 			view.Order = append(view.Order, TurnView{Name: who.unit.label(), Current: index == current.turn})
 		}

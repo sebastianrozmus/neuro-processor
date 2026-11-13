@@ -159,13 +159,18 @@ func (r *Realm) sceneLore(current *fight, members []string) string {
 
 	lore.WriteString("Przeciwnicy:\n")
 
-	for _, foe := range r.monsters[r.world.Index(current.pos)] {
+	foes := r.monsters[r.world.Index(current.pos)]
+	if len(foes) == 0 {
+		foes = current.beaten
+	}
+
+	for _, foe := range foes {
 		state := fmt.Sprintf("zdrowie %d/%d", max(foe.hp, 0), foe.maxHP)
 		if foe.hp <= 0 {
 			state = "pokonany"
 		}
 
-		fmt.Fprintf(&lore, "- %s (%s), %s\n", foe.name, describeShape(foe.shape), state)
+		fmt.Fprintf(&lore, "- %s (%s), %s\n", r.foeName(current.pos, foe), describeShape(foe.shape), state)
 	}
 
 	return lore.String()

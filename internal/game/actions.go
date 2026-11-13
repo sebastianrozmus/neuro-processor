@@ -517,7 +517,7 @@ func (r *Realm) castPower(current *fight, who unit, power world.ItemSpec, named 
 		}
 
 		if r.dnd() && distance(r.cellOf(current, who), r.cellOf(current, foe)) > boltRange {
-			r.tell(leader, fmt.Sprintf("%s jest poza zasięgiem mocy (%d pól).", foe.name, boltRange))
+			r.tell(leader, fmt.Sprintf("%s jest poza zasięgiem mocy (%d pól).", r.foeName(current.pos, foe), boltRange))
 
 			return false
 		}

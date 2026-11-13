@@ -3,6 +3,8 @@ package game
 import (
 	"fmt"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/speech"
@@ -38,6 +40,9 @@ type fight struct {
 	// events are the rules' lines of the current round, for the master.
 	events    []string
 	narrating bool
+	// beaten are the monsters of a won fight, cleared from the tile before
+	// the last round is told: the master still sees them, as fallen.
+	beaten []*monster
 }
 
 // Attack hits the chosen living monster with whoever has the turn, if the
@@ -145,7 +150,7 @@ func (r *Realm) strike(current *fight, who unit, foe *monster) {
 	hit, crit, roll := r.attackRoll(proficiency(levelOf(who))+strength, monsterClass(foe))
 
 	if !hit {
-		r.tellFight(current, fmt.Sprintf("%s atakuje: %s. Pudło (k20: %d przeciw KP %d).", who.label(), foe.name, roll, monsterClass(foe)))
+		r.tellFight(current, fmt.Sprintf("%s atakuje: %s. Pudło (k20: %d przeciw KP %d).", who.label(), r.foeName(current.pos, foe), roll, monsterClass(foe)))
 
 		return
 	}
@@ -172,7 +177,7 @@ func (r *Realm) flee(runner *player) {
 	if r.dnd() {
 		for _, foe := range r.foes(current.pos) {
 			if r.adjacent(current, foe, unit(runner)) {
-				r.tellFight(current, foe.name+" wyprowadza atak okazyjny na uciekającego.")
+				r.tellFight(current, r.foeName(current.pos, foe)+" wyprowadza atak okazyjny na uciekającego.")
 				r.maul(current, foe, runner, 1)
 
 				if runner.hp <= 0 || r.fightOf(runner) == nil {
@@ -237,6 +242,13 @@ func (r *Realm) target(leader *player, current *fight, named string, index int) 
 	foes := r.foes(current.pos)
 
 	if named != "" {
+		// "szczur 2" picks the second of two rats.
+		for _, foe := range foes {
+			if foe.mark > 0 && Matches(foe.name, named) && strings.HasSuffix(strings.TrimSpace(named), " "+strconv.Itoa(foe.mark)) {
+				return foe
+			}
+		}
+
 		for _, foe := range foes {
 			if Matches(foe.name, named) {
 				return foe
@@ -265,12 +277,14 @@ func (r *Realm) hit(current *fight, foe *monster, damage int, kind BlowKind, fro
 		damage, note = max(1, damage-foe.tier-1), " (pancerz)"
 	}
 
+	// Named before the blow: a falling monster no longer counts its twins.
+	name := r.foeName(current.pos, foe)
 	foe.hp -= damage
-	r.blowBy(current.pos, foe.id, -damage, kind, from, foe.name)
-	r.tellFight(current, fmt.Sprintf("%s%s traci %d zdrowia%s.", prefix, foe.name, damage, note))
+	r.blowBy(current.pos, foe.id, -damage, kind, from, name)
+	r.tellFight(current, fmt.Sprintf("%s%s traci %d zdrowia%s.", prefix, name, damage, note))
 
 	if foe.hp <= 0 {
-		r.tellFight(current, foe.name+" pada.")
+		r.tellFight(current, name+" pada.")
 		r.fell(current, foe)
 	}
 }
@@ -282,7 +296,7 @@ func (r *Realm) engage(joiner *player) {
 	names := make([]string, 0, r.alive(joiner.pos))
 
 	for _, foe := range r.foes(joiner.pos) {
-		names = append(names, foe.name+" ("+foe.traitNames()+")")
+		names = append(names, r.foeName(joiner.pos, foe)+" ("+foe.traitNames()+")")
 	}
 
 	r.meet(joiner, joiner.pos)
@@ -348,6 +362,7 @@ func (r *Realm) startRound(current *fight) {
 	}
 
 	for _, foe := range r.foes(current.pos) {
+		r.foeName(current.pos, foe)
 		current.queue = append(current.queue, actor{foe: foe})
 	}
 
@@ -392,8 +407,8 @@ func (r *Realm) tick(current *fight) {
 	for _, foe := range r.foes(current.pos) {
 		if gained := min(2*foe.tier, foe.maxHP-foe.hp); foe.shape == "undead" && gained > 0 {
 			foe.hp += gained
-			r.blowBy(current.pos, foe.id, gained, BlowRegen, "", foe.name)
-			r.tellFight(current, fmt.Sprintf("%s zrasta się: odzyskuje %d zdrowia.", foe.name, gained))
+			r.blowBy(current.pos, foe.id, gained, BlowRegen, "", r.foeName(current.pos, foe))
+			r.tellFight(current, fmt.Sprintf("%s zrasta się: odzyskuje %d zdrowia.", r.foeName(current.pos, foe), gained))
 		}
 	}
 }
@@ -519,7 +534,7 @@ func (r *Realm) monsterStrikes(current *fight, foe *monster) {
 			}
 
 			if len(near) == 0 {
-				r.tellFight(current, foe.name+" zbliża się.")
+				r.tellFight(current, r.foeName(current.pos, foe)+" zbliża się.")
 
 				return
 			}
@@ -576,7 +591,7 @@ func (r *Realm) maul(current *fight, foe *monster, struck unit, share int) {
 
 		hit, crit, roll := r.attackRoll(bonus, class)
 		if !hit {
-			r.tellFight(current, fmt.Sprintf("%s atakuje: %s. Pudło (k20: %d przeciw KP %d).", foe.name, struck.label(), roll, class))
+			r.tellFight(current, fmt.Sprintf("%s atakuje: %s. Pudło (k20: %d przeciw KP %d).", r.foeName(current.pos, foe), struck.label(), roll, class))
 
 			return
 		}
@@ -611,7 +626,7 @@ func (r *Realm) maul(current *fight, foe *monster, struck unit, share int) {
 
 	damage = max(1, damage)
 	struck.setHealth(struck.health() - damage)
-	r.blowBy(current.pos, -1, -damage, BlowWound, foe.name, struck.label())
+	r.blowBy(current.pos, -1, -damage, BlowWound, r.foeName(current.pos, foe), struck.label())
 
 	if foe.shape == "serpent" && struck.health() > 0 {
 		if r.dnd() && r.save(Modifier(struck.scores()[Constitution]), 10+2*foe.tier) {
@@ -622,7 +637,7 @@ func (r *Realm) maul(current *fight, foe *monster, struck unit, share int) {
 		}
 	}
 
-	r.tellFight(current, fmt.Sprintf("%s atakuje: %s traci %d zdrowia.%s", foe.name, struck.label(), damage, note))
+	r.tellFight(current, fmt.Sprintf("%s atakuje: %s traci %d zdrowia.%s", r.foeName(current.pos, foe), struck.label(), damage, note))
 
 	if struck.health() > 0 {
 		return
@@ -796,6 +811,7 @@ func (r *Realm) victory(current *fight) {
 	index := r.world.Index(current.pos)
 	beaten := r.monsters[index]
 	r.monsters[index] = nil
+	current.beaten = beaten
 
 	gold, xp, boss, fallen := 0, 0, false, ""
 

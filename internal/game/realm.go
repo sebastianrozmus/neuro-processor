@@ -191,6 +191,9 @@ type monster struct {
 	attack int
 	// pinned guards a captive and never roams.
 	pinned bool
+	// mark numbers a monster among others of the same name on its tile,
+	// 0 while it has no twin there. See foeName.
+	mark int
 }
 
 // NewRealm starts a world. The seed drives combat rolls and loot.
@@ -581,6 +584,76 @@ func (r *Realm) foes(pos world.Point) []*monster {
 	}
 
 	return living
+}
+
+// foeName is the name a monster goes by on its tile. Two living monsters
+// of one name there get numbers ("Szczur Kablowy 1", "Szczur Kablowy 2"),
+// so a fight's account and the Game Master telling it never leave it to
+// guess whether one rat struck twice or two rats once each. A number,
+// once given, stays while the fight there goes on, even when its twin
+// falls, and is dropped when the tile is calm and the monster alone.
+func (r *Realm) foeName(pos world.Point, foe *monster) string {
+	// The fallen keep the number they fell under, even once the fight
+	// is over and the tile cleared: the round's account still needs it.
+	if foe.hp <= 0 {
+		return marked(foe)
+	}
+
+	foes := r.foes(pos)
+	twins := 0
+
+	for _, other := range foes {
+		if other.name == foe.name {
+			twins++
+		}
+	}
+
+	if twins < 2 {
+		if r.fights[pos] == nil {
+			foe.mark = 0
+		}
+
+		return marked(foe)
+	}
+
+	r.numberTwins(foes, foe.name)
+
+	return marked(foe)
+}
+
+// marked is a monster's name with its number, if it has one.
+func marked(foe *monster) string {
+	if foe.mark == 0 {
+		return foe.name
+	}
+
+	return fmt.Sprintf("%s %d", foe.name, foe.mark)
+}
+
+// numberTwins gives every monster of the name among foes a number no
+// other of them has, keeping the numbers already given where it can.
+func (r *Realm) numberTwins(foes []*monster, name string) {
+	for _, foe := range foes {
+		if foe.name != name {
+			continue
+		}
+
+		used := map[int]bool{}
+		for _, other := range foes {
+			if other != foe && other.name == name && other.mark > 0 {
+				used[other.mark] = true
+			}
+		}
+
+		if foe.mark > 0 && !used[foe.mark] {
+			continue
+		}
+
+		foe.mark = 1
+		for used[foe.mark] {
+			foe.mark++
+		}
+	}
 }
 
 func (r *Realm) alive(pos world.Point) int {
