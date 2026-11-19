@@ -24,6 +24,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/avatars"
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
@@ -177,6 +178,10 @@ func main() {
 	out := flag.String("out", "demo-frames", "folder for the frames")
 	only := flag.String("only", "", "record one part alone: imagination, tabletop, adventure, generated or inspector")
 	flag.Parse()
+
+	// Without a terminal lipgloss drops every colour (HP bars, selections, foes came out white);
+	// render as a 256-colour terminal would.
+	lipgloss.SetColorProfile(termenv.ANSI256)
 
 	if err := os.MkdirAll(*out, 0o755); err != nil {
 		panic(err)
@@ -356,6 +361,8 @@ func tabletop(rec *recorder, launch *launcher, spec world.Spec) {
 
 	rec.shot(model, 2.2)
 	model = typed(rec, model, "najmij "+firstName(spec.Companions[0].Name), 1.6)
+	// Companions now wait for the player's orders in a fight; the demo lets them act alone.
+	model = typed(rec, model, "autowalka", 1.2)
 	model = walkToFight(rec, model, realm, name)
 	rec.shot(model, 2.4)
 
@@ -367,22 +374,28 @@ func tabletop(rec *recorder, launch *launcher, spec world.Spec) {
 			continue
 		}
 
-		// Walk up to the nearest monster, showing the reach, then strike.
-		model = press(model, tea.KeyUp, tea.KeyEnter)
-		rec.shot(model, 1.4)
+		// Walk up to the nearest monster, showing the reach, then strike. On the board the menu is
+		// Ruch, Atak, …, and the cursor stays where the last turn left it: Up always lands on Ruch,
+		// Up and Down on Atak.
+		if _, _, near := towards(view, name); !near {
+			model = press(model, tea.KeyUp, tea.KeyEnter)
+			rec.shot(model, 1.4)
 
-		for steps := 0; steps < 4; steps++ {
-			dx, dy, near := towards(view, name)
-			if near {
-				break
+			for steps := 0; steps < 4; steps++ {
+				dx, dy, near := towards(view, name)
+				if near {
+					break
+				}
+
+				model = press(model, keyFor(dx, dy))
+				rec.shot(model, 0.5)
+				view = realm.View(name)
 			}
 
-			model = press(model, keyFor(dx, dy))
-			rec.shot(model, 0.5)
-			view = realm.View(name)
+			model = press(model, tea.KeyEsc)
 		}
 
-		model = press(model, tea.KeyEsc)
+		model = press(model, tea.KeyUp, tea.KeyDown)
 		model = typed(rec, model, "", 1.2)
 	}
 
