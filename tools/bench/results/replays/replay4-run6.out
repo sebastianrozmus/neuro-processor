@@ -1,0 +1,63 @@
+## siema mordo | spokojna. Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej. Odpowi
+  run5 0: [spokój] Siema, co masz na myśli?
+  run5 1: [spokój] Siema, o czym chciałbyś gadać?
+  run5 2: [spokój] Siema, o czym chcesz pogadać?
+  run6 0: [spokój] Siema, co mogę ci zaoferować?
+  run6 1: [spokój] Siema, co chcesz zrobić w mojej karczmie?
+  run6 2: [spokój] Siema, co mogę ci zaoferować?
+## elo mordo | spokojna. Gracz tylko się wita. Odpowiedz jednym krótkim zdaniem: odwzajemnij powitanie po swojemu i zapytaj, czego chce. Nic więcej. Odpowi
+  run5 0: [spokój] Witaj, w czym mogę pomóc?
+  run5 1: [spokój] Witaj, o czym rozmawiamy?
+  run5 2: [spokój] Witaj, o czym chcesz pogadać?
+  run6 0: [spokój] Witaj, co mogę ci zaoferować?
+  run6 1: [spokój] Witaj, o czym rozmawiasz?
+  run6 2: [spokój] Witaj, o co pytasz najemnika?
+## co wiesz o krolu | spokojna. Gracz pyta o coś, czego nie znasz: Kurhany Królów. Słyszałeś tylko tyle: „Omszałe kopce dawnych władców doliny”. Powiedz to jak za
+  run5 0: [spokój] Kurhany Królów to stare groby; o nich pytaj Aptekę Siostry Agnes, bo ona ma wiadomości z tych stron.
+  run5 1: [spokój] Kurhanów nie znam, więc o ich historię pytaj Srokę w Aptece.
+  run5 2: [kpina] Kurhany Królów to stare groby, o których nie mam informacji; pogadaj z siostrą Agnes w aptece.
+  run6 0: [spokój] Słyszałem o Kurhanach Królów, nie znam ich z autopsji; Siostra Agnes w Aptece zagląda na cmentarz.
+  run6 1: [spokój] Słyszałem o Kurhanach Królów, choć sam nie mam tam żadnego interesu; sprawdz u Siostry Agnes w Aptece w Karwinie.
+  run6 2: [spokój] Słyszałem o Kurhanach Królów, ale nie znam przyczyny ich powstania; pytaj siostrę Agness na Aptece Siostry w Karwinie.
+## plotki | spokojna. Możesz wpleść jedną rzecz, którą wiesz: Pola Karw. Łąki i zagrody, z których chłopi uciekli przed goblinami. W zbożu coś szeleści.
+  run5 0: [spokój] Plotka o szkleniu? Tak, szkło w tej okolicy nie robi szkła od razu; najpierw robi odłamki i czeka na kupca. Na Polach Karw słychać takie coś wieczorami; szkło może być dobrym pomysłem przy wejściu do osady.
+  run5 1: [kpina] Plotki o tym, co słychać przy warcie, nie są legendami; tam gdzie gobliny i chłopi mają wspólne pastwiska, coś szeleści nawet od ciszy. Pola Karw leżą na południu, pod kopalnią, więc plotek o trollegościach w zbożu tu nie znajdziesz.
+  run5 2: [kpina] Plotka o Polach Karw mówi, że tam coś szeleści, choć to jeszcze nie strach; chłopcy z osady mówią do tego o kociogach i kotłach. Nie wierz w tę plotkę, bo strach cię tam nie zastanie.
+  run6 0: [spokój] Ploteczka o Polach Karw mówi, że chłopy uciekli stąd przed goblinami i cicho stoją pod lasem. Małe niebezpieczeństwo.
+  run6 1: [spokój] Ploteczka mówi, że gobliny weszły w cudze obory i robią z nich pastwiska. Idź tam wieczorem bez miecza; przy płocie czeka na ciebie młody goblin, który nie lubi obcych.
+  run6 2: [spokój] Ploteczka mówi o Polach Karw. Łąki i zagrody, z których chłopi uciekli przed goblinami. W zbożu coś szeleści; samotne pisklę bez matki jest łatwe do przeoczenia. Ale to nie czyni tej oferty dobrą decyzją.
+## jaka masz najlepsza zbroje | spokojna. Gracz wspomina o: Szkielet Wojownika. Co o tym wiesz: Pochowany z mieczem, wstał z mieczem. Zbroja trzyma się na rdzy. Cecha: Nieu
+  run5 0: [kpina] Szkielet Wojownika. Pogrzeban z mieczem, wstał z mieczem, zrasta się i odzyskuje zdrowie przy pierwszym trafieniu. Lepszy od tych, co stoją w kurhanach, bo lepiej zabija.
+  run5 1: [kpina] Szkielet Wojownika? Rdza jego pancerza to żelazo hartowane przez elfów. On sam nie ma, a potem żyje z mieczem w zębach i zdrowiem na myśli.
+  run5 2: [kpina] Szkielet Wojownika. Pochowany z mieczem, wstał z mieczem; na początku każdej rundy rastuje się i wraca do życia. Jak chcesz, by ktoś go złapie?
+  run6 0: [spokój] Szkielet Wojownika. Płonie w nim ogień młodości, dopóki nie złamie się miecz. Skórzana zbroja trzyma się na rdzy; po śmierci rycerze często ją noszą.
+  run6 1: [spokój] Szkielet Wojownika stoi tu na stolę przy mojej ręce, bo jest dobry z wyglądu, ale z rdzawych nóg nie lubić próbować.
+  run6 2: [spokój] Szkielet Wojownika. Ubrany w zbroję z żelaza, co trzeci cios broni odbija tarcza i traci od niego o połowę mniej; nie umiera, a na początku każdej rundy zrasta się i odzyskuje zdrowie. Nie taka zła ta żelazna skóra jak się wydaje.
+## dobre maja piwo | spokojna. Gracz dopytuje o to samo: Kurhany Królów. Nic więcej nie wiesz poza tym, co słyszałeś: „Omszałe kopce dawnych władców doliny”. Nie
+  run5 0: [spokój] O Kurhanach Królów mam wiedzę o dawnych władcach doliny, ale nie o piwie; jeśli ci to odpowiada, to z tą wiedzą nie idź dalej.
+  run5 1: [spokój] O kurhanach mówił tylko Mirek z młyna, nie wiem nic o ich historii. Jeśli chcesz piwo, idź do Siostry Agnes u Apteky i nie próbuj mnie wypytywać o legendę.
+  run5 2: [kpina] O Kurhanach Królów słyszałem, ale nie będę ich opisywał piwnym oddechem. Słyszałem o tym miejscu jak o czymś, co w tej karczmie kiedyś będzie. Wtedy zajrzyj do Apteki i pytaj Siostry Agnes.
+  run6 0: [spokój] O starych kurhanach, nie o świeżo upieczonych królach; po to są tu pielgrzymki. Jeśli szukasz kogoś do roboty, to pogadaj z Siostrą Agnes w Aptece przy Apachie Górnej.
+  run6 1: [spokój] O kurhannach zgaduję tylko, że są stare; idź do Siostry Agnes w Aptece.
+  run6 2: [spokój] O tym mówią: o kurhanach, nie o smaku piwa, więc wybierz sobie lepiej miejsce na nocleg.
+## czy dobre piwo | spokojna. Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po 
+  run5 0: [spokój] Piwo jest z Karwina, jak wszystko w tej wsi. Pytaj o nie Barnabę przy ladzie, ja tego nie wiem.
+  run5 1: [spokój] Piwo nie z kramu w karczmie. To piwo jedzie ode mnie. Piwowar jest na kopalni i ja piwem handluję, a nie domem pełnym gości.
+  run5 2: [spokój] Piwa nie sprawdziłem, ale wiem, że jest krasnoludzki browar nad rzeką i tam kupowali.
+  run6 0: [spokój] Piwko jest dobre, samo się nie robi. Browar w Karwinie warzy piwo bez ciągłego mielenia o kowadle i bez przysięgi na dzień sądu.
+  run6 1: [spokój] Piwo jest takie samo jak w kopalni: smaczne, jeśli ktoś lubi smak stali. A ty masz gdzie walczyć?
+  run6 2: [spokój] Piwa nie znam z własnej obserwacji, choć słyszałem o gościnności browaru w Karwinie. Dokąd zmierzasz?
+## co mi powiesz o polowaniu | spokojna. Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po 
+  run5 0: [spokój] O łowieniu nie mam wiedzy; gdyby cię zaciągnąć do jakiejś roboty, to po co miałbyś tu siedzieć?
+  run5 1: [spokój] O polowaniu nie mam informacji; ale o tym, jak daleko do Pola Karw i gdzie jest Stary Bór, tak.
+  run5 2: [kpina] Pogadać możemy o robocie; piwo stoi przy stole i pije się je na czczo.
+  run6 0: [spokój] Poszukaj czegoś do noszenia, bo moje łachy nie lubią wilgoci; skąd idziesz i gdzie chcesz dalej iść?
+  run6 1: [spokój] Potrafię wskoczyć za tobą do rowu. Dokąd się wybierasz?
+  run6 2: [spokój] Poluję w Polach Karw, a ty masz gdzie się zaczepić?
+## siema dziadu | spokojna. Gracz zagaduje bez konkretnego pytania o świat. Odpowiedz krótko i po swojemu na to, co powiedział, i sam zagadnij go o jedno: po 
+  run5 0: [spokój] Piwa nie oceniam; pij, póki piwo jest tanie. W jakiej sprawie stoimy?
+  run5 1: [spokój] Piwo w tej karczmie nie jest dobre. Siadaj i spróbuj czegoś lepszego na Polach Karw.
+  run5 2: [kpina] Piwa nie sprawdziłem, ale za twoje pytanie też czegoś chcę...
+  run6 0: [spokój] Piwa nie lubię, ale ciebie przynajmniej mogę pilnować. A ty masz coś do broni?
+  run6 1: [spokój] Piwo stoi tutaj pod stołem; do wyboru masz Szwagierkę i coś jeszcze, mniej gadatliwe. A ty gdzie zmierzasz?
+  run6 2: [spokój] Piwko jest dobre, choć samo siemane może nie będzie zbyt wygodne. A ty masz czym walczyć?

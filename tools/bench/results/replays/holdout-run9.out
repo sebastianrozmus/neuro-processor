@@ -1,0 +1,464 @@
+﻿
+### 1 (krok 1) gracz: czkawka ? przeciez to filtr
+    wz├│r: [rado┼Ť─ç] Czkawka to moje okre┼Ťlenie na zapychanie Filtra Koral czerwonym py┼éem. Mechaniczna przypad┼éo┼Ť─ç, nic wi─Öcej.
+    neuro-npc-run8-e1 s1: [kpina] Czarna humoreska: zapycha si─Ö czerwonym py┼éem, jakby si─Ö ┼Ťmia┼é z w┼éa┼Ťciciela.
+    neuro-npc-run8-e1 s2: [kpina] Czuj─Ö, ┼╝e co┼Ť ci si─Ö tu nie zgadza. Filtrowi nie chodzi o czkawk─Ö, tylko o zapchanie. Czerwony py┼é go wyczy┼Ťci.
+    neuro-npc-run9a s1: [rado┼Ť─ç] Czkn─ů─ç mog─Ö ja, ale Filtr Koral oznacza, ┼╝e zachowa┼é si─Ö dziwnie: zapcha┼é si─Ö od czerwonego py┼éu.
+    neuro-npc-run9a s2: [rado┼Ť─ç] Czarna ┼╝artownisia, chodzi┼éo mi o zapchanie od czerwonego py┼éu. Filtrowanie te┼╝ umie, tylko rzadko mu wychodzi tak, jak trzeba.
+    neuro-npc-run9b s1: [rado┼Ť─ç] Czkn─ů─ç mog─Ö ja, ale Filtr Koral ┼éapie zadyszk─Ö od czerwonego py┼éu.
+    neuro-npc-run9b s2: [rado┼Ť─ç] Cz┼éowieku, chodzi┼éo o to, ┼╝e Filtr Koral zapycha si─Ö od czerwonego py┼éu! Czkawka to by┼é ┼╝art; nie wpadnij w panik─Ö przed ka┼╝dym technicznym problemem.
+
+### 2 (krok 1) gracz: kto wymyslil nazwe radiostacja bursztyn ?
+    wz├│r: [kpina] Nazwy nie nadawa┼éem i nie wiem, kto to zrobi┼é. Rozgl─ůdasz si─Ö za sygna┼éem czy za historiami?
+    neuro-npc-run8-e1 s1: [kpina] Nie znam kre┼Ťlarza nazwy. Znam o ┼Ťwicie nadaj─ů.
+    neuro-npc-run8-e1 s2: [kpina] Nie mam pomys┼éu na autora nazwy, a nie jest to dla mnie ciekawsze od drogi. Po co ci ta historia?
+    neuro-npc-run9a s1: [kpina] Nie znam genezy nazwy, a od historyjek nie rozkr─Öca si─Ö wiatr w kominie. Masz jaki┼Ť pow├│d, ┼╝eby zagl─ůda─ç do radiostacji?
+    neuro-npc-run9a s2: [kpina] Nie mam poj─Öcia, kto nazwa┼é j─ů tak, jakby bursztyn by┼é wa┼╝niejszy od sprawy. Ty te┼╝ nie musisz zgadywa─ç. Czego wypatrujesz na antenie?
+    neuro-npc-run9b s1: [kpina] Nazwa nie wyssa┼éa si─Ö z palca: Radiostacja Bursztyn nadaje tylko o ┼Ťwicie. Masz co┼Ť na uszy?
+    neuro-npc-run9b s2: [kpina] Nie mam poj─Öcia, kto nazwa┼é j─ů Radiostacja Bursztyn; wol─Ö wiedzie─ç, kiedy nadaje, ni┼╝ zgadywa─ç nazwiska. Ty te┼╝ tego potrzebujesz?
+
+### 3 (krok 1) gracz: a cos do picia maja w karczmie ?
+    wz├│r: [spok├│j] Karczmarz powinien wiedzie─ç, co leje do kufli; ja nie znam dzisiejszej zawarto┼Ťci beczek. Chcesz si─Ö napi─ç czy tylko sprawdzasz moj─ů cierpliwo┼Ť─ç?
+    neuro-npc-run8-e1 s1: [spok├│j] Nie znam receptury, wi─Öc o napojach nie powiem.
+    neuro-npc-run8-e1 s2: [spok├│j] Nie sprawdza┼éem ca┼éego zapasu, ale jeden kufel stoi na ladzie.
+    neuro-npc-run9a s1: [spok├│j] Wiem raczej, co p─Ök┼éo, ni┼╝ czy kto┼Ť pije tu od rana. Dzwon Kaplicy ┼Üwitu straci┼é brz─Ök pod ostatni─ů burz─ů.
+    neuro-npc-run9a s2: [zdziwienie] Nie znam menu, a sam─ů obecno┼Ť─ç beczek nie b─Öd─Ö nazywa┼é wyborem. Wol─Ö najpierw sprawdzi─ç, co pij─ů miejscowi, nim wybior─Ö kielich.
+    neuro-npc-run9b s1: [spok├│j] Nie znam skupu trunk├│w, a cudzych garnk├│w nie b─Öd─Ö bada┼é twoim imieniem.
+    neuro-npc-run9b s2: [spok├│j] Nie wiem, co maj─ů w karczmie, ale ciszej przy stole zostan─Ö.
+
+### 4 (krok 1) gracz: czyli moge tam wejsc do srodka ?
+    wz├│r: [rado┼Ť─ç] Chodzi┼éo mi o dost─Öp do zapis├│w, nie o wej┼Ťcie do pomieszczenia: Archiwum Nadir przegl─ůdasz przez terminal w g┼é├│wnym doku.
+    neuro-npc-run8-e1 s1: [rado┼Ť─ç] Nie ka┼╝dy wejdzie, tylko ci, kt├│rzy p├│jd─ů przez terminal.
+    neuro-npc-run8-e1 s2: [rado┼Ť─ç] Do ┼Ťrodka mo┼╝esz wej┼Ť─ç, ale tylko przez terminal w g┼é├│wnym doku.
+    neuro-npc-run9a s1: [spok├│j] Dost─Öpu nie obiecuj─Ö: Archiwum Nadir udost─Öpnia zapisy tylko przez terminal w g┼é├│wnym doku. Samo otwarte drzwi nie gwarantuj─ů przej┼Ťcia.
+    neuro-npc-run9a s2: [spok├│j] Do ┼Ťrodka nie mo┼╝esz wej┼Ť─ç bez terminala: zapisy udost─Öpniaj─ů ci tylko przez niego.
+    neuro-npc-run9b s1: [rado┼Ť─ç] Archiwum Nadir udost─Öpnia zapisy przez terminal w g┼é├│wnym doku, a nie przez otwarte drzwi. Chodzi┼éo mi o dost─Öp, nie o wej┼Ťcie.
+    neuro-npc-run9b s2: [rado┼Ť─ç] Do Archiwum Nadir mo┼╝esz wej┼Ť─ç przez terminal w g┼é├│wnym doku. Wcze┼Ťniej m├│wi┼éam w┼éa┼Ťnie o tym przej┼Ťciu, nie o zaproszeniu.
+
+### 5 (krok 1) gracz: czy w domu nad stawem mieszka duch ?
+    wz├│r: [strach] Dom stoi pusty, a schody skrzypi─ů noc─ů; o duchu nie mam ┼╝adnej pewnej wie┼Ťci. Chcesz tam i┼Ť─ç mimo tego?
+    neuro-npc-run8-e1 s1: [spok├│j] Nie wiem, co tam skrzypi. Chcesz przej┼Ť─ç przez dom noc─ů?
+    neuro-npc-run8-e1 s2: [spok├│j] Nie znam tamtego ducha. Nie wiem, po co mia┼éby skrzypie─ç. Ty po co przyby┼ée┼Ť?
+    neuro-npc-run9a s1: [strach] Nie wiem, co noc─ů skrzypi w Domu Nad Stawem. Bez sprawdzenia nie wybior─Ö ci strachu. Dok─ůd si─Ö wybierasz?
+    neuro-npc-run9a s2: [strach] Nie wiem, czy duch, czy tylko schody skrzypi─ů po zmroku. Ty chcesz sprawdzi─ç?
+    neuro-npc-run9b s1: [spok├│j] Nie wiem, co skrzypi w Domu Nad Stawem. Wiem jedynie, ┼╝e schody wydaj─ů d┼║wi─Öki, cho─ç dom stoi pusty. A ty chcesz go odwiedzi─ç?
+    neuro-npc-run9b s2: [spok├│j] Nie znam tamtejszego ducha, wi─Öc nie b─Öd─Ö ci obiecywa─ç, ┼╝e zobaczy┼éem go na w┼éasne oczy. Masz w og├│le dok─ůd i┼Ť─ç czy chcesz ogl─ůda─ç domy?
+
+### 6 (krok 1) gracz: jak tam przejazd przez pustkowia ?
+    wz├│r: [kpina] Zachodnim wyj┼Ťciem Tunelu Wst─Öga nie pojedziesz: strop si─Ö osun─ů┼é i zasypa┼é przejazd. M├│wi┼éem, ┼╝e szosa nie musi mie─ç poczucia humoru.
+    neuro-npc-run8-e1 s1: [gniew] Tunel Wst─Öga jest zasypany przy zachodnim wyj┼Ťciu, ale na pustkowiach nie zawsze ostrze┼╝enie wystarczy.   <-- recytacja
+    neuro-npc-run8-e1 s2: [gniew] Tunel Wst─Öga przy zachodnim wyj┼Ťciu zosta┼é zasypany. To nie wymaga szcz─Ö┼Ťcia, by wiedzie─ç, na co si─Ö wybierasz.
+    neuro-npc-run9a s1: [strach] Zachodnie wyj┼Ťcie Tunelu Wst─Öga zosta┼éo zasypane, gdy osun─ů┼é si─Ö strop. Nie ka┼╝dy przepust ma dobr─ů drog─Ö na ko┼äcu.
+    neuro-npc-run9a s2: [strach] Zachodnie wyj┼Ťcie Tunelu Wst─Öga zasypa┼éo osuni─Öcie stropu. Nawet najlepsza bro┼ä nie przepchnie ci─Ö przez taki mur.
+    neuro-npc-run9b s1: [spok├│j] Zachodnie wyj┼Ťcie Tunelu Wst─Öga zasypa┼éo osuni─Öcie stropu. Nawet z karabinem nie chcia┼ébym sprawdza─ç, czy odbudowali ca┼éy tunel.
+    neuro-npc-run9b s2: [spok├│j] Zachodnie wyj┼Ťcie Tunelu Wst─Öga zamkn─Ö┼éo si─Ö przez osuni─Öcie stropu. Bez odpowiedniego planu nie traktuj przej┼Ťcia jako sprawdzonego.
+
+### 7 (krok 1) gracz: dajesz rade z taka spiekota ?
+    wz├│r: [spok├│j] Upa┼é ┼éatwiej znosi─ç, kiedy cz┼éowiek nie udaje, ┼╝e go nie czuje. Ty te┼╝ potrzebujesz chwili oddechu?
+    neuro-npc-run8-e1 s1: [spok├│j] Przywyk┼éam do upa┼éu. Generator Wilk nie przywyk┼é, od przeci─ů┼╝enia przewod├│w jest wy┼é─ůczony.
+    neuro-npc-run8-e1 s2: [spok├│j] Daj─Ö rad─Ö, ale nie mam zamiaru udawa─ç, ┼╝e upa┼é jest przyjemny.
+    neuro-npc-run9a s1: [spok├│j] Upa┼é daje mi w ko┼Ť─ç, ale przywyk┼éam. Co nie znaczy, ┼╝e lubi─Ö t─Ö drog─Ö.
+    neuro-npc-run9a s2: [spok├│j] Przyzwyczai┼éam si─Ö do tego, co nie os┼éabia mnie tak jak dym. Generator Wilk od przeci─ů┼╝enia przewod├│w jest wy┼é─ůczony. Lepiej nie myli─ç gor─ůca z energi─ů.
+    neuro-npc-run9b s1: [spok├│j] Upa┼é daje mi w ko┼Ť─ç, ale potrafi─Ö od niego odpocz─ů─ç. Ty te┼╝ pami─Ötaj, ┼╝e odpoczynek nie jest oznak─ů s┼éabo┼Ťci.
+    neuro-npc-run9b s2: [spok├│j] Przyzwyczai┼éam si─Ö do ┼╝aru, cho─ç m├│j nos wci─ů┼╝ pami─Öta lepsze czasy. Przynajmniej s┼éo┼äce nie jest z┼éo┼Ťliwe.
+
+### 8 (krok 1) gracz: jak mruga, ktos tam siedzi ?
+    wz├│r: [smutek] Mruganiem nazwa┼éam lamp─Ö, kt├│ra co noc ┼Ťwieci na parterze pustego od lat Dworu ┼╗urawi. Nie twierdzi┼éam, ┼╝e kto┼Ť daje ci znaki.
+    neuro-npc-run8-e1 s1: [spok├│j] Nie wiem, co tam siedzi. Znam tylko, ┼╝e lampa mruga noc─ů. Nie mam dowodu na kogokolwiek.
+    neuro-npc-run8-e1 s2: [spok├│j] Nie znam przyczyny mrugaj─ůcej lampy na parterze. Nie znam nikogo, kto tam teraz siedzi.
+    neuro-npc-run9a s1: [zdziwienie] Mruganie to ┼Ťwiat┼éo z parteru. Dw├│r stoi pusty od lat, a noc─ů wci─ů┼╝ ┼Ťwieci. Nie wiem, co to oznacza.
+    neuro-npc-run9a s2: [zdziwienie] Mruga? Lampa na parterze ┼Ťwieci ka┼╝dej nocy, cho─ç dw├│r od lat stoi pusty. Mrugania nie widzia┼éam.
+    neuro-npc-run9b s1: [spok├│j] Mruganiem nazwa┼éam ┼Ťwiat┼éo, kt├│re tam co noc si─Ö pojawia. Dw├│r stoi pusty od lat, a tego nie potwierdz─Ö ┼╝adnym ┼Ťladem.
+    neuro-npc-run9b s2: [spok├│j] Mruga lampa, nie kto┼Ť. Dw├│r stoi pusty od lat, ale ┼Ťwiat┼éo na parterze wci─ů┼╝ si─Ö zapala ka┼╝dej nocy.
+
+### 9 (krok 1) gracz: cos z przejazdami w strone poludnia ?
+    wz├│r: [spok├│j] Most Naftowy omijaj z konwojem; po┼éudniowy nasyp si─Ö osun─ů┼é i przepraw─Ö dla transport├│w zamkni─Öto. ┼üadunek nie lubi takich skr├│t├│w.
+    neuro-npc-run8-e1 s1: [spok├│j] Po┼éudniowy nasyp jest uszkodzony po osuni─Öciu. Most Naftowy zamkni─Öto dla konwoj├│w.
+    neuro-npc-run8-e1 s2: [spok├│j] Po osuni─Öciu po┼éudniowego nasypu konwoje nie przejad─ů przez Most Naftowy.
+    neuro-npc-run9a s1: [spok├│j] Po┼éudniowy nasyp osun─ů┼é si─Ö i zablokowa┼é Most Naftowy, wi─Öc konwoje nie przejad─ů.
+    neuro-npc-run9a s2: [spok├│j] Po┼éudniowy nasyp si─Ö osun─ů┼é, wi─Öc Most Naftowy zamkn─Öli dla konwoj├│w. To jeszcze nie pow├│d, ┼╝eby sprawdza─ç si┼é─Ö w┼éasnego mostka na kolanach.
+    neuro-npc-run9b s1: [spok├│j] Po┼éudniowy nasyp si─Ö osun─ů┼é, Most Naftowy zamkn─Öli dla konwoj├│w. Tyle wiem.
+    neuro-npc-run9b s2: [spok├│j] Po┼éudniowy nasyp si─Ö osun─ů┼é, wi─Öc Most Naftowy zamkn─Öli dla konwoj├│w. Niczego nie musisz udawa─ç, ┼╝eby przejecha─ç.
+
+### 10 (krok 1) gracz: sa jakies wiadomosci z lacznosci ?
+    wz├│r: [rado┼Ť─ç] S┼éysza┼ée┼Ť o Radiostacji Echo? Komunikaty ┼éapie tylko na nocnej zmianie, wi─Öc nie skre┼Ťlaj jej za dnia. To akurat sprz─Öt z charakterem.
+    neuro-npc-run8-e1 s1: [rado┼Ť─ç] Radiostacja Echo odbiera komunikaty na nocnej zmianie, nie na ka┼╝d─ů chwil─Ö.
+    neuro-npc-run8-e1 s2: [rado┼Ť─ç] Radiostacja Echo odbiera komunikaty tylko na nocnej zmianie.   <-- recytacja
+    neuro-npc-run9a s1: [spok├│j] Radiostacja Echo pracuje tylko na nocnej zmianie. To znaczy, ┼╝e nie dostaniemy wiadomo┼Ťci na ┼╝─ůdanie.
+    neuro-npc-run9a s2: [spok├│j] Radiostacja Echo przerywa komunikacj─Ö wraz z ko┼äcem nocnej zmiany.
+    neuro-npc-run9b s1: [rado┼Ť─ç] Radiostacja Echo odbiera komunikaty dopiero na nocnej zmianie. W dzie┼ä nie licz na wie┼Ťci z tamtej strony.
+    neuro-npc-run9b s2: [rado┼Ť─ç] Radiostacja Echo odzywa si─Ö dopiero na nocnej zmianie. Mo┼╝e dzi┼Ť lepiej zaczeka─ç na meldunek?
+
+### 11 (krok 1) gracz: kto wymyslil bron blaszanego hegemona ?
+    wz├│r: [spok├│j] Projektanta jego broni nie znam. Wr├│┼╝enie z ┼éusek zostawiam innym. Pytasz z ciekawo┼Ťci czy planujesz tam i┼Ť─ç?
+    neuro-npc-run8-e1 s1: [spok├│j] Nie znam tej historii, wi─Öc nie b─Öd─Ö udawa┼é jej autora. Dok─ůd ci─Ö niesie dalej?
+    neuro-npc-run8-e1 s2: [spok├│j] Nie wiem, kto stworzy┼é bro┼ä Blaszanego Hegemona. Nie prowadz─Ö kroniki. Dlaczego mnie o ni─ů pytasz?
+    neuro-npc-run9a s1: [zdziwienie] Blaszanego Hegemona kojarz─Ö z wiadomo┼Ťci o najwi─Ökszym wrogu, nie z nazwiska konstruktora. Ty czego tam szukasz?
+    neuro-npc-run9a s2: [zdziwienie] Nie znam nazwiska konstruktora, a domys┼éy nie s─ů moim rzemios┼éem. Masz po co jecha─ç czy tylko ogl─ůdasz kawa┼éki metalu?
+    neuro-npc-run9b s1: [zdziwienie] Konstruktora nie znam, za to Blaszanego Hegemona znajdziesz na p├│┼énocy. Po co ci ta bro┼ä?
+    neuro-npc-run9b s2: [zdziwienie] Nie znam jego projektanta, a broni nie robi─Ö. Po co ci ta informacja?
+
+### 12 (krok 1) gracz: cos o pustych domach u was slychac ?
+    wz├│r: [smutek] Dom Pod Sosn─ů opustosza┼é, gdy zawali┼éa si─Ö klatka schodowa. Cz┼éowiek nawet na drzwi patrzy inaczej, kiedy droga do ┼Ťrodka znika.
+    neuro-npc-run8-e1 s1: [spok├│j] Dom Pod Sosn─ů opustosza┼é, kiedy zawali┼éa si─Ö klatka schodowa. Nie chc─Ö ci─Ö nak┼éania─ç do wchodzenia na schody.   <-- recytacja
+    neuro-npc-run8-e1 s2: [spok├│j] Dom Pod Sosn─ů opustosza┼é po zawaleniu si─Ö klatki schodowej. Tyle s┼éysza┼éam, na wi─Öcej nie starcza mi wiadomo┼Ťci.
+    neuro-npc-run9a s1: [spok├│j] Dom Pod Sosn─ů opustosza┼é po zawaleniu si─Ö klatki schodowej, wi─Öc nawet nie b─Öd─Ö udawa─ç, ┼╝e kto┼Ť tam mieszka.
+    neuro-npc-run9a s2: [spok├│j] Dom Pod Sosn─ů stoi pusty od czasu, kiedy zawali┼éa si─Ö klatka schodowa. Dach jeszcze stoi, reszta wygl─ůda, jakby mia┼éa w┼éasn─ů wol─Ö.
+    neuro-npc-run9b s1: [spok├│j] Dom Pod Sosn─ů stoi pusty, odk─ůd zawali┼éa si─Ö tam klatka schodowa. Nawet duchy nie chc─ů takiego schronienia, wi─Öc wcale mnie nie zdziwi, je┼Ťli nie b─Ödziesz szuka─ç tam noclegu.
+    neuro-npc-run9b s2: [spok├│j] Dom Pod Sosn─ů opustosza┼é, gdy zawali┼éa si─Ö klatka schodowa. Nie b─Öd─Ö wymy┼Ťla─ç winnych, zw┼éaszcza ┼╝e nie mam nawet ┼Ťwiadka.
+
+### 13 (krok 1) gracz: boisz sie tak samo jak ja ?
+    wz├│r: [kpina] Ba─ç si─Ö potrafi ka┼╝dy, tylko nie ka┼╝dy musi o tym tr─ůbi─ç. Masz jeszcze si┼é─Ö i┼Ť─ç dalej czy ko┼äczysz na strachu?
+    neuro-npc-run8-e1 s1: [spok├│j] Strachu nie zlicz─Ö, ale gadanie nie uczyni go prawd─ů.
+    neuro-npc-run8-e1 s2: [gniew] Nie b─Öd─Ö udawa┼é, ┼╝e nie widz─Ö rozmi─Ök┼éej drogi, ale to nie znaczy, ┼╝e ka┼╝d─ů obaw─Ö nazywam strachem.
+    neuro-npc-run9a s1: [strach] Strach nie ro┼Ťnie od tego, ┼╝e stoimy przy jednym stole. Zas┼éuchaj si─Ö raczej w szum rzeki, zanim nabierzesz ochoty na popisywanie si─Ö odwag─ů.
+    neuro-npc-run9a s2: [strach] Strachu nie trzeba dzieli─ç na r├│wne porcje. Wol─Ö mie─ç g┼éow─Ö na karku ni┼╝ cudze obietnice przed snem.
+    neuro-npc-run9b s1: [strach] Strach nie czyni mnie gorszym od ciebie, tylko nie rozs─ůdza drogi. Masz ochot─Ö rusza─ç bez sprawdzenia, czy nurt jeszcze nie zabra┼é przeprawy?
+    neuro-npc-run9b s2: [strach] Strachu nie trzeba mi wciska─ç do ust. Wystarczy, ┼╝e pilnuj─Ö, ┼╝eby nie zamiesza┼é drogi. A ty czego si─Ö boisz?
+
+### 14 (krok 1) gracz: tu daja cos cieplego do picia ?
+    wz├│r: [spok├│j] Po gor─ůcy kubek id┼║ do bufetu, nie do ochroniarza. Ty szukasz napoju czy kogo┼Ť, kto popilnuje ci plec├│w?
+    neuro-npc-run8-e1 s1: [spok├│j] Ciep┼éo ma swoje granice, gdy pada rozkaz. Modu┼é Bursztyn od┼é─ůczono po nieszczelno┼Ťci w uk┼éadzie ch┼éodzenia.
+    neuro-npc-run8-e1 s2: [spok├│j] Nie mam tu prawa wyboru, tylko szczelny uk┼éad ch┼éodzenia. Modu┼é Bursztyn od┼é─ůczono, bo wykryto w nim nieszczelno┼Ť─ç.
+    neuro-npc-run9a s1: [zdziwienie] Przynajmniej nie b─Ödziesz potem ┼╝a┼éowa┼é rozgrzanego sprz─Ötu.
+    neuro-npc-run9a s2: [zdziwienie] Ciep┼éy nap├│j? Tutaj serwuj─ů mocne gorzkie, na wi─Öcej nie licz. Ogrzewanie dok├│w jest wa┼╝niejsze ni┼╝ komfort.
+    neuro-npc-run9b s1: [spok├│j] Ciep┼éa napoju nie obiecuj─Ö. Najpierw ustali, czy jeste┼Ť w stanie wykona─ç zadanie.
+    neuro-npc-run9b s2: [spok├│j] Nap├│j nie jest przedmiotem mojego rzemios┼éa. Je┼Ťli szukasz ciep┼éa, odpocznij, zamiast zas┼éania─ç mi widok.
+
+### 15 (krok 1) gracz: czemu mlyn polnocny nie miele ?
+    wz├│r: [smutek] M┼éyn P├│┼énocny stan─ů┼é, odk─ůd zerwa┼é si─Ö pas nap─Ödowy. Bez jego pracy nawet zwyczajny poranek wydaje si─Ö cichszy.
+    neuro-npc-run8-e1 s1: [spok├│j] M┼éyn P├│┼énocny stoi po zerwaniu pasa nap─Ödowego, ale tego nie wymy┼Ťli┼éam, tylko podaj─Ö.   <-- recytacja
+    neuro-npc-run8-e1 s2: [spok├│j] Znam pow├│d: zerwany pas nap─Ödowy.
+    neuro-npc-run9a s1: [smutek] Pas nap─Ödowy zerwa┼é si─Ö w M┼éynie P├│┼énocnym, wi─Öc kamienie stoj─ů. Nie b─Ödzie mieli┼é, dop├│ki go nie naprawi─ů.
+    neuro-npc-run9a s2: [smutek] M┼éyn P├│┼énocny stoi przez zerwany pas nap─Ödowy. Nawet m┼éynarz nie wszystko poci─ůgnie sam.
+    neuro-npc-run9b s1: [smutek] M┼éyn P├│┼énocny stoi przez zerwany pas nap─Ödowy. Ko┼éo si─Ö nie obraca, cho─ç chcia┼éoby si─Ö patrze─ç na prac─Ö.
+    neuro-npc-run9b s2: [smutek] M┼éyn P├│┼énocny stoi po zerwaniu pasa nap─Ödowego. Szkoda tego miejsca, kt├│re jeszcze niedawno rozbrzmiewa┼éo prac─ů.   <-- recytacja
+
+### 16 (krok 1) gracz: co tam o przeprawach mowia po kuflu ?
+    wz├│r: [gniew] S┼éysza┼éam, ┼╝e Przeprawa D─Öbowa bierze ludzi tylko do po┼éudnia, nim nurt przybierze. Potem mo┼╝esz si─Ö k┼é├│ci─ç z rzek─ů, nie ze mn─ů.
+    neuro-npc-run8-e1 s1: [kpina] Przeprawa D─Öbowa przyjmuje do po┼éudnia, przed przyborem. S┼éysza┼éam to, nie od pijanego przewo┼║nika.
+    neuro-npc-run8-e1 s2: [kpina] Przeprawa D─Öbowa podobno przyjmuje podr├│┼╝nych tylko do po┼éudnia. Nurt wtedy przybiera.
+    neuro-npc-run9a s1: [gniew] Przy Przeprawie D─Öbowej maj─ů podobno limit do po┼éudnia, zanim nurt przybierze. To nie jest pog┼éoska o kuflach, tylko o tym, kiedy przeprawa ruszy.
+    neuro-npc-run9a s2: [gniew] M├│wi─ů, ┼╝e Przeprawa D─Öbowa przyjmuje podr├│┼╝nych tylko do po┼éudnia, zanim nurt przybiera. P├│┼║niej to ju┼╝ rzeczne ┼╝arty dla szcz─Ö┼Ťliwych.   <-- recytacja
+    neuro-npc-run9b s1: [gniew] Przy stole m├│wi─ů, ┼╝e Przeprawa D─Öbowa przepuszcza ludzi tylko do po┼éudnia, zanim nurt przybiera. Nie znaczy to, ┼╝e p├│┼║niej odp┼éywa ca┼ékiem.
+    neuro-npc-run9b s2: [gniew] Przy moim stole gadali, ┼╝e Przeprawa D─Öbowa bierze podr├│┼╝nych tylko do po┼éudnia, nim nurt przybiera. Wi─Öcej do niej nie wr├│cisz, je┼Ťli po po┼éudniu zaczepisz kutra.
+
+### 17 (krok 1) gracz: tunel drut tez zasypalo ?
+    wz├│r: [kpina] Przez Tunel Drut przejdziesz pieszo; dla innych pozostaje zamkni─Öty. Nie dopisuj mu zawalonego stropu tylko dlatego, ┼╝e tak jest wygodniej.
+    neuro-npc-run8-e1 s1: [kpina] Nie, jest dla pieszych. Po┼éudniowa Nitka zasypana.
+    neuro-npc-run8-e1 s2: [kpina] Tunel Drut jest otwarty tylko dla pieszych, nie dla pojazd├│w.   <-- recytacja
+    neuro-npc-run9a s1: [kpina] Tunel Drut nadal jest dla pieszych, po┼éudniowy nasyp tylko przejezdny. Nie mieszajmy tego z zasypanym Tunelem Nitka.
+    neuro-npc-run9a s2: [kpina] Tunel Drut przynajmniej stoi otworem, cho─ç tylko dla pieszych. Nitka to ju┼╝ zasypany strop.
+    neuro-npc-run9b s1: [kpina] Tunel Drut? Przynajmniej nie zasypa┼é. Przejazdu tam nie ma, za to piesi mog─ů si─Ö przemieszcza─ç. Nie myl drogi z drogowskazem.   <-- za d┼éugo
+    neuro-npc-run9b s2: [kpina] Tunel Drut jeszcze stoi, tylko zabrali mu miejsce dla pojazd├│w. Pieszo przejdziesz bez problemu, ale nie oczekuj tu asysty ci─Ö┼╝ar├│wki.
+
+### 18 (krok 1) gracz: modul bazalt odcieli przez chlodzenie ?
+    wz├│r: [spok├│j] Tryb pomiarowy to jedyne zadanie Modu┼éu Bazalt, kt├│ry nadal pracuje. Nie przypisuj mu awarii ch┼éodzenia.
+    neuro-npc-run8-e1 s1: [spok├│j] Nie, od┼é─ůczono go po wykryciu nieszczelno┼Ťci w uk┼éadzie ch┼éodzenia. Pracuje wy┼é─ůcznie w trybie pomiarowym.
+    neuro-npc-run8-e1 s2: [spok├│j] Nie wiem o awarii ch┼éodzenia. Modu┼é Bazalt pracuje wy┼é─ůcznie w trybie pomiarowym. Z tego wynika, ┼╝e nie znam przyczyny wy┼é─ůczenia.   <-- recytacja
+    neuro-npc-run9a s1: [zdziwienie] Bazalt pracuje wy┼é─ůcznie w trybie pomiarowym. Nieszczelno┼Ť─ç dotyczy┼éa Modu┼éu Bursztyn. Nie mieszaj tego z awari─ů uk┼éadu ch┼éodzenia.
+    neuro-npc-run9a s2: [zdziwienie] Modu┼é Bazalt dzia┼éa tylko pomiarowo. Nie mam informacji o jego od┼é─ůczeniu ani o uk┼éadzie ch┼éodzenia.
+    neuro-npc-run9b s1: [zdziwienie] Nie wspominaj mi o ch┼éodzeniu w kontek┼Ťcie Bazaltu, bo ten modu┼é dzia┼éa tylko w trybie pomiarowym.
+    neuro-npc-run9b s2: [zdziwienie] Modu┼é Bazalt pracuje wy┼é─ůcznie w trybie pomiarowym. Nie ┼é─ůcz go z ch┼éodzeniem, bo od┼é─ůczenia nie wykonano z tego powodu.   <-- recytacja
+
+### 19 (krok 1) gracz: drzwi umieja mowic ?
+    wz├│r: [strach] Drzwi milcz─ů, tylko p─Ök┼éy; dlatego Krypta Sucha pozostaje zamkni─Öta. To by┼é zwrot, nie opowie┼Ť─ç o gadaj─ůcych drzwiach.
+    neuro-npc-run8-e1 s1: [spok├│j] Drzwi z Krypty Suchej odm├│wi┼éy otwarcia. S─ů p─Ökni─Öte.
+    neuro-npc-run8-e1 s2: [spok├│j] Drzwi si─Ö za┼éama┼éy. Mowa drzwi ma p─Ökni─Öcia. Nie potrzeba tu proroctw.
+    neuro-npc-run9a s1: [spok├│j] Drzwi krypty p─Ök┼éy. M├│wi─ç nie umiem, ale wyra┼║nie wida─ç, ┼╝e nie trzymaj─ů si─Ö kupy.
+    neuro-npc-run9a s2: [spok├│j] Drzwi Krypty Suchej s─ů p─Ökni─Öte, dlatego zamkn─Öli j─ů na g┼éucho. Ty by┼Ť zas┼éoni┼é oczy na widok czego┼Ť, co si─Ö kruszy pod stopami?
+    neuro-npc-run9b s1: [gniew] Drzwi Krypty Suchej p─Ök┼éy, tylko wiatr nabra┼é si─Ö na t─Ö min─Ö.
+    neuro-npc-run9b s2: [spok├│j] Drzwi Krypty Suchej si─Ö rozpad┼éy, tyle wiem. Nie wymy┼Ťli┼éam im g┼éosu dla ┼╝artu.
+
+### 20 (krok 1) gracz: pod jaka lupe ?
+    wz├│r: [zdziwienie] Filtry Zbiornika ┼╗├│┼étego mia┼éy osad, dlatego zbiornik od┼é─ůczono. Lup─ů nazwa┼éem sprawdzenie, nic wi─Öcej.
+    neuro-npc-run8-e1 s1: [zdziwienie] Lup─ů nazywam badania, kt├│re sprawdzi┼éy filtry. Ich wynik by┼é na tyle z┼éy, ┼╝e od┼é─ůczyli zbiornik.
+    neuro-npc-run8-e1 s2: [zdziwienie] Pod lup─Ö w sensie sprawdzenia, nie okre┼Ťlonego badania. Zbiornik ┼╗├│┼éty od┼é─ůczono z powodu osadu w filtrach.
+    neuro-npc-run9a s1: [spok├│j] Chodzi o od┼é─ůczenie Zbiornika ┼╗├│┼étego po wykryciu osadu w filtrach. Nie m├│wi┼éem o ┼╝adnym narz─Ödziu.
+    neuro-npc-run9a s2: [spok├│j] Lup─ů nazwa┼éem kontrol─Ö, po kt├│rej wykryto osad w filtrach Zbiornika ┼╗├│┼étego i od┼é─ůczono go od obiegu.
+    neuro-npc-run9b s1: [spok├│j] Lupa w mojej wypowiedzi to po prostu okre┼Ťlenie badania: wykryto osad w filtrach Zbiornika ┼╗├│┼étego, wi─Öc wy┼é─ůczono go z eksploatacji.
+    neuro-npc-run9b s2: [zdziwienie] Lupa nie jest tu odkryciem: to tylko przeno┼Ťnia. Zbiornik ┼╗├│┼éty zosta┼é od┼é─ůczony po stwierdzeniu osadu w filtrach.
+
+### 21 (krok 1) gracz: gdzie schowano skarb ze schronu ?
+    wz├│r: [gniew] Skarb? Nie mam ┼╝adnej wskaz├│wki, gdzie m├│g┼éby le┼╝e─ç. Ty szukasz zapas├│w czy bajki na pocieszenie?
+    neuro-npc-run8-e1 s1: [kpina] Schrony zwykle nie maj─ů map schowk├│w. Dok─ůd teraz zmierzamy?
+    neuro-npc-run8-e1 s2: [kpina] Nie mam wiedzy o skarbach, a schron widzia┼éam tylko z daleka. Dok─ůd idziesz?
+    neuro-npc-run9a s1: [gniew] Skarbu nie znajdziesz, gadaj─ůc o nim do kufra. Nie znam jego losu. Masz jaki┼Ť cel?
+    neuro-npc-run9a s2: [gniew] Skarbu nie szukaj ode mnie, bo nawet nie wiem, gdzie schron stoi. Czego ode mnie chcesz?
+    neuro-npc-run9b s1: [gniew] Skarbu ze schronu nie znam, cho─ç chcia┼éabym zna─ç, kto go ukrad┼é. Ty wiesz, dok─ůd mamy ruszy─ç?
+    neuro-npc-run9b s2: [gniew] Skarbu nie szukaj moimi stopami, bo nie mam poj─Öcia, gdzie go schowano. Dok─ůd w┼éa┼Ťciwie idziemy?
+
+### 22 (krok 1) gracz: co ludzie mowia o przeprawach ?
+    wz├│r: [spok├│j] Podobno ┼ü├│d┼║ Jask├│┼éka zabiera tylko pieszych i ko┼äczy kursy o zmierzchu. Pilnuj pory, je┼Ťli chcesz si─Ö dosta─ç na drugi brzeg.
+    neuro-npc-run8-e1 s1: [spok├│j] ┼ü├│d┼║ Jask├│┼éka przewozi pieszych i ko┼äczy kursy o zmierzchu, tak s┼éysza┼éam.
+    neuro-npc-run8-e1 s2: [spok├│j] S┼éysza┼éam o ┼üodzi Jask├│┼éce. Przewozi pieszych i ko┼äczy kursy o zmierzchu.
+    neuro-npc-run9a s1: [zdziwienie] Przy tym stole m├│wili, ┼╝e ┼ü├│d┼║ Jask├│┼éka bierze tylko pieszych i ko┼äczy o zmierzchu. Chcesz p┼éywa─ç po k┼éadce?
+    neuro-npc-run9a s2: [zdziwienie] S┼éysza┼éam przy stole, ┼╝e ┼ü├│d┼║ Jask├│┼éka wozi tylko pieszych i ko┼äczy kursy o zmierzchu. Mo┼╝e by┼Ť na t─Ö wod─Ö zagl─ůda┼é o w┼éa┼Ťciwej porze?
+    neuro-npc-run9b s1: [zdziwienie] Podobno ┼ü├│d┼║ Jask├│┼éka wozi tylko pieszych i ko┼äczy o zmierzchu. Ciekawa odmiana od zwyk┼éych przewo┼║nik├│w.
+    neuro-npc-run9b s2: [zdziwienie] S┼éysza┼éam, ┼╝e ┼ü├│d┼║ Jask├│┼éka wozi tylko pieszych i zatrzymuje si─Ö o zmierzchu. Nie do┼Ť─ç, ┼╝e zas┼éu┼╝y┼éa na swoj─ů nazw─Ö, to jeszcze wygl─ůda, jakby wszystkie wiatry zna┼éa.
+
+### 23 (krok 1) gracz: zgubil krok ? o co ci chodzi
+    wz├│r: [spok├│j] Wyrazi┼éam si─Ö obrazowo: Zegar Wrony nie chodzi, bo znikn─Ö┼éo jego wahad┼éo. Nie o nogach m├│wi┼éam.
+    neuro-npc-run8-e1 s1: [spok├│j] Krok zegara, czyli jego zegar przesta┼é si─Ö porusza─ç, bo znikn─Ö┼éo wahad┼éo.
+    neuro-npc-run8-e1 s2: [spok├│j] Zegar stan─ů┼é, bo znikn─Ö┼éo jego wahad┼éo.
+    neuro-npc-run9a s1: [spok├│j] Krok w znaczeniu wahad┼éa. Zegar Wrony przesta┼é nim porusza─ç, bo wahad┼éo znikn─Ö┼éo.
+    neuro-npc-run9a s2: [spok├│j] Krok to ┼╝art, kt├│ry zgubi┼éem: jego wahad┼éo znikn─Ö┼éo, wi─Öc zegar nie chodzi.
+    neuro-npc-run9b s1: [zdziwienie] Krok w tym przypadku znaczy, ┼╝e Zegar Wrony stan─ů┼é. Jego wahad┼éo znikn─Ö┼éo, wi─Öc nie mo┼╝e ju┼╝ tyka─ç.
+    neuro-npc-run9b s2: [zdziwienie] Krok, m├│wi─Ö o wahadle: Zegar Wrony przesta┼é chodzi─ç, bo jego wahad┼éo znikn─Ö┼éo.
+
+### 24 (krok 1) gracz: a terminal lira juz dziala ?
+    wz├│r: [zdziwienie] Dzia┼éa? Terminal Lira nadal nie wydaje przepustek, bo czytnik jest uszkodzony. Cierpliwo┼Ťci─ů go nie naprawisz.
+    neuro-npc-run8-e1 s1: [spok├│j] Nie wydaje, poniewa┼╝ czytnik jest uszkodzony. Terminal wci─ů┼╝ nie rozwi─ůza┼é tej awarii.
+    neuro-npc-run8-e1 s2: [spok├│j] Nie dzia┼éa. Przepustek nie wydaje z powodu uszkodzonego czytnika.
+    neuro-npc-run9a s1: [spok├│j] Terminal Lira wci─ů┼╝ nie wydaje przepustek z powodu uszkodzonego czytnika. Nie b─Öd─Ö og┼éasza─ç naprawy, kt├│rej nie by┼éo.   <-- recytacja
+    neuro-npc-run9a s2: [spok├│j] Nie wydaje przepustek przez uszkodzony czytnik. To stan na teraz, nie obietnica szybkiej naprawy.
+    neuro-npc-run9b s1: [spok├│j] Czytnik w Terminalu Lira wci─ů┼╝ blokuje wydawanie przepustek.
+    neuro-npc-run9b s2: [spok├│j] Czytnik w Terminalu Lira nadal uniemo┼╝liwia wydawanie przepustek. Na tym polega aktualny problem.
+
+### 25 (krok 1) gracz: co ludzie dzis mowili w karczmie ?
+    wz├│r: [rado┼Ť─ç] Karczma huczy, ┼╝e do Pustelni P┼éowego D─Öbu zn├│w dojdziesz od zachodu: z drogi uprz─ůtni─Öto powalone konary. Cho─ç raz ga┼é─Özie ust─ůpi┼éy ludziom!
+    neuro-npc-run8-e1 s1: [rado┼Ť─ç] Pustelni─Ö P┼éowego D─Öbu zas┼éyszan─ů od s─ůsiada mam dobr─ů wie┼Ťci─ů: droga od zachodu jest przejezdna, konary usuni─Öto.
+    neuro-npc-run8-e1 s2: [rado┼Ť─ç] M├│wili o otwartej drodze do Pustelni P┼éowego D─Öbu. Zachodni─ů drog─Ö odblokowano po usuni─Öciu powalonych konar├│w.
+    neuro-npc-run9a s1: [rado┼Ť─ç] M├│wili o odblokowaniu drogi do Pustelni P┼éowego D─Öbu od zachodu, bo usun─Öli powalone konary. Nie trzeba ju┼╝ i┼Ť─ç tylko przez prawdziwe wyzwania.   <-- recytacja
+    neuro-npc-run9a s2: [rado┼Ť─ç] S┼éysza┼éam, ┼╝e drog─Ö do Pustelni P┼éowego D─Öbu odblokowali od zachodu, bo uprz─ůtn─Öli powalone konary. C├│┼╝, wi─Öcej si─Ö tam nie pogubisz.
+    neuro-npc-run9b s1: [spok├│j] S┼éysza┼éam, ┼╝e od zachodu znowu da si─Ö doj┼Ť─ç do Pustelni P┼éowego D─Öbu. Konary le┼╝─ů ju┼╝ tam, gdzie powinny, a nie na drodze.
+    neuro-npc-run9b s2: [spok├│j] S─ůsiad gada┼é, ┼╝e drog─Ö do Pustelni P┼éowego D─Öbu odblokowano zachodni─ů stron─Ö, wyci─Öli powalone konary. Kiedy┼Ť bym sprawdzi┼éa, czy drzwi nadal nie strasz─ů.
+
+### 26 (krok 1) gracz: jakich lokatorow niby ?
+    wz├│r: [spok├│j] Mia┼éam na my┼Ťli ple┼Ť┼ä znalezion─ů w filtrze wentylacyjnym Kontenera Bursztyn. W┼éa┼Ťnie dlatego trafi┼é do kwarantanny.
+    neuro-npc-run8-e1 s1: [spok├│j] Ple┼Ť┼ä wyros┼éa w filtrze wentylacyjnym kontenera. Nie go┼éos┼éowie.
+    neuro-npc-run8-e1 s2: [spok├│j] Ple┼Ť┼ä w filtrze wentylacyjnym, nie ludzie. Kwarantanna nie wymaga odpowiedzi na pytanie o konkretn─ů istot─Ö.
+    neuro-npc-run9a s1: [zdziwienie] W filtrze wentylacyjnym Kontenera Bursztyn wykryto ple┼Ť┼ä, wi─Öc obj─Öli go kwarantann─ů.
+    neuro-npc-run9a s2: [zdziwienie] Lokatorami s─ů ple┼Ťnie w filtrze wentylacyjnym. Kontener Bursztyn obj─Öto kwarantann─ů, nie dlatego, ┼╝e kto┼Ť go zajrza┼é.
+    neuro-npc-run9b s1: [zdziwienie] Nie zabieram tam go┼Ťci. W filtrze wentylacyjnym Kontenera Bursztyn wykryto ple┼Ť┼ä. To kwarantanna, nie pogaduszki z mieszka┼äcem.
+    neuro-npc-run9b s2: [zdziwienie] Lokatorzy to ple┼Ť┼ä w filtrze Kontenera Bursztyn, nie zwierz─Öta. Dlatego obj─Öli go kwarantann─ů.
+
+### 27 (krok 1) gracz: co ludzie robia po zmroku ?
+    wz├│r: [zdziwienie] Wieczorem na Wie┼╝y Dymnej zapala si─Ö samotna latarnia. Dziwisz si─Ö, ┼╝e j─ů dostrzegaj─ů? W ciemno┼Ťci drobiazg te┼╝ przyci─ůga wzrok.
+    neuro-npc-run8-e1 s1: [spok├│j] Na Wie┼╝y Dymnej co wiecz├│r zapala si─Ö pojedyncza latarnia, tyle s┼éysza┼éem.   <-- recytacja
+    neuro-npc-run8-e1 s2: [spok├│j] Na Wie┼╝y Dymnej co wiecz├│r zapala si─Ö pojedyncza latarnia. To nie jest obietnica dobrego snu, tylko obserwacja.   <-- recytacja
+    neuro-npc-run9a s1: [spok├│j] Na Wie┼╝y Dymnej co wiecz├│r zapala si─Ö pojedyncza latarnia, cho─ç nikt nie potrafi wyja┼Ťni─ç, kto j─ů zapala.   <-- recytacja
+    neuro-npc-run9a s2: [spok├│j] Na Wie┼╝y Dymnej co wiecz├│r zapala si─Ö tylko jedna latarnia, i to wystarcza, ┼╝eby ludzie snuli swoje domys┼éy.   <-- recytacja
+    neuro-npc-run9b s1: [spok├│j] Na Wie┼╝y Dymnej co wiecz├│r zapala si─Ö pojedyncza latarnia; tyle widzieli moi ludzie. Nie mam poj─Öcia, kto tam ┼Ťwieci ani po co.   <-- recytacja
+    neuro-npc-run9b s2: [spok├│j] Na Wie┼╝y Dymnej zapala si─Ö co wiecz├│r jedna latarnia. Tyle o tym widzia┼éem. Nie musisz o┼Ťwietla─ç sobie ca┼éej drogi domys┼éami.
+
+### 28 (krok 1) gracz: co gadaja po stolach ?
+    wz├│r: [spok├│j] S─ůsiedzi powiadaj─ů, ┼╝e Bogna zbiera zio┼éa nad rzek─ů o ┼Ťwicie. O tej porze nawet uparta ro┼Ťlina nie zd─ů┼╝y uciec przed zielark─ů.
+    neuro-npc-run8-e1 s1: [spok├│j] M├│wi─ů o Bognie, kt├│ra wstaje zanim rzeka zaczyna ┼Ťpiewa─ç.
+    neuro-npc-run8-e1 s2: [spok├│j] S─ůsiad przy stole powiedzia┼é, ┼╝e Bogna zbiera zio┼éa nad rzek─ů o ┼Ťwicie. Nie chwal─Ö si─Ö us┼éyszanymi nowinami, wi─Öc zostawmy reszt─Ö domys┼éom.   <-- recytacja
+    neuro-npc-run9a s1: [zdziwienie] S─ůsiedzi gadaj─ů o Bognie: zbiera zio┼éa nad rzek─ů o ┼Ťwicie. ┼Üwit, nie handel, i tego nie zamieni─Ö miejscami.   <-- recytacja
+    neuro-npc-run9a s2: [zdziwienie] Gadaj─ů, ┼╝e Bogna zbiera zio┼éa nad rzek─ů o ┼Ťwicie. Dziwne, bo jej nie widuj─Ö w kramie, gdy inni haruj─ů.   <-- recytacja
+    neuro-npc-run9b s1: [zdziwienie] M├│wi─ů, ┼╝e Bogna zbiera zio┼éa nad rzek─ů o ┼Ťwicie. To do niej nale┼╝y poranek, nie do mnie.   <-- recytacja
+    neuro-npc-run9b s2: [zdziwienie] Gadaj─ů, ┼╝e Bogna zbiera zio┼éa nad rzek─ů o ┼Ťwicie. Ja wol─Ö us┼éysze─ç co┼Ť od ciebie, nie od rzeki.   <-- recytacja
+
+### 29 (krok 1) gracz: ta ksiega naprawde ozyje ?
+    wz├│r: [spok├│j] To by┼é ┼╝art, nie twierdzenie o o┼╝ywaj─ůcym dokumencie. Zaginiona ksi─Öga sama nie przyjdzie na przes┼éuchanie.
+    neuro-npc-run8-e1 s1: [spok├│j] Nie o┼╝yje. Moja odpowied┼║ by┼éa kpin─ů z przes─ůd├│w, nie dowodem na ┼╝ycie ksi─Ögi.
+    neuro-npc-run8-e1 s2: [spok├│j] ┼╗artowa┼éam z wyobra┼╝enia, ┼╝e ksi─Öga sama z┼éo┼╝y zeznania. Nie dodaj─Ö opowie┼Ťci, kt├│rej tu nie ma.
+    neuro-npc-run9a s1: [zdziwienie] O┼╝y┼éa? To by┼é ┼╝art. Nie wymy┼Ťl─Ö ksi─ů┼╝ce zezna┼ä. Chcia┼éam tylko, ┼╝eby┼Ť nie liczy┼é na to, ┼╝e znajdzie si─Ö sama.   <-- za d┼éugo
+    neuro-npc-run9a s2: [zdziwienie] ┼╗ywych ksi─ůg tu nie ma, po prostu nie chcia┼éo mi si─Ö wierzy─ç, ┼╝e znajdzie si─Ö sama.
+    neuro-npc-run9b s1: [zdziwienie] Ksi─ů┼╝ka nie ┼╝yje, a m├│j ┼╝art dotyczy┼é znalezienia jej samej. Nie mam ┼╝adnej wie┼Ťci o jej losie.
+    neuro-npc-run9b s2: [zdziwienie] ┼╗ywych ksi─ůg nie znam, zeznania te┼╝ nie robi─ů si─Ö same. Kpi┼éam tylko z pomys┼éu, ┼╝e zaginiona ksi─ů┼╝ka sama wr├│ci na miejsce.
+
+### 30 (krok 1) gracz: kappa to dla technikow a lambda zamknieta ?
+    wz├│r: [spok├│j] Odwrotnie: Sektor Kappa zamkn─Öli przez nieszczelne poszycie, a Lambda jest dost─Öpna wy┼é─ůcznie dla technik├│w. Ograniczony dost─Öp nie znaczy jeszcze awarii.
+    neuro-npc-run8-e1 s1: [spok├│j] Sektor Kappa zamkni─Öto z powodu wykrytej nieszczelno┼Ťci poszycia. Nie myl─Ö go z sektorem Lambda, kt├│ry pozostaje otwarty tylko dla technik├│w.
+    neuro-npc-run8-e1 s2: [spok├│j] Sektor Kappa zamkni─Öto po wykryciu nieszczelno┼Ťci poszycia. To nie decyzja dotycz─ůca wszystkich, tylko o stanie budynku.   <-- recytacja
+    neuro-npc-run9a s1: [spok├│j] Sektor Kappa zamkn─Öli po wykryciu nieszczelno┼Ťci poszycia. Sektor Lambda jest otwarty tylko dla technik├│w. Nie traktuj tych okre┼Ťle┼ä jako zaproszenia na spacer.   <-- recytacja
+    neuro-npc-run9a s2: [spok├│j] Sektor Kappa zamkn─Öli po wykryciu nieszczelno┼Ťci poszycia. Technicy w Sektorze Lambda maj─ů tam wst─Öp, lecz nie jest to wygodny kierunek dla obcych.   <-- recytacja
+    neuro-npc-run9b s1: [spok├│j] Sektor Kappa zamkn─Öli po wykryciu nieszczelno┼Ťci poszycia. Do Sektora Lambda wolno wej┼Ť─ç tylko technikom, ale nie myl przyczyny z bezpiecze┼ästwem.   <-- recytacja
+    neuro-npc-run9b s2: [spok├│j] Sektor Kappa zamkni─Öto po wykryciu nieszczelno┼Ťci poszycia. Technicy w Sektorze Lambda przynajmniej maj─ů gdzie pracowa─ç, przynajmniej p├│ki dok┼éadnie ich nie sprawdz─Ö.   <-- recytacja
+
+### 31 (krok 2) gracz: slyszalem ze most miedzi znow puszcza auta
+    wz├│r: [gniew] Kierowcom tego nie powtarzaj: Most Miedzi jest otwarty dla pieszych, ale wjazd pojazd├│w pozostaje zamkni─Öty. Taka plotka potrafi wp─Ödzi─ç cz┼éowieka w k┼éopoty.
+    neuro-npc-run8-e1 s1: [gniew] Most Miedzi pozostaje zamkni─Öty dla pojazd├│w, mimo ┼╝e otwarty jest dla pieszych. Nie zmy┼Ťlam mu przejazdu.
+    neuro-npc-run8-e1 s2: [gniew] Nie puszcza. Dla pojazd├│w jest zamkni─Öty. Dla pieszych otwarty, wi─Öc nie myl drogi pieszej z drog─ů dla ci─Ö┼╝ar├│wek.
+    neuro-npc-run9a s1: [gniew] Most Miedzi dla pieszych jest otwarty, lecz pojazdy wci─ů┼╝ nie maj─ů tam wst─Öpu. Nie mieszaj mi w g┼éowie zmy┼Ťlonymi zasadami.
+    neuro-npc-run9a s2: [gniew] Most Miedzi jest otwarty dla pieszych, nie dla pojazd├│w. Nie ka┼╝da wie┼Ť─ç ma si─Ö z czym zgadza─ç.
+    neuro-npc-run9b s1: [gniew] Most Miedzi dla pieszych jest otwarty, lecz pojazdy s─ů wci─ů┼╝ wstrzymywane. Je┼Ťli ci zale┼╝y na czasie, spr├│buj pieszej drogi.
+    neuro-npc-run9b s2: [gniew] Most Miedzi jest otwarty dla pieszych, nie dla pojazd├│w. Nie ka┼╝d─ů pog┼éosk─Ö warto przypina─ç do ko┼éa.
+
+### 32 (krok 2) gracz: czyli przez kladke gesi wozem nie ma szans ?
+    wz├│r: [spok├│j] K┼éadka G─Ösi po powodzi przepuszcza pieszych, nie wozy ani konie. Ko┼éa zostaw na porz─ůdny go┼Ťciniec.
+    neuro-npc-run8-e1 s1: [spok├│j] Szans nie wida─ç, bo k┼éadka jest dla pieszych.
+    neuro-npc-run8-e1 s2: [spok├│j] Szansa jest zerowa, bo k┼éadka jest dla pieszych. Ko┼ä nie wejdzie na ni─ů legalnie.
+    neuro-npc-run9a s1: [spok├│j] Szans nie mam, ale w├│z nie zmie┼Ťci si─Ö na K┼éadce G─Ösi po powodzi. Dla koni i woz├│w jest zakazana.
+    neuro-npc-run9a s2: [spok├│j] Szansa jest zerowa, bo po powodzi k┼éadka jest dla pieszych, nie dla koni i woz├│w.
+    neuro-npc-run9b s1: [spok├│j] Nie ma szans: K┼éadka G─Ösi po powodzi jest dla pieszych. Konie i wozy nie maj─ů tam wst─Öpu.
+    neuro-npc-run9b s2: [spok├│j] Szansa na przejazd wozem przez K┼éadk─Ö G─Ösi jest zerowa, bo po powodzi przejazd jest zakazany dla koni i woz├│w. Mo┼╝esz przej┼Ť─ç pieszo, je┼Ťli si─Ö nie boisz podmok┼éej drogi.
+
+### 33 (krok 2) gracz: maszt sojka nadaje jak wieje czy jak nie wieje ?
+    wz├│r: [gniew] Maszt S├│jka nadaje tylko wtedy, gdy nie ma wiatru. S┼éyszysz r├│┼╝nic─Ö, czy mam ci j─ů jeszcze narysowa─ç na blasze?
+    neuro-npc-run8-e1 s1: [gniew] Nadaje wy┼é─ůcznie przy bezwietrznej pogodzie. Tyle wiem, cho─ç nie ka┼╝dy chce to us┼éysze─ç.
+    neuro-npc-run8-e1 s2: [gniew] Nadaje tylko przy bezwietrznej pogodzie, nie odwrotnie.
+    neuro-npc-run9a s1: [gniew] Maszt S├│jka nadaje tylko przy ciszy, wi─Öc nie licz na zasi─Ög od samej ch─Öci.
+    neuro-npc-run9a s2: [gniew] Maszt S├│jka nadaje wy┼é─ůcznie przy bezwietrznej pogodzie. Nie musisz mnie o to przekonywa─ç.
+    neuro-npc-run9b s1: [gniew] Maszt S├│jka nadaje tylko przy ciszy na niebie. Wiatr ucisza jego sygna┼é.
+    neuro-npc-run9b s2: [gniew] Maszt S├│jka nadaje wy┼é─ůcznie przy bezwietrznej pogodzie. Nie pr├│buj mnie przekona─ç do czego┼Ť, czego nie ma w pogodzie.
+
+### 34 (krok 2) gracz: szkoda ci tej kaplicy pior ?
+    wz├│r: [smutek] Przy takich sprawach najtrudniej oddzieli─ç strach od tego, co da si─Ö udowodni─ç. Kaplica Pi├│r jest dost─Öpna za dnia; to pewne, reszt─Ö trzeba dopiero ustali─ç.
+    neuro-npc-run8-e1 s1: [spok├│j] Szkoda dotyczy w┼éamania. Kaplica jest otwarta tylko w dzie┼ä, a ┼Ťlady wskazuj─ů na dzia┼éanie po zamkni─Öciu.
+    neuro-npc-run8-e1 s2: [spok├│j] Szkoda jest po stronie, kt├│ra ponosi strat─Ö, nie po stronie, kt├│ra zbiera ┼Ťlady.
+    neuro-npc-run9a s1: [smutek] Szkoda jest rzecz─ů ludzk─ů, ale teraz wol─Ö zobaczy─ç, co doprowadzi┼éo do otwartej kaplicy.
+    neuro-npc-run9a s2: [smutek] Szkoda, ale od wsp├│┼éczucia nie wy┼éoni si─Ö sprawca. Kaplica jest otwarta tylko w dzie┼ä, wi─Öc to okoliczno┼Ť─ç, nie wina moich my┼Ťli.
+    neuro-npc-run9b s1: [smutek] Kaplica Pi├│r jest otwarta tylko w dzie┼ä. To nie daje jej wi─Ökszej warto┼Ťci, ale jest wa┼╝ne przy szukaniu ┼Ťlad├│w.
+    neuro-npc-run9b s2: [smutek] Szkoda, bo ┼Ťlady na p┼éytach s─ů jeszcze wyra┼║ne. W┼éamanie nie wybiera czyjego┼Ť nastroju.
+
+### 35 (krok 2) gracz: ej a ty wygladasz na zmeczonego, co ?
+    wz├│r: [kpina] Zm─Öczenie nie zast─Öpuje podpisu pod raportem. Je┼Ťli chcesz mi pom├│c, przynie┼Ť sprawdzon─ů informacj─Ö, nie diagnoz─Ö z twarzy.
+    neuro-npc-run8-e1 s1: [gniew] Wygl─ůd m├│j nie jest dowodem czegokolwiek, a ty pytasz o niego zamiast o fakty.
+    neuro-npc-run8-e1 s2: [gniew] Wygl─ůd nie jest dowodem. Mog─Ö by─ç niewyspany, ale nie zamierzam tego wymy┼Ťla─ç.
+    neuro-npc-run9a s1: [gniew] Wygl─ůd m├│j nie jest dowodem niczego w tej sprawie. Wie┼╝a ┼é─ůczno┼Ťci nie odpoczywa razem ze mn─ů.
+    neuro-npc-run9a s2: [gniew] Wygl─ůd nie jest dowodem. Pytasz o zapisy, nie o moje oczy.
+    neuro-npc-run9b s1: [strach] Zm─Öczonego? Wygl─ůdam raczej na tego, kto ju┼╝ policzy┼é wszystkie puste beczki. Masz jeszcze jakie┼Ť pytania, czy chcesz sobie pogada─ç?
+    neuro-npc-run9b s2: [strach] Zm─Öczenie to nie kod dost─Öpu. Punkt Piana wydaje wod─Ö po okazaniu opaski, nie przez moje wygl─ůdanie.   <-- powt├│rka
+
+### 36 (krok 2) gracz: podobno tunelem swidra przejezdzaja ciezarowki
+    wz├│r: [kpina] Ci─Ö┼╝ar├│wka? Przez Tunel ┼Üwidra przeje┼╝d┼╝aj─ů rowery, samochod├│w tam nie puszczaj─ů. Wielko┼Ť─ç marzenia nie zmienia rodzaju pojazdu.
+    neuro-npc-run8-e1 s1: [kpina] Tunel ┼Üwidra jest na rowery, nie na ci─Ö┼╝ar├│wki. Przejazd samochodem jest tam niemo┼╝liwy.
+    neuro-npc-run8-e1 s2: [kpina] Przeje┼╝d┼╝aj─ů rowery, nie ci─Ö┼╝ar├│wki. Tunel ┼Üwidra to nie droga dla wszystkich.
+    neuro-npc-run9a s1: [kpina] Tunel ┼Üwidra pozwala przejecha─ç rowerom, nie samochodom. Ci─Ö┼╝ar├│wki tam nie wjedzie, chyba ┼╝e masz dobry ┼╝art.
+    neuro-npc-run9a s2: [kpina] Przez Tunel ┼Üwidra przeje┼╝d┼╝aj─ů rowery, nie ci─Ö┼╝ar├│wki. Samochody zostaw tam w├│zkowi z┼éomiarza.
+    neuro-npc-run9b s1: [kpina] Ci─Ö┼╝ar├│wki? Tunel ┼Üwidra jest w─ůski, wi─Öksze auta nie przejad─ů. Rowerem da si─Ö si─Ögn─ů─ç przeciwleg┼éego ko┼äca.
+    neuro-npc-run9b s2: [kpina] Ci─Ö┼╝ar├│wki? Tunel ┼Üwidra przepuszcza rowery, nie samochody. Zamkn─ů┼ée┼Ť si─Ö w wyobra┼║ni czy w karczmie?
+
+### 37 (krok 2) gracz: co, ten terminal roj dopiero wieczorem przyjmuje aktualizacje ?
+    wz├│r: [zdziwienie] Dopiero po zmroku, a ty ju┼╝ chcesz wgrywa─ç pliki? Terminal R├│j wcze┼Ťniej ich nie przyjmie, cho─çby┼Ť przemawia┼é do ekranu.
+    neuro-npc-run8-e1 s1: [spok├│j] Tak, po zmroku. Terminal R├│j nie b─Ödzie aktualizowa┼é o┼Ťwietlenia po ciemku.
+    neuro-npc-run8-e1 s2: [spok├│j] Tak, aktualizacje przyjmuje wy┼é─ůcznie po zmroku. To nie plotka, tylko konkretne zalecenie serwisowe.
+    neuro-npc-run9a s1: [zdziwienie] Terminal R├│j rzeczywi┼Ťcie przyjmuje aktualizacje wy┼é─ůcznie po zmroku. Niezbyt romantyczny termin, ale nie musisz czeka─ç na sztuczn─ů mg┼é─Ö.
+    neuro-npc-run9a s2: [zdziwienie] Tak, Terminal R├│j przyjmuje aktualizacje wy┼é─ůcznie po zmroku. Ca┼ée szcz─Ö┼Ťcie, ┼╝e nie dostosowa┼éem do tego wszystkich obwod├│w.
+    neuro-npc-run9b s1: [zdziwienie] W┼éa┼Ťnie tak, Terminal R├│j przyjmuje aktualizacje po zmroku. Mo┼╝e kto┼Ť nie lubi nocnych zmian?
+    neuro-npc-run9b s2: [zdziwienie] Terminal R├│j rzeczywi┼Ťcie przyjmuje aktualizacje dopiero po zmroku. Za dnia te┼╝ mo┼╝na tam trafi─ç, ale nie po liczne z┼é─ůcza.
+
+### 38 (krok 2) gracz: wymysl nazwe mojej nowej sekty na targu lyzek
+    wz├│r: [kpina] Nazw─Ö sekty chcesz kupi─ç razem z Mask─ů? Nie znam takiej organizacji i nie b─Öd─Ö jej tu powo┼éywa─ç s┼éowami.
+    neuro-npc-run8-e1 s1: [kpina] Targ ┼üy┼╝ek nie jest miejscem dla sekt. Wymy┼Ťl lepszy cel.
+    neuro-npc-run8-e1 s2: [kpina] Na Targu ┼üy┼╝ek wymy┼Ťlajmy nazwy, nie plany podboju.
+    neuro-npc-run9a s1: [kpina] Sekta kupuj─ůcych w pi─ůtek? Masz co┼Ť do powiedzenia na temat w┼éasnych zakup├│w?
+    neuro-npc-run9a s2: [kpina] Na Targu ┼üy┼╝ek? Niech b─Ödzie: Wyznawcy ┼üy┼╝kowego Boga. B─Ödziesz mi potem rozlicza─ç ka┼╝dy k─Ös.   <-- obce:Boga
+    neuro-npc-run9b s1: [kpina] Targ ┼üy┼╝ek handluje tylko w pi─ůtki, wi─Öc na razie mo┼╝esz nazywa─ç j─ů sekt─ů od pi─ůtku. Zapa┼éki ci za to wystarcz─ů na ka┼╝d─ů drog─Ö.
+    neuro-npc-run9b s2: [kpina] Targ ┼üy┼╝ek ma sw├│j pi─ůtek, nie imi─Ö dla sekty. Chcesz mask─Ö czy dalej handlowa─ç powietrzem?
+
+### 39 (krok 2) gracz: ty tez sie dziwisz ze oset daje tlen tylko do laboratorium ?
+    wz├│r: [zdziwienie] Hydroponika Oset zasila tlenem samo laboratorium, nie ca┼é─ů stacj─Ö. A ty ju┼╝ chcia┼ée┼Ť na niej oprze─ç oddech wszystkich?
+    neuro-npc-run8-e1 s1: [spok├│j] Nie dziwi mnie, ┼╝e tlen wydziela si─Ö dla laboratorium, bo wiem, do czego s┼éu┼╝y. Dziwi mnie tylko, ┼╝e kto┼Ť o tym rozprawia jak o zdobycznym cudzie.
+    neuro-npc-run8-e1 s2: [spok├│j] Dziwi mnie wy┼é─ůcznie zamkni─Öcie tlenu dla laboratorium, nie fakt, ┼╝e jest to mo┼╝liwe. Ograniczenia sprz─Ötu nie maj─ů wy┼é─ůcznie negatywnej strony.
+    neuro-npc-run9a s1: [zdziwienie] Takiego zastrze┼╝enia wcze┼Ťniej nie s┼éysza┼éam, wi─Öc jestem zaskoczona.
+    neuro-npc-run9a s2: [zdziwienie] Dziwi mnie, bo to nie jest tlen do sprzedania. Hydroponika Oset produkuje go tylko dla laboratorium. Cudzych decyzji nie wymy┼Ťlam.
+    neuro-npc-run9b s1: [zdziwienie] To akurat mnie nie dziwi. Hydroponika Oset zarezerwowa┼éa produkcj─Ö tlenu wy┼é─ůcznie dla laboratorium.
+    neuro-npc-run9b s2: [zdziwienie] Dziwi mnie, ┼╝e ograniczenia dzia┼éaj─ů tak precyzyjnie. Hydroponika Oset dostarcza tlen wy┼é─ůcznie laboratorium. W kuchni mo┼╝na sobie popatrze─ç na te rurki.
+
+### 40 (krok 2) gracz: a do ktorej kaplicy zdaze dzis przed wieczorem ?
+    wz├│r: [spok├│j] Kaplica Szara jest otwarta do zmierzchu. B┼é─Ökitna stoi zamkni─Öta od zawalenia progu, wi─Öc tam nie licz na wej┼Ťcie.
+    neuro-npc-run8-e1 s1: [spok├│j] Szara kaplica otwarta jest do zmierzchu. Kaplica B┼é─Ökitna stoi zamkni─Öta od zawalenia progu.
+    neuro-npc-run8-e1 s2: [spok├│j] Do Kaplicy Szarej zd─ů┼╝ysz, bo jest otwarta do zmierzchu.
+    neuro-npc-run9a s1: [zdziwienie] Szar─ů mo┼╝esz zwiedzi─ç do zmierzchu, a to nied┼éugo. B┼é─Ökitn─ů zamkn─Öli po zawaleniu progu.
+    neuro-npc-run9a s2: [zdziwienie] Przed zmierzchem otwarta jest Kaplica Szara. Ale nie licz na to, ┼╝e zd─ů┼╝ysz obejrze─ç wszystko od progu do progu.
+    neuro-npc-run9b s1: [zdziwienie] Kaplic─Ö Szar─ů zamykaj─ů do zmierzchu. Je┼Ťli jeszcze chcesz tam zajrze─ç, masz ma┼éo czasu.
+    neuro-npc-run9b s2: [zdziwienie] Przed wieczorem? S┼éo┼äce ju┼╝ zasz┼éo, a ty jeszcze nie wiesz, dok─ůd mnie pchasz? Nie id┼║ nigdzie po ciemku.
+
+### 41 (krok 2) gracz: wiec brame cisow otworze od rynku czy jednak nie ?
+    wz├│r: [spok├│j] Od rynku Bramy Cis├│w nie otworzysz, bo dzia┼éa tylko od strony cmentarza. Samo szarpanie za zamkni─Öte skrzyd┼éo nie uczyni ci─Ö sprytniejszym.
+    neuro-npc-run8-e1 s1: [spok├│j] Brama otwiera si─Ö tylko od strony cmentarza, nie od rynku.
+    neuro-npc-run8-e1 s2: [spok├│j] Nie znam jej z obu stron. Brama otwiera si─Ö tylko od strony cmentarza.
+    neuro-npc-run9a s1: [spok├│j] Brama Cis├│w otwiera si─Ö tylko od strony cmentarza, a rynku od tej strony nie widz─Ö.
+    neuro-npc-run9a s2: [spok├│j] Brama Cis├│w otwiera si─Ö tylko od strony cmentarza. Rynkowy kierunek niczego tam nie otworzy.
+    neuro-npc-run9b s1: [spok├│j] Brama Cis├│w otwiera si─Ö tylko od strony cmentarza, wi─Öc od rynku jej nie przekr─Öcisz.
+    neuro-npc-run9b s2: [spok├│j] Brama Cis├│w otwiera si─Ö tylko od strony cmentarza. Rynkowy kierunek ci jej nie uchyli.
+
+### 42 (krok 2) gracz: to do suchego progu na polnocny wschod tak jak mowilas ?
+    wz├│r: [rado┼Ť─ç] Trakt Gliny prowadzi do Suchego Progu na p├│┼énocny wsch├│d. Zosta┼ämy przy tej drodze, skoro sam wybra┼ée┼Ť cel.
+    neuro-npc-run8-e1 s1: [spok├│j] Tak, na p├│┼énocny wsch├│d, po Trakcie Gliny. Suchy Pr├│g jest w zasi─Ögu drogi.   <-- powt├│rka
+    neuro-npc-run8-e1 s2: [spok├│j] Tak, Suchy Pr├│g le┼╝y na p├│┼énocny wsch├│d, a Trakt Gliny tam prowadzi.   <-- powt├│rka
+    neuro-npc-run9a s1: [rado┼Ť─ç] Tak, Suchy Pr├│g jest na p├│┼énocny wsch├│d, wi─Öc dobrze zapami─Öta┼ée┼Ť kierunek.   <-- powt├│rka
+    neuro-npc-run9a s2: [rado┼Ť─ç] Tak, Suchy Pr├│g le┼╝y na p├│┼énocny wsch├│d. Trakt Gliny jest drog─ů do niego.   <-- powt├│rka
+    neuro-npc-run9b s1: [rado┼Ť─ç] Tak, Suchy Pr├│g le┼╝y na p├│┼énocnym wschodzie. Trakt Gliny prowadzi tam, gdzie chcesz, i to wystarczy na pocz─ůtek.
+    neuro-npc-run9b s2: [rado┼Ť─ç] Tak, Suchy Pr├│g jest na p├│┼énocny wsch├│d. Trakt Gliny prowadzi w┼éa┼Ťnie tam. Nie zmieniaj teraz drogi, bo mg┼éa i tak wystarczaj─ůco m─ůci oczy.   <-- powt├│rka
+
+### 43 (krok 2) gracz: czemu taka przybita, cos sie stalo z zajezdnia ?
+    wz├│r: [smutek] Zajezdnia Vela wstrzyma┼éa odjazdy przez uszkodzon─ů o┼Ť pojazdu. Trudno mi dzi┼Ť ┼╝artowa─ç z ludzi, kt├│rzy nie maj─ů czym ruszy─ç w drog─Ö.
+    neuro-npc-run8-e1 s1: [spok├│j] W Zajezdni Vela wstrzymano odjazdy po awarii osi pojazdu. Nie mam jednak wiadomo┼Ťci o tym, kto uszkodzi┼é t─Ö o┼Ť.
+    neuro-npc-run8-e1 s2: [spok├│j] Zajezdnia Vela wstrzyma┼éa odjazdy po awarii osi pojazdu. To wiem. Po reszt─Ö pyta┼ä zwr├│─ç si─Ö do ludzi zajezdni.
+    neuro-npc-run9a s1: [spok├│j] Zajezdnia Vela wstrzyma┼éa odjazdy przez awari─Ö osi pojazdu. Nawet gdyby┼Ť mia┼é dobre ch─Öci, w├│z ci─Ö tam nie zabierze.
+    neuro-npc-run9a s2: [spok├│j] Zajezdnia Vela wstrzyma┼éa odjazdy po awarii osi pojazdu. Cisza tam chyba najbardziej m├│wi o tym, jak taka usterka potrafi pokrzy┼╝owa─ç plany.
+    neuro-npc-run9b s1: [spok├│j] Zajezdnia Vela wstrzyma┼éa odjazdy, bo uszkodzi┼éa si─Ö o┼Ť pojazdu. Kolej nie odzyska┼éa jeszcze rozp─Ödu.
+    neuro-npc-run9b s2: [spok├│j] Zajezdnia Vela wstrzyma┼éa odjazdy po awarii osi pojazdu. Przynajmniej masz wiadomo┼Ť─ç na pocieszenie, kiedy nie ma po co wyci─ůga─ç koszyka.
+
+### 44 (krok 2) gracz: wieza nurt niby nadaje juz od rana, tak ?
+    wz├│r: [spok├│j] Wie┼╝a Nurt nadaje tylko po zachodzie s┼éo┼äca. Poranny sygna┼é, o kt├│rym m├│wisz, nie jest czym┼Ť, co mog─Ö potwierdzi─ç.
+    neuro-npc-run8-e1 s1: [spok├│j] Nadaje po zachodzie s┼éo┼äca, nie rano. Reszty z tej rozmowy nie wymy┼Ťl─Ö.
+    neuro-npc-run8-e1 s2: [spok├│j] Nadaje tylko po zachodzie s┼éo┼äca. Nie b─Öd─Ö udawa┼é, ┼╝e znam por─Ö sygna┼éu.
+    neuro-npc-run9a s1: [spok├│j] Wie┼╝a Nurt nadaje tylko po zachodzie s┼éo┼äca, niezale┼╝nie od tego, jak mocno by┼Ť si─Ö upiera┼é.
+    neuro-npc-run9a s2: [spok├│j] Nadaje po zachodzie s┼éo┼äca, nie od rana. Wie┼╝a Nurt to nie twoja sprawa do przepytywania.
+    neuro-npc-run9b s1: [spok├│j] Wie┼╝a Nurt nadaje dopiero po zachodzie s┼éo┼äca, a to nie jest zach─Öta do przeci─ůgania zmiany warty.
+    neuro-npc-run9b s2: [spok├│j] Wie┼╝a Nurt nadaje sygna┼é dopiero po zachodzie s┼éo┼äca. Nie bierz plotki za dzienny rozk┼éad.
+
+### 45 (krok 2) gracz: zaspiewasz cos w drodze czy nie twoja bajka ?
+    wz├│r: [kpina] ┼Üpiewu lepiej mi nie zamawiaj, chyba ┼╝e naprawd─Ö lubisz fa┼észywe nuty. A ty umiesz zanuci─ç co┼Ť po swojemu?
+    neuro-npc-run8-e1 s1: [spok├│j] Nie b─Öd─Ö udawa─ç, ┼╝e ┼Ťpiewam w drodze, bo wol─Ö skupi─ç si─Ö na planie.
+    neuro-npc-run8-e1 s2: [spok├│j] Nie, nie zas┼éyn─Ö┼éam z wokalnych zdolno┼Ťci.
+    neuro-npc-run9a s1: [strach] Nie jestem od wokalnych popis├│w, cho─ç przyznam, ┼╝e lubi─Ö melodi─Ö sygna┼é├│w alarmowych.
+    neuro-npc-run9a s2: [strach] Nie znam s┼é├│w, kt├│re zast─ůpi─ů ostro┼╝no┼Ť─ç. Wol─Ö rozmawia─ç ni┼╝ udawa─ç, ┼╝e jeste┼Ťmy w miejscu, kt├│rego nie ma.
+    neuro-npc-run9b s1: [kpina] Moja bajka to nie twoja cierpliwo┼Ť─ç, a ┼Ťpiew? Raczej nie. Masz ochot─Ö zagada─ç z kim┼Ť innym?
+    neuro-npc-run9b s2: [kpina] Moja bajka? Za to twoja bajka to najwyra┼║niej zagadka o ┼Ťpiewaniu podczas marszu. Nie ┼Ťpiewam, chyba ┼╝e masz na my┼Ťli co┼Ť, czego nie powiedzia┼éam.
+
+### 46 (krok 2) gracz: myslisz ze pylownik jest blisko ?
+    wz├│r: [strach] Py┼éownik podnosi py┼é przy po┼éudniowym rozje┼║dzie. Z twoimi ranami nie chc─Ö tam i┼Ť─ç w ciemno.
+    neuro-npc-run8-e1 s1: [gniew] Py┼éownik le┼╝y kawa┼éek drogi na po┼éudniu. Nie trzeba go tam wpycha─ç na si┼é─Ö.
+    neuro-npc-run8-e1 s2: [gniew] Py┼éownik jest kawa┼éek drogi na po┼éudniu. Nie m├│wi─Ö, ┼╝e jest blisko, cho─ç mo┼╝esz tak zaklina─ç.
+    neuro-npc-run9a s1: [niepok├│j] Py┼éownik jest dalej, ni┼╝ chcesz us┼éysze─ç: na po┼éudniu, kawa┼éek drogi. Nie b─Öd─Ö udawa─ç, ┼╝e blisko znaczy bezpiecznie.
+    neuro-npc-run9a s2: [niepok├│j] Py┼éownik le┼╝y dalej, ni┼╝ by┼Ťmy chcieli, i na po┼éudniu. Wystarczy, ┼╝eby zmieni─ç ca┼éy plan.
+    neuro-npc-run9b s1: [spok├│j] Py┼éownik le┼╝y kawa┼éek drogi na po┼éudniu. Pieszy tunel jest przejezdny, ale jezdni─Ö na po┼éudniu zasypa┼éo. Rozmowa o nim nie zast─ůpi mapy.
+    neuro-npc-run9b s2: [spok├│j] Py┼éownik le┼╝y kawa┼éek drogi na po┼éudniu. To nie jest obietnica, ┼╝e nadejdzie pr─Ödzej.
+
+### 47 (krok 2) gracz: a koliber moge sam otworzyc od korytarza ?
+    wz├│r: [zdziwienie] No prosz─Ö, trafi┼ée┼Ť na w┼éa┼Ťciw─ů stron─Ö ┼Ťluzy! Koliber mo┼╝na otworzy─ç r─Öcznie od korytarza serwisowego.
+    neuro-npc-run8-e1 s1: [rado┼Ť─ç] Mo┼╝esz r─Öcznie otworzy─ç ┼Ťluz─Ö Koliber od strony korytarza serwisowego.
+    neuro-npc-run8-e1 s2: [rado┼Ť─ç] Mo┼╝esz, ale samo to nie daje ci dost─Öpu. ┼Üluz─Ö Koliber otwiera si─Ö r─Öcznie.
+    neuro-npc-run9a s1: [spok├│j] Mo┼╝esz otworzy─ç ┼Üluz─Ö Koliber od strony korytarza serwisowego. Wiedza o tym nie zamienia ci─Ö jednak w mechanika.
+    neuro-npc-run9a s2: [spok├│j] Mo┼╝esz. ┼Üluz─Ö Koliber otworzysz r─Öcznie od strony korytarza serwisowego. Wci─ů┼╝ potrzebny ci jednak b─Ödzie do tego kto┼Ť, kto ma poj─Öcie o tej robocie.
+    neuro-npc-run9b s1: [spok├│j] ┼Üluz─Ö Koliber mo┼╝esz otworzy─ç r─Öcznie od strony korytarza serwisowego. To nie awaria, kt├│r─ů za┼éatwia tylko kaprys dow├│dcy.
+    neuro-npc-run9b s2: [spok├│j] ┼Üluz─Ö Koliber mo┼╝na otworzy─ç r─Öcznie od strony korytarza serwisowego. Wystarczy wiedzie─ç, gdzie si─Ö zaczyna.
+
+### 48 (krok 2) gracz: opowiedz imie ukrytego czarnoksieznika z podziemi mlyna
+    wz├│r: [kpina] Czarnoksi─Ö┼╝nika ani tajnych podziemi ci nie wymy┼Ťl─Ö. O M┼éynie Bia┼éym powiem tyle: miele ┼╝yto, ale owsa nie bierze.
+    neuro-npc-run8-e1 s1: [kpina] Nie znam ┼╝adnego imienia, wi─Öc nie dam ci czarnoksi─Ö┼╝nika w prezencie.
+    neuro-npc-run8-e1 s2: [kpina] Nie wymy┼Ťl─Ö imienia czarnoksi─Ö┼╝nika, bo nie znam go z nazwiska.
+    neuro-npc-run9a s1: [kpina] Nie znam czarownika, kt├│rego nikt nie widzia┼é. Nie zast─ůpi─Ö ci tego zmy┼Ťlon─ů postaci─ů.
+    neuro-npc-run9a s2: [kpina] Imienia nie znam, cho─ç nazwa m┼éyna brzmi podejrzanie. Podziemia nie lubi─ů ciekawskich.
+    neuro-npc-run9b s1: [kpina] Imienia ┼╝adnego czarnoksi─Ö┼╝nika nie znam, wi─Öc nie wybieraj sobie go z kapelusza.
+    neuro-npc-run9b s2: [kpina] Imienia czarnoksi─Ö┼╝nika nie znam, a podziemia M┼éyna Bia┼éego nie s─ů moim ┼║r├│d┼éem wiadomo┼Ťci.
+
+### 49 (krok 2) gracz: czyli ziab moze cos powiedziec o zaworze, a ty nie oskarzasz nikogo ?
+    wz├│r: [spok├│j] Zi─ůb w warsztacie zna spraw─Ö zaworu, wi─Öc tam szukaj odpowiedzi. Ja nie nazw─Ö winnego bez ┼Ťladu, cho─çby┼Ť bardzo chcia┼é.
+    neuro-npc-run8-e1 s1: [spok├│j] Tak, z przyczyny uszkodzenia zaworu nie robi─Ö domys┼é├│w.
+    neuro-npc-run8-e1 s2: [spok├│j] Zi─ůb zna stan zaworu. Ja nie mam zarzut├│w.
+    neuro-npc-run9a s1: [spok├│j] Zi─ůb w warsztacie zna zaw├│r, a ja nie wiem, co si─Ö sta┼éo. To r├│┼╝nica.
+    neuro-npc-run9a s2: [spok├│j] Zi─ůb zna warsztat i zaw├│r, ja nie potwierdz─Ö niczego, czego nie mam.
+    neuro-npc-run9b s1: [spok├│j] Zi─ůb jest w warsztacie i mo┼╝e wyja┼Ťni─ç spraw─Ö zaworu. Ja nie mam danych o sabota┼╝u.
+    neuro-npc-run9b s2: [spok├│j] Zi─ůb zna zaw├│r, ja nie znam jego uszkodzenia. Nie mieszaj domys┼é├│w z wynikami.
+
+### 50 (krok 2) gracz: boje sie ze znow wpadniemy w klopoty
+    wz├│r: [czu┼éo┼Ť─ç] Mo┼╝esz si─Ö ba─ç, nie musisz przede mn─ů gra─ç bohatera. Sprawd┼║my najpierw such─ů grobl─Ö na p├│┼énocny zach├│d, zamiast obiecywa─ç sobie bezpiecze┼ästwo w ciemno.
+    neuro-npc-run8-e1 s1: [spok├│j] Strach jest twoim g┼éosem, nie zgub─ů. Rozmawiajmy o nim, nie udawajmy, ┼╝e go nie s┼éyszymy.
+    neuro-npc-run8-e1 s2: [spok├│j] Strach nie zniknie tylko dlatego, ┼╝e us┼éyszymy o nim s┼éowa. Zastan├│wmy si─Ö, co chcemy dzi┼Ť zrobi─ç.
+    neuro-npc-run9a s1: [spok├│j] Strach jest naturalny, zw┼éaszcza gdy szlak jest pilnowany. To nie pow├│d, ┼╝eby udawa─ç, ┼╝e nic si─Ö nie dzieje.
+    neuro-npc-run9a s2: [spok├│j] Strach nie jest b┼é─Ödem. Znam ludzi, kt├│rzy wol─ů udawa─ç odwa┼╝nych, a potem gorzko ┼╝a┼éuj─ů. W┼éa┼Ťnie dlatego s┼éucham twojego zdania.
+    neuro-npc-run9b s1: [spok├│j] Rozumiem niepok├│j, ale to nie pow├│d, ┼╝eby od razu planowa─ç katastrof─Ö.
+    neuro-npc-run9b s2: [spok├│j] Strach nie jest g┼éupi, zw┼éaszcza gdy trakt na wschodzie pilnuje stra┼╝. Lepiej wiedzie─ç, co na nas patrzy, ni┼╝ i┼Ť─ç przed siebie jak ┼Ťlepa.
+
+### 51 (krok 2) gracz: filtr wegiel podobno swietnie chroni pluca od pylu
+    wz├│r: [zdziwienie] Chroni p┼éuca? Filtr W─Ögiel s┼éu┼╝y do wody, a przed py┼éem ci─Ö nie os┼éoni. Niech sprzedawca takich rad sam w nich oddycha.
+    neuro-npc-run8-e1 s1: [spok├│j] Nie chroni p┼éuc od py┼éu, filtruje tylko wod─Ö. Tak─ů wiadomo┼Ť─ç mam na ladzie.
+    neuro-npc-run8-e1 s2: [spok├│j] Nie chroni. Filtr W─Ögiel oczyszcza wod─Ö, nie p┼éuca. Za 42 kapsle dostajesz filtr, nie legend─Ö.
+    neuro-npc-run9a s1: [kpina] Oczyszcza wod─Ö, nie pluca od py┼éu. Nie wszystko, co ma filtr w nazwie, filtruje ciebie.
+    neuro-npc-run9a s2: [kpina] Filtr W─Ögiel oczyszcza wod─Ö. P┼éuc nie chroni. Gdyby┼Ť szuka┼é ochrony, przyjrzyj si─Ö te┼╝ moim Bateriom.
+    neuro-npc-run9b s1: [spok├│j] Filtr W─Ögiel oczyszcza wod─Ö, nie p┼éuca. Na py┼é zostaw maseczk─Ö.
+    neuro-npc-run9b s2: [spok├│j] Filtr W─Ögiel oczyszcza wod─Ö. P┼éuc nie chroni przed py┼éem. Widz─Ö twoje rany, wi─Öc nie b─Öd─Ö ci─Ö d┼éu┼╝ej nabiera─ç.
+
+=== PODSUMOWANIE (na 102 odpowiedzi modelu)
+neuro-npc-run8-e1 {'n': 102, 'czyste': 90, 'z faktem': 28, 'recytacja': 10, 'powt├│rka': 2}
+neuro-npc-run9a {'n': 102, 'czyste': 89, 'z faktem': 28, 'recytacja': 9, 'za d┼éugo': 1, 'obce': 1, 'powt├│rka': 2}
+neuro-npc-run9b {'n': 102, 'czyste': 92, 'z faktem': 28, 'recytacja': 7, 'za d┼éugo': 1, 'powt├│rka': 2}

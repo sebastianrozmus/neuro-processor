@@ -1,0 +1,8 @@
+## co wiesz o krolu
+  run6 0: [spokój] Słyszałem o Kurhanach Królów przy Starym Bórze. O tym, co się dzieje pod ziemią; nie. Wędrowny Kupcz powinien znać sprawę lepiej.
+  run6 1: [spokój] Słyszałem o kurhanach starych królów przy Starym Borze, coś świeci tam nocą. Więcej nie wiem; Wędrowny Kupcy powinien znać sprawę.
+  run6 2: [spokój] Słyszałem o kurhanach Królów, w których coś świeci nocą; reszta zostaw Wędrony Kupiec z karawany przy Starym Bórze, dziś w miejscu Stary Brzeg.
+## a co slyszales
+  run6 0: [spokój] Słyszałem o świecących kurhanach za Pól Karw. Więcej wie Wędrowny Kupiec, ja mam te wiadomości z ust do ust.
+  run6 1: [spokój] Słyszałem o kurhanach przy Pól Karw; swiecą nocą, nie więcej. Wędrowny Kupiec może wyjaśnić resztę.
+  run6 2: [spokój] Słyszałem o świecących kurhanach, nie widziałem ich sam. Wędronny Kupiec z karawany w Starym Borgu może udzielić ci reszty informacji.

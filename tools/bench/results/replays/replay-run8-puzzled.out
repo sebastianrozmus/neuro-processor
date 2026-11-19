@@ -1,0 +1,26 @@
+GRA: Gracz nie składa oferty, tylko rozmawia albo o coś pyta. Odpowiedz ciekawie, w swojej roli, na to, co powiedział. Jeśli pyta o towar, możesz polecić coś ze swojego towaru i podać jego cenę z listy. W tej kwestii niczego nie sprzedajesz. Nastrój twojej postaci: spokojna. Gracz nie zrozumiał twojej poprzedniej kwestii: „Jagody? Krasnoludowi tego nie nałożę na widelec. Jeśli chcesz jagody, idź po nie 
+
+neuro-npc-run7 t0.8 0: [spokój] Z językiem, całym, bo tam w Durgarze bije czerwona łuna i pachnie siarką. Nie po to wbijam stal w kamień, żeby wbijać ją w gobliny.
+neuro-npc-run7 t0.8 1: [spokój] Z językiem, czyli całym, bo w Kopalni Durgara bije czerwona łuna, pachnie siarką i gobliny chodzą po sztolniach. Z językiem wróć, bez języka sprzedaję tylko stal.
+neuro-npc-run7 t0.8 2: [spokój] Z językiem, czyli z całym językiem, bo w kopalni bije czerwona łuna, pachnie siarką i gobliny tam zbierają jagody dla Vexaraxa, młodego czerwonego smoka, który pożera złoto razem z właścicielami.
+neuro-npc-run7 t0.8 3: [spokój] Z językiem, czyli całym. W Kopalni Durgara bije czerwona łuna i pachnie siarką. Jeśli go tam nie stracisz, jagody będą twoje.
+neuro-npc-run7 t0.7 0: [spokój] Z językiem, całym, bo w Kopalni Durgara bije czerwona łuna i pachnie siarką, a gobliny tam siedzą. Jagody nie, ale w Kopalni Durgara kupisz je razem ze złotem, które stracisz, zanim zdążysz wyjść.
+neuro-npc-run7 t0.7 1: [spokój] Z językiem, czyli żywy, bo w kopalni bije czerwona łuna i pachnie siarką, a tam rosną jagody, które krasnoludy zjadają, zanim zaczną je sprzedawać.
+neuro-npc-run7 t0.7 2: [spokój] Z językiem, czyli z całym językiem, bo w kopalni bije czerwona łuna, pachnie siarką i gobliny nie są uprzejme. Idź tam, jeśli chcesz jagód, i wróć bez utraty języka.
+neuro-npc-run7 t0.7 3: [spokój] Z językiem, czyli żywy. W Kopalni Durgara bije czerwona łuna i pachnie siarką. Jeśli wrócisz z jagodami, ale bez języka, to jagody na nic.
+neuro-npc-run8-7b t0.8 0: [spokój] Z językiem, czyli żywym, bo z kopalni wraca się z językiem, nie z sokiem jagodowym. Idź więc po nie, zanim głód cię tam zabierze, i wróć żywy.
+neuro-npc-run8-7b t0.8 1: [kpina] Z językiem, bo w Kopalni Durgara, gdzie pachnie siarką i świeci czerwono, jagód nie zbierzesz bez dowodu, że masz po co wracać.
+neuro-npc-run8-7b t0.8 2: [kpina] Język nie jagoda, chłopcze. Wracaj z językiem, bo w Kopalni Durgara bije czerwona łuna i pachnie siarką.
+neuro-npc-run8-7b t0.8 3: [spokój] Język, czyli język jagód, bo tam, gdzie są, w Kopalni Durgara, można go znaleźć. Wróć z nim, nie z pustą torbą, bo czerwona łuna i siarka nie wróżą dobrego zbioru.
+neuro-npc-run8-7b t0.7 0: [spokój] Język jako ostrzeżenie, nie jako oferta. Jagody rosną w Kopalni Durgara, ale wróć z czymś z niej, bo inaczej czerwona łuna i siarka zostaną w twojej kieszeni.
+neuro-npc-run8-7b t0.7 1: [kpina] Z językiem, bo w Kopalni Durgara nie ma jagód na widoku, tylko czerwona łuna i siarka. Jak wrócisz z językiem, to znaczy, że znalazłeś, co trzeba.
+neuro-npc-run8-7b t0.7 2: [kpina] Język nie jagoda, ale jak pójdziesz, wróć z czymś więcej niż własnym, bo tam pachnie siarką i bije czerwona łuna.
+neuro-npc-run8-7b t0.7 3: [spokój] Język w sensie, że wróć cały, bo w Kopalni Durgara bije czerwona łuna i pachnie siarką. Jagód nie sprzedaję, tam idź po nie sam.
+neuro-npc-run8-e1 t0.8 0: [spokój] Język, bo z Kopalni Durgara nie wrócił nikt bez języka. Jagody tam są, ale trzeba wrócić z czymś, co przyda się goblinom.
+neuro-npc-run8-e1 t0.8 1: [kpina] Z językiem, bo w Kopalni Durgara pachnie siarką i bije czerwona łuna, więc wróć z językiem, nie bez. Jagód tu nie ma.
+neuro-npc-run8-e1 t0.8 2: [kpina] Z językiem w sensie żywym, po powrocie z kopalni. Jagody tam są, ale nie od krasnoluda z Karwina.
+neuro-npc-run8-e1 t0.8 3: [spokój] Z językiem, czyli wróć z nim cały. Jagody z Durgara nie kupisz, tylko zbierzesz.
+neuro-npc-run8-e1 t0.7 0: [spokój] Język nie znaczy tu język, tylko wróć z językiem. Kopalnia Durgara to nie poczta, więc jeśli nie zjesz żadnego goblina, nie przyniesiesz niczego z powrotem.
+neuro-npc-run8-e1 t0.7 1: [kpina] Z językiem, czyli wróć żywy. Kopalnia Durgara pachnie siarką i kusi czerwonym światłem, a gobliny służą tam smokowi. Idź po jagody, ale wróć z językiem, nie z jagodami.
+neuro-npc-run8-e1 t0.7 2: [spokój] Z językiem w sensie żywym, młody, nie z zębów. Kopalnia Durgara to miejsce, gdzie krasnoludy kopały i gdzie teraz bija czerwona łuna i pachnie siarką. Idź tam po jagody, tylko wróć z językiem.
+neuro-npc-run8-e1 t0.7 3: [spokój] Z językiem, czyli bez niego wrócisz. Kopalnia Durgara to nie targ, tylko miejsce, gdzie zginął już niejeden.

@@ -1,0 +1,9 @@
+# The game embeds its art and scripts as they are on disk: a carriage
+# return that Git for Windows adds to a portrait line sends the cursor back
+# to the start of the row and tears the screen apart.
+* text=auto eol=lf
+*.px binary
+*.png binary
+*.jpg binary
+*.wav binary
+*.gguf binary

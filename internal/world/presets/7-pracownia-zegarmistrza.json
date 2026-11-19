@@ -1,0 +1,42 @@
+{
+ "name": "Pracownia Zegarmistrza",
+ "mode": "adventure",
+ "intro": "Budzisz się w ciemnej piwnicy pod pracownią starego zegarmistrza. Pod drzwiami sączy się woda: śluza na rzece pękła i do świtu piwnica będzie pod sufit. Masz dziesięć godzin, żeby wyjść.",
+ "currency": "minut",
+ "goal": "Wydostać się z pracowni, zanim woda zaleje piwnicę.",
+ "deadline": 10,
+ "loss": "Woda sięga sufitu. Zegar z kukułką wybija godzinę, której nikt nie usłyszy.",
+ "rooms": [
+  {"name": "Piwnica", "description": "Niska piwnica, po kostki w zimnej wodzie. W kącie okuta skrzynia, w ścianie żelazna krata, a na stole ogarek świecy. Na północ wiodą schody w ciemność.", "terrain": "cave", "x": 7, "y": 4, "things": ["Świeca", "Zapałki", "Skrzynia", "Krata"],
+   "doors": [{"dir": "n", "text": "Schody giną w zupełnej ciemności. Bez światła skręcisz kark.", "flag": "swiatlo"}, {"dir": "e", "text": "Żelazna krata zamyka przejście. Nie drgnie, choć widać mechanizm z korbą.", "flag": "krata"}]},
+  {"name": "Pracownia", "description": "Pracownia zegarmistrza: stoły z lupami, setki kółek zębatych, a na ścianie wielki zegar z kukułką, którego wskazówki stoją na 4:15.", "terrain": "station", "x": 7, "y": 3, "things": ["Zegar z kukułką"]},
+  {"name": "Biblioteczka", "description": "Ciasny pokoik z regałem ksiąg o mechanice i jedną, oprawną w złoto. Na półce leży śrubokręt.", "terrain": "station", "x": 8, "y": 3, "things": ["Księga Godzin", "Śrubokręt"]},
+  {"name": "Przedsionek", "description": "Przedsionek za kratą: drzwi na zewnątrz zamknięte zamkiem szyfrowym na cztery cyfry. Zza drzwi słychać rzekę.", "terrain": "station", "x": 8, "y": 4, "things": ["Zamek szyfrowy"]}
+ ],
+ "things": [
+  {"name": "Świeca", "description": "Ogarek świecy. Przydałby się ogień."},
+  {"name": "Zapałki", "description": "Pudełko zapałek, trochę wilgotne, ale kilka jeszcze zapłonie."},
+  {"name": "Skrzynia", "description": "Okuta skrzynia na kłódkę. W środku coś metalowego przesuwa się przy potrząśnięciu.", "fixed": true},
+  {"name": "Krata", "description": "Żelazna krata z mechanizmem, w którym brakuje korby.", "fixed": true},
+  {"name": "Zegar z kukułką", "description": "Wielki zegar z kukułką. Wskazówki stoją na 4:15, a za tarczą coś grzechocze. Tarczę trzymają cztery śrubki.", "fixed": true},
+  {"name": "Księga Godzin", "description": "Księga oprawna w złoto: kronika pracowni. Na pierwszej stronie wybity złotem rok założenia: 1879.", "fixed": true},
+  {"name": "Śrubokręt", "description": "Zegarmistrzowski śrubokręt z drewnianą rączką."},
+  {"name": "Klucz", "description": "Mały klucz do kłódki, znaleziony za tarczą zegara."},
+  {"name": "Korba", "description": "Żelazna korba, pasuje do mechanizmu kraty."},
+  {"name": "Zamek szyfrowy", "description": "Mosiężny zamek z czterema bębenkami cyfr. Wpisz kod poleceniem «wpisz 1234».", "fixed": true}
+ ],
+ "steps": [
+  {"verb": "use", "thing": "Zapałki", "on": "Świeca", "once": true, "text": "Zapałka syczy, świeca łapie płomień. Piwnica robi się mniejsza, a woda czarna. Schody na północ są teraz widoczne.", "flag": "swiatlo", "takes": true},
+  {"verb": "use", "thing": "Świeca", "on": "Zapałki", "once": true, "text": "Zapałka syczy, świeca łapie płomień. Piwnica robi się mniejsza, a woda czarna. Schody na północ są teraz widoczne.", "flag": "swiatlo"},
+  {"verb": "examine", "on": "Zegar z kukułką", "text": "Wskazówki stoją na 4:15. Za tarczą coś grzechocze; tarczę trzymają cztery śrubki."},
+  {"verb": "use", "thing": "Śrubokręt", "on": "Zegar z kukułką", "once": true, "text": "Odkręcasz tarczę. Za nią, na wskazówce godzinowej, wisi mały klucz. Kukułka wyskakuje i chowa się bez słowa.", "gives": "Klucz"},
+  {"verb": "examine", "on": "Księga Godzin", "text": "Kronika pracowni. Na pierwszej stronie wybity złotem rok założenia: 1879. Dalej spis napraw, każda z godziną."},
+  {"verb": "use", "thing": "Klucz", "on": "Skrzynia", "once": true, "text": "Kłódka odskakuje. W skrzyni leży żelazna korba.", "gives": "Korba", "takes": true},
+  {"verb": "open", "on": "Skrzynia", "unless": "korba", "text": "Skrzynia jest zamknięta na kłódkę."},
+  {"verb": "use", "thing": "Korba", "on": "Krata", "once": true, "text": "Korba wchodzi w mechanizm. Kręcisz; krata z jękiem podnosi się do połowy. Przejście na wschód wolne.", "flag": "krata", "takes": true},
+  {"verb": "code", "on": "0415", "room": "Przedsionek", "text": "Zamek brzęczy i cofa bębenki. Godzina na zegarze to nie wszystko."},
+  {"verb": "code", "on": "415", "room": "Przedsionek", "text": "Cztery cyfry, nie trzy."},
+  {"verb": "code", "on": "1879", "room": "Przedsionek", "text": "Bębenki klikają po kolei: 1, 8, 7, 9. Zamek puszcza, drzwi otwierają się na rzekę i szary świt. Jesteś na zewnątrz.", "win": true},
+  {"verb": "examine", "on": "Zamek szyfrowy", "text": "Cztery bębenki z cyframi. Kod wpisujesz poleceniem «wpisz 1234»."}
+ ]
+}

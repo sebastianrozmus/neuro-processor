@@ -1,0 +1,68 @@
+{
+  "model": "SpeakLeash/bielik-11b-v2.3-instruct:Q4_K_M",
+  "url": "http://localhost:11434",
+  "options": {
+    "temperature": 0.8,
+    "seed": 7,
+    "num_ctx": 4096,
+    "num_predict": 220
+  },
+  "case_file_sha256": "b55d29002c7384d8908f6bd35bc98492cb45d4aa28ca70828fe3d029e4a05853",
+  "requested_cases": 80,
+  "references_sent_to_model": false,
+  "scope": "Ollama API only; not an in-game test",
+  "semantics_automatically_scored": false,
+  "completed_cases": 80,
+  "automatic_format_pass": 6,
+  "automatic_fail": 74,
+  "error_counts": {
+    "markup_or_quotes_in_speech": 42,
+    "sentence_count": 74,
+    "generation_truncated": 32,
+    "forbidden_numbers:7": 1,
+    "spelled_numerals:trzema": 5,
+    "missing_or_invalid_mood": 6,
+    "spelled_numerals:jedną,trzema": 1,
+    "spelled_numerals:pięćdziesiąt,siedem,trzema,trzy": 1,
+    "missing_required_numbers:57": 1,
+    "spelled_numerals:jedną,pięćdziesiąt,siedem": 1,
+    "spelled_numerals:dwa": 2,
+    "missing_required_numbers:14": 1,
+    "numbers_in_non_numeric_case": 5,
+    "spelled_numerals:osiem": 1,
+    "missing_required_numbers:63": 1,
+    "spelled_numerals:dwa,trzema": 1,
+    "forbidden_numbers:10": 1,
+    "missing_required_numbers:21": 1,
+    "spelled_numerals:dwadzieścia,jeden,sześćdziesiąt,trzy": 1,
+    "forbidden_numbers:23": 1,
+    "spelled_numerals:dwadzieścia,dwóch,osiem,trzema": 1,
+    "spelled_numerals:jedną": 1,
+    "spelled_numerals:cztery": 1,
+    "spelled_numerals:jednym": 1,
+    "forbidden_numbers:00,17,20": 1,
+    "missing_required_numbers:110": 1,
+    "spelled_numerals:trzema,trzy": 1,
+    "spelled_numerals:dwoma": 1,
+    "forbidden_numbers:50": 1,
+    "spelled_numerals:jeden": 1,
+    "spelled_numerals:dwie": 1
+  },
+  "by_role": {
+    "comp": {
+      "completed": 24,
+      "automatic_format_pass": 0
+    },
+    "merc": {
+      "completed": 40,
+      "automatic_format_pass": 4
+    },
+    "shop": {
+      "completed": 16,
+      "automatic_format_pass": 2
+    }
+  },
+  "transport_error": null,
+  "conclusion": "Format/number checks only. Review relevance, payment direction, joining, healing and lore manually.",
+  "full_suite_completed": true
+}

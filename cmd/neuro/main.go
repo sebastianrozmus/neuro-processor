@@ -1,0 +1,508 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"net"
+	"os"
+	"path/filepath"
+	"sync"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/sebastianrozmus/neuro-processor/internal/avatars"
+	"github.com/sebastianrozmus/neuro-processor/internal/config"
+	"github.com/sebastianrozmus/neuro-processor/internal/gallery"
+	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/inline"
+	"github.com/sebastianrozmus/neuro-processor/internal/inspect"
+	"github.com/sebastianrozmus/neuro-processor/internal/llm"
+	"github.com/sebastianrozmus/neuro-processor/internal/pix"
+	"github.com/sebastianrozmus/neuro-processor/internal/server"
+	"github.com/sebastianrozmus/neuro-processor/internal/settings"
+	"github.com/sebastianrozmus/neuro-processor/internal/speech"
+	"github.com/sebastianrozmus/neuro-processor/internal/trace"
+	"github.com/sebastianrozmus/neuro-processor/internal/ui"
+	"github.com/sebastianrozmus/neuro-processor/internal/world"
+)
+
+const dataDirName = "neuro-processor"
+
+// version is set at release build time (-ldflags "-X main.version=...").
+var version = "dev"
+
+func main() {
+	listen := flag.String("listen", "", "udostępnij świat innym graczom przez SSH pod tym adresem, np. :2222")
+	name := flag.String("name", os.Getenv("USER"), "proponowane imię twojej postaci")
+	showVersion := flag.Bool("version", false, "wypisz wersję gry i zakończ")
+	flag.Parse()
+
+	if *showVersion {
+		fmt.Println("neuro", version)
+		return
+	}
+
+	if err := run(*listen, *name); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run(listen, name string) error {
+	cfg := config.Load()
+	pix.Configure(cfg.Blocks, cfg.TrueColor)
+	// Real pictures go to the local terminal alone; guests over SSH get block art.
+	inline.Configure(cfg.Images, os.Stdout)
+
+	var (
+		brain     game.Brain = llm.Mock{}
+		generator ui.Generator
+		backend   = "brak (tryb offline)"
+	)
+
+	dataDir, err := os.UserConfigDir()
+	if err != nil {
+		return err
+	}
+
+	dataDir = filepath.Join(dataDir, dataDirName)
+	settingsPath := filepath.Join(dataDir, "settings.json")
+
+	var split *llm.Split
+
+	if !cfg.Offline() {
+		// Every role has a client of its own, so that the settings can
+		// give each a model: the Mind reads the player and spots new facts
+		// and things, the Voice words the lines, the Master narrates
+		// fights, World makes worlds and Images words the pictures in
+		// English. The NEURO_* variables say what they start with.
+		role := func(role, base, key, model string, window int) *llm.Client {
+			return &llm.Client{BaseURL: base, APIKey: key, Model: model, MaxTokens: cfg.MaxTokens, Context: window, Role: role}
+		}
+
+		talk, talkWindow := cfg.Model, cfg.Context
+		if cfg.TalkModel != "" {
+			talk, talkWindow = cfg.TalkModel, cfg.TalkContext
+		}
+
+		master := talk
+		if cfg.MasterModel != "" {
+			master = cfg.MasterModel
+		}
+
+		world := cfg.Model
+		if cfg.WorldModel != "" {
+			world = cfg.WorldModel
+		}
+
+		split = &llm.Split{
+			Mind:   role(llm.RoleMind, cfg.BaseURL, cfg.APIKey, cfg.Model, cfg.Context),
+			Voice:  role(llm.RoleTalk, cfg.TalkBaseURL, cfg.TalkAPIKey, talk, talkWindow),
+			Master: role(llm.RoleFight, cfg.TalkBaseURL, cfg.TalkAPIKey, master, talkWindow),
+			World:  role(llm.RoleWorlds, cfg.WorldBaseURL, cfg.WorldAPIKey, world, cfg.WorldContext),
+			Images: role(llm.RoleImages, cfg.BaseURL, cfg.APIKey, cfg.Model, cfg.Context),
+		}
+
+		var picked map[string]llm.Choice
+		if settings.Load(settingsPath, "models", &picked) {
+			split.Use(picked)
+		}
+
+		brain, generator, backend = *split, *split, describeModels(*split)
+
+		if split.Local() {
+			go split.Warm(context.Background())
+		}
+	}
+	worldsDir := filepath.Join(dataDir, "worlds")
+	host := &host{brain: brain, name: name, listen: listen, dataDir: dataDir}
+	if split != nil {
+		host.models = &modelSettings{split: split, path: settingsPath}
+		host.master = split.Narrator()
+	}
+
+	// The voice is picked in the game's settings (Escape → Ustawienia);
+	// NEURO_TTS only says which one to start with before anything is
+	// picked. Chatterbox speaks with cloned voices and audible moods from
+	// its own environment; piper is a light voice on the processor; the
+	// system voice needs nothing installed.
+	voices := &speech.Engines{
+		TTSPython: speech.VenvPython(filepath.Join(dataDir, "venv-tts")), Samples: filepath.Join(dataDir, "voices"),
+		Settings: filepath.Join(dataDir, "voices", "voices.json"), URL: cfg.TTSURL, Log: filepath.Join(dataDir, "tts.log"),
+		PiperDir: filepath.Join(dataDir, "piper"), Command: cfg.SpeechCommand,
+	}
+	defer voices.Close()
+
+	fallback := speech.Options{Engine: speech.EngineOff}
+	switch {
+	case cfg.Chatterbox:
+		fallback = speech.Options{Engine: speech.EngineChatterbox}
+	case cfg.Speech:
+		fallback = speech.Options{Engine: speech.EngineSystem, Voice: cfg.Voice}
+	}
+
+	if err := voices.Apply(speech.LoadOptions(settingsPath, fallback)); err != nil {
+		fmt.Fprintln(os.Stderr, "mowa: "+err.Error()+"; mówi głos systemowy (zmiana: Esc → Ustawienia)")
+		_ = voices.Apply(speech.Options{Engine: speech.EngineSystem, Voice: cfg.Voice})
+	}
+
+	host.voice, host.settings = voices, &voiceSettings{Engines: voices, path: settingsPath}
+	if (&speech.Server{Python: voices.TTSPython}).Available() {
+		host.tts = &inspect.TTS{URL: cfg.TTSURL, Settings: voices.Settings, Voices: voices.Samples}
+	}
+
+	if cfg.Talks {
+		host.record = recorder(filepath.Join(dataDir, "talks.jsonl"), func(request game.NarrateRequest) string {
+			if split != nil && request.Merchant.Name == game.MasterName {
+				model, _ := split.Master.Name()
+
+				return model
+			}
+
+			return game.VoiceModel(brain)
+		})
+
+		// Every call to a model and every spoken sentence, with times and
+		// tokens, for later study.
+		if err := trace.Default.WriteTo(filepath.Join(dataDir, "calls.jsonl")); err != nil {
+			fmt.Fprintln(os.Stderr, "zapis wywołań: "+err.Error())
+		}
+	}
+
+	// The inspector shows the world being played in a browser.
+	if cfg.Inspector != "" {
+		inspector, err := inspect.Start(cfg.Inspector)
+		if err != nil {
+			return fmt.Errorf("podgląd w przeglądarce: %w", err)
+		}
+
+		inspector.Feedback = filepath.Join(dataDir, "feedback.jsonl")
+		inspector.TTS = host.tts
+		host.inspector = inspector
+		backend += " · podgląd: " + inspector.URL()
+	}
+
+	host.library = avatars.Open(filepath.Join(dataDir, "avatars"))
+
+	python := cfg.Python
+	if python == "" {
+		python = speech.VenvPython(filepath.Join(dataDir, "venv"))
+	}
+
+	painter := avatars.Painter{Python: python, Dir: filepath.Join(dataDir, "avatars")}
+	if split != nil {
+		painter.Translate = split.Translate
+	}
+
+	if painter.Available() {
+		host.painter = painter
+
+		// Generated worlds get pictures of their own, painted in the
+		// background the first time they are played.
+		if cfg.WorldArt {
+			host.gallery = gallery.Open(filepath.Join(dataDir, "art"))
+			host.gallery.Translate = painter.Translate
+			host.brush = painter
+			ui.UseGallery(host.gallery)
+		}
+	}
+
+	if ear := (&speech.Listener{Python: python, Dir: filepath.Join(dataDir, "speech")}); cfg.Hearing && ear.Available() {
+		host.ear = ear
+	}
+
+	presets, err := world.Presets()
+	if err != nil {
+		return err
+	}
+
+	menu := ui.NewMenu(game.ReadStates(host.savesDir()), presets, world.SavedSpecs(worldsDir), generator, worldsDir, backend, host)
+	_, err = tea.NewProgram(menu, tea.WithAltScreen()).Run()
+
+	return err
+}
+
+// host runs the worlds picked in the menu: it creates the realm, opens it
+// to guests when asked to and lets the local player in.
+type host struct {
+	brain   game.Brain
+	voice   ui.Voice
+	record  ui.Record
+	library *avatars.Library
+	painter avatars.Generator
+	gallery *gallery.Gallery
+	brush   gallery.Brush
+	ear     ui.Ear
+	name    string
+	listen  string
+	dataDir string
+	// inspector, when on, shows the realm being played in a browser; tts
+	// is the Chatterbox server it may test voices against.
+	inspector *inspect.Server
+	tts       *inspect.TTS
+	// settings is what the pause menu changes: the voice.
+	settings ui.Settings
+	// models is what the pause menu changes about the language models;
+	// master narrates fights.
+	models ui.Models
+	master game.Narrator
+}
+
+func (h *host) savesDir() string {
+	return filepath.Join(h.dataDir, "saves")
+}
+
+// New starts a fresh game and asks the local player who they want to be.
+func (h *host) New(spec world.Spec) (tea.Model, tea.Cmd, error) {
+	built, err := world.Build(spec)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	realm := game.NewRealm(built, time.Now().UnixNano())
+	h.paint(spec)
+
+	invite, err := h.open(realm)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	setup := ui.NewSetup(spec.Name, h.name, h.library, h.painter, func(name, avatar string) (tea.Model, tea.Cmd) {
+		return h.play(realm, realm.Join(name, avatar), invite)
+	}).Inline(inline.Enabled())
+
+	return setup, setup.Init(), nil
+}
+
+// Load resumes a saved game as the hero it was saved by.
+func (h *host) Load(state game.State) (tea.Model, tea.Cmd, error) {
+	realm, err := game.Restore(state, time.Now().UnixNano())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	invite, err := h.open(realm)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	h.paint(state.Spec)
+	scene, cmd := h.play(realm, realm.Join(state.Host, ""), invite)
+
+	return scene, cmd, nil
+}
+
+// paint has the pictures of a generated world painted in the background,
+// unless they already are. The screens pick them up as they appear.
+func (h *host) paint(spec world.Spec) {
+	if h.gallery == nil || !gallery.Wanted(spec) || h.gallery.Painted(spec) {
+		return
+	}
+
+	go func() {
+		_ = h.gallery.Paint(context.Background(), spec, h.brush)
+	}()
+}
+
+// play gives the local player their interface. Only they can save the
+// game, and they are told how guests can join. The world's fights get a
+// game master when a model is configured; canned narration would add
+// nothing to the rules' own lines.
+func (h *host) play(realm *game.Realm, hero, invite string) (tea.Model, tea.Cmd) {
+	if _, offline := h.brain.(llm.Mock); !offline {
+		master := h.master
+		if master == nil {
+			master = h.brain
+		}
+
+		realm.SetMaster(master, h.record)
+	}
+
+	save := func() (string, error) {
+		return game.WriteState(h.savesDir(), realm.State(hero))
+	}
+
+	if invite != "" {
+		realm.Tell(hero, "Świat jest otwarty dla innych graczy: "+invite)
+	}
+
+	if h.inspector != nil {
+		h.inspector.Watch(realm, h.brain)
+		realm.Tell(hero, "Podgląd świata w przeglądarce: "+h.inspector.URL())
+	}
+
+	pause := ui.Pause{Saves: func() []game.State { return game.ReadStates(h.savesDir()) }, Load: h.Load, Settings: h.settings, Models: h.models}
+	scene := ui.NewGame(realm, hero, h.brain, h.library, save, h.voice, h.ear, h.record).Inline(inline.Enabled()).Debug(h.inspector != nil).Pause(pause)
+
+	return scene, scene.Init()
+}
+
+// open lets guests join the realm over SSH, if the game was started with
+// an address to listen on. It returns the command guests join with.
+func (h *host) open(realm *game.Realm) (string, error) {
+	if h.listen == "" {
+		return "", nil
+	}
+
+	addr, err := server.Start(h.listen, filepath.Join(h.dataDir, "host_key"), func(user string) (tea.Model, func()) {
+		var (
+			mu    sync.Mutex
+			guest string
+		)
+
+		// Guests pick from the host's avatars but cannot have new ones drawn.
+		setup := ui.NewSetup(realm.World().Name, user, h.library, nil, func(name, avatar string) (tea.Model, tea.Cmd) {
+			mu.Lock()
+			defer mu.Unlock()
+
+			guest = realm.Join(name, avatar)
+			// Guests are elsewhere: the host's speakers would not reach them.
+			scene := ui.NewGame(realm, guest, h.brain, h.library, nil, nil, nil, h.record)
+
+			return scene, scene.Init()
+		})
+
+		return setup, func() {
+			mu.Lock()
+			defer mu.Unlock()
+
+			if guest != "" {
+				realm.Leave(guest)
+			}
+		}
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return invitation(addr), nil
+}
+
+// recorder appends every well-answered exchange to a JSON Lines file, one
+// conversation per line in the shape the model was prompted with. Failures
+// to write are ignored: a lost record must never stop a game.
+func recorder(path string, model func(game.NarrateRequest) string) ui.Record {
+	var mu sync.Mutex
+
+	return func(request game.NarrateRequest, reply string) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		line, err := json.Marshal(map[string]any{
+			"time":     time.Now().Format(time.RFC3339),
+			"model":    model(request),
+			"keeper":   request.Merchant.Name,
+			"outcome":  request.Decision.Outcome,
+			"messages": llm.Transcript(request, reply),
+		})
+		if err != nil {
+			return
+		}
+
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return
+		}
+
+		file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+		if err != nil {
+			return
+		}
+		defer file.Close()
+
+		_, _ = file.Write(append(line, '\n'))
+	}
+}
+
+// invitation words the command guests use to join the world.
+func invitation(addr net.Addr) string {
+	_, port, _ := net.SplitHostPort(addr.String())
+	host := "ADRES-TEGO-KOMPUTERA"
+
+	if addrs, err := net.InterfaceAddrs(); err == nil {
+		for _, candidate := range addrs {
+			network, ok := candidate.(*net.IPNet)
+			if ok && !network.IP.IsLoopback() && network.IP.To4() != nil {
+				host = network.IP.String()
+
+				break
+			}
+		}
+	}
+
+	return fmt.Sprintf("ssh -p %s IMIĘ@%s", port, host)
+}
+
+// voiceSettings keeps the voice the player picks in the pause menu for
+// the next game.
+type voiceSettings struct {
+	*speech.Engines
+	path string
+}
+
+func (v *voiceSettings) Apply(options speech.Options) error {
+	if err := v.Engines.Apply(options); err != nil {
+		return err
+	}
+
+	return speech.SaveOptions(v.path, v.Engines.Options())
+}
+
+// modelSettings switches the models of the roles from the pause menu and
+// keeps the choice in settings.json for the next game.
+type modelSettings struct {
+	split *llm.Split
+	path  string
+}
+
+func (m *modelSettings) Roles() []string {
+	return llm.Roles
+}
+
+func (m *modelSettings) Picked() map[string]ui.ModelChoice {
+	picked := map[string]ui.ModelChoice{}
+	for role, choice := range m.split.Choices() {
+		picked[role] = ui.ModelChoice{Model: choice.Model, CPU: choice.CPU}
+	}
+
+	return picked
+}
+
+func (m *modelSettings) Available() ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	return m.split.Mind.Models(ctx)
+}
+
+func (m *modelSettings) Use(picked map[string]ui.ModelChoice) error {
+	choices := map[string]llm.Choice{}
+	for role, choice := range picked {
+		choices[role] = llm.Choice{Model: choice.Model, CPU: choice.CPU}
+	}
+
+	m.split.Use(choices)
+
+	return settings.Save(m.path, "models", m.split.Choices())
+}
+
+// describeModels is the line the menu shows about the models: the talking
+// one, and the others where they differ from it.
+func describeModels(split llm.Split) string {
+	talk, _ := split.Voice.Name()
+	text := talk
+
+	for _, role := range []string{llm.RoleFight, llm.RoleMind, llm.RoleWorlds, llm.RoleImages} {
+		model, cpu := split.Client(role).Name()
+		if model != talk || cpu {
+			text += " · " + role + ": " + model
+			if cpu {
+				text += " (CPU)"
+			}
+		}
+	}
+
+	return text
+}

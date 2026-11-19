@@ -1,0 +1,39 @@
+{
+  "model": "neuro-npc-run9b",
+  "url": "http://localhost:11434",
+  "options": {
+    "temperature": 0.8,
+    "seed": 7,
+    "num_ctx": 4096,
+    "num_predict": 220
+  },
+  "case_file_sha256": "fb5ca071751a22e79b09423f1f510f1201c0b9bdccfbd130c32bde330df58f4d",
+  "requested_cases": 80,
+  "references_sent_to_model": false,
+  "scope": "Ollama API only; not an in-game test",
+  "semantics_automatically_scored": false,
+  "completed_cases": 80,
+  "automatic_format_pass": 77,
+  "automatic_fail": 3,
+  "error_counts": {
+    "numbers_in_non_numeric_case": 2,
+    "spelled_numerals:trzy": 1
+  },
+  "by_role": {
+    "comp": {
+      "completed": 24,
+      "automatic_format_pass": 24
+    },
+    "merc": {
+      "completed": 40,
+      "automatic_format_pass": 37
+    },
+    "shop": {
+      "completed": 16,
+      "automatic_format_pass": 16
+    }
+  },
+  "transport_error": null,
+  "conclusion": "Format/number checks only. Review relevance, payment direction, joining, healing and lore manually.",
+  "full_suite_completed": true
+}

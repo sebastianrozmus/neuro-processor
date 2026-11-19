@@ -1,0 +1,497 @@
+[
+ {
+  "file": "train.jsonl",
+  "line": 8,
+  "new": "Pyłowy drążnik rzuca się na Tolę i odbija od jej gardy jak od ściany kopuły. Tola odpowiada zamaszystym ciosem, który przecina tylko rudy pył. Remis, i to wyjątkowo nudny."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 33,
+  "new": "Sadzowy pies kłapie zębami tuż przy uchu Darka i łapie wyłącznie chemiczny pył. Darek rewanżuje się ciosem w to samo nic. Popiół osiada na obu, równie rozczarowany."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 44,
+  "new": "Oskar wali w nocnego upiora, a ten zasłania się tak, jakby czekał na to od pokoleń. Rozczarowany Oskar łapie oddech i odzyskuje 4 zdrowia. Dzwony w oddali brzmią prawie jak drwina."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 57,
+  "new": "Darek wbija pięść w bok sadzowego psa za 7, aż z sierści sypie się sadza. Pies odgryza się za 3, ale Darek otrząsa się i odzyskuje 2 zdrowia."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 67,
+  "new": "Mewa rozkłada solnego psa trafieniem za 8, a Nora równie celnie kończy ślepą pijawkę, też za 8. Kanały cichną i drużyna wygrywa starcie. W mule czekają 24 plomby i nóż ratowniczy, jakby ktoś je tu zostawił specjalnie dla nich."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 75,
+  "new": "Nela daje nogę ze starcia, a Delta pędzi zaraz za nią, obie całe i zdrowe. Antenowy pająk zostaje sam na placu, bo w drużynie nie ma już nikogo, kto mógłby z nim walczyć."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 81,
+  "new": "Szeptucha próbuje czmychnąć w mrok, ale ucieczka jej się nie udaje. Eliza korzysta z okazji i trafia ją za 3. Znajome głosy na moment milkną, jakby się obraziły."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 92,
+  "new": "Sonia najpierw łata samą siebie i odzyskuje 4 zdrowia. Potem bierze się za Elizę, która dostaje 6 zdrowia i wraca do 39. Runda bez ciosów, za to z troską, aż mdło."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 103,
+  "new": "Mila trafia cierniową kunę za 5, a kolce zwierzaka sypią się na mech. Zaraz potem odzyskuje 3 zdrowia i wygląda na bardzo z siebie zadowoloną."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 112,
+  "new": "Runa wyprowadza czysty cios i odłupuje wilkowi łuskowemu 6 zdrowia razem z kawałkiem łuski. Radomir chce poprawić, ale trafia tylko w powietrze pod starymi drzewami. Korzenie chyba się z niego śmieją."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 118,
+  "new": "Maks w tej rundzie nie atakuje, może zbiera myśli, a może wyciera pył z oczu. Tola wykorzystuje chwilę i leczy go o 6, aż Maks wraca do 44."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 140,
+  "new": "Nela tym razem odpuszcza atak i tylko obserwuje antenowego pająka. Delta rzuca się na niego, lecz chybia o dobre pół kroku. Pająk drga antenami z wyraźnym rozbawieniem."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 147,
+  "new": "Mila wbija się w cierniową kunę i odbiera jej 6 zdrowia. Kuna odpowiada ostrym kłapnięciem za 4, a Mila syczy, czując, jak rana szczypie niczym pokrzywa."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 148,
+  "new": "Wilk łuskowy skacze na Radomira, ale zatrzymuje się na jego gardzie jak na starym pniu. Radomir odpowiada potężnym ciosem za 9 i łuski lecą na wszystkie strony."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 151,
+  "new": "Sabat strąca żałobną ćmę trafieniem za 5 i ta ginie, zanim zdąży zatrzepotać. Nocny upiór rzuca się w tym czasie na Oskara, który blokuje atak w całości. Gdzieś w oddali dzwon odmierza tę drobną porażkę mroku."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 152,
+  "new": "Nocny upiór sięga po Sabata, ale Sabat zatrzymuje go pewną gardą. Oskar próbuje coś z tego ugrać i chybia z wielkim rozmachem. Ciemność wzdycha, a drużyna razem z nią."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 237,
+  "new": "Maks wbija pięść w pyłowego drążnika za 14, aż z bestii bucha chmura rudego pyłu. Drążnik usiłuje zwiać w burzę, ale nic z tego, zostaje w starciu. Należy mu się chyba współczucie, tylko nie od Maksa."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 246,
+  "new": "Wita kładzie dłonie na ranach Mili i przywraca jej 10 zdrowia. Cierniowa kuna wybiera akurat tę chwilę i rani Witę za 6. Dobre uczynki w Rozkwicie pachną najwyraźniej krwią."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 271,
+  "new": "Mewa łapie oddech i odzyskuje 4 zdrowia. Solny pies natychmiast odbiera jej 2 z tego, kąsając ją w łydkę. Morze odeszło, ale złośliwość została."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 279,
+  "new": "Sadzowy pies podkula ogon i znika w chemicznej mgle, skutecznie uciekając ze starcia. Darek i Granit zostają z pustymi rękami i garścią popiołu."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 309,
+  "new": "Wilk łuskowy dopada Radomira i szarpie go za 4. Potem nagle zawraca w stronę korzeni, ale ucieczka mu się nie udaje i musi zostać w walce. Odwaga skończyła mu się najwyraźniej szybciej niż siły."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 312,
+  "new": "Solny pies kłapie na Mewę i trafia tylko słone powietrze. Mewa odpowiada ciosem, ale pies przyjmuje go na twardy kark i nic sobie z niego nie robi."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 327,
+  "new": "Delta odzyskuje 3 zdrowia i od razu rusza na antenowego pająka. Pająk zasłania się odnóżami tak sprawnie, że cios nie robi mu nic. Krzemowe kolonie widziały lepsze powroty do formy."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 347,
+  "new": "Antenowy pająk trafia Deltę za 4 i to wystarcza, by Delta padła na ziemię. Nela zaciska zęby i wbija w pająka cios za 7. Pająk drży, ale wciąż stoi."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 355,
+  "new": "Nora zamachuje się na solnego psa i chybia. Pies odpowiada skokiem na Norę, z tym samym marnym skutkiem. Nad zatrutymi kanałami zapada cisza pełna zażenowania."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 366,
+  "new": "Wilk łuskowy wgryza się w Runę za 4 i zostawia jej zaledwie 6 zdrowia. Runa, blada i wściekła, oddaje mu za 5. Ktoś tu zaczyna liczyć oddechy."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 372,
+  "new": "Granit kładzie sadzowego psa ciosem za 9, a Darek z równym zapałem rozgniata żrącą larwę za 13. Drużyna wygrywa starcie, a w popiele połyskuje 31 kapsli. Odzysk w najczystszej postaci."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 374,
+  "new": "Tola rzuca się do ucieczki i znika w rudej zawierusze, a Maks pędzi tuż za nią. Oboje uchodzą cało, tyle że w drużynie nie zostaje już nikt zdolny walczyć z pyłowym drążnikiem."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 390,
+  "new": "Radomir dobija wilka łuskowego ciosem za 10 i bestia pada między korzeniami. Korzeniowy pełzacz od razu nagradza ten sukces trafieniem w Radomira za 4. Runa wbija się w pełzacza za 5, żeby nie było mu zbyt wesoło."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 395,
+  "new": "Oskar w tej rundzie trzyma ręce przy sobie. Nocny upiór próbuje więc dopaść Sabata, ale ten zatrzymuje atak w całości. Mrok ma dziś wyraźnego pecha."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 399,
+  "new": "Sadzowy pies trafia Darka za 6 i Darek pada w popiół, niezdolny do działania w tej rundzie. Granit, zły jak osa, odpowiada psu ciosem za 9."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 401,
+  "new": "Mewa kąsa solnego psa za 2, a pies odwdzięcza się dokładnie tym samym, też za 2. Uprzejma wymiana, zupełnie jak przy śluzie o świcie."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 403,
+  "new": "Sonia próbuje się wymknąć, lecz ucieczka się nie udaje i zostaje w starciu. Szeptucha tymczasem rzuca się na Elizę i rozbija się o jej szczelną gardę. Głosy spoza osady chyba chichoczą."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 406,
+  "new": "Eliza ucisza szeptuchę na zawsze ciosem za 9, a Sonia rozwiewa gardłowy cień trafieniem za 5. Drużyna wygrywa starcie. Łup to 24 grosze i świeca czuwania, w sam raz na noce pełne cudzych głosów."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 410,
+  "new": "Wita rzuca się do ucieczki, lecz nic z tego, zostaje w starciu. Cierniowa kuna wykorzystuje okazję i gryzie ją za 3. Zapach strachu robi się w Rozkwicie bardzo wyraźny."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 428,
+  "new": "Nela kończy antenowego pająka ciosem za 8 i bestia zwija odnóża na dobre. Krzemowy ślepiec rani Deltę za 5, ale Delta nie zostaje dłużna i oddaje mu za 4."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 438,
+  "new": "Darek trafia sadzowego psa za 3, co ten bierze najwyraźniej za ostrzeżenie. Pies skutecznie ucieka ze starcia i rozpływa się w chemicznym pyle."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 439,
+  "new": "Solny pies trafia Mewę za 8 i Mewa pada w muł kanału. Nora odpowiada ciosem za 10, który kładzie psa na dobre, i drużyna wygrywa starcie. Z łupów zostaje wkład oddechowy, wyjątkowo przydatny na tym zatrutym brzegu."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 445,
+  "new": "Sadzowy pies próbuje się wycofać, ale ucieczka mu nie wychodzi. Granit dogania go ciosem za 3. Bywały psy z lepszym wyczuciem chwili."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 464,
+  "new": "Mila i cierniowa kuna mierzą się wzrokiem, ale żadna nie atakuje w tej rundzie. W powietrzu wisi tylko ostrzegawczy zapach i bardzo dramatyczna pauza."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 472,
+  "new": "Maks wybiera najkrótszą drogę z pola walki i skutecznie ucieka. Pyłowy drążnik rzuca się więc na Tolę, która blokuje atak w całości. Tola zapamięta sobie tę lojalność."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 498,
+  "new": "Oskar trafia nocnego upiora za 8 i upiór rozwiewa się w ciemności na dobre. Żałobna ćma tnie Sabata za 3, ale Sabat od razu oddaje jej za 5."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 505,
+  "new": "Cios Maksa mija pyłowego drążnika o dobre pół łokcia. Drążnik woli Tolę, ale i tam odbija się od pewnej gardy. Rude niebo patrzy na to z politowaniem."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 517,
+  "new": "Delta skutecznie wycofuje się ze starcia, zostawiając Nelę sam na sam z antenowym pająkiem. Pająk zaraz próbuje ją dopaść, ale chybia."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 518,
+  "new": "Granit wali w sadzowego psa, lecz pies przyjmuje cios na zbitą sierść i nawet nie mruga. Potem sam skacze na Granita i chybia o włos."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 536,
+  "new": "Nora trafia ślepą pijawkę za 8 i ta rozlewa się w kanale bez życia. Solny pies mści się, gryząc Norę za 4. Słony Brzeg nie lubi długich radości."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 539,
+  "new": "Nocny upiór spada na Oskara z ciemności, ale Oskar zatrzymuje go pełną gardą. Sabat w tym czasie wbija w upiora cios za 7."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 571,
+  "new": "Maks trafia pyłowego drążnika za 9, choć bestii zostały już tylko 2 zdrowia do stracenia. Drążnik pada martwy w rudy pył i drużyna wygrywa starcie. W nagrodę zostaje 17 żetonów."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 574,
+  "new": "Wilk łuskowy skacze na Runę i ląduje w pustce. Runa odpowiada ciosem, lecz wilk przyjmuje go na łuski bez szwanku. Stare drzewa skrzypią z nudów."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 575,
+  "new": "Darek najpierw odzyskuje 5 zdrowia, a potem rzuca się do ucieczki. Ucieczka się nie udaje i Darek zostaje w starciu, zdrowszy, ale wcale nie dalej od psa."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 641,
+  "new": "Solny pies wgryza się w Norę i odbiera jej 5 zdrowia. Nora zaciska zęby i odzyskuje dokładnie tyle samo, 5. Rachunek wychodzi na zero, nerwy już nie."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 671,
+  "new": "Maks wali pyłowego drążnika za 8, aż bestia zatacza się w rudym pyle. Tola od razu łata Maksa o 5, żeby miał siłę na kolejny cios."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 682,
+  "new": "Gardłowy cień rani Elizę za 3 i natychmiast tego żałuje. Eliza rozprasza go ciosem za 8, a Sonia dorzuca jej 3 zdrowia leczenia. Szeptucha zostaje sama ze swoimi głosami."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 700,
+  "new": "Wilk łuskowy uderza w Radomira z taką siłą, że odbiera mu 40 zdrowia i Radomir pada bez czucia. Runa z furią odpłaca wilkowi ciosem za 8."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 702,
+  "new": "Nora kładzie solnego psa ciosem za 9, a Mewa rozgniata ślepą pijawkę za 12. Kanały milkną, wszyscy przeciwnicy leżą i drużyna wygrywa starcie."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 729,
+  "new": "Antenowy pająk trafia Nelę za 7 i Nela pada. Zaraz potem dopada Deltę, rani ją za 6 i ta również ląduje na ziemi. W drużynie nie ma już nikogo zdolnego do walki, a pająk ma wieczór dla siebie."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 750,
+  "new": "Ślepa pijawka przysysa się do Nory i wyciąga z niej 2 zdrowia. Mewa odrywa ją i kończy ciosem za 6. Solny pies próbuje jeszcze dopaść Norę, ale chybia."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 762,
+  "new": "Radomir wali wilka łuskowego za 10 i bestia pada, a Runa kończy korzeniowego pełzacza, także za 10. Drużyna wygrywa starcie i zbiera 22 srebrniki oraz topór. Stare drzewa mogą wreszcie odetchnąć."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 765,
+  "new": "Maks rozbija pyłowego drążnika ciosem za 8, a Tola roztrzaskuje szklistego biegacza za 9. Drużyna wygrywa starcie i zgarnia 24 żetony oraz zestaw uszczelek, bezcenny tam, gdzie burza wciska się w każdą szczelinę."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 768,
+  "new": "Radomir rani wilka łuskowego za 5, a Runa dokłada mu 4. Wilk odwraca się do Runy i gryzie ją za 6, bo ktoś musi zapłacić za tę zniewagę."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 792,
+  "new": "Delta zamachuje się na antenowego pająka i chybia. Nela radzi sobie lepiej, wbijając w niego cios za 6. Pająk próbuje odpłacić Neli, ale jego odnóża tną tylko powietrze."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 806,
+  "new": "Nocny upiór drapie Oskara ledwie za 1. Oskar, urażony do żywego, oddaje dokładnie tyle samo, 1. Najbardziej uprzejmy pojedynek tej nocy."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 811,
+  "new": "Nikodem uderza i Zarodnik, chlupocząc, traci 6 zdrowia. Galareta odpowiada lepkim ciosem, po którym Nikodem traci tyle samo, 6. Drony sprzątające już krążą w pobliżu, jakby wyczuły robotę."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 828,
+  "new": "Nora i solny pies stoją naprzeciw siebie i żadne nie atakuje w tej rundzie. Tylko woda w kanałach chlupie, jakby ich ponaglała."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 839,
+  "new": "Cierniowa kuna skacze na Milę, ale Mila blokuje atak w całości. Mila odpowiada ciosem, który mija kunę o jeden kolec."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 844,
+  "new": "Mila rozprawia się z cierniową kuną jednym ciosem za 12. Drużyna wygrywa starcie, a łupem jest 9 listków. Skromnie, ale za to pachnąco."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 848,
+  "new": "Solny pies skutecznie ucieka ze starcia i znika w zatrutych kanałach. Mewa w tej rundzie nie atakuje, więc odprowadza go tylko wzrokiem."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 876,
+  "new": "Nocny upiór rani Oskara za 5, a Oskar od razu oddaje mu za 7. Potem łapie oddech i odzyskuje 3 zdrowia."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 886,
+  "new": "Szeptucha syczy coś obrzydliwego i rzuca się na Sonię, ale Sonia zatrzymuje ją pełną gardą. Eliza w tym czasie trafia szeptuchę za 4."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 893,
+  "new": "Gardłowy cień trafia Sonię za 2, a Sonia rozwiewa go ciosem za 6. Szeptucha próbuje jeszcze dopaść Elizę i chybia, jakby nagle zgubiła głos."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 906,
+  "new": "Sabat wbija w nocnego upiora potężny cios za 16 i bestia wyje z bólu. Upiór nie czeka na dokładkę i skutecznie ucieka ze starcia w wieczną noc."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 920,
+  "new": "Radomir kładzie wilka łuskowego jednym ciosem za 18 i drużyna wygrywa starcie. Wśród korzeni czekają 12 srebrników i kord."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 936,
+  "new": "Ledwie muśnięty pyłowy drążnik traci 1 zdrowia od ciosu Maksa i chyba nawet tego nie zauważa. Tola leczy Maksa, też o całe 1. Dramat godny wielkiej sceny."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 951,
+  "new": "Eliza skutecznie ucieka ze starcia, zostawiając Sonię samą. Szeptucha od razu atakuje Sonię, ale ta blokuje cios w całości."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 953,
+  "new": "Oskar trafia nocnego upiora za 4, a Sabat dorzuca kolejne 5. Upiór odgryza się na Sabacie i rani go za 3."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 961,
+  "new": "Mila kończy cierniową kunę ciosem za 8. Błotny upiór od razu znajduje sobie nowy cel i trafia Witę za 3, zostawiając na niej smugę mazi."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 968,
+  "new": "Nora zamachuje się na solnego psa i chybia, a Mewa zaraz po niej robi to samo. Pies nie marnuje okazji i gryzie Mewę za 5."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 969,
+  "new": "Szeptucha drapie Elizę za 1, a Sonia natychmiast leczy ją o 1. Szeptucha mogła sobie darować."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 970,
+  "new": "Błotny upiór trafia Milę za 3, ale Mila odpowiada ciosem za 9, który rozbryzguje go po okolicy. Cierniowa kuna próbuje dopaść Witę, lecz Wita blokuje atak w całości."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 971,
+  "new": "Radomir rozgniata korzeniowego pełzacza ciosem za 9. Wilk łuskowy dopada go jednak z boku i rani za 4."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 973,
+  "new": "Pyłowy drążnik zbiera od Maksa cios za 7, a zaraz potem 3 od Toli. Bestia otrzepuje się z rudego pyłu, wyraźnie mniej pewny siebie."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 981,
+  "new": "Sadzowy pies skacze na Darka, ale Darek blokuje atak w całości. Zaraz potem wali psa za 11, aż ten skomli w popiele."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 998,
+  "new": "Cierniowa kuna rzuca się na Witę i chybia, zostawiając po sobie tylko zapach mokrych liści. Wita odpowiada celnym ciosem za 8."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1004,
+  "new": "Mewa kładzie solnego psa ciosem za 7. Ślepa pijawka w tym czasie wgryza się w Norę za 5, a Nora odpłaca jej za 4."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1007,
+  "new": "Eliza ucisza szeptuchę ciosem za 6 i drużyna wygrywa starcie. Na pobojowisku czekają 22 grosze."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1008,
+  "new": "Tola w tej rundzie nie atakuje, tylko czeka. Pyłowy drążnik próbuje ją dopaść i chybia w rudy wiatr."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1009,
+  "new": "Antenowy pająk tnie Deltę za 8, a Delta bez wahania oddaje mu dokładnie tyle samo, 8. Kolonie nazwałyby to sprawiedliwą wymianą."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1013,
+  "new": "Ucieczka Maksa kończy się fiaskiem i Maks zostaje w starciu. Pyłowy drążnik od razu skacze na niego i chybia. Maks jeszcze nie wie, czy to szczęście, czy kpina."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1059,
+  "new": "Antenowy pająk próbuje czmychnąć, ale ucieczka mu się nie udaje. Delta dopada go i trafia za 3."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1064,
+  "new": "Sonia kończy szeptuchę ciosem za 6, a Eliza rozwiewa gardłowy cień trafieniem za 4. Drużyna wygrywa starcie i zgarnia 32 grosze. Głosy spoza osady na chwilę milkną."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1073,
+  "new": "Wilk łuskowy trafia Runę za 8 i Runa pada. Radomir wpada w furię i kładzie wilka ciosem za 12, a drużyna wygrywa starcie. Łupem jest 8 srebrników, marna pociecha dla obolałej Runy."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1089,
+  "new": "Maks trafia szklistego biegacza za 5, aż szkło pęka z brzękiem. Pyłowy drążnik dopada w tym czasie Tolę i rani ją za 4, ale Tola i tak leczy Maksa o 3. Poświęcenie godne pomnika na Marsie."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1090,
+  "new": "Nocny upiór rani Oskara za 6 i zostawia mu ledwie 3 zdrowia. Oskar łapie się za ranę i odzyskuje 5, a Sabat w tym czasie trafia upiora za 7. Dzwony biją, jakby wiedziały, jak blisko było."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1111,
+  "new": "Darek łapie oddech i odzyskuje 4 zdrowia. Sadzowy pies chce to wykorzystać, ale chybia."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1119,
+  "new": "Sabat w tej rundzie nie atakuje, co nocny upiór od razu wykorzystuje. Upiór trafia go lodowatym dotykiem za 4."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1120,
+  "new": "Tola leczy Maksa o 7 i Maks wraca do 45. Odświeżony od razu wali pyłowego drążnika za 10."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1158,
+  "new": "Nocny upiór skutecznie ucieka ze starcia i rozpływa się w nocy, która trwa od pokoleń. Oskar i Sabat zostają sami z dalekim biciem dzwonów."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1167,
+  "new": "Nora muska solnego psa ciosem za 1. Pies uznaje, że to dość, i skutecznie ucieka ze starcia w stronę zatrutych kanałów."
+ },
+ {
+  "file": "train.jsonl",
+  "line": 1175,
+  "new": "Pyłowy drążnik trafia Tolę za 5, a ta krzywi się z bólu. Maks mści się za nią, wbijając w bestię cios za 5."
+ }
+]

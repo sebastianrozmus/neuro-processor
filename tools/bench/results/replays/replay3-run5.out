@@ -1,0 +1,14 @@
+## E-ef-merc-007 | Gracz przyjmuje twoją cenę i płaci ci 85 koron za «Umowa najmu». Umowa stoi: potwierdź, że dołączasz do drużyn
+  STARY 0: [radość] Przyjąłem 85 koron i dołączam do waszej wyprawy.
+  STARY 1: [radość] Przyjmuję 85 koron i dołączam, żebyście wiedzieli, że warto z kimś takim jak ja gadać.
+  STARY 2: [spokój] Zapłata przyjęta, dołączam.
+  NOWY 0: [spokój] Przyjmuję zapłatę i ruszam z wami.
+  NOWY 1: [spokój] Zapłata przyjęta i ja też dołączam, choć wolałbym nie reklamować tego w karczmie.
+  NOWY 2: [spokój] Przyjmuję zapłatę i stanę przy was w potrzebie.
+## E-eh-merc-007 | Gracz przyjmuje twoją cenę i płaci ci 110 marek za «Umowa najmu». Umowa stoi: potwierdź, że dołączasz do druży
+  STARY 0: [spokój] Przyjmuję 110 marek i dołączam do ciebie w walce o własne miejsce na świecie.
+  STARY 1: [spokój] Przyjmuję 110 marek i staję u waszy usługi.
+  STARY 2: [spokój] Zapłata dotarła; 110 marek przyjęłam i dołączam.
+  NOWY 0: [spokój] Zapłata dotarła, dołączam i będę z wami w walce, gdzie tylko pozwoli sytuacja.
+  NOWY 1: [spokój] Zapłata 110 marek przyjęta i ruszam razem z wami w drogę.
+  NOWY 2: [spokój] 110 marek przyjęłam, teraz jestem częścią waszej wyprawy.

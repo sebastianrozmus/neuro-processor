@@ -1,0 +1,14 @@
+## co wiesz o krolu
+  run5 0: [spokój] Kurhany Królów to północna droga. Świecą nocą; o królu nie wiem więcej niż o jego grobie. Zapytaj Wędrownego Kupca w Starym Bórze, on zna sprawę lepiej ode mnie.
+  run5 1: [spokój] Kurhanów nie znam, a tylko słyszałem o świeciłach przy nich; idź do Wędrownego Kupca w Starym Borze, on ci je wyjaśni.
+  run5 2: [kpina] Kurhany Królów są na północnym zachodzie, a o ich świeceniu wiedzą Wędrowne Kupcy. Idź do nich w Starym Bórze.
+  run4 0: [spokój] O kurhannych świeciwach słyszałem z ust do ust. Na północ od pól Karw jest ich kilka, a nocą coś w nich migocze. To wszystko, co znam; reszta idzie na twój rachunek.
+  run4 1: [spokój] O świecącym nocnym kóle słyszałem. Na północ od Pól Karw świeci coś pod ziemią, lecz to wszystko, co o nim wiem. Poproś Wędrownego Kupca w karawanie na trasie do Starego Boru - on zna sprawę lepiej niż ja.
+  run4 2: [spokój] Oświecenia nie dostaję od ciebie. Kurhanów królowych to ty nawet z nazwy nie potrafisz określić, więc o nich milczę; w sprawie kupców pytaj Wędrownego Kupca na trakcie.
+## a co slyszales
+  run5 0: [kpina] Świeci tam coś nocą, jak stoimy na Polach Karw i patrzymy na kopce? I o kurhanach nic nie wiem więcej; kupiec w Starym Borrze ci to wyjaświ.
+  run5 1: [kpina] Świeci nocą przy moim boku i to jedyny pewnik tej rozmowy; reszta to legendy.
+  run5 2: [kpina] Świeci nocą, nie wiem czym; o kurhanach coś słyszałem; za Starym Borem stoi karawana z info o nich.
+  run4 0: [spokój] W kurhanach królów świeci nocą coś więcej niż gwiazdy; nie dopisuję tego jako wskazówkę, choć i na to przyjdzie czas. Wędrowny Kupiec ma wiadomości z tej nocy, więc jeśli idziesz z nim w drogę, pytaj go o szczegóły.
+  run4 1: [spokój] Słyszałem o świecącym czymś w kurhanach, ale nie znam jego nazwy; więcej wie Wędrowny Kupiec, więc zapytaj go w Starym Borzie.
+  run4 2: [spokój] Słyszałem o czymś świecącym nocą pod kurhanami królów na północy. Nie dodam czegoś, co nie słyszałem; to wszystko o tej sprawie.

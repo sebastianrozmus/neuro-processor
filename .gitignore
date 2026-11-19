@@ -1,23 +1,21 @@
-
-###> symfony/framework-bundle ###
 /.env.local
-/.env.local.php
-/.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
-/vendor/
-###< symfony/framework-bundle ###
+/neuro
 
-###> phpstan/phpstan ###
-phpstan.neon
-###< phpstan/phpstan ###
+# Ręcznie wygenerowane dane treningowe trzymane lokalnie
+tools/model/manual*.jsonl
+/synth
 
-###> phpunit/phpunit ###
-/phpunit.xml
-.phpunit.result.cache
-###< phpunit/phpunit ###
+# Pliki pośrednie Pythona
+__pycache__/
+tools/bench/eval/regression-80-game.jsonl
+/dist/
 
-###> php-cs-fixer/php-cs-fixer ###
-tools/php-cs-fixer/vendor
-###< php-cs-fixer/php-cs-fixer ###
+# Paczki danych od GPT (trzymane poza repo, kopia w D:\neuro-train\gpt)
+tools/model/extra-*.jsonl
+tools/model/dpo-pairs*.jsonl
+
+# Zapisy własnych rozmów z gry (talks.jsonl) zostają tylko lokalnie
+tools/eval/talks/
+/neuro.exe
+/powershell
+unsloth_compiled_cache/

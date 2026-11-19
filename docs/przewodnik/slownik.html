@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Słownik przewodnika</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+<nav class="topbar" aria-label="Strony przewodnika">
+  <a class="brand" href="index.html"><span class="mark">np</span> Jak uczyliśmy NPC mówić</a>
+  <div class="pages"><a href="index.html">Przewodnik</a><a href="statystyka.html">Statystyka</a><a href="slownik.html" aria-current="page">Słownik</a></div>
+</nav>
+<div class="layout">
+  <article>
+    <header class="hero">
+      <div class="eyebrow">Słownik · <span id="count"></span></div>
+      <h1>Pojęcia, które padają w przewodniku</h1>
+      <p class="lead">Każde hasło ma krótki opis (ten sam, co w dymku), dłuższe wyjaśnienie i przykład z naszego projektu.</p>
+      <label for="q" class="note">Szukaj hasła</label>
+      <input id="q" class="search" type="search" placeholder="np. DPO, przedział, bliźniaki…" autocomplete="off">
+    </header>
+    <div id="cats"></div>
+  </article>
+  <nav class="toc" data-auto aria-label="Spis treści"><div class="label">Działy</div></nav>
+</div>
+<footer class="foot">Stan na 13.11.2026. Opisy dla laika; uproszczenia celowe.</footer>
+<script src="terms.js"></script>
+<script>
+(function () {
+  const cats = document.getElementById("cats"), byId = Object.fromEntries(TERMS.map(t => [t.id, t]));
+  document.getElementById("count").textContent = TERMS.length + " haseł";
+  TERM_CATS.forEach((c, i) => {
+    const list = TERMS.filter(t => t.cat === c);
+    if (!list.length) return;
+    const sec = document.createElement("section");
+    sec.id = "dzial-" + (i + 1); sec.dataset.toc = c;
+    sec.innerHTML = `<header><div class="secno">${String(i + 1).padStart(2, "0")}</div><h2></h2></header><div class="glossary"></div>`;
+    sec.querySelector("h2").textContent = c;
+    const box = sec.querySelector(".glossary");
+    list.forEach(t => {
+      const el = document.createElement("div");
+      el.className = "term"; el.id = t.id; el.dataset.search = (t.name + " " + (t.aka || "") + " " + t.short + " " + t.long).toLowerCase();
+      el.innerHTML = `<h3></h3><p class="short"></p><p class="long"></p>${t.ex ? '<p class="ex"></p>' : ""}${t.rel && t.rel.length ? '<p class="rel">Zobacz też: </p>' : ""}`;
+      el.querySelector("h3").textContent = t.name;
+      if (t.aka) { const s = document.createElement("span"); s.className = "aka"; s.textContent = t.aka; el.querySelector("h3").appendChild(s); }
+      el.querySelector(".short").textContent = t.short;
+      el.querySelector(".long").textContent = t.long;
+      if (t.ex) el.querySelector(".ex").textContent = "U nas: " + t.ex;
+      if (t.rel && t.rel.length) {
+        const rel = el.querySelector(".rel");
+        t.rel.filter(r => byId[r]).forEach((r, k) => {
+          if (k) rel.appendChild(document.createTextNode(", "));
+          const a = document.createElement("a"); a.className = "t"; a.href = "slownik.html#" + r; a.textContent = byId[r].name; rel.appendChild(a);
+        });
+      }
+      box.appendChild(el);
+    });
+    cats.appendChild(sec);
+  });
+  document.getElementById("q").addEventListener("input", e => {
+    const q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll(".term").forEach(el => { el.hidden = q && !el.dataset.search.includes(q); });
+    document.querySelectorAll("#cats section").forEach(s => { s.hidden = ![...s.querySelectorAll(".term")].some(el => !el.hidden); });
+  });
+  // po zbudowaniu stron przewiń do hasła z adresu
+  if (location.hash) { const el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView(); }
+})();
+</script>
+<script src="guide.js"></script>
+</body>
+</html>

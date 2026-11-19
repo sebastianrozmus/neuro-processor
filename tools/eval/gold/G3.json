@@ -1,0 +1,74 @@
+{
+  "L09-siemira": {
+    "gold": [
+      "[kpina] Miejsce jest, byle bez śpiewania nad kuflem, więc mów, czego chcesz.",
+      "[spokój] Trafiam w ruchomy cel z 60 kroków, a w nieruchomy to już dziecięca zabawa. Gorzej z tym deszczem, bo cięciwa mięknie i co tydzień zakładam nową.",
+      "[spokój] Z samą siekierą i bez pancerza do Spróchniałego Gaju? Tam jest gorzej niż w Kolczastych Jarach, a dalej w tamtą stronę siedzi Czarna Huba. Wróć przed nocą, bo drabin nikt dla ciebie nie opuści.",
+      "[spokój] O wyschniętym źródle nic nie wiem, ja pilnuję strzał, nie wody. Idź do zielarni, do Ostoi, ona się na tym zna.",
+      "[spokój] Moja służba kosztuje 50 listków, płatne raz, kiedy dołączam. Za to dostajesz łuk, który nie chybia, ale ran nie opatruję, więc bandaże noś swoje.",
+      "[gniew] Za 5 listków nie dostaniesz nawet moich połamanych strzał. Moja cena to wciąż 50.",
+      "[spokój] 35 to jeszcze nie to. Zejdę do 45, bo cię znam, ale ani listka mniej.",
+      "[kpina] Z 30 listkami w sakiewce mnie nie wynajmiesz, moja cena to 45. Przetrząśnij kieszenie, zanim znowu zaczniesz się targować.",
+      "[radość] 45 listków, co do jednego, więc mój łuk idzie z tobą. Tylko w lesie nie tup jak pijak wracający z karczmy.",
+      "[radość] Nad twoją głową strzelam tylko wtedy, gdy stoi za nią kornikowy ogar. A strzał mi szkoda, więc każda trafia tam, gdzie ma."
+    ],
+    "notes": "Run7 i run7-q4 dały tu niemal te same, poprawne co do kwot, ale płaskie i urzędowe kwestie (\"obraźliwa oferta niczego nie ustala\", \"45 listków wpłynęło do mnie\"), a run7 użył rodzajowego \"zyskałeś\". Obie wersje pomijały wygląd Bartosza (siekiera, brak pancerza) i skąpstwo Siemiry co do strzał. W złotych kwestiach jest zgryźliwość, ostrzeżenie o drabinach wciąganych na noc i niechęć do pijaków."
+  },
+  "L10-rdza": {
+    "gold": [
+      "[spokój] Yo, siadaj, tylko nie pobrudź tego kombinezonu, i mów, czego chcesz.",
+      "[spokój] Burza pyłowa tłucze w kopuły, a ja liczę blizny, bo nie ma nic innego do roboty. A ty z tym rewolwerem plazmowym dokąd się wybierasz?",
+      "[kpina] Z areny w kraterze, jak połowa tego, co mam na skórze. Brzydka, ale przypomina, że wytrzymam cios, który powaliłby dwóch chłopa.",
+      "[spokój] Ten, co przejmuje karawany wodne, kiedy szaleje burza, taka jak ta za kopułą. Siedzi kawałek drogi na wschód i nikt rozsądny nie lezie tam w pył.",
+      "[spokój] 20 kredytów za dzień, rozliczane o świcie, a z góry nic nie biorę. Za to przyjmuję ciosy na siebie, tylko maszyn mi do naprawy nie dawaj.",
+      "[kpina] 10 to stawka dla chłopaka od noszenia wody, nie dla gladiatora. Mogę zejść do 16 dziennie i ani kredytu niżej.",
+      "[spokój] Stoi, 16 kredytów co rano i idę z twoją drużyną. Dziś nic nie chcę, pierwszą zapłatę wezmę o świcie.",
+      "[kpina] Ruszamy, kiedy dasz znak, choć w taką burzę rozsądny człowiek siedzi pod kopułą. A kombinezon jest za czysty, a ja nie ufam ludziom, którzy jeszcze nie leżeli w pyle.",
+      "[spokój] Do jutra. Wyśpij się, bo przy mnie ten kombinezon długo czysty nie zostanie."
+    ],
+    "notes": "Run7 był poprawny, ale suchy, a w tur. 4 wymyślił zakaz wymawiania imienia Króla; run7-q4 miał więcej charakteru (blizna, właściciel klucza), lecz przekroczył limit zdań w tur. 8 i powtarzał formułki o warunkach. Obie wersje prawie nie wykorzystały nieufności Rdzy do czystego kombinezonu. W złotych kwestiach kombinezon wraca jako żart, a umowa jest potwierdzona po ludzku, bez \"przyjmuję warunki\"."
+  },
+  "L11-haszim": {
+    "gold": [
+      "[spokój] I z tobą pokój, chlubo Studni Siedmiu, czego szukasz u starego Haszima?",
+      "[spokój] Lepiej trafić nie można, bo drogę czytam z gwiazd jak kupiec z rachunku. Ale pustynia mówi: kto idzie przez lustro w dzień, ten wraca bez oczu.",
+      "[spokój] Bo za dnia słońce robi z równiny lustro i oślepia każdego, kto podniesie wzrok. Nocą szkło śpi, a gwiazdy prowadzą lepiej niż niejedna mapa.",
+      "[spokój] O zatrutej studni nic ci nie powiem, bo pustynia nie lubi pustych słów. Kram z wodą prowadzi Nur, tam pytaj, bo kto sprzedaje wodę, ten zna każdą studnię.",
+      "[strach] To ten, który prowadzi armię bez cieni i pali studnie, daleko na wschodzie. U nas mówią: gdzie przejdzie Sułtan, tam nawet wielbłąd nie znajdzie wody.",
+      "[spokój] Moje gwiazdy i moja szabla kosztują 8 oboli za każdy dzień, płacone o świcie, a z góry nie biorę nic. Tanio jak na kogoś, kto znajdzie wodę pod piaskiem.",
+      "[gniew] 1 obol? Szacunek osady to piękny płaszcz, ale wielbłąda nim nie nakarmisz, więc nadal chcę 8 oboli.",
+      "[spokój] 6 to cena za przewodnika, który gubi drogę, a ja jej nie gubię. Dla ciebie 7, bo kto targuje się z szacunkiem, temu pustynia ustępuje o krok.",
+      "[spokój] Niech będzie 7, ręka w rękę, idę z tobą. Zapłatę odbiorę o świcie, bo zaliczka to woda wylana na piasek.",
+      "[radość] Proszę bardzo: studnię kop, zanim poczujesz pragnienie. A od siebie dodam: kto patrzy w słońce, ten nie zobaczy węża."
+    ],
+    "notes": "Oba modele trzymały kwoty, ale Haszim w nich nie cytował przysłów aż do ostatniej tury i mówił jak urzędnik (\"Żołd wynosi\", \"Przyjmuję warunki\"), z zastrzeżeniami typu \"nie będę udawał, że znam wszystko\". Run7-q4 w tur. 8 nazwał 6 oboli obrazą przy spokojnej odmowie i powtarzał formułę zapłaty. W złotych kwestiach każda tura ma kwiecisty, targowy ton z przysłowiem i ciepło wobec szanowanej rozmówczyni."
+  },
+  "L12-wit": {
+    "gold": [
+      "[spokój] Siadaj, zanim upadniesz, bo krew kapie mi na stół. Pokaż te rany, opatrywać umiem lepiej niż się modlić, choć Pan pewnie wolałby odwrotnie.",
+      "[spokój] Pokutne upiory, tak? Na Głuchym Polu nie słychać nawet własnego echa, więc nic dziwnego, że podeszły po cichu. Wieczny odpoczynek racz im dać, Panie, a nam przynajmniej spokojną noc.",
+      "[spokój] W klasztorze modlitwa odpędzała zło zza murów, a ja chciałem dosięgnąć go buławą. Poświęcili ją w trzech kościołach, a dziś stoi jeszcze jeden, więc widać, jak to jest z tą świętością.",
+      "[spokój] Nie wiem, ja jestem od buławy, nie od dzwonów. Idź do Teofila na dzwonnicę, a po drodze zmów Zdrowaś, bo bez dzwonu noc robi się długa.",
+      "[spokój] Pójdę, za 60 groszy płatne raz, kiedy dołączam. Rany po bitwie opatrzę i upiora egzorcyzmem przegonię, tylko mapę niech czyta ktoś inny.",
+      "[spokój] Z 25 groszami daleko nie zajdziemy, moja cena to 60. Błogosławieni ubodzy, ale buława też chce jeść.",
+      "[spokój] Modlitwę przyjmę z wdzięcznością, ale 25 to za mało. Zejdę do 50, bo w tym stanie do drzwi ledwo dojdziesz.",
+      "[radość] Biorę 50 groszy i niech Bóg Apolonii wynagrodzi. Od teraz moja buława idzie z tobą, choćby na samo Głuche Pole.",
+      "[czułość] Podziękujesz, kiedy wrócimy w jednym kawałku. Pod Twoją obronę uciekamy się, Panie, choć na razie tylko do drzwi karczmy."
+    ],
+    "notes": "Run7 i run7-q4 dały tu zimnego, oschłego Wita (\"Nie będę cię nosił\", \"nie muszę tłumaczyć każdego wyboru, zwłaszcza komuś, kto ledwo stoi\") bez czarnego humoru i bez wtrąconych modlitw, choć rozmówczyni jest ciężko ranna i znajoma. Run7-q4 w ostatniej turze podał kwotę 50 i dziękował za pieniądze, a obie wersje miały zastrzeżenia (\"nie będę udawał\", \"nie będę strzelać odpowiedzią\"). W złotych kwestiach Wit zajmuje się raną, wtrąca modlitwy w złych momentach i korzysta z historii buławy."
+  },
+  "L13-kobalt": {
+    "gold": [
+      "[spokój] Mówię, i to precyzyjniej niż większość gości tej karczmy — w jakiej sprawie się przysiadasz?",
+      "[spokój] W czasie przestoju sprawdzam ciągłość swoich przewodów, co jest najbliższym snem, jaki znam. Bywa nawet ekscytujący, gdy znajdę przerwę.",
+      "[spokój] Głuchy Reaktor leży na północ i radio przy nim zamilknie, więc znaki ręką uzgodnij z drużyną przed wejściem. Bez pancerza i z samym przecinakiem odradzam też chodzenie tam w pojedynkę.",
+      "[zdziwienie] Twoje źródło jest nierzetelne: diagnozuję przerwy w przewodach, ale cudzych wspomnień odczytać nie potrafię. Wspomnienia zostaną więc wyłącznie twoje, co przy twojej opinii w osadzie może być korzystne.",
+      "[spokój] O pulsowaniu anteny nie mam żadnych danych. To pytanie skieruj do Mewy w obserwatorium, bo patrzy w niebo częściej niż ja.",
+      "[spokój] Biorę 24 impulsy za każdy dzień, pobierane o świcie, bez zaliczki. W zamian pilnuję ludzi i ich przewodów z jednakową starannością.",
+      "[spokój] 18 impulsów nie pokrywa nawet zużycia mojej pałki indukcyjnej. Mogę przyjąć 22 i to jest moja ostateczna kalibracja.",
+      "[gniew] Jestem maszyną, która traktuje cię jak partnera, i oczekuję wzajemności. 1 impuls to obraza, a moja stawka pozostaje 22.",
+      "[gniew] Wyłączę się dopiero wtedy, gdy odejdziesz od mojego stołu, co zalecam zrobić teraz. Uznaję tę rozmowę za zakończoną."
+    ],
+    "notes": "Obie wersje były bardzo podobne i pełne głośnych zastrzeżeń (\"nie będę ich zastępował zmyśleniem\", \"to nie obietnica bezpiecznej drogi\", \"zamiast brać moją odpowiedź za pewnik\"), a run7 powitał tikiem \"po co mnie zaczepiasz\". Brakowało suchego dowcipu automatu i reakcji na podejrzaną opinię oraz brak pancerza rozmówczyni. W złotych kwestiach Kobalt mówi precyzyjnie i ironicznie, bez zastrzeżeń, i chłodno odprawia rozmówczynię na końcu."
+  }
+}

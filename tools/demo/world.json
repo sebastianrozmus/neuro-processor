@@ -1,0 +1,394 @@
+{
+ "name": "Wyspa Czarnej Perły",
+ "intro": "Sztorm wyrzucił cię na brzeg wyspy, której nie ma na żadnej mapie. W zatoce stoi port przemytników, w głębi lądu dymi wulkan, a nocą z dżungli dochodzi bębnienie. Mówią, że kapitan Varga nie umarł, tylko czeka w swoim wraku na tego, kto przyjdzie po perłę.",
+ "currency": "dublonów",
+ "places": [
+  {
+   "name": "Port Rumowy",
+   "description": "Przystań przemytników sklecona z wraków. Rum leje się tu taniej niż woda, a każdy ma nóż za pasem.",
+   "terrain": "water",
+   "danger": 0
+  },
+  {
+   "name": "Misja Świętej Barbary",
+   "description": "Kamienny klasztor na klifie, ostatnie miejsce na wyspie, gdzie dzwon bije o świcie.",
+   "terrain": "mountain",
+   "danger": 0
+  },
+  {
+   "name": "Plaża Rozbitków",
+   "description": "Biały piasek zasłany deskami, beczkami i butami bez właścicieli.",
+   "terrain": "desert",
+   "danger": 1
+  },
+  {
+   "name": "Dżungla Papug",
+   "description": "Zielony gąszcz pełen krzyku ptaków i lian, które czasem okazują się wężami.",
+   "terrain": "forest",
+   "danger": 1
+  },
+  {
+   "name": "Bagna Mangrowe",
+   "description": "Korzenie w czarnej wodzie i mgła, która pachnie zgnilizną i prochem.",
+   "terrain": "swamp",
+   "danger": 2
+  },
+  {
+   "name": "Cmentarz Okrętów",
+   "description": "Zatoka pełna wraków osiadłych na rafie. Z kajut dobiega śpiew, choć załogi dawno nie żyją.",
+   "terrain": "ruins",
+   "danger": 2
+  },
+  {
+   "name": "Zbocza Wulkanu",
+   "description": "Czarna lawa i gorący popiół. Ziemia drży, a z pęknięć bucha siarka.",
+   "terrain": "wasteland",
+   "danger": 3
+  },
+  {
+   "name": "Krypta Vargi",
+   "description": "Jaskinia pod wulkanem, gdzie kapitan złożył skarb i siebie samego.",
+   "terrain": "cave",
+   "danger": 3
+  }
+ ],
+ "sites": [
+  {
+   "name": "Źródło Pod Palmą",
+   "description": "Słodka woda bijąca spod korzeni. Kto się napije, zapomina o ranach.",
+   "kind": "shrine"
+  },
+  {
+   "name": "Skrzynia Bosmana",
+   "description": "Zakopana pod krzywą palmą, pilnowana przez tych, co ją zakopali.",
+   "kind": "treasure"
+  },
+  {
+   "name": "Wrak Czarnej Perły",
+   "description": "Okręt kapitana Vargi, przechylony na rafie. Pod pokładem wciąż stoi jego kufer.",
+   "kind": "treasure"
+  },
+  {
+   "name": "Ołtarz Bębnów",
+   "description": "Krąg czaszek i bębnów, przy którym wyspiarze odprawiają swoje modły. Wraca tu siła.",
+   "kind": "shrine"
+  }
+ ],
+ "monsters": [
+  {
+   "name": "Krab Olbrzymi",
+   "description": "Krab wielkości beczki, z kleszczami, które łamią wiosła.",
+   "shape": "insect",
+   "tier": 1
+  },
+  {
+   "name": "Małpa Rabuś",
+   "description": "Zuchwała małpa z nożem przemytnika; kradnie wszystko, co błyszczy.",
+   "shape": "beast",
+   "tier": 1
+  },
+  {
+   "name": "Bagienna Anakonda",
+   "description": "Wąż długości szalupy, cierpliwy jak przypływ.",
+   "shape": "serpent",
+   "tier": 2
+  },
+  {
+   "name": "Utopiony Marynarz",
+   "description": "Członek załogi Vargi, który wciąż stoi na wachcie, choć wodorosty wyżarły mu twarz.",
+   "shape": "undead",
+   "tier": 2
+  },
+  {
+   "name": "Widmo Kapitana",
+   "description": "Ogień świętego Elma w kształcie człowieka. Nie da się go odgonić stalą.",
+   "shape": "spirit",
+   "tier": 3
+  },
+  {
+   "name": "Golem z Lawy",
+   "description": "Skorupa zastygłej lawy, w której wciąż płynie ogień. Każdy krok zostawia szkło.",
+   "shape": "machine",
+   "tier": 3
+  }
+ ],
+ "boss": {
+  "name": "Kapitan Varga",
+  "description": "Umarły kapitan Czarnej Perły, który sprzedał załogę za perłę i wieczność. Nosi obie na szyi.",
+  "shape": "undead"
+ },
+ "items": [
+  {
+   "name": "Kordelas",
+   "description": "Krótka, szeroka szabla przemytników, dobra w ciasnej kajucie.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 1
+  },
+  {
+   "name": "Harpun Wielorybniczy",
+   "description": "Harpun z zadziorem, który nie wychodzi z rany.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 2
+  },
+  {
+   "name": "Szabla Vargi",
+   "description": "Szabla kapitana, czarna jak perła i tak samo przeklęta. Tnie duchy.",
+   "kind": "weapon",
+   "effect": "none",
+   "tier": 3
+  },
+  {
+   "name": "Kaftan Żeglarski",
+   "description": "Nasączone smołą płótno, które trzyma wodę i nóż.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 1
+  },
+  {
+   "name": "Napierśnik Konkwistadora",
+   "description": "Stal z galeonu, który nie dopłynął do domu.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 2
+  },
+  {
+   "name": "Zbroja z Łusek Golema",
+   "description": "Płyty zastygłej lawy, lekkie i gorące w dotyku.",
+   "kind": "armor",
+   "effect": "none",
+   "tier": 3
+  },
+  {
+   "name": "Rum z Chininą",
+   "description": "Gorzki trunek, który odgania gorączkę i zamyka rany.",
+   "kind": "potion",
+   "effect": "heal",
+   "tier": 1
+  },
+  {
+   "name": "Balsam Misji",
+   "description": "Maść sióstr z klasztoru, pachnie kadzidłem i goi głębokie cięcia.",
+   "kind": "potion",
+   "effect": "heal",
+   "tier": 2
+  },
+  {
+   "name": "Kawa Przemytnika",
+   "description": "Czarna, słodka i mocna jak sztorm. Przywraca jasność umysłu.",
+   "kind": "potion",
+   "effect": "mana",
+   "tier": 1
+  },
+  {
+   "name": "Tabliczka z Czaszką",
+   "description": "Wyspiarskie zaklęcie wyryte w kości: rzucone w kogoś, parzy jak słońce w południe.",
+   "kind": "spell",
+   "effect": "bolt",
+   "tier": 1
+  },
+  {
+   "name": "Zwój Sztormu",
+   "description": "Kartka z dziennika Vargi: słowa, które wzywają wiatr na wszystkich naraz.",
+   "kind": "spell",
+   "effect": "blast",
+   "tier": 2
+  },
+  {
+   "name": "Litania Świętej Barbary",
+   "description": "Modlitwa sióstr, która stawia na nogi całą załogę.",
+   "kind": "spell",
+   "effect": "heal",
+   "tier": 2
+  },
+  {
+   "name": "Róg Bębniarza",
+   "description": "Róg, którego dźwięk rozrywa uszy i duchy.",
+   "kind": "spell",
+   "effect": "bolt",
+   "tier": 3
+  },
+  {
+   "name": "Kolczyk z Kości Rekina",
+   "description": "Noszony w uchu, odwraca cios.",
+   "kind": "charm",
+   "effect": "ward",
+   "tier": 1
+  },
+  {
+   "name": "Pazur Małpiego Króla",
+   "description": "Na rzemieniu, dodaje ciosowi złości.",
+   "kind": "charm",
+   "effect": "power",
+   "tier": 2
+  },
+  {
+   "name": "Kompas Vargi",
+   "description": "Nie wskazuje północy, tylko to, czego najbardziej pragniesz. Rozjaśnia myśli.",
+   "kind": "charm",
+   "effect": "focus",
+   "tier": 2
+  },
+  {
+   "name": "Czarna Perła",
+   "description": "Perła wielkości oka, ciepła jak żywe serce. Kto ją nosi, nie umiera łatwo.",
+   "kind": "charm",
+   "effect": "vigor",
+   "tier": 3
+  }
+ ],
+ "shops": [
+  {
+   "name": "Kram Jednookiego Pedra",
+   "kind": "armory",
+   "keeper": "Jednooki Pedro",
+   "persona": "Stary przemytnik z opaską na oku i papugą, która podpowiada ceny. Gada dużo, kłamie z wdziękiem i każdą broń opisuje historią, kto od niej zginął.",
+   "greeting": "Ahoj, rozbitku! Żelazo czy ołów? Papuga mówi, że stać cię na niewiele."
+  },
+  {
+   "name": "Infirmeria Misji",
+   "kind": "alchemist",
+   "keeper": "Siostra Inez",
+   "persona": "Zakonnica z misji, która łatała już piratów, żołnierzy i jedną syrenę. Spokojna, ironiczna, nie boi się nikogo i każe się modlić przed zapłatą.",
+   "greeting": "Krwawisz na moją posadzkę. Siadaj i mów, co cię sprowadza, oprócz głupoty."
+  },
+  {
+   "name": "Chata Bębniarza",
+   "kind": "magic",
+   "keeper": "Bębniarz Mabo",
+   "persona": "Wyspiarski szaman w naszyjniku z zębów, który rozmawia z duchami wraków i uważa białych za nieporozumienie. Mówi powoli, w zagadkach, i śmieje się w złych momentach.",
+   "greeting": "Duchy mówiły, że przyjdziesz. Nie mówiły, że taki chudy. Czego szukasz?"
+  }
+ ],
+ "companions": [
+  {
+   "name": "Bosman Kula",
+   "description": "Jednonogi bosman z drewnianą pałką. Śpiewa szanty w walce i nigdy nie ucieka, bo nie nadąża.",
+   "role": "fighter",
+   "tier": 1
+  },
+  {
+   "name": "Siostra Dolores",
+   "description": "Nowicjuszka z misji, która wie o ranach więcej niż o modlitwie. Chce zobaczyć wulkan z bliska.",
+   "role": "healer",
+   "tier": 2
+  },
+  {
+   "name": "Mabo Młodszy",
+   "description": "Syn bębniarza, uczy się mówić z duchami i na razie duchy mówią do niego za dużo.",
+   "role": "mage",
+   "tier": 2
+  },
+  {
+   "name": "Kapitan Isabela Cruz",
+   "description": "Łowczyni piratów z listem kaperskim i rachunkiem do Vargi. Żąda żołdu, rumu i pierwszego strzału.",
+   "role": "fighter",
+   "tier": 3,
+   "legend": true
+  }
+ ],
+ "events": [
+  {
+   "id": "przyplyw",
+   "when": {
+    "day": 2
+   },
+   "once": true,
+   "global": true,
+   "text": "Nocny przypływ wyrzuca na Plażę Rozbitków kolejnych utopionych. Rano stoją w szeregu, twarzą do portu.",
+   "spawn": {
+    "monster": "Utopiony Marynarz",
+    "count": 2,
+    "where": "near:Port Rumowy"
+   },
+   "fact": {
+    "subject": "Nocny przypływ",
+    "text": "Drugiej nocy przypływ przyniósł utopionych marynarzy pod sam Port Rumowy."
+   }
+  },
+  {
+   "id": "pozar-dzungli",
+   "when": {
+    "killed": "Małpa Rabuś",
+    "count": 3
+   },
+   "once": true,
+   "global": true,
+   "text": "Małpy, uciekając, przewracają lampy w obozie przemytników. Dżungla Papug płonie przez całą noc.",
+   "transform": {
+    "room": "Dżungla Papug",
+    "description": "Spalona dżungla. Czarne pnie, dym i cisza: papugi odleciały, węże zostały.",
+    "terrain": "wasteland"
+   },
+   "fact": {
+    "subject": "Pożar dżungli",
+    "text": "Dżungla Papug spłonęła od przewróconych lamp; papugi odleciały na drugi koniec wyspy."
+   },
+   "standing": 2
+  },
+  {
+   "id": "skrzynia-bosmana",
+   "when": {
+    "enter": "Skrzynia Bosmana",
+    "unless": "skrzynia-wykopana"
+   },
+   "once": true,
+   "text": "Pod krzywą palmą, dwa łokcie w piasku, leży skrzynia bosmana. Zamek dawno zjadła sól.",
+   "gold": 70,
+   "flag": "skrzynia-wykopana"
+  },
+  {
+   "id": "pedro-skrzynia",
+   "when": {
+    "talked": "Jednooki Pedro",
+    "flag": "skrzynia-wykopana"
+   },
+   "once": true,
+   "text": "Pedro mruży jedyne oko. «Wykopałeś skrzynię Bosmana? To był mój bosman. Weź harpun, należał do niego, i nie mów nikomu, że dałem go za darmo.»",
+   "gives": "Harpun Wielorybniczy",
+   "fact": {
+    "subject": "Bosman Pedra",
+    "text": "Skrzynia Bosmana należała do bosmana Jednookiego Pedra; Pedro oddał jego harpun temu, kto ją wykopał."
+   },
+   "standing": 1
+  },
+  {
+   "id": "varga-budzi",
+   "when": {
+    "enter": "Krypta Vargi"
+   },
+   "once": true,
+   "global": true,
+   "text": "Gdy wchodzisz do krypty, bębny w dżungli milkną. Z wulkanu schodzi ogień: Varga woła swoich.",
+   "spawn": {
+    "monster": "Widmo Kapitana",
+    "count": 2,
+    "where": "place:Krypta Vargi"
+   },
+   "fact": {
+    "subject": "Przebudzenie Vargi",
+    "text": "Ktoś wszedł do Krypty Vargi; kapitan zwołał widma i bębny w dżungli zamilkły."
+   }
+  },
+  {
+   "id": "wybuch",
+   "when": {
+    "day": 6
+   },
+   "once": true,
+   "global": true,
+   "text": "Wulkan wyrzuca chmurę popiołu. Lawa spływa na bagna i gotuje czarną wodę; przez dzień wyspą trzęsie.",
+   "transform": {
+    "room": "Bagna Mangrowe",
+    "description": "Wygotowane bagna. Popękane błoto, zastygła lawa między korzeniami i para, która jeszcze nie opadła.",
+    "terrain": "wasteland"
+   },
+   "prices": 15,
+   "fact": {
+    "subject": "Wybuch wulkanu",
+    "text": "Szóstego dnia wulkan wybuchł; lawa wygotowała Bagna Mangrowe, a w porcie podrożało wszystko."
+   }
+  }
+ ]
+}
