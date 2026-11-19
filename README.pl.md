@@ -55,23 +55,25 @@ go run ./cmd/neuro
 
 Potrzebny jest terminal co najmniej 118×36 z 256 kolorami. Na macOS plik pobrany przeglądarką odblokowuje `xattr -d com.apple.quarantine neuro`. Bez modelu gra też działa: wbudowane światy, walka, zapis i gra w kilka osób, tylko kupcy mówią gotowymi kwestiami.
 
-**2. Modele (zalecane).** Zainstaluj Ollamę i pobierz:
+**2. Model (zalecany).** Zainstaluj Ollamę i pobierz:
 
 ```sh
-ollama pull gemma3:4b
-ollama pull hf.co/sebastianrozmus/neuro-npc-bielik-11b-GGUF:Q5_K_M
+ollama pull hf.co/rozmus/neuro-npc-bielik-11b-v3-GGUF:Q5_K_M
 ```
 
-Potem utwórz `.env.local` w katalogu, z którego uruchamiasz grę, albo w katalogu danych gry:
+Potem utwórz `.env.local` w katalogu, z którego uruchamiasz grę, albo w katalogu danych gry. Jeden model robi wszystko:
 
 ```
 NEURO_LLM_BASE_URL=http://localhost:11434/v1
-NEURO_LLM_MODEL=gemma3:4b
+NEURO_LLM_MODEL=hf.co/rozmus/neuro-npc-bielik-11b-v3-GGUF:Q5_K_M
 NEURO_TALK_BASE_URL=http://localhost:11434/v1
-NEURO_TALK_MODEL=hf.co/sebastianrozmus/neuro-npc-bielik-11b-GGUF:Q5_K_M
+NEURO_TALK_MODEL=hf.co/rozmus/neuro-npc-bielik-11b-v3-GGUF:Q5_K_M
+NEURO_WORLD_MODEL=hf.co/rozmus/neuro-npc-bielik-11b-v3-GGUF:Q5_K_M
 ```
 
-Gemma rozumie gracza i generuje światy, a Bielik mówi za postaci. Razem potrzebują ok. 14 GB pamięci. Przy mniejszej zostaw samą gemmę (usuń linie `NEURO_TALK_`).
+Potrzebuje ok. 8,7 GB pamięci karty (kontekst 8192); na RTX 4060 Ti kwestia zajmuje ok. 2 s. Przy mniejszej pamięci wpisz w `NEURO_LLM_MODEL` mały model ogólny, np. `gemma3:4b`, i usuń linie `NEURO_TALK_`.
+
+Model to Bielik 11B v3.0 douczony pod tę grę (SFT + DPO): mówi za postaci, opisuje walki jako Mistrz Gry i wykonuje zadania „umysłu” (rozumienie gracza, notowanie faktów, pamięć postaci). Każdą wersję oceniają ślepo sędziowie na zestawach, których model nie widział. Opis i wyniki: [Hugging Face](https://huggingface.co/rozmus/neuro-npc-bielik-11b-v3-GGUF), pełna historia: [tools/model/MODELE.md](tools/model/MODELE.md) i [tools/model/HISTORIA.md](tools/model/HISTORIA.md).
 
 **3. Graj.** Polecenia piszesz po polsku, wielkość liter i ogonki nie mają znaczenia: `idź na północ` (albo `n`), `rozejrzyj się`, `podnieś miecz`, `idź do zbrojowni`, `atakuj`, `najmij Bognę`, `dziennik`, `pomoc`. W sklepie po prostu rozmawiasz: `ile za kord?`, `dam 30`, `sprzedam kord za 40`.
 

@@ -30,7 +30,7 @@ Cały stan trzyma jeden obiekt (`game.Realm`), a każdy gracz, lokalny czy przez
 
 ## Model `neuro-npc`
 
-Za postaci mówi Bielik 11B ([SpeakLeash](https://huggingface.co/speakleash)) douczony metodą QLoRA na rozmowach w dokładnym formacie promptów gry. Wydany model jest na [Hugging Face](https://huggingface.co/sebastianrozmus/neuro-npc-bielik-11b-GGUF). W benchu 80 nowych przypadków (format, kwoty, nastrój) ma 80/80, a model bez douczenia 6–8/80.
+Grę obsługuje jeden model: Bielik 11B v3.0 ([SpeakLeash](https://huggingface.co/speakleash)) douczony pod tę grę (QLoRA SFT w dokładnym formacie promptów gry, potem DPO). Mówi za postaci, opisuje walki jako Mistrz Gry i wykonuje zadania Umysłu (JSON). Wydany model z wynikami ślepych ocen jest na [Hugging Face](https://huggingface.co/rozmus/neuro-npc-bielik-11b-v3-GGUF). Każdą nową wersję porównuje się z poprzednią ślepą oceną sędziów na zestawach, których model nie widział, według reguły spisanej przed oceną.
 
 | Ścieżka | Co tam jest |
 |---|---|

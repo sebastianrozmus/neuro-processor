@@ -56,23 +56,23 @@ go run ./cmd/neuro
 
 You need a terminal of at least 118×36 with 256 colours. On macOS, unblock a browser download with `xattr -d com.apple.quarantine neuro`. Without a model the game still runs: built-in worlds, combat, saving and multiplayer all work; shopkeepers use canned lines.
 
-**2. The models (recommended).** Install Ollama, then:
+**2. The model (recommended).** Install Ollama, then:
 
 ```sh
-ollama pull gemma3:4b
-ollama pull hf.co/sebastianrozmus/neuro-npc-bielik-11b-GGUF:Q5_K_M
+ollama pull hf.co/rozmus/neuro-npc-bielik-11b-v3-GGUF:Q5_K_M
 ```
 
-and create `.env.local` in the folder you run the game from, or in the game's data folder (`~/Library/Application Support/neuro-processor` on macOS, `~/.config/neuro-processor` on Linux, `%AppData%\neuro-processor` on Windows):
+and create `.env.local` in the folder you run the game from, or in the game's data folder (`~/Library/Application Support/neuro-processor` on macOS, `~/.config/neuro-processor` on Linux, `%AppData%\neuro-processor` on Windows). One model plays every role:
 
 ```
 NEURO_LLM_BASE_URL=http://localhost:11434/v1
-NEURO_LLM_MODEL=gemma3:4b
+NEURO_LLM_MODEL=hf.co/rozmus/neuro-npc-bielik-11b-v3-GGUF:Q5_K_M
 NEURO_TALK_BASE_URL=http://localhost:11434/v1
-NEURO_TALK_MODEL=hf.co/sebastianrozmus/neuro-npc-bielik-11b-GGUF:Q5_K_M
+NEURO_TALK_MODEL=hf.co/rozmus/neuro-npc-bielik-11b-v3-GGUF:Q5_K_M
+NEURO_WORLD_MODEL=hf.co/rozmus/neuro-npc-bielik-11b-v3-GGUF:Q5_K_M
 ```
 
-Gemma reads what you mean and generates worlds; Bielik speaks for the characters. Together they need about 14 GB of memory. With less, keep gemma alone (drop the `NEURO_TALK_` lines). Any OpenAI-compatible API works too.
+It needs about 8.7 GB of GPU memory (8192-token context); on an RTX 4060 Ti a line takes about 2 s. With less memory, use a small general model such as `gemma3:4b` in `NEURO_LLM_MODEL` alone and drop the `NEURO_TALK_` lines. Any OpenAI-compatible API works too.
 
 **3. Play.** Commands are Polish; case and diacritics don't matter: `idź na północ` (go north, or `n`), `rozejrzyj się` (look around), `podnieś miecz` (pick up the sword), `idź do zbrojowni` (enter the armoury), `atakuj` (attack), `dziennik` (journal), `pomoc` (help). In a shop, just talk: `ile za kord?`, `dam 30`, `sprzedam kord za 40`.
 
@@ -93,9 +93,11 @@ More in [docs/SILNIK.md](docs/SILNIK.md) (Polish).
 The model
 ---------
 
-`neuro-npc` is Bielik 11B v2.3 ([SpeakLeash](https://huggingface.co/speakleash)) fine-tuned with QLoRA on ~3,400 conversations in the game's exact prompt format: [sebastianrozmus/neuro-npc-bielik-11b-GGUF](https://huggingface.co/sebastianrozmus/neuro-npc-bielik-11b-GGUF). On an 80-case bench of unseen cases (format, amounts, mood tag) it scores 80/80, against 6–8/80 for the untrained model.
+`neuro-npc` is Bielik 11B v3.0 ([SpeakLeash](https://huggingface.co/speakleash)) fine-tuned for this game: [rozmus/neuro-npc-bielik-11b-v3-GGUF](https://huggingface.co/rozmus/neuro-npc-bielik-11b-v3-GGUF). One model does everything the game asks of a language model: in-character lines with a mood tag, the game master's narration of each combat round, and small JSON "mind" tasks (reading what the player means, noting facts, remembering what a character said about itself).
 
-The data pipeline, training scripts (Mac and NVIDIA PC), bench and the full history of every run are in `tools/`; see [docs/SILNIK.md](docs/SILNIK.md#model-neuro-npc).
+It was trained in two stages on one RTX 4060 Ti 16 GB: QLoRA SFT on about 9,000 examples in the game's exact prompt formats (a fifth of them in other games' NPC conventions), then DPO on about 670 preference pairs. Every version is checked against the previous one by blind judges on test sets it never saw, under a decision rule written before the evaluation. Against the previous release it makes significantly fewer heavy errors in conversations (148 → 92 on 420 items), in prompts from other games and mods, and on an independent test set, with nothing significantly worse; general abilities (EQ-Bench PL, MT-Bench PL) stay at the base model's level.
+
+The data pipeline, training scripts, evaluation and the full history of every run (including what was rejected and why) are in `tools/`: [tools/model/MODELE.md](tools/model/MODELE.md) and [tools/model/HISTORIA.md](tools/model/HISTORIA.md) (Polish); see also [docs/SILNIK.md](docs/SILNIK.md#model-neuro-npc).
 
 Documentation (Polish)
 ----------------------
