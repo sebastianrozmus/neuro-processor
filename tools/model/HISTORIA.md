@@ -93,11 +93,19 @@ Gotowe modele robiły to źle: albo mówiły drewnianie (gemma), albo nie trzyma
 - 320 wierszy GPT: odesłania z okruchem wiedzy i imieniem znawcy, dopytania „to wszystko, więcej wie X”, zaczepki bez liczb, plotki na fakcie. Od run 5, 600 kroków, lr 4e‑5; test ppl 3,18.
 - Bench **76, 78**. Replay: trop 3/3, dopytanie 3/3, plotki na fakcie 2/3. Słabe: odmiana nietypowych imion („Kupcz”, „Agness”) — limit bazy 4,5B.
 
-### Krok 11 — run 7: Bielik 11B na PC (15 X) ✅ obecny model
+### Krok 11 — run 7: Bielik 11B na PC (15 X) ✅ (w grze do run 18)
 - Pierwszy trening poza Makiem: PC z RTX 4060 Ti 16 GB, WSL2 + Unsloth, QLoRA na `speakleash/Bielik-11B-v2.3-Instruct` w 4 bitach, **od zera** (adaptery 4,5B do 11B nie pasują), ten sam zbiór co run 6 (3369/185/71), 2 epoki, lr 1e‑4, rank 16 (`tools/pc/`). Wynik jako jeden GGUF Q5_K_M (7,9 GB) zarejestrowany `tools/model/import.sh`.
 - Bench **80, 80** — pierwszy raz bez jednego błędu formatu (surowy 11B: 8 i 6). Replay (`tools/bench/results/replays/replay-run7.out`): okruch wiedzy cytowany wiernie, imiona znawców bez przekręceń („Siostra Agnes w Aptece” 3/3; run 6: „Agness”, „Kupcz”), zaczepki o piwo odpowiadają i wracają do tropu, powitania mają charakter („Elo, bratku, po co mnie zaczepiasz?”), odmowa „dołącz za darmo” poprawna (run 6 posłusznie „Napisałem, że dołączam za darmo”).
 - Koszt: odpowiedź ok. **3× wolniej** (mediana 5,2 s vs 1,8 s w benchu) i 7,9 GB zamiast 5,1 GB w pamięci. Na 18 GB razem z gemmą mieści się, ale bez przeglądarki z dużą liczbą kart.
 - Słabe: czasem zdanie trochę za długie i drobne potknięcia („tanioje”, „Szkielet Wojownik”). Run 6 zostaje w Ollamie jako powrót.
+
+### Krok 12 i dalej — run 8 … run 25 (skrót)
+Ta opowieść kończy się na run 7; kolejne wersje, z liczbami, są w [MODELE.md](MODELE.md). W skrócie: po próbach z Bielikiem-Minitronem 7B (run 8–10) gra została przy Bieliku 11B. Wersje porównuje się odtąd głównie ślepymi ocenami sędziów na zestawach, których model nie widział. **run 18** (23.10, baza v2.3), **run 20v3** (03.11, baza v3.0, Umysł jeszcze na gemmie), od **run 21** (04.11) jeden model robi wszystko: kwestie postaci, opis walki jako Mistrz Gry i Umysł (JSON). **run 23** (SFT + DPO) jest w grze od 09.11. run 24 (samo SFT) przegrał z run 23 na scenach walki; run 25 (19.11) jest w ocenie końcowej.
+
+Najważniejsze lekcje z tego etapu:
+- **DPO to stała część przepisu**: porównywać SFT z SFT i DPO z DPO, inaczej porównanie mówi o technice, nie o danych.
+- **DPO szybko przestrzela**: przy lr 5e-5 dobre okno (spadek logp chosen ≤ 2 naty, margines ≥ 0,15) trwało w run 25 tylko kroki 20–22, a zapisy co ~14 kroków je przeskakiwały. `tools/pc/train.py` zapisuje teraz DPO co 2 kroki od kroku 10, bez limitu zapisów, z opcjonalnym stopem (`--stop-logp-drop`). Szerokość okna zależy od par: w run 23 trwało co najmniej 40 kroków.
+- **Dev jest zaszumiony**: poprawę liczy się dopiero, gdy górna granica 95% przedziału jest poniżej zera, a wybór najlepszego z kilku checkpointów zawyża jego wynik.
 
 ### Równolegle — poprawki gry, które dały więcej niż niejeden trening ✅
 Podpowiedzi w `[GRA]` (fakt, towar wg rodzaju, powitanie, zaczepka), **trop** z okruchem i imieniem znawcy, sprawdzanie liczb (tylko z bloku `[GRA]`, cyframi) i imion (po rdzeniu, z odmianą) z jedną poprawką, cena służby jako liczba zakazana w pogawędce, blokada wymyślania przedmiotów u najemników, odrzucone kwestie **z powodem** (zakładka Model w podglądzie). Zasada: **zanim douczysz model, sprawdź w logu, co dokładnie dostał** — w większości „bełkotów” winny był prompt.

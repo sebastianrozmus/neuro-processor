@@ -2,7 +2,7 @@
 
 Zestawienie wszystkich wersji Głosu, czyli modelu, który pisze kwestie postaci. Dla każdej wersji: baza, dane, ustawienia treningu, wynik benchu i to, co pokazały testy w grze. Pełna opowieść, z tym, co nie wyszło i dlaczego, jest w [HISTORIA.md](HISTORIA.md). Jak mierzyć, opisuje [tools/bench/README.md](../bench/README.md).
 
-**Obecny model (gra):** `neuro-npc-run21` (Bielik 11B v3.0, jeden model do rozmów, MG i Umysłu, od 04.11; wcześniej `neuro-npc-run20v3` z gemmą jako Umysłem od 03.11, `neuro-npc-run18` od 23.10). Historia niżej; najnowsze wpisy na końcu.
+**Obecny model (gra):** `neuro-npc-run23` (Bielik 11B v3.0, SFT + DPO; run24 odrzucony 13.11). Wcześniej `neuro-npc-run21` (jeden model do rozmów, MG i Umysłu, od 04.11; wcześniej `neuro-npc-run20v3` z gemmą jako Umysłem od 03.11, `neuro-npc-run18` od 23.10). Historia niżej; najnowsze wpisy na końcu.
 
 ## W skrócie
 
@@ -17,10 +17,21 @@ Zestawienie wszystkich wersji Głosu, czyli modelu, który pisze kwestie postaci
 | run 5 | Bielik 4.5B v3.0 | Mac, LoRA, od run 4 | 3070 (+550 luk z gry) | 72 / 78 | 1,7 s | ✅ |
 | run 6 | Bielik 4.5B v3.0 | Mac, LoRA, od run 5 | 3369 (+320 tropów) | 76 / 78 | 1,8–1,9 s | ✅ powrót |
 | Bielik 11B bez treningu | Bielik 11B v2.3 (Q4_K_M) | — | — | 8 / 6 | 13,2–13,6 s | ❌ nie zna formatu gry |
-| **run 7** | **Bielik 11B v2.3** | **PC RTX 4060 Ti, QLoRA, od zera** | **3369 (jak run 6)** | **80 / 80** | **5,1–5,2 s** | **✅ obecny** |
+| **run 7** | **Bielik 11B v2.3** | **PC RTX 4060 Ti, QLoRA, od zera** | **3369 (jak run 6)** | **80 / 80** | **5,1–5,2 s** | **✅ obecny do run 18** |
 | run 8 (i run 8-e1 po 1. epoce) | Bielik-Minitron-7B v3.0 | PC, QLoRA, od zera | 3117 (zbiór run 7 + 64 ręczne lekcje) | 79 / 78, e1: 79 / 77 (run 7 na tym pliku: 78 / 75) | 1,2 s na PC (run 7: 1,6–1,8 s) | ⚠️ zastąpiony przez run 9b |
 | run 10d (i 10a–c) | Bielik-Minitron-7B v3.0 | PC, DPO (QLoRA) od scalonego run 9b, 1 epoka, lr 5e-5, beta 0,1 | 278 par DPO (krok 3a), 86 odłożonych | — (scenariusze: 94% czystych wobec 84% run 9b) | 1,1 s | ⚠️ kandydat: zasady tak, charakter słabszy |
-| **run 9b** (i 9a) | **Bielik-Minitron-7B v3.0** | **PC, QLoRA, od run 8-e1, 2 × 1 epoka** | **838 od GPT (kroki 1–2) + 2000 powtórki** | **79 / 77** (9a: 79 / 78) | jak run 8 | **✅ obecny na PC** |
+| **run 9b** (i 9a) | **Bielik-Minitron-7B v3.0** | **PC, QLoRA, od run 8-e1, 2 × 1 epoka** | **838 od GPT (kroki 1–2) + 2000 powtórki** | **79 / 77** (9a: 79 / 78) | jak run 8 | ✅ wtedy obecny na PC |
+
+Tabela kończy się na run 10; dalsze wersje porównywano głównie ślepą oceną sędziów (opisy niżej, w kolejności dat). Stan na 19.11.2026:
+
+| wersja | baza | co | status |
+|---|---|---|---|
+| run 18 | Bielik 11B v2.3 | Głos + MG | w grze od 23.10 |
+| run 20v3 | Bielik 11B v3.0 | Głos + MG, Umysł na gemmie | w grze od 03.11 |
+| run 21 | Bielik 11B v3.0 | jeden model do rozmów, MG i Umysłu | w grze od 04.11 |
+| **run 23** | **Bielik 11B v3.0** | **SFT + DPO „b”** | **✅ obecny (gra)** |
+| run 24 | Bielik 11B v3.0 | samo SFT (DPO odrzucone na dev) | ❌ odrzucony 13.11 (MG istotnie gorzej) |
+| run 25 | Bielik 11B v3.0 | SFT c1625 (DPO run25d/d2 odrzucone regułą) | ⏳ ocena końcowa vs run 23 (19.11) |
 
 Bench to 80 przypadków, których model nie widział w treningu (`tools/bench/eval/regression-80.jsonl`): 24 rozmowy towarzysza, 40 najemnika i 16 kupca. Wszystkie runy od 4 wzwyż mierzone na tym samym pliku przypadków (sha `b55d2900`), temperatura 0,8, seedy 42 i 7. Różnica ±3 punkty między seedami to szum. Run 3 i run 4 seed 42 to liczby z historii; ich pliki wyników przepadły.
 
@@ -845,3 +856,15 @@ euro-trainnaliza-danych`). Hipoteza „GPT pisał lepsze dialogi niż Claude”
   - **Czasy Umysłu (mindeval, mediany):** zrozumienie gracza 1,0 s (gemma 0,65 s), notatka 1,8 s (1,2 s, w tle), przedmiot 0,9 s (1,1 s), tłumaczenie 0,7 s (0,25 s). **Pamięć karty:** run21 sam 8,7 GB wobec 12,4 GB run20v3 + gemma.
   - **Cel nieosiągnięty: spójność biografii w drugiej rozmowie** — 4 sprzeczności na 16 par (run20v3: 5). Typowe: „mąż nie żyje” → „żadnego męża nie było”, uleganie podchwytliwym pytaniom. Do poprawy w następnym zbiorze i w silniku.
   - Pipeline stanął przy rejestracji (Windows-owa Ollama nie działała), potem testy nie widziały serwera po zmianie adresu IP w sieci; wznowione `run21/resume21.sh` z `OLLAMA_URL` = brama WSL.
+
+- **13.11: run24 (SFT) odrzucony; analiza przyczyn — winny brak DPO, nie dane.** (Wpisów o run22/run23 tu brak; ich decyzje są w `D:\neuro-train\run22\`, `run23\`. Gra od run23 = SFT + DPO „b”.) run24 = dane run23 + poprawki GPT/Codex (Z6 poprawki starych odpowiedzi, Z5 złote tury rozmów, Z3 SelfNote, Z8 Umysł), SFT 10466 / 678, przepis run23, wybrany checkpoint 1,5 ep. (eval_loss 0.514/0.503/0.517/0.512, jak run23); DPO run24d odrzucone na dev. Ślepa ocena run24-SFT vs run23: **MG istotnie gorzej** (49,5 vs 25 ciężkich / 669, p=0,0001, kappa 0,75), rozmowy remis (136,5 / 110,5, p=0,61), formaty obce i G23 remis, Umysł podobny → gra zostaje na run23. Szczegóły: `D:\neuro-train\run24\DECYZJA24.md`.
+  - **Dwie niezależne analizy (Fable i Opus, `run24\analiza\{fable,opus}\RAPORT.md`) — te same wnioski:** porównano samo SFT z SFT+DPO. **Profil błędów MG run24 jest prawie identyczny jak run22 (samo SFT sprzed poprawek):** ciężkie 49,5 vs 42, dopowiedziane zdarzenie 12 vs 11,5, dopowiedziana ucieczka 6 vs 5,5, „za długie” 38 vs 36, słowa spoza protokołu 4,51 vs 4,46 (różnica +0,05 [−0,12; +0,22]); run23 po DPO: 26 / 2 / 0 / 21 / 3,5. **Run24 nie zepsuł więc MG względem SFT — nie miał „szlifu” DPO.** DPO „b” run23 miało 84 pary MG z krótszym chosen; na dev DPO skraca opis MG (160 → 140–145 znaków) i obniża błędy MG. SFT vs SFT na dev: run24 lekko lepszy (ΔD −3,2 [−7,2; +0,6]), Umysł istotnie lepszy, MG bez istotnej różnicy (p=0,54).
+  - **Co poprawki realnie zepsuły:** Z6 usunęło liczby z protokołu w 11 wierszach MG (brief pod rozmowy, bez `validate_gm22`); Z5 nie przeszło bramek build23 → powtórki w rozmowach (4,3–4,8% wierszy Z5 vs 0,1%; u sędziów ciężkie powtórki ~+50%); ~130 najdłuższych wierszy Z5 po cichu odpadło przez max-len 4096. Rozmowy się nie poprawiły, bo nowego sygnału było ~10% wierszy, a poprawki celowały w „zmyślenie”, nie w to, co liczą sędziowie (kwoty, pytania, sprzeczność z [GRA], powtórki).
+  - **Lekcje:** DPO to stała część przepisu — porównywać SFT z SFT i DPO z DPO; DPO jak „b” (złe odpowiedzi z własnego SFT, ≥80–100 par MG, pary obcych formatów, Umysł poza DPO, stop przy spadku logp chosen > ~2 naty); każda poprawka MG przez `validate_gm22`; nowe wiersze przez bramki build23; długie rozmowy przycinać, nie odrzucać. Do rozstrzygnięcia: ślepa ocena run23s (samo SFT) vs run24s-e15.
+  - Równolegle: run24v31 (te same dane, baza Bielik 11B v3.1) w treningu; gm25 v2.1 (579 rund MG, numeracja bliźniaków jak w silniku od 50b852c/f015c1c, liczebniki w narracji) gotowe do run25.
+
+- **19.11: run25 — SFT c1625 w ocenie końcowej vs run23; DPO odrzucone regułą, lekcja o przestrzeleniu.** (Reguły i wyniki: `D:\neuro-train\run25\DECYZJA25-REGULA.md`, `DECYZJA25-POPRAWKA-1811.md`, `narada-po-d2\WNIOSKI.md`, `narada-krok\`.) run25s = SFT na danych run25 (Bielik 11B v3.0), checkpoint 1625 wybrany na dev v25 (D 12,2; 1300: 15,6; 1952: 14,3). Uwaga: etykiety e10/e125/e15 w starszych raportach to przez błąd sortowania checkpointy 1952/325/650.
+  - **DPO run25d (16.11):** zapisy co ~14 kroków, limit 4 skasował jedyny punkt w progu (krok 14, margines 0,081); pozostałe punkty miały spadek logp chosen 6,3–11,9 nata → odrzucone.
+  - **run25d2 (18.11), jedyna powtórka** (zgoda po porażce run25d, jawne odstępstwo): ewaluacja co 2 kroki, stop przy spadku > 2 naty (krok 24), wybrany krok 22 (spadek 1,49, margines 0,24). Dev: straże OK, G-treść MG istotnie niższa wg walidatora (rundy −8,6 pkt [−13,1; −4,4]), T/F w kierunku gorszym (nieistotnie), **ΔD −0,8 [−4,3; +2,6] — górna granica ≥ 0 → kandydatem zostaje SFT c1625**. Zysk MG niepotwierdzony ślepo (ten sam walidator dobierał rejected).
+  - **Przestrzelenie:** przy lr 5e-5 okno (spadek ≤ 2, margines ≥ 0,15) w run25d2 to tylko kroki 20–22; w run24 zapisy 15/30 też je ominęły (inny przepis, hipoteza). W run23 b okno trwało ≥ 40 kroków, więc szerokość zależy od par. Porównania przetestowanych modeli pozostają ważne; wniosek o DPO w run25: „zysku nie wykazano przy mocy dev”, nie „DPO nie pomaga”. `tools/pc/train.py`: DPO domyślnie zapis i ewaluacja co 2 kroki od 10, bez limitu zapisów (`--eval-every -1` = stara siatka), stop opcjonalny `--stop-logp-drop`.
+  - Ocena końcowa run25s vs run23 (ślepi sędziowie, nowy zestaw MG t25) w toku; potem run26s = dane run25 na Bielik 11B v3.1.
