@@ -6,10 +6,6 @@ Neuro Processor
 [![Go](https://github.com/sebastianrozmus/neuro-processor/actions/workflows/go.yml/badge.svg)](https://github.com/sebastianrozmus/neuro-processor/actions/workflows/go.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-> *A niechaj narodowie wżdy postronni znają,<br>iż Polacy nie gęsi, iż swój ~~język~~ duży model językowy mają.*
-> — Mikołaj Rej, slightly updated
-> (*"Let foreign nations know that Poles are no geese: they have a ~~language~~ large language model of their own."*)
-
 ![Gameplay](./images/demo.gif)
 
 A text RPG for the terminal that makes up its own worlds. Describe a world in a few words and a language model invents the places, monsters, items and people. The code builds the map, stats, prices and rules, so every world is playable at once. Inspired by the Polish classic *Mózgoprocesor*. Written in Go; the game itself speaks **Polish**.

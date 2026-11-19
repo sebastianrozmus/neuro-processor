@@ -6,9 +6,6 @@ Neuro Processor
 [![Go](https://github.com/sebastianrozmus/neuro-processor/actions/workflows/go.yml/badge.svg)](https://github.com/sebastianrozmus/neuro-processor/actions/workflows/go.yml)
 [![Licencja: MIT](https://img.shields.io/badge/licencja-MIT-blue.svg)](LICENSE)
 
-> *A niechaj narodowie wżdy postronni znają,<br>iż Polacy nie gęsi, iż swój ~~język~~ duży model językowy mają.*
-> — Mikołaj Rej, z drobną poprawką
-
 ![Pokaz gry](./images/demo.gif)
 
 Tekstowa gra RPG w terminalu, która sama wymyśla światy. Opisujesz w paru słowach, o czym ma być gra, a model językowy wymyśla miejsca, potwory, przedmioty i ludzi. Mapę, statystyki, ceny i zasady wylicza kod, więc każdy świat od razu da się grać. Inspiracją był *Mózgoprocesor*: rysunek miejsca na ekranie, polecenia wpisywane tekstem.
