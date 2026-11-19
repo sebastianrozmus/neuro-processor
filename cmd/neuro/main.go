@@ -23,6 +23,7 @@ import (
 	"github.com/sebastianrozmus/neuro-processor/internal/pix"
 	"github.com/sebastianrozmus/neuro-processor/internal/server"
 	"github.com/sebastianrozmus/neuro-processor/internal/settings"
+	"github.com/sebastianrozmus/neuro-processor/internal/share"
 	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 	"github.com/sebastianrozmus/neuro-processor/internal/trace"
 	"github.com/sebastianrozmus/neuro-processor/internal/ui"
@@ -119,6 +120,10 @@ func run(listen, name string) error {
 	}
 	worldsDir := filepath.Join(dataDir, "worlds")
 	host := &host{brain: brain, name: name, listen: listen, dataDir: dataDir}
+	if cfg.ShareURL != "" {
+		host.share = &sharing{client: share.NewClient(cfg.ShareURL), dataDir: dataDir, path: settingsPath}
+	}
+
 	if split != nil {
 		host.models = &modelSettings{split: split, path: settingsPath}
 		host.master = split.Narrator()
@@ -249,6 +254,9 @@ type host struct {
 	// master narrates fights.
 	models ui.Models
 	master game.Narrator
+	// share sends conversations the player agreed to share; nil when no
+	// server is set (NEURO_SHARE_URL).
+	share *sharing
 }
 
 func (h *host) savesDir() string {
@@ -335,6 +343,9 @@ func (h *host) play(realm *game.Realm, hero, invite string) (tea.Model, tea.Cmd)
 	}
 
 	pause := ui.Pause{Saves: func() []game.State { return game.ReadStates(h.savesDir()) }, Load: h.Load, Settings: h.settings, Models: h.models}
+	if h.share != nil {
+		pause.Share = h.share
+	}
 	scene := ui.NewGame(realm, hero, h.brain, h.library, save, h.voice, h.ear, h.record).Inline(inline.Enabled()).Debug(h.inspector != nil).Pause(pause)
 
 	return scene, scene.Init()

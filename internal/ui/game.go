@@ -195,6 +195,8 @@ func (g Game) update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		g.refresh()
 
 		return g, g.listen()
+	case sharedMsg:
+		return g.shared(msg)
 	case intentMsg:
 		return g.haggle(msg)
 	case pieceMsg:

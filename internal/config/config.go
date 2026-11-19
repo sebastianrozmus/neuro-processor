@@ -78,6 +78,9 @@ type Config struct {
 	// Inspector is the address the browser inspector of the running
 	// world listens on; empty keeps it off.
 	Inspector string
+	// ShareURL is the server conversations are sent to when the player
+	// agrees (Esc → Udostępnij rozmowy); empty hides the option.
+	ShareURL string
 }
 
 // Offline reports whether no model is configured, in which case the game
@@ -146,6 +149,7 @@ func Load() Config {
 		WorldArt:      !isOff(get("NEURO_WORLD_ART", "")),
 		Images:        images(get("NEURO_IMAGES", "")),
 		Inspector:     inspector(get("NEURO_DEBUG", "")),
+		ShareURL:      strings.TrimSpace(get("NEURO_SHARE_URL", "")),
 	}
 }
 

@@ -1,0 +1,44 @@
+{
+	servers {
+		timeouts {
+			read_header 5s
+			read_body 15s
+			write 20s
+			idle 60s
+		}
+		max_header_size 16KB
+	}
+}
+
+{$SHARE_DOMAIN} {
+	# The server takes at most 128 KB; nothing larger is read here either.
+	request_body {
+		max_size 128KB
+	}
+
+	# Only what the API answers goes on; everything else ends here.
+	@api {
+		method GET POST
+		path /v1/challenge /v1/submit /v1/forget /healthz
+	}
+	handle @api {
+		reverse_proxy share:8080 {
+			# The whole body is read here first, so a slow sender holds
+			# Caddy's cheap connection, not one of the server's few slots.
+			request_buffers 128KB
+			# One header, written by Caddy, with the real address; Caddy
+			# does not pass on what a client claims there.
+			header_up X-Forwarded-For {remote_host}
+			transport http {
+				dial_timeout 3s
+				response_header_timeout 15s
+			}
+		}
+	}
+
+	handle {
+		respond "neuro-share" 404
+	}
+
+	header -Server
+}

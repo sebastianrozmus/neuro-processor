@@ -1,0 +1,77 @@
+# The collecting server behind Caddy (HTTPS with an automatic certificate).
+#   cp .env.example .env    # set SHARE_DOMAIN and SHARE_SECRET
+#   docker compose up -d --build
+name: neuro-share
+
+services:
+  share:
+    build:
+      context: ../..
+      dockerfile: deploy/share/Dockerfile
+    restart: unless-stopped
+    environment:
+      SHARE_SECRET: ${SHARE_SECRET:-}
+      SHARE_DIFFICULTY: ${SHARE_DIFFICULTY:-20}
+      SHARE_PER_KEY_DAY: ${SHARE_PER_KEY_DAY:-200}
+      SHARE_PER_DAY: ${SHARE_PER_DAY:-20000}
+      SHARE_PER_DAY_MB: ${SHARE_PER_DAY_MB:-200}
+      SHARE_TOTAL_MB: ${SHARE_TOTAL_MB:-5120}
+      SHARE_MODELS: ${SHARE_MODELS:-}
+      # Only Caddy, at its fixed address below, may say who the client is.
+      SHARE_TRUSTED_PROXIES: 172.30.77.2
+    # A named volume takes the owner of /data from the image (65532). A bind
+    # mount (./data:/data) needs `chown 65532:65532 data` first.
+    volumes:
+      - share-data:/data
+    # No published port: only Caddy reaches the server, over the compose
+    # network. Check it with: docker compose exec share /neuro-share health
+    networks:
+      share-net:
+        ipv4_address: 172.30.77.3
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    depends_on: [share]
+    environment:
+      SHARE_DOMAIN: ${SHARE_DOMAIN:?ustaw SHARE_DOMAIN w .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      share-net:
+        ipv4_address: 172.30.77.2
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    # Caddy reads whole bodies (up to 128 KB) before passing them on; the
+    # room is for a few hundred at once plus TLS.
+    mem_limit: 256m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+networks:
+  share-net:
+    ipam:
+      config:
+        - subnet: 172.30.77.0/24
+
+volumes:
+  share-data:
+  caddy-data:
+  caddy-config:

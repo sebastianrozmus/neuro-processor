@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
+	"github.com/sebastianrozmus/neuro-processor/internal/share"
 	"github.com/sebastianrozmus/neuro-processor/internal/speech"
 )
 
@@ -47,6 +48,7 @@ type Pause struct {
 	Load     func(state game.State) (tea.Model, tea.Cmd, error)
 	Settings Settings
 	Models   Models
+	Share    Sharing
 }
 
 // The screens of the pause menu.
@@ -55,6 +57,7 @@ const (
 	pauseLoad
 	pauseSettings
 	pauseModels
+	pauseShare
 )
 
 // The rows of the settings screen.
@@ -82,6 +85,20 @@ type pauseMenu struct {
 	models    map[string]ModelChoice
 	available []string
 	note      string
+	// preview shows what would be shared; sharing is a send in flight and
+	// sharedUpTo the last exchange sent. The last two outlive the menu.
+	preview    bool
+	sharing    bool
+	sharedUpTo int
+	// outbox is what Send would send, gathered when the screen opens, so
+	// that what is previewed is exactly what goes; outboxUpTo is its last
+	// exchange.
+	outbox     share.Payload
+	outboxUpTo int
+	// retry says the last send ended without an answer: the outbox is kept
+	// as it was for the next try. page is the page of the preview.
+	retry bool
+	page  int
 }
 
 var (
@@ -110,7 +127,11 @@ func (g Game) Pause(pause Pause) Game {
 
 // openPause opens the pause menu on its first screen.
 func (g *Game) openPause() {
-	g.pause = pauseMenu{open: true}
+	kept := g.pause
+	g.pause = pauseMenu{
+		open: true, sharing: kept.sharing, sharedUpTo: kept.sharedUpTo,
+		outbox: kept.outbox, outboxUpTo: kept.outboxUpTo, retry: kept.retry,
+	}
 }
 
 // pauseItems are the entries of the first screen.
@@ -130,6 +151,10 @@ func (g Game) pauseItems() []string {
 
 	if g.pauser.Models != nil {
 		items = append(items, "Modele językowe")
+	}
+
+	if g.pauser.Share != nil {
+		items = append(items, "Udostępnij rozmowy")
 	}
 
 	return append(items, "Wyjdź z gry")
@@ -159,6 +184,8 @@ func (g Game) pauseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch g.pause.screen {
 	case pauseLoad:
 		return g.loadKey(msg)
+	case pauseShare:
+		return g.shareKey(msg)
 	case pauseModels:
 		g.modelsKey(msg)
 
@@ -207,6 +234,8 @@ func (g Game) pauseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				g.pause.note = "Serwer modeli nie podał listy: " + err.Error()
 			}
+		case "Udostępnij rozmowy":
+			return g.openShare(), nil
 		case "Wyjdź z gry":
 			return g, tea.Quit
 		}
@@ -353,6 +382,8 @@ func (g Game) pauseView() string {
 	var lines []string
 
 	switch g.pause.screen {
+	case pauseShare:
+		lines = g.shareView()
 	case pauseLoad:
 		lines = append(lines, titleStyle.Render("Wczytaj grę"), "")
 		for index, save := range g.pause.saves {
