@@ -8,6 +8,12 @@
 //
 // The "generated" world of the last part comes from tools/demo/world.json,
 // so the demo does not depend on a language model.
+//
+// With -live the lines, the reading of the player and the game master's
+// narration of every combat round come from the models the NEURO_*
+// variables name, as in the game (the world itself stays the embedded one):
+//
+//	go run ./tools/demo -live -label run23 -out /tmp/demo-run23
 package main
 
 import (
@@ -20,6 +26,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -27,11 +34,131 @@ import (
 	"github.com/muesli/termenv"
 
 	"github.com/sebastianrozmus/neuro-processor/internal/avatars"
+	"github.com/sebastianrozmus/neuro-processor/internal/config"
 	"github.com/sebastianrozmus/neuro-processor/internal/game"
 	"github.com/sebastianrozmus/neuro-processor/internal/inspect"
+	"github.com/sebastianrozmus/neuro-processor/internal/llm"
 	"github.com/sebastianrozmus/neuro-processor/internal/ui"
 	"github.com/sebastianrozmus/neuro-processor/internal/world"
 )
+
+// live counts the model calls in flight, so that a frame is taken only once
+// the game master has told the round; nil when the demo runs without a model.
+var live *counted
+
+// counted passes every call to a real brain and counts those in flight.
+type counted struct {
+	brain game.Brain
+	mu    sync.Mutex
+	busy  int
+}
+
+func (c *counted) track(delta int) {
+	c.mu.Lock()
+	c.busy += delta
+	c.mu.Unlock()
+}
+
+func (c *counted) idle() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.busy == 0
+}
+
+func (c *counted) Interpret(ctx context.Context, request game.InterpretRequest) (game.Intent, error) {
+	c.track(1)
+	defer c.track(-1)
+
+	return c.brain.Interpret(ctx, request)
+}
+
+func (c *counted) Narrate(ctx context.Context, request game.NarrateRequest) (string, error) {
+	c.track(1)
+	defer c.track(-1)
+
+	return c.brain.Narrate(ctx, request)
+}
+
+// liveBrain builds the models of the game from the NEURO_* variables, as
+// cmd/neuro does: the Mind reads the player, the Voice speaks, the Master
+// narrates fights.
+func liveBrain() (*counted, game.Narrator) {
+	cfg := config.Load()
+	if cfg.Offline() {
+		panic("-live needs NEURO_LLM_BASE_URL and NEURO_LLM_MODEL")
+	}
+
+	role := func(role, base, key, model string, window int) *llm.Client {
+		return &llm.Client{BaseURL: base, APIKey: key, Model: model, MaxTokens: cfg.MaxTokens, Context: window, Role: role}
+	}
+
+	talk, window := cfg.Model, cfg.Context
+	if cfg.TalkModel != "" {
+		talk, window = cfg.TalkModel, cfg.TalkContext
+	}
+
+	master := talk
+	if cfg.MasterModel != "" {
+		master = cfg.MasterModel
+	}
+
+	split := llm.Split{
+		Mind:   role(llm.RoleMind, cfg.BaseURL, cfg.APIKey, cfg.Model, cfg.Context),
+		Voice:  role(llm.RoleTalk, cfg.TalkBaseURL, cfg.TalkAPIKey, talk, window),
+		Master: role(llm.RoleFight, cfg.TalkBaseURL, cfg.TalkAPIKey, master, window),
+	}
+	brain := &counted{brain: split}
+
+	return brain, &countedNarrator{brain, split.Narrator()}
+}
+
+// countedNarrator is the game master, counted with the rest.
+type countedNarrator struct {
+	counter *counted
+	master  game.Narrator
+}
+
+func (n *countedNarrator) Narrate(ctx context.Context, request game.NarrateRequest) (string, error) {
+	n.counter.track(1)
+	defer n.counter.track(-1)
+
+	return n.master.Narrate(ctx, request)
+}
+
+// settle waits until the models have answered (the game master tells a
+// round in the background) and lets the screen show what they said.
+func settle(model tea.Model) tea.Model {
+	if live == nil {
+		return model
+	}
+
+	time.Sleep(200 * time.Millisecond) // the narration starts in a goroutine of its own
+
+	for deadline := time.Now().Add(3 * time.Minute); !live.idle() && time.Now().Before(deadline); {
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	time.Sleep(200 * time.Millisecond)
+
+	// The game's own listener (the first command of Init) turns the pending
+	// change of the world into a refresh.
+	batch, ok := model.Init()().(tea.BatchMsg)
+	if !ok || len(batch) == 0 {
+		return model
+	}
+
+	changed := make(chan tea.Msg, 1)
+	go func() { changed <- batch[0]() }()
+
+	select {
+	case msg := <-changed:
+		model, _ = model.Update(msg)
+	case <-time.After(2 * time.Second):
+	}
+
+	return model
+}
 
 //go:embed world.json
 var generatedWorld []byte
@@ -96,10 +223,16 @@ func (r *recorder) play(model tea.Model, hold float64) {
 	}
 }
 
+// credit names, under every title, the model that wrote the lines.
+var credit string
+
 // card draws a title screen.
 func (r *recorder) card(title, subtitle string, seconds float64) {
 	block := lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true).Render(title) + "\n\n" +
-		lipgloss.NewStyle().Foreground(lipgloss.Color("250")).Render(subtitle)
+		lipgloss.NewStyle().Foreground(lipgloss.Color("250")).Width(100).Align(lipgloss.Center).Render(subtitle)
+	if credit != "" {
+		block += "\n\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("109")).Render(credit)
+	}
 	r.frame(lipgloss.Place(columns, rows, lipgloss.Center, lipgloss.Center, block), seconds)
 }
 
@@ -139,6 +272,7 @@ func (demoBrain) Narrate(_ context.Context, request game.NarrateRequest) (string
 // launcher starts games the demo's menu picks.
 type launcher struct {
 	brain   game.Brain
+	master  game.Narrator
 	library *avatars.Library
 	last    *game.Realm
 }
@@ -150,6 +284,10 @@ func (l *launcher) New(spec world.Spec) (tea.Model, tea.Cmd, error) {
 	}
 
 	realm := game.NewRealm(built, 7)
+	if l.master != nil {
+		realm.SetMaster(l.master, nil)
+	}
+
 	l.last = realm
 	name := realm.Join("Seba", "wojownik")
 
@@ -177,6 +315,8 @@ func (generator) GenerateWorld(_ context.Context, mode world.Mode, theme string)
 func main() {
 	out := flag.String("out", "demo-frames", "folder for the frames")
 	only := flag.String("only", "", "record one part alone: imagination, tabletop, adventure, generated or inspector")
+	useModels := flag.Bool("live", false, "lines and the game master's narration from the NEURO_* models")
+	label := flag.String("label", "", "with -live: the model's name shown on the title cards, e.g. run23")
 	flag.Parse()
 
 	// Without a terminal lipgloss drops every colour (HP bars, selections, foes came out white);
@@ -202,6 +342,17 @@ func main() {
 	rec := &recorder{dir: *out}
 	library := avatars.Open("")
 	launch := &launcher{brain: demoBrain{}, library: library}
+
+	if *useModels {
+		var master game.Narrator
+
+		live, master = liveBrain()
+		launch.brain, launch.master = live, master
+
+		if *label != "" {
+			credit = "Kwestie, rozumienie gracza i narracja Mistrza Gry: model " + *label + "."
+		}
+	}
 
 	parts := map[string]func(){
 		"imagination": func() { imagination(rec, launch, byMode[world.ModeImagination]) },
@@ -268,6 +419,7 @@ func typed(rec *recorder, model tea.Model, text string, hold float64) tea.Model 
 		model, cmd = model.Update(cmd())
 	}
 
+	model = settle(model)
 	rec.play(model, hold)
 
 	return model
@@ -330,6 +482,12 @@ func imagination(rec *recorder, launch *launcher, spec world.Spec) {
 
 	model = typed(rec, model, "idź do zbrojowni", 2)
 	model = typed(rec, model, "co słychać?", 2.8)
+
+	if live != nil {
+		// A real keeper has more to say than the canned lines.
+		model = typed(rec, model, "a co wiesz o kryptach?", 3.2)
+	}
+
 	model = typed(rec, model, "ile za kord?", 2.6)
 	model = typed(rec, model, "dam 30", 2.6)
 	model = typed(rec, model, "biorę", 2.6)
@@ -363,6 +521,17 @@ func tabletop(rec *recorder, launch *launcher, spec world.Spec) {
 	model = typed(rec, model, "najmij "+firstName(spec.Companions[0].Name), 1.6)
 	// Companions now wait for the player's orders in a fight; the demo lets them act alone.
 	model = typed(rec, model, "autowalka", 1.2)
+
+	if live != nil {
+		// A word with the new companion: who they are, in their own voice.
+		mate := firstName(spec.Companions[0].Name)
+		model = typed(rec, model, "rozmawiaj z "+mate, 1.6)
+		model = typed(rec, model, "skąd jesteś?", 3.2)
+		model = typed(rec, model, "masz kogoś bliskiego?", 3.2)
+		model = typed(rec, model, "dobra, ruszamy na szczury", 3)
+		model = press(model, tea.KeyEsc)
+		rec.shot(model, 1)
+	}
 	model = walkToFight(rec, model, realm, name)
 	rec.shot(model, 2.4)
 
@@ -403,6 +572,11 @@ func tabletop(rec *recorder, launch *launcher, spec world.Spec) {
 }
 
 func adventure(rec *recorder, launch *launcher, spec world.Spec) {
+	// The rooms, things and people of an adventure speak from the world file, never from a model.
+	defer func(kept string) { credit = kept }(credit)
+	if credit != "" {
+		credit = "Opisy i odpowiedzi ludzi pochodzą z pliku świata, bez modelu."
+	}
 	rec.card("3. Przygodowa", spec.Name+": pomieszczenia, rzeczy, zagadki i ludzie, jak w Mózgoprocesorze.", 3)
 
 	model, _, _ := launch.New(spec)
@@ -419,6 +593,11 @@ func adventure(rec *recorder, launch *launcher, spec world.Spec) {
 }
 
 func generated(rec *recorder, launch *launcher, presets []world.Spec) {
+	// The world itself is a design saved earlier (a model takes minutes over one); only the lines are live.
+	defer func(kept string) { credit = kept }(credit)
+	if credit != "" {
+		credit = "Projekt świata zapisany wcześniej, kwestie i narracja Mistrza Gry: " + strings.TrimPrefix(credit, "Kwestie, rozumienie gracza i narracja Mistrza Gry: ")
+	}
 	rec.card("4. Generowanie świata", "Opisujesz temat, a model projektuje świat; mapę, zasady i ceny wylicza gra.", 3)
 
 	menu := size(ui.NewMenu(nil, presets, nil, generator{}, os.TempDir(), "demo", launch))

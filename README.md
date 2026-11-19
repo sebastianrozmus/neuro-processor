@@ -32,8 +32,12 @@ Highlights
 
 | | |
 |---|---|
-| ![Haggling with an armourer](./images/handel.png) | ![D&D fight with a companion](./images/walka.png) |
-| ![Adventure mode](./images/przygoda.png) | ![Browser inspector](./images/podglad.png) |
+| ![Haggling with an armourer](./images/handel.png)<br>Haggling with an armourer (model run23) | ![D&D fight with a companion](./images/walka.png)<br>D&D fight with game-master commentary (run23) |
+| ![Talking to Borin](./images/rozmowa.png)<br>Talking to Borin (run25, candidate not adopted) | ![Game master narrating a rat fight](./images/mistrz-gry.png)<br>Game master narrating a fight (run25, candidate not adopted) |
+| ![Generated world, a crab on an island](./images/wyspa.png)<br>Generated world (run21) | ![Adventure mode](./images/przygoda.png)<br>Adventure mode (texts from the world file) |
+| ![Browser inspector](./images/podglad.png)<br>Browser inspector | |
+
+The animation at the top and the screenshots come from real models (`go run ./tools/demo -live`). Each caption names the run that wrote the text.
 
 Game modes
 ----------

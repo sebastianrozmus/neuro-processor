@@ -31,8 +31,12 @@ Co tu jest
 
 | | |
 |---|---|
-| ![Targ w zbrojowni](./images/handel.png) | ![Walka D&D z towarzyszem](./images/walka.png) |
-| ![Tryb przygodowy](./images/przygoda.png) | ![Podgląd w przeglądarce](./images/podglad.png) |
+| ![Targ w zbrojowni](./images/handel.png)<br>Targ w zbrojowni (model run23) | ![Walka D&D z towarzyszem](./images/walka.png)<br>Walka D&D z komentarzem Mistrza Gry (run23) |
+| ![Rozmowa z Borinem](./images/rozmowa.png)<br>Rozmowa z Borinem (run25, kandydat nieprzyjęty) | ![Mistrz Gry opisuje walkę ze szczurem](./images/mistrz-gry.png)<br>Mistrz Gry opisuje walkę (run25, kandydat nieprzyjęty) |
+| ![Wygenerowany świat, krab na wyspie](./images/wyspa.png)<br>Wygenerowany świat (run21) | ![Tryb przygodowy](./images/przygoda.png)<br>Tryb przygodowy (teksty z pliku świata) |
+| ![Podgląd w przeglądarce](./images/podglad.png)<br>Podgląd w przeglądarce | |
+
+Animacja na górze i zrzuty pochodzą z prawdziwych modeli (`go run ./tools/demo -live`). Pod każdym obrazkiem podano run, który wygenerował tekst.
 
 Rodzaje gry
 -----------
