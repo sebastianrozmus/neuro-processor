@@ -39,12 +39,51 @@ def render(messages):
     return prompt, reply
 
 
+LLAMA_TOKENIZE = os.path.expanduser("~/.unsloth/llama.cpp/llama-tokenize")
+
+
+def game_tokenizer(base):
+    """The tokenizer as llama.cpp (Ollama, the game) cuts the text: with the
+    legacy SentencePiece rule, "▁" before text that follows a special token
+    (<|im_start|>▁assistant). Bielik v3.1's newer tokenizer drops that "▁", so
+    run26s learnt role tokens the game never feeds; v3.0's kept it. The <s>
+    llama.cpp puts first is added in encode (v3.0 adds none of its own)."""
+    from transformers import AutoTokenizer
+    return AutoTokenizer.from_pretrained(base, legacy=True, from_slow=True)
+
+
+def with_bos(tokenizer, ids, spans):
+    if tokenizer.bos_token_id is not None and ids[:1] != [tokenizer.bos_token_id]:
+        return [tokenizer.bos_token_id] + ids, [(0, 0)] + spans
+    return ids, spans
+
+
+def check_llama(tokenizer, rows, gguf, count=24):
+    """Stops the run unless the training tokens of a spread of rows equal what
+    llama.cpp makes of the same text with the base's GGUF (run26s lesson: the
+    rendered text was identical, the tokens were not)."""
+    import subprocess
+    step = max(1, len(rows) // count)
+    for row in rows[::step][:count]:
+        prompt, reply = render(row["messages"])
+        tokens = tokenizer(prompt + reply, add_special_tokens=True, return_offsets_mapping=True)
+        ids, _ = with_bos(tokenizer, tokens["input_ids"], tokens["offset_mapping"])
+        out = subprocess.run([LLAMA_TOKENIZE, "-m", gguf, "-p", prompt + reply, "--ids", "--log-disable"],
+                             capture_output=True, text=True, check=True).stdout
+        ref = json.loads(out.strip().splitlines()[-1])
+        if ids != ref:
+            k = next((j for j, (a, b) in enumerate(zip(ids, ref)) if a != b), min(len(ids), len(ref)))
+            sys.exit(f"tokeny treningu ≠ llama.cpp od pozycji {k}: {tokenizer.convert_ids_to_tokens(ids[k:k + 4])} "
+                     f"vs {tokenizer.convert_ids_to_tokens(ref[k:k + 4])}")
+    print(f"tokeny zgodne z llama.cpp ({gguf}) na {min(count, len(rows[::step]))} wierszach", flush=True)
+
+
 def load(path):
     with open(path, encoding="utf-8") as handle:
         return [json.loads(line) for line in handle if line.strip()]
 
 
-def encode(rows, tokenizer, limit):
+def encode(rows, tokenizer, limit, bos=True, kept=None):
     """Tokens and labels: the prompt is masked (-100), the reply is learnt.
     Rows longer than the limit are dropped, not cut, so no reply is
     learnt without its prompt.
@@ -52,22 +91,30 @@ def encode(rows, tokenizer, limit):
     The whole conversation is tokenized at once, as Ollama does: Bielik's
     SentencePiece tokenizer puts "▁" before any text tokenized alone, so a
     reply tokenized apart would start with "▁[" where the game sees "[".
-    The mask is set by character offsets, not by a separate prompt count."""
+    The mask is set by character offsets, not by a separate prompt count.
+
+    With bos (the llama.cpp path, run27 on) two more checks, from the Codex
+    review of 20.11: the prompt tokenized alone must be the prefix of the whole
+    (that is what the game feeds before the reply), and the last token must be
+    a learnt <|im_end|>. kept collects the indices of the rows used, so two
+    runs can be compared on the same rows."""
     encoded, dropped = [], 0
-    for row in rows:
+    end_id = tokenizer("<|im_end|>", add_special_tokens=False)["input_ids"]
+    for index, row in enumerate(rows):
         messages = row["messages"]
         if not messages or messages[-1]["role"] != "assistant":
             dropped += 1
             continue
         prompt, reply = render(messages)
         tokens = tokenizer(prompt + reply, add_special_tokens=True, return_offsets_mapping=True)
-        ids = tokens["input_ids"]
+        ids, spans = tokens["input_ids"], tokens["offset_mapping"]
+        if bos:
+            ids, spans = with_bos(tokenizer, ids, spans)
         if len(ids) > limit:
             dropped += 1
             continue
         # Special tokens (bos) have the empty span (0, 0) and belong to the prompt.
         # A token across the boundary would teach a split the game never feeds.
-        spans = tokens["offset_mapping"]
         if any(start < len(prompt) < end for start, end in spans):
             dropped += 1
             continue
@@ -75,6 +122,14 @@ def encode(rows, tokenizer, limit):
         if all(label == -100 for label in labels):
             dropped += 1
             continue
+        if bos:
+            alone = tokenizer(prompt, add_special_tokens=True, return_offsets_mapping=True)
+            head, _ = with_bos(tokenizer, alone["input_ids"], alone["offset_mapping"])
+            if ids[:len(head)] != head or any(label != -100 for label in labels[:len(head)]) \
+                    or len(end_id) != 1 or ids[-1] != end_id[0] or labels[-1] != end_id[0]:
+                sys.exit(f"wiersz {index}: prompt nie jest prefiksem całości albo końcowy <|im_end|> nie jest uczony")
+        if kept is not None:
+            kept.append(index)
         encoded.append({"input_ids": ids, "attention_mask": [1] * len(ids), "labels": labels})
     return encoded, dropped
 
@@ -262,6 +317,8 @@ def main():
     parser.add_argument("--stop-logp-drop", type=float, default=0.0, help="DPO: end the run once eval logp chosen falls more than this many nats")
     parser.add_argument("--eval-only", action="store_true", help="DPO: no training; evaluate the --resume adapter on valid per --cat-file category")
     parser.add_argument("--cat-file", default="", help="DPO --eval-only: JSON list, one category per valid.jsonl line")
+    parser.add_argument("--llama-check", default="", help="SFT: GGUF of the base; stop unless training tokens equal llama.cpp's")
+    parser.add_argument("--hf-tokens", action="store_true", help="SFT: tokenize as before run27 (HF tokenizer as loaded, no added <s>)")
     args = parser.parse_args()
 
     from unsloth import FastLanguageModel  # imported first, as Unsloth asks
@@ -279,8 +336,19 @@ def main():
     if args.dpo:
         return train_dpo(args, model, tokenizer)
 
-    train, dropped = encode(load(os.path.join(args.data, "train.jsonl")), tokenizer, args.max_len)
-    valid, _ = encode(load(os.path.join(args.data, "valid.jsonl")), tokenizer, args.max_len)
+    # SFT tokens as the game's llama.cpp cuts them (run26s lesson); --hf-tokens keeps the old way for repeats.
+    cutter = tokenizer if args.hf_tokens else game_tokenizer(args.base)
+    rows = load(os.path.join(args.data, "train.jsonl"))
+    if args.llama_check:
+        check_llama(cutter, rows, args.llama_check)
+    elif not args.hf_tokens:
+        print("UWAGA: bez --llama-check zgodność tokenów z grą nie jest sprawdzona", flush=True)
+    kept_train, kept_valid = [], []
+    train, dropped = encode(rows, cutter, args.max_len, bos=not args.hf_tokens, kept=kept_train)
+    valid, _ = encode(load(os.path.join(args.data, "valid.jsonl")), cutter, args.max_len, bos=not args.hf_tokens, kept=kept_valid)
+    os.makedirs(args.out, exist_ok=True)
+    with open(os.path.join(args.out, "rows.json"), "w", encoding="utf-8") as handle:
+        json.dump({"train": kept_train, "valid": kept_valid, "hf_tokens": args.hf_tokens}, handle)
     print(f"train {len(train)} (pominięte za długie albo bez odpowiedzi: {dropped}), valid {len(valid)}", flush=True)
 
     if args.dry:
