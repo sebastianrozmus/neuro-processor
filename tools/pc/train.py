@@ -58,24 +58,41 @@ def with_bos(tokenizer, ids, spans):
     return ids, spans
 
 
-def check_llama(tokenizer, rows, gguf, count=24):
+def check_llama(tokenizer, rows, gguf, bos=True, count=24):
     """Stops the run unless the training tokens of a spread of rows equal what
     llama.cpp makes of the same text with the base's GGUF (run26s lesson: the
-    rendered text was identical, the tokens were not)."""
+    rendered text was identical, the tokens were not). Both the whole example
+    and the prompt alone (what the game feeds before the reply) are compared,
+    with the same <s> rule as encode."""
     import subprocess
-    step = max(1, len(rows) // count)
-    for row in rows[::step][:count]:
+    sample = [row for row in rows if row.get("messages") and row["messages"][-1]["role"] == "assistant"]
+    sample = sample[::max(1, len(sample) // count)][:count]
+    if not sample:
+        sys.exit("kontrola tokenów: brak wierszy z odpowiedzią asystenta")
+    for row in sample:
         prompt, reply = render(row["messages"])
-        tokens = tokenizer(prompt + reply, add_special_tokens=True, return_offsets_mapping=True)
-        ids, _ = with_bos(tokenizer, tokens["input_ids"], tokens["offset_mapping"])
-        out = subprocess.run([LLAMA_TOKENIZE, "-m", gguf, "-p", prompt + reply, "--ids", "--log-disable"],
-                             capture_output=True, text=True, check=True).stdout
-        ref = json.loads(out.strip().splitlines()[-1])
-        if ids != ref:
-            k = next((j for j, (a, b) in enumerate(zip(ids, ref)) if a != b), min(len(ids), len(ref)))
-            sys.exit(f"tokeny treningu ≠ llama.cpp od pozycji {k}: {tokenizer.convert_ids_to_tokens(ids[k:k + 4])} "
-                     f"vs {tokenizer.convert_ids_to_tokens(ref[k:k + 4])}")
-    print(f"tokeny zgodne z llama.cpp ({gguf}) na {min(count, len(rows[::step]))} wierszach", flush=True)
+        for text in (prompt + reply, prompt):
+            tokens = tokenizer(text, add_special_tokens=True, return_offsets_mapping=True)
+            ids = tokens["input_ids"]
+            if bos:
+                ids, _ = with_bos(tokenizer, ids, tokens["offset_mapping"])
+            out = subprocess.run([LLAMA_TOKENIZE, "-m", gguf, "-p", text, "--ids", "--log-disable"],
+                                 capture_output=True, text=True, check=True).stdout
+            ref = json.loads(out.strip().splitlines()[-1])
+            if ids != ref:
+                k = next((j for j, (a, b) in enumerate(zip(ids, ref)) if a != b), min(len(ids), len(ref)))
+                sys.exit(f"tokeny treningu ≠ llama.cpp od pozycji {k}: {tokenizer.convert_ids_to_tokens(ids[k:k + 4])} "
+                         f"vs {tokenizer.convert_ids_to_tokens(ref[k:k + 4])}")
+    print(f"tokeny zgodne z llama.cpp ({gguf}) na {len(sample)} wierszach (całość i sam prompt)", flush=True)
+
+
+def sha256(path):
+    import hashlib
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def load(path):
@@ -319,7 +336,25 @@ def main():
     parser.add_argument("--cat-file", default="", help="DPO --eval-only: JSON list, one category per valid.jsonl line")
     parser.add_argument("--llama-check", default="", help="SFT: GGUF of the base; stop unless training tokens equal llama.cpp's")
     parser.add_argument("--hf-tokens", action="store_true", help="SFT: tokenize as before run27 (HF tokenizer as loaded, no added <s>)")
+    parser.add_argument("--skip-llama-check", action="store_true", help="SFT: train without --llama-check (not recommended)")
+    parser.add_argument("--no-manifest-check", action="store_true", help="SFT --resume-from: skip comparing with the checkpoint run's rows.json")
     args = parser.parse_args()
+    # Checked before the 11B model loads, so a wrong call fails in seconds, not minutes.
+    if args.eval_only and not args.dpo:
+        parser.error("--eval-only działa tylko z --dpo")
+    if args.eval_only and not (args.resume and args.cat_file):
+        parser.error("--eval-only wymaga --resume (adapter) i --cat-file")
+    if args.dpo and args.resume_from:
+        parser.error("DPO nie obsługuje --resume-from")
+    if args.dpo and args.resume and not args.eval_only:
+        parser.error("DPO nie kontynuuje z --resume (adapter byłby pominięty); --resume tylko z --eval-only")
+    if args.resume and args.resume_from:
+        parser.error("--resume i --resume-from naraz: wybierz jedno")
+    if not args.dpo and not args.hf_tokens and not args.llama_check and not args.skip_llama_check:
+        parser.error("podaj --llama-check GGUF bazy (zgodność tokenów z grą), --hf-tokens (stara tokenizacja) "
+                     "albo świadomie --skip-llama-check")
+    if args.epochs <= 0 or args.accumulate <= 0 or args.rank <= 0 or args.save_parts <= 0 or args.stop_at < 0:
+        parser.error("epochs, accumulate, rank, save-parts muszą być dodatnie, stop-at ≥ 0")
 
     from unsloth import FastLanguageModel  # imported first, as Unsloth asks
     import torch
@@ -338,18 +373,38 @@ def main():
 
     # SFT tokens as the game's llama.cpp cuts them (run26s lesson); --hf-tokens keeps the old way for repeats.
     cutter = tokenizer if args.hf_tokens else game_tokenizer(args.base)
-    rows = load(os.path.join(args.data, "train.jsonl"))
+    train_path, valid_path = os.path.join(args.data, "train.jsonl"), os.path.join(args.data, "valid.jsonl")
+    rows = load(train_path)
     if args.llama_check:
-        check_llama(cutter, rows, args.llama_check)
-    elif not args.hf_tokens:
-        print("UWAGA: bez --llama-check zgodność tokenów z grą nie jest sprawdzona", flush=True)
+        check_llama(cutter, rows, args.llama_check, bos=not args.hf_tokens)
     kept_train, kept_valid = [], []
     train, dropped = encode(rows, cutter, args.max_len, bos=not args.hf_tokens, kept=kept_train)
-    valid, _ = encode(load(os.path.join(args.data, "valid.jsonl")), cutter, args.max_len, bos=not args.hf_tokens, kept=kept_valid)
-    os.makedirs(args.out, exist_ok=True)
-    with open(os.path.join(args.out, "rows.json"), "w", encoding="utf-8") as handle:
-        json.dump({"train": kept_train, "valid": kept_valid, "hf_tokens": args.hf_tokens}, handle)
-    print(f"train {len(train)} (pominięte za długie albo bez odpowiedzi: {dropped}), valid {len(valid)}", flush=True)
+    valid, dropped_valid = encode(load(valid_path), cutter, args.max_len, bos=not args.hf_tokens, kept=kept_valid)
+    if not train or not valid:
+        sys.exit(f"po filtrowaniu pusty zbiór: train {len(train)}, valid {len(valid)}")
+    manifest = {"version": 2, "train": kept_train, "valid": kept_valid, "hf_tokens": args.hf_tokens, "base": args.base,
+                "max_len": args.max_len, "sha256": {"train.jsonl": sha256(train_path), "valid.jsonl": sha256(valid_path)},
+                "llama_check": args.llama_check or None}
+    rows_path = os.path.join(args.out, "rows.json")
+    if args.resume_from and not args.no_manifest_check:
+        # the manifest of the run the checkpoint belongs to: <out>/checkpoints/checkpoint-N -> <out>/rows.json
+        source = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(args.resume_from))), "rows.json")
+        if not os.path.exists(source):
+            sys.exit(f"--resume-from: brak {source}; nie wiadomo, na jakich danych i tokenach powstał checkpoint "
+                     "(świadomie: --no-manifest-check)")
+        with open(source, encoding="utf-8") as handle:
+            before = json.load(handle)
+        keys = ("train", "valid", "hf_tokens", "sha256", "base", "max_len")
+        if before.get("version") != manifest["version"]:
+            sys.exit(f"--resume-from: {source} w starym formacie (bez hashy danych) — nie da się zweryfikować "
+                     "(świadomie: --no-manifest-check)")
+        if any(before.get(key) != manifest[key] for key in keys):
+            sys.exit(f"--resume-from: dane, baza albo tokenizacja różnią się od {source}")
+    if not args.dry:
+        os.makedirs(args.out, exist_ok=True)
+        with open(rows_path, "w", encoding="utf-8") as handle:
+            json.dump(manifest, handle)
+    print(f"train {len(train)} (pominięte: {dropped}), valid {len(valid)} (pominięte: {dropped_valid})", flush=True)
 
     if args.dry:
         prompt, reply = render(load(os.path.join(args.data, "train.jsonl"))[0]["messages"])
